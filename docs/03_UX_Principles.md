@@ -1,6 +1,6 @@
 # 03 – UX princípy
 
-> Stav: v0.1 (2026-10-13), rozsah: MVP (jeden používateľ, telefón, týždenné použitie). [user] = zadanie zakladateľa, [predpoklad] = doplnil Claude, treba potvrdiť. Odkazy: D-xxx v `decisions/Decisions.md`, UR-xx v `02_User_Requirements.md`.
+> Stav: v0.2 (2026-10-13), rozsah: MVP (jeden používateľ, telefón, týždenné použitie). [user] = zadanie zakladateľa, [predpoklad] = doplnil Claude, treba potvrdiť. Odkazy: D-xxx v `decisions/Decisions.md`, UR-xx v `02_User_Requirements.md`.
 
 ## Základné princípy
 
@@ -13,7 +13,7 @@
 ### 2. Informácia, nie tlak
 - Predbežný dopad transakcie sa ukáže ako krátky text, **bez farieb a upozornení** (D-014), napr. „predbežne +2 mesiace“.
 - Žiadne červené/zelené hodnotenie rozhodnutí ako „dobré“ alebo „zlé“. Aplikácia nehodnotí používateľa. [predpoklad]
-- Žiadne notifikácie okrem jednej pripomienky mesačného vyhodnotenia, ktorú používateľ môže vypnúť. [predpoklad]
+- Žiadne notifikácie okrem jednej jemnej pripomienky mesačného vyhodnotenia, ktorú používateľ môže vypnúť (D-016). [predpoklad]
 - Jazyk je pokojný a vecný; žiadne vyčítavé ani pretlačajúce formulácie („Mal si…“, „Už len X dní!“). [predpoklad]
 
 ### 3. Transparentnosť a poctivosť
@@ -31,7 +31,7 @@
 ### 5. Mobile-first (D-012)
 - Navrhované pre telefón, jednou rukou; dostatočne veľké dotykové plochy. [predpoklad]
 - Číselné polia otvárajú číselnú klávesnicu; zadanie transakcie do niekoľkých dotykov. [predpoklad]
-- Text čitateľný bez priblíženia; dostatočný kontrast; podpora tmavého režimu a systémového nastavenia veľkosti písma. [predpoklad]
+- Text čitateľný bez priblíženia; dostatočný kontrast; svetlý a tmavý režim podľa systémového nastavenia (D-016); rešpektuje systémovú veľkosť písma. [predpoklad]
 
 ### 6. Dôvera a súkromie
 - Dáta ostávajú v zariadení (D-009); aplikácia to na vhodnom mieste hovorí jednoducho.
@@ -53,8 +53,8 @@
 - Význam sa neprenáša len farbou; podpora čítačiek obrazovky (správne popisy polí a hodnôt); navigácia klávesnicou.
 - V MVP je používateľ len zakladateľ, ale princípy dostupnosti platia už teraz, aby ich nebolo treba dodatočne dorábať pre EÚ.
 
-## Otvorené otázky
-1. Má byť aplikácia vo svetlom aj tmavom režime od začiatku, alebo stačí sledovať systémové nastavenie?
-2. Ako presne ukážeme rozdiel medzi predbežným a skutočným stavom po mesačnom vyhodnotení (prenesené z požiadaviek)?
-3. Ako sa vizuálne vyjadrí rozsah dátumov (text „od – do“, alebo jednoduchý graf)? Odporúčam v MVP text, bez grafu.
-4. Čo robiť pri vynechanom mesačnom vyhodnotení (prenesené z požiadaviek)?
+## Vyriešené otázky
+- **Rozsah dátumov (D-016):** text „od – do“ v MVP; graf sa môže pridať neskôr.
+- **Svetlý a tmavý režim (D-016):** podľa systémového nastavenia, bez vlastného prepínača v MVP.
+- **Vynechané mesačné vyhodnotenie (D-016):** jemná pripomienka a viditeľný dátum posledného vyhodnotenia. Nič sa automaticky nemení ani nevynucuje; cieľ ostáva na poslednom overenom stave a aplikácia to jasne označí.
+- **Rozdiel predbežný vs. skutočný stav (D-016) [predpoklad, na overenie v dizajne]:** po vyhodnotení sa zobrazí, o koľko sa zmenil dátum cieľa oproti predbežnému dopadu, jednou vetou (napr. „Po vyhodnotení: cieľ o 1 mesiac skôr než predbežne odhadnutý“).

@@ -1,6 +1,6 @@
 # 02 – Požiadavky používateľa
 
-> Stav: v0.4 (2026-10-13), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
+> Stav: v0.5 (2026-10-13), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
 
 ## Používateľské príbehy (MVP)
 
@@ -13,7 +13,7 @@
 | UR-10 | Ako používateľ zadám ročné výdavky v dôchodku ručne ako odhad. | D-013 |
 | UR-05 | Ako používateľ nastavím prahovú sumu pre evidenciu výdavkov (predvolene 100 €). | [user], D-013 |
 | UR-06 | Ako používateľ po každej transakcii vidím predbežný dopad na dátum cieľa (krátky text). | D-004, D-014 |
-| UR-11 | Ako používateľ na konci mesiaca urobím mesačné vyhodnotenie: zadám hodnotu investícií a nasporenú sumu a vidím prepočítaný cieľ (cieľová suma a dátum ako rozsah opatrný/základný/optimistický). | D-011, D-014 |
+| UR-11 | Ako používateľ na konci mesiaca urobím mesačné vyhodnotenie (pripomenutie pri vynechaní, D-016): zadám hodnotu investícií a nasporenú sumu a vidím prepočítaný cieľ (cieľová suma a dátum ako rozsah opatrný/základný/optimistický). | D-011, D-014 |
 | UR-12 | Ako používateľ pri zadaní výdavku zvolím zdroj úhrady (z príjmu – predvolené / z kapitálu). | D-014 |
 | UR-07 | Ako používateľ vidím históriu všetkých transakcií (záznam rozhodnutí). | D-004 |
 | UR-08 | Ako používateľ môžem dáta exportovať a importovať (záloha). | D-009 |
@@ -51,5 +51,4 @@ Výhody [predpoklad]: menej výkyvov, ktoré by mohli demotivovať (nízka záť
 Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál a dátum cieľa zastarajú; aplikácia má pripomenúť, nie nútiť, a jasne ukázať dátum posledného vyhodnotenia.
 
 ## Otvorené otázky
-1. Čo ak používateľ vynechá mesačné vyhodnotenie? (pripomienka, zobrazenie dátumu posledného vyhodnotenia; nič sa nevynucuje)
-2. Ako presne sa zobrazí rozdiel medzi predbežným a skutočným stavom po vyhodnotení?
+Žiadne (vyriešené v D-016: vynechané vyhodnotenie a rozdiel predbežný vs. skutočný stav).
