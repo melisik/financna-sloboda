@@ -51,4 +51,4 @@ Výhody [predpoklad]: menej výkyvov, ktoré by mohli demotivovať (nízka záť
 Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál a dátum cieľa zastarajú; aplikácia má pripomenúť, nie nútiť, a jasne ukázať dátum posledného vyhodnotenia.
 
 ## Otvorené otázky
-Žiadne (vyriešené v D-016: vynechané vyhodnotenie a rozdiel predbežný vs. skutočný stav).
+Žiadne. Vyriešené v D-016 (vynechané vyhodnotenie, rozdiel predbežný vs. skutočný stav) a D-014 (zdroj úhrady, mesačné vyhodnotenie).

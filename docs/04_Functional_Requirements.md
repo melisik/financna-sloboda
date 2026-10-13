@@ -162,9 +162,13 @@ Ak neboli exportované dáta viac ako 30 dní (alebo nikdy), zobrazí sa jemná 
 - Daně, poplatky, viac mien, viac krajín (fáza 2).
 - Automatické oceňovanie investícií z trhových dát.
 
-## 7. Otvorené otázky
-- **O-1 Rezerva v kapitáli:** K je len investície + sporenie, rezerva sa zadáva zvlášť a do cieľa sa nepočíta (D-011). Potvrdiť? [predpoklad: áno]
-- **O-2 Výdavky pod prahom:** naozaj sa neukladajú, alebo sa len nezapočítavajú do cieľa? [predpoklad: neukladajú]
-- **O-3 Import:** nahradenie alebo zlúčenie s existujúcimi dátami? [predpoklad: nahradenie po potvrdení]
-- **O-4 Okno priemeru sporenia:** 6 mesiacov je predpoklad. Potvrdiť, alebo iné obdobie?
-- **O-5 Dátum cieľa pri m = 0:** zobrazovať „nedosiahnuteľné“, alebo radšej zobraziť len sumu? [predpoklad: „nedosiahnuteľné pri aktuálnom sporení“]
+## 7. Rozhodnuté a otvorené otázky
+**Rozhodnuté:**
+- **O-1 Rezerva:** nie je v kapitáli K ani v cieli (D-017).
+- **O-2 Výdavky pod prahom:** sa neukladajú (D-017).
+- **O-3 Import zálohy:** nahradí aktuálne dáta po potvrdení (D-018).
+- **O-4 Priemer sporenia:** za posledných 12 mesiacov, delený 12 (D-017).
+- **O-5 Veľmi vzdialený dátum:** do 50 rokov, ďalej „viac ako 50 rokov“; bez kapitálu a sporenia text bez dátumu (D-019).
+
+**Otvorené:**
+- **O-6 Výdavok z kapitálu väčší než kapitál:** navrhnuté riešenie je vo FR-08 (upozornenie, ponuka zmeny na „z príjmu“, pri potvrdení K_pred = 0). Čaká na potvrdenie zakladateľom.
