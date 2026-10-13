@@ -1,6 +1,6 @@
 # 00 – Vízia projektu
 
-> Stav: koncept, verzia 0.5 (2026-10-13). Označenie: **[user]** = povedal zakladateľ, **[predpoklad]** = doplnil Claude, treba potvrdiť.
+> Stav: koncept, verzia 0.6 (2026-10-13). Označenie: **[user]** = povedal zakladateľ, **[predpoklad]** = doplnil Claude, treba potvrdiť.
 
 ## Pracovný názov
 Finančná sloboda (pracovný, zmení sa)
@@ -47,8 +47,8 @@ Dôsledok [predpoklad]: v prvej fáze netreba viacužívateľskú architektúru 
 ## Existujúca investícia v MVP [user]
 Používateľ zadáva ručne **aktuálnu hodnotu** investície a **predpokladaný ročný výnos** (ako viditeľný predpoklad). Bez napojenia na trhové dáta; hodnotu aktualizuje používateľ.
 
-## Odporúčania pri nastavení cieľa – NÁVRH v0.5 (na potvrdenie)
-Odporúčania sa týkajú len parametrov cieľa, nie produktov. Všetky číselné hodnoty sú **východiskové predpoklady, ktoré treba pred implementáciou overiť** v zdrojoch.
+## Odporúčania pri nastavení cieľa [user potvrdil parametre a predvolené hodnoty; MVP ukazuje aj dátum cieľa]
+Odporúčania sa týkajú len parametrov cieľa, nie produktov. Parametre a predvolené hodnoty potvrdil zakladateľ, no samotné čísla sú **východiskové predpoklady, ktoré treba pred implementáciou overiť** v zdrojoch.
 
 | Parameter | Zadáva | Predvolená hodnota | Odporúčaný rozsah | Poznámka pre používateľa |
 |---|---|---|---|---|
@@ -75,7 +75,7 @@ Používateľ už investíciu má; produkt s ňou počíta a uvažuje s jej výn
 - Ostatné zatiaľ neurčené (otvorené).
 
 ## Otvorené otázky
-1. Potvrdiť návrh odporúčaní (tabuľka vyššie) a overiť číselné hodnoty v zdrojoch.
+1. Overiť číselné hodnoty odporúčaní (miera výberu, rozsah výnosu, rezerva) v zdrojoch.
 2. Monetizácia.
 
 ## Riziká a upozornenia (Claude) [predpoklad]
