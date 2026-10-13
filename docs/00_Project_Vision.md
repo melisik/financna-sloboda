@@ -1,6 +1,6 @@
 # 00 – Vízia projektu
 
-> Stav: koncept, verzia 0.2 (2026-10-13). Označenie: **[user]** = povedal zakladateľ, **[predpoklad]** = doplnil Claude, treba potvrdiť.
+> Stav: koncept, verzia 0.3 (2026-10-13). Označenie: **[user]** = povedal zakladateľ, **[predpoklad]** = doplnil Claude, treba potvrdiť.
 
 ## Pracovný názov
 Finančná sloboda (pracovný, zmení sa)
@@ -32,6 +32,12 @@ Dôsledok [predpoklad]: v prvej fáze netreba viacužívateľskú architektúru 
 - Pri nastavovaní dostane odporúčania (napr. predvolené hodnoty a rozumné rozsahy parametrov cieľa).
 - Rozsah odporúčaní [predpoklad, treba potvrdiť]: odporúčania sa týkajú **parametrov cieľa**, nie výberu konkrétnych produktov.
 
+## Model výpočtu cieľa [user, MVP]
+- MVP: **pravidlo 4 %**: cieľový kapitál = ročné výdavky × 25.
+- Predpoklady (miera výberu 4 %, ročné výdavky) musia byť v aplikácii viditeľné a upraviteľné.
+- Projekcia podľa výnosu a inflácie je **odložená** na neskôr (zatiaľ príliš zložitá).
+- Známe obmedzenie [predpoklad]: pravidlo 4 % nezohľadňuje inflačný ani výnosový scenár ani dĺžku obdobia; v aplikácii to treba stručne uviesť.
+
 ## Čo je „rozhodnutie“ [user]
 Rozhodnutie = **transakcia** (sporenie, investícia alebo výdavok). Plánovanie „čo ak“ scenárov nie je súčasťou definície rozhodnutia.
 
@@ -43,13 +49,12 @@ Používateľ už investíciu má; produkt s ňou počíta a uvažuje s jej výn
 - Ostatné zatiaľ neurčené (otvorené).
 
 ## Otvorené otázky
-1. Ako sa počíta cieľ? (napr. ročné výdavky × 25 podľa pravidla 4 %, očakávaný výnos, inflácia) – treba zvoliť model a ukázať predpoklady.
-2. Ako sa zadávajú dáta: ručne, import z banky/brokera?
-3. Ako sa oceňuje existujúca investícia a odkiaľ pochádza jej výnos (zadaný ručne, historický, odhad)?
-4. Ukladanie dát: lokálne alebo cloud? (citlivé údaje)
-5. Typ produktu: webová/mobilná aplikácia, tabuľka, jednoduchý nástroj?
-6. Aké presne budú odporúčania pri nastavení cieľa a odkiaľ sa vezmú hodnoty?
-7. Monetizácia.
+1. Ako sa zadávajú dáta: ručne, import z banky/brokera?
+2. Ako sa oceňuje existujúca investícia a odkiaľ pochádza jej výnos (zadaný ručne, historický, odhad)?
+3. Ukladanie dát: lokálne alebo cloud? (citlivé údaje)
+4. Typ produktu: webová/mobilná aplikácia, tabuľka, jednoduchý nástroj?
+5. Aké presne budú odporúčania pri nastavení cieľa a odkiaľ sa vezmú hodnoty?
+6. Monetizácia.
 
 ## Riziká a upozornenia (Claude) [predpoklad]
 - **Právo/regulácia**: rozhodnutie nevyberať produkty znižuje riziko investičného poradenstva. Pri „odporúčaniach“ pri nastavení cieľa však treba strážiť, aby nešlo o osobné odporúčanie typu „investuj X do Y“. Pred rozšírením do EÚ treba právne posúdenie (MiFID II, GDPR, spotrebiteľské právo, rozdiely medzi krajinami).
