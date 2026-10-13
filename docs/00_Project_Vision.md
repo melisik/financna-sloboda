@@ -1,6 +1,6 @@
 # 00 – Vízia projektu
 
-> Stav: koncept, verzia 0.6 (2026-10-13). Označenie: **[user]** = povedal zakladateľ, **[predpoklad]** = doplnil Claude, treba potvrdiť.
+> Stav: koncept, verzia 0.7 (2026-10-13). Označenie: **[user]** = povedal zakladateľ, **[predpoklad]** = doplnil Claude, treba potvrdiť.
 
 ## Pracovný názov
 Finančná sloboda (pracovný, zmení sa)
@@ -52,10 +52,10 @@ Odporúčania sa týkajú len parametrov cieľa, nie produktov. Parametre a pred
 
 | Parameter | Zadáva | Predvolená hodnota | Odporúčaný rozsah | Poznámka pre používateľa |
 |---|---|---|---|---|
-| Ročné výdavky v dôchodku | používateľ | z jeho záznamov transakcií (priemer), ak sú; inak prázdne | – | Základ cieľa. Aplikácia ukáže, koľko z výdavkov je pravidelných a koľko cielená spotreba. |
+| Ročné výdavky v dôchodku | používateľ | zadáva ručne ako odhad (D-013) | – | Základ cieľa. Aplikácia ukáže, koľko z výdavkov je pravidelných a koľko cielená spotreba. |
 | Miera výberu | používateľ | 4 % (D-008) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. |
 | Ročný výnos investície (reálny, po inflácii) | používateľ | 4 % | 2 – 6 % | Rozsah ako opatrný / základný / optimistický. Zobrazí sa vždy s upozornením, že ide o odhad. |
-| Mesačné sporenie/investovanie | používateľ | z priemeru záznamov | – | Spolu s výnosom určuje odhadovaný dátum cieľa. |
+| Mesačné sporenie/investovanie | používateľ | z priemeru transakcií typu sporenie/investícia | – | Spolu s výnosom určuje odhadovaný dátum cieľa. |
 | Rezerva (núdzový fond) | používateľ | 3 mesiace výdavkov | 3 – 6 mesiacov | Odporúča sa mať ju mimo investícií; do cieľa sa nezapočítava. |
 
 Pravidlá odporúčaní:
