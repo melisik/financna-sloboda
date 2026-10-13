@@ -21,3 +21,4 @@
 | D-017 | 2026-10-13 | FR: rezerva nie je v kapitáli ani v cieli; výdavky pod prahom sa neukladajú; mesačné sporenie = súčet sporenia a investícií za 12 mesiacov ÷ 12. | Potvrdené zakladateľom (O-1, O-2, O-4). |
 | D-018 | 2026-10-13 | Import zálohy nahradí aktuálne dáta až po potvrdení; zlúčenie sa môže doplniť neskôr. | Potvrdené zakladateľom (O-3). |
 | D-019 | 2026-10-13 | Dátum cieľa sa zobrazuje do 50 rokov; ďalej „viac ako 50 rokov“. Bez kapitálu a sporenia: „Bez sporenia a výnosu sa cieľ nedosiahne“. | Potvrdené zakladateľom (O-5). |
+| D-020 | 2026-10-13 | Technológia MVP: statická PWA (TypeScript, React, Vite), IndexedDB, bez servera; výpočty v čistej doménovej vrstve oddelenej od UI a úložiska. | Potvrdené zakladateľom; lokálne dáta (D-009), offline a neskorší prechod na mobil. |
