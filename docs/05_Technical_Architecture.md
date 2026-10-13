@@ -102,7 +102,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n)` mesiac
 | V = 24 000, p = 4 % | T = 600 000 |
 | K = 100 000, m = 500, r = 4 %, T = 600 000 | n ≈ 333,9 → 334 mesiacov (FR-02) |
 | to isté, K_pred = 105 000 | n ≈ 327,9 → dopad 6 mesiacov skôr (FR-04) |
-| K = 100 000, m = 0, r = 4 %, T = 600 000 | n ≈ 548 mesiacov ≈ 45,7 roka → nad 50 rokov nie, zobrazí sa dátum |
+| K = 100 000, m = 0, r = 4 %, T = 600 000 | n ≈ 548 mesiacov ≈ 45,7 roka → do 50 rokov, zobrazí sa dátum |
 | K = 0, m = 0 | „Bez sporenia a výnosu sa cieľ nedosiahne“ (D-019) |
 | K ≥ T | cieľ dosiahnutý |
 | r = 0, m = 500 | n = (T − K) / m |
