@@ -1,6 +1,6 @@
 # 00 – Vízia projektu
 
-> Stav: koncept, verzia 0.4 (2026-10-13). Označenie: **[user]** = povedal zakladateľ, **[predpoklad]** = doplnil Claude, treba potvrdiť.
+> Stav: koncept, verzia 0.5 (2026-10-13). Označenie: **[user]** = povedal zakladateľ, **[predpoklad]** = doplnil Claude, treba potvrdiť.
 
 ## Pracovný názov
 Finančná sloboda (pracovný, zmení sa)
@@ -44,6 +44,26 @@ Dôsledok [predpoklad]: v prvej fáze netreba viacužívateľskú architektúru 
 - Obmedzenia lokálneho ukladania [predpoklad]: dáta sú viazané na zariadenie a prehliadač; prehliadač ich môže vymazať. Preto má MVP obsahovať export a import dát (záloha).
 - Dôsledky pre dizajn [predpoklad]: oddeliť dátovú vrstvu od UI, aby sa úložisko dalo neskôr vymeniť (backend, synchronizácia) a aby sa dali pridať importy z banky a od brokerov. Integrácie na bankové účty v EÚ typicky podliehajú PSD2 a vyžadujú licencovaného poskytovateľa; treba posúdiť neskôr.
 
+## Existujúca investícia v MVP [user]
+Používateľ zadáva ručne **aktuálnu hodnotu** investície a **predpokladaný ročný výnos** (ako viditeľný predpoklad). Bez napojenia na trhové dáta; hodnotu aktualizuje používateľ.
+
+## Odporúčania pri nastavení cieľa – NÁVRH v0.5 (na potvrdenie)
+Odporúčania sa týkajú len parametrov cieľa, nie produktov. Všetky číselné hodnoty sú **východiskové predpoklady, ktoré treba pred implementáciou overiť** v zdrojoch.
+
+| Parameter | Zadáva | Predvolená hodnota | Odporúčaný rozsah | Poznámka pre používateľa |
+|---|---|---|---|---|
+| Ročné výdavky v dôchodku | používateľ | z jeho záznamov transakcií (priemer), ak sú; inak prázdne | – | Základ cieľa. Aplikácia ukáže, koľko z výdavkov je pravidelných a koľko cielená spotreba. |
+| Miera výberu | používateľ | 4 % (D-008) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. |
+| Ročný výnos investície (reálny, po inflácii) | používateľ | 4 % | 2 – 6 % | Rozsah ako opatrný / základný / optimistický. Zobrazí sa vždy s upozornením, že ide o odhad. |
+| Mesačné sporenie/investovanie | používateľ | z priemeru záznamov | – | Spolu s výnosom určuje odhadovaný dátum cieľa. |
+| Rezerva (núdzový fond) | používateľ | 3 mesiace výdavkov | 3 – 6 mesiacov | Odporúča sa mať ju mimo investícií; do cieľa sa nezapočítava. |
+
+Pravidlá odporúčaní:
+- Používateľ vždy vidí **čo je odporúčanie a čo jeho vlastná hodnota**, a môže ju zmeniť.
+- Dátum cieľa sa ukazuje ako **rozsah** (opatrný – základný – optimistický), nie jedno presné číslo.
+- Používame reálny výnos (po inflácii), takže výdavky sú v dnešných cenách; netreba zadávať infláciu zvlášť.
+- Dane a poplatky sa v MVP neriešia (uvedie sa v upozornení).
+
 ## Čo je „rozhodnutie“ [user]
 Rozhodnutie = **transakcia** (sporenie, investícia alebo výdavok). Plánovanie „čo ak“ scenárov nie je súčasťou definície rozhodnutia.
 
@@ -55,9 +75,8 @@ Používateľ už investíciu má; produkt s ňou počíta a uvažuje s jej výn
 - Ostatné zatiaľ neurčené (otvorené).
 
 ## Otvorené otázky
-1. Ako sa oceňuje existujúca investícia a odkiaľ pochádza jej výnos (zadaný ručne, historický, odhad)?
-2. Aké presne budú odporúčania pri nastavení cieľa a odkiaľ sa vezmú hodnoty?
-3. Monetizácia.
+1. Potvrdiť návrh odporúčaní (tabuľka vyššie) a overiť číselné hodnoty v zdrojoch.
+2. Monetizácia.
 
 ## Riziká a upozornenia (Claude) [predpoklad]
 - **Právo/regulácia**: rozhodnutie nevyberať produkty znižuje riziko investičného poradenstva. Pri „odporúčaniach“ pri nastavení cieľa však treba strážiť, aby nešlo o osobné odporúčanie typu „investuj X do Y“. Pred rozšírením do EÚ treba právne posúdenie (MiFID II, GDPR, spotrebiteľské právo, rozdiely medzi krajinami).
