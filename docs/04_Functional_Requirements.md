@@ -1,6 +1,6 @@
 # 04 – Funkčné požiadavky (MVP)
 
-> Stav: v0.2 (2026-10-13). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.3 (2026-10-13). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Pojmy a model dát
 
@@ -135,7 +135,7 @@ Zoznam transakcií od najnovšej, filter podľa typu a obdobia, súčty za obdob
 
 ### FR-18 – Import
 - Import načíta súbor, overí verziu schémy a zobrazí náhľad (počet transakcií, vyhodnotení, dátum exportu).
-- Import **nahradí** aktuálne dáta až po potvrdení [predpoklad, O-3].
+- Import **nahradí** aktuálne dáta až po potvrdení (D-018).
 - Neplatný súbor sa neimportuje a nič sa nezmení.
 
 ### FR-19 – Pripomenutie zálohy
@@ -146,7 +146,8 @@ Ak neboli exportované dáta viac ako 30 dní (alebo nikdy), zobrazí sa jemná 
 | Situácia | Správanie |
 |---|---|
 | Cieľ je dosiahnutý (K ≥ T) | „Cieľ je dosiahnutý“; výpočet dátumu sa neukazuje. |
-| Cieľ nie je dosiahnuteľný | Text bez dátumu, návrh zvýšiť sporenie alebo znížiť výdavky (bez nátlaku, UX princíp 2). |
+| Cieľ nie je dosiahnuteľný (bez kapitálu a sporenia) | „Bez sporenia a výnosu sa cieľ nedosiahne“, bez dátumu (D-019). |
+| Dátum ďalej ako 50 rokov | „viac ako 50 rokov“ (D-019). |
 | Chýbajúce údaje (napr. žiadne vyhodnotenie) | „Nezadané“, nie nula; výpočet pracuje s dostupnými údajmi a uvedie, čo chýba. |
 | Záporná hodnota vstupu | Zablokovanie s vecnou správou. |
 | Zmena po vyhodnotení | Viď FR-09. |
