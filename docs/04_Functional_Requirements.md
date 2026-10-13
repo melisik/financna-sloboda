@@ -1,6 +1,6 @@
 # 04 – Funkčné požiadavky (MVP)
 
-> Stav: v0.3 (2026-10-13). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.4 (2026-10-13). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Pojmy a model dát
 
@@ -91,6 +91,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 ### FR-08 – Zdroj úhrady výdavku (D-014)
 - „Z príjmu“: K sa nemení.
 - „Z kapitálu“: K_pred sa znižuje o sumu. Po vyhodnotení sa zohľadní v zadanej nasporenej sume.
+- Ak je výdavok z kapitálu väčší než K_L, navrhuje sa upozornenie a ponuka zmeny na „z príjmu“; ak používateľ potvrdí, K_pred = 0 a zobrazí sa „kapitál by bol vyčerpaný“ (O-6, navrhnuté).
 
 ### FR-09 – Úprava a mazanie transakcie
 - Úprava a mazanie sú možné vždy.

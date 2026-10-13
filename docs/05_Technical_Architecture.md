@@ -1,6 +1,6 @@
 # 05 – Technická architektúra (MVP)
 
-> Stav: v0.1 (2026-10-13). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.2 (2026-10-13). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Prehľad
 Statická single-page aplikácia (PWA) bez servera. Všetky dáta a výpočty bežia v prehliadači na zariadení.
@@ -102,12 +102,12 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n)` mesiac
 | V = 24 000, p = 4 % | T = 600 000 |
 | K = 100 000, m = 500, r = 4 %, T = 600 000 | n ≈ 333,9 → 334 mesiacov (FR-02) |
 | to isté, K_pred = 105 000 | n ≈ 327,9 → dopad 6 mesiacov skôr (FR-04) |
-| K = 100 000, m = 0, r = 4 %, T = 600 000 | n ≈ 548 mesiacov ≈ 45,7 roka → do 50 rokov, zobrazí sa dátum |
+| K = 100 000, m = 0, r = 4 %, T = 600 000 | n ≈ 548,2 → 549 mesiacov ≈ 45,7 roka → do 50 rokov, zobrazí sa dátum |
 | K = 0, m = 0 | „Bez sporenia a výnosu sa cieľ nedosiahne“ (D-019) |
 | K ≥ T | cieľ dosiahnutý |
 | r = 0, m = 500 | n = (T − K) / m |
 
-Poznámka: pri predchádzajúcom popise v `04_Functional_Requirements.md` som uviedol približne 60 rokov pre prípad bez sporenia. Presný výpočet je približne 46 rokov (K = 100 000, T = 600 000, r = 4 %), toto je správna hodnota.
+Poznámka: v predchádzajúcom popise som uviedol približne 60 rokov pre prípad bez sporenia. Presný výpočet je približne 46 rokov (K = 100 000, T = 600 000, r = 4 %); toto je správna hodnota (viď `07_Testing_Strategy`, GC-07).
 
 ## 6. Správanie offline a aktualizácie
 - Service Worker ukladá aplikáciu do cache po prvom načítaní; funguje offline (FR-16).
@@ -145,3 +145,4 @@ Poznámka: pri predchádzajúcom popise v `04_Functional_Requirements.md` som uv
 1. **Hosting:** GitHub Pages stačí, alebo iný? (rozhodne sa pred prvým nasadením)
 2. **Šifrovanie dát v kľude:** odložiť na fázu 2 (navrhované), alebo doplniť heslo už v MVP?
 3. **Názov a doména:** pracovný názov sa zmení (D-002); nasadenie zatiaľ bez vlastnej domény.
+4. **Riziko iOS Safari:** dáta môžu byť po dlhšom nepoužívaní vymazané, ak appka nie je na ploche (07 oddiel 6). Potvrdiť odporúčanie pridať na plochu.

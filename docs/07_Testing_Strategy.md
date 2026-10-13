@@ -1,0 +1,152 @@
+# 07 – Testovacia stratégia (MVP)
+
+> Stav: v0.1 (2026-10-13). Pokrýva `04_Functional_Requirements` (FR), `03_UX_Principles` (UX) a `05_Technical_Architecture`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+
+## 1. Priority testovania
+Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu váhu než chyba v ostatných:
+
+| Oblasť | Riziko | Dôsledok chyby | Úroveň testov |
+|---|---|---|---|
+| Správnosť cieľa a dátumu | zlý vzorec, zaokrúhľovanie, mesiace | používateľ robí rozhodnutia na zlom čísle | jednotkové, property-based, porovnanie so simuláciou, tabuľkové overenie |
+| Integrita dát | strata alebo poškodenie transakcií | nenávratná strata histórie rozhodnutí | úložisko, export/import round trip, atomicita |
+| Súkromie | nechtené odosielanie dát | únik citlivých finančných údajov | sieťové testy, kontrola závislostí |
+| Použiteľnosť na telefóne | zlé dotykové plochy, dlhé toky | vyššia záťaž, opustenie appky | E2E na mobilných viewportoch, používateľské testy |
+| Dostupnosť | čítačky, klávesnica, kontrast | používateľ nemôže dokončiť úlohu | axe-core, manuálne testy s čítačkou |
+| Offline a inštalácia | PWA sa nespustí bez siete | nefunkčná appka v chvíli potreby | E2E offline, manuálna inštalácia |
+
+## 2. Úrovne testov
+1. **Jednotkové (Vitest)** – čisté funkcie v `domain/` (FR-01 až FR-05, FR-07, FR-08). Cieľ: všetky vetvy výpočtov pokryté [predpoklad].
+2. **Property-based (fast-check)** – invarianty z oddielu 4.
+3. **Porovnávacie** – uzavretý vzorec vs. mesačná simulácia (oddiel 3).
+4. **Úložisko (Vitest + fake-indexeddb)** – CRUD, migrácie, import/export, atomicita.
+5. **Komponentové (React Testing Library)** – formuláre, validácie, texty predbežného dopadu, pripomienky, prázdne stavy.
+6. **End-to-end (Playwright)** – kľúčové toky z `03_UX` (prvé nastavenie, týždenné zadanie, mesačné vyhodnotenie, záloha), na mobilných viewportoch, aj offline.
+7. **Dostupnosť** – axe-core na každej obrazovke v komponentových aj E2E testoch; manuálne čítačky (oddiel 9).
+8. **Súkromie a bezpečnosť** – sieťové testy, npm audit, CSP (oddiel 7).
+9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
+
+## 3. Zlaté prípady (golden cases)
+Hodnoty sú overené tromi spôsobmi: uzavretým vzorcom (FR-02), mesačnou simuláciou a tabuľkovou funkciou NPER (viď nižšie). Všetky sú uložené v `tests/golden/goal-cases.json` a každý má odkaz na požiadavku.
+
+| ID | Vstup | Očakávaný výsledok | Zdroj |
+|---|---|---|---|
+| GC-01 | V = 24 000 €, p = 4 % | T = 600 000 € | FR-01 |
+| GC-02 | V = 24 000 €, p = 3 % | T = 800 000 € | FR-01, D-011 |
+| GC-03 | K = 100 000, m = 500, r = 4 %, T = 600 000 | n = 333,92 → **334 mesiacov** | FR-02 |
+| GC-04 | K = 105 000 (predbežne), m = 500, r = 4 % | n = 327,93 → **328**; dopad **+6 mesiacov skôr** | FR-04 |
+| GC-05 | K = 100 000, m = 500, r = 6 % (optimistický) | n = 256,01 → **257** | FR-03 |
+| GC-06 | K = 100 000, m = 500, r = 2 % (opatrný) | n = 489,11 → **490** | FR-03 |
+| GC-07 | K = 100 000, m = 0, r = 4 % | n = 548,21 → **549** (≈ 45,7 roka, dátum sa zobrazí, pretože je do 50 rokov) | FR-02, D-019 |
+| GC-08 | K = 0, m = 0, r = 4 % | bez dátumu: „Bez sporenia a výnosu sa cieľ nedosiahne“ | D-019 |
+| GC-09 | K = 0, m = 500, r = 4 % | n = 488,02 → **489** | FR-02 |
+| GC-10 | K = 100 000, m = 500, r = 0 % | n = (T − K) / m = **1 000** | FR-02 |
+| GC-11 | K ≥ T | cieľ dosiahnutý, dátum = dnes | FR-02 |
+| GC-12 | K = 100 000, m = 500, r = 4 %, T = 1 000 000 | zobrazí sa dátum ďalej ako 50 rokov → „viac ako 50 rokov“ | D-019 |
+
+**Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
+
+**Tolerancia:** porovnávame celé mesiace po `ceil`; interné hodnoty n sa porovnávajú s presnosťou 1e-6.
+
+## 4. Invarianty (property-based testy)
+Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10], T ∈ [1 000; 10 000 000]):
+- **Hraničná podmienka:** pre n = `monthsToTarget(...)` platí K_uzavretý(⌊n⌋) < T ≤ K_uzavretý(⌈n⌉). Toto je presnejšie než porovnanie so simuláciou a zachytí chybu v zaokrúhľovaní.
+- **Monotónnosť:** n nerastie so zvyšovaním K, m alebo r; n nerastie s klesaním T.
+- **Predbežný dopad:**
+  - bez transakcií po poslednom vyhodnotení je dopad 0;
+  - výdavok „z príjmu“ nemení n;
+  - sporenie alebo investícia nikdy nezhorší dátum (n_pred ≤ n_base);
+  - výdavok „z kapitálu“ nikdy nezlepší dátum (n_pred ≥ n_base).
+- **Peniaze:** všetky sumy v úložisku sú celé čísla (centy); súčty sa nerobia v plávajúcej desatinnej čiarke.
+
+## 5. Dátum a čas
+- Dátumy sa ukladajú ako `YYYY-MM-DD` bez časovej zóny; test, že sa pri prechode na letný čas (Europe/Bratislava) dátum neposúva o deň.
+- Hranice mesiaca: transakcia dňa 31. a vyhodnotenie dňa 30. (FR-05, „≤ dátum vyhodnotenia“); priestupný rok (29. 2.).
+- Dátum cieľa = dnes + ⌈n⌉ mesiacov s **orezaním na posledný deň cieľového mesiaca** (31. 1. + 1 mesiac = 28. 2.). Test s falošnými hodinami (fake timers) pre dni 1., 28., 29., 30. a 31.
+- Pripomienka konca mesiaca sa testuje s nastavenou časovou zónou.
+
+## 6. Dáta a úložisko
+| Scenár | Očakávané správanie | Typ |
+|---|---|---|
+| Prázdne úložisko po vymazaní prehliadačom | prázdny stav s výzvou na import zálohy, žiadne tiché obnovy | E2E |
+| Import neplatného JSON | chyba, žiadna zmena dát | jednotkový |
+| Import so zápornou sumou, budúcim dátumom alebo chýbajúcim poľom | odmietnutie s konkrétnou správou, žiadna zmena | jednotkový |
+| Import súboru s vyššou verziou schémy | odmietnutie s vecnou správou | jednotkový |
+| Import zlyhá uprostred zápisu | celá transakcia sa zruší, pôvodné dáta zostanú | úložisko |
+| Úložisko plné (`QuotaExceededError`) | správa, žiadny čiastočný zápis, ponuka exportu | úložisko |
+| Export → import → export | výstupy sú zhodné (okrem `exportedAt`) | round trip |
+| Zálohy vo verzii 1 zostanú čitateľné aj po budúcich zmenách | fixture `tests/fixtures/export-v1.json` sa importuje v každom vydaní | regresia |
+| Dve karty naraz | zápis v jednej karte sa prejaví v druhej (BroadcastChannel); žiadne prepísanie | manuálny, neskôr E2E |
+
+**Riziko iOS Safari [predpoklad, overiť aktuálne správanie]:** Safari môže po dlhšom nepoužívaní webu vymazať dáta uložené skriptom vrátane IndexedDB, ak aplikácia nie je pridaná na plochu. Test: manuálne na reálnom iPhone (pridanie na plochu, neskoré otvorenie). Mitigácia: odporúčanie pridať na plochu v prvom nastavení a pripomienka zálohy (FR-19).
+
+**Pravidlo pre fixtures:** v repozitári sú len anonymizované alebo syntetické dáta. Žiadne reálne finančné údaje.
+
+## 7. Súkromie a bezpečnosť
+- **Sieťový test:** Playwright zachytí všetky požiadavky počas kľúčových tokov. Povolený je len pôvod aplikácie. Zakázané sú externé volania, vrátane externých fontov (MVP ich nepoužíva, písma sú lokálne).
+- **Logy:** v produkcii sa nelogujú sumy ani transakcie. Test: lint pravidlo alebo kontrola kódu proti `console.log` nad doménovými dátami.
+- **Export:** obsahuje varovanie o citlivých údajoch (FR-17); test prítomnosti textu.
+- **Závislosti:** `npm audit` v CI; kontrola licencií.
+- **CSP:** test hlavičky alebo meta tagu bez `unsafe-inline` pre skripty.
+
+## 8. Zariadenia a prehliadače
+| Prostredie | Typ testu | Kedy |
+|---|---|---|
+| Android Chrome, emulácia viewportu 412 × 915 | automatizované E2E | každý PR |
+| iOS Safari, emulácia viewportu 390 × 844 | automatizované E2E (WebKit) | každý PR |
+| Reálny Android a reálny iPhone | manuálny checklist: dotyky, inštalácia na plochu, offline, Safari úložisko | pred každým vydaním |
+| Desktop Chrome, Firefox, Safari | základné toky | pred vydaním |
+| Viewporty 360, 390, 768, 1280 px | bez horizontálneho scrollu, čitateľnosť | každý PR |
+| Zoom 200 % a najväčšie systémové písmo | žiadna stratená informácia | pred vydaním |
+
+**Kontrolné body:** dotykové plochy aspoň 44 × 44 px [predpoklad]; žiadny horizontálny scroll; offline tok funguje po prvom načítaní.
+
+## 9. Dostupnosť (WCAG 2.2 AA)
+- axe-core: nulové kritické a vážne porušenia pre zlúčenie.
+- Klávesnica: všetky akcie dosiahnuteľné, viditeľný focus.
+- Čítačky: manuálny checklist pre VoiceOver (iOS) a TalkBack (Android) pri každom vydaní.
+- Kontrast: text aspoň 4,5 : 1, ovládacie prvky aspoň 3 : 1, rovnako v tmavom režime.
+- Význam nie je len farbou: predbežný dopad je text, nie len zelená alebo červená.
+
+## 10. Používateľské testovanie a kognitívna záťaž
+- **Self-test:** po každom milníku (M3, M4) aplikáciu používam týždeň a vediem denník: čo ma zmiatlo, koľkokrát som sa musel vrátiť.
+- **Metriky [predpoklad]:**
+  - zadanie transakcie do 20 sekúnd a do 5 dotykov (bez poznámky);
+  - mesačné vyhodnotenie do 3 minút;
+  - čísla sa menia len po transakcii alebo vyhodnotení, nikdy inak (invariant z UX princípu 4).
+- **Checklist záťaže** pri každej obrazovke: jedna hlavná úloha, predvolené hodnoty, žiadny žargón bez vysvetlenia, žiadne vyčítavé formulácie (UX princípy 1, 2 a 7).
+- **Pre fázu 2:** rozhovory s 3–5 ľuďmi z cieľovej skupiny EÚ (mimo rozsahu MVP, povinné pred rozšírením).
+
+## 11. Výkon
+- Výpočty v `domain/`: pod 50 ms pre celý prepočet.
+- Štart aplikácie: do 2 sekúnd na strednom Androide [predpoklad].
+- Záťažový test: 5 000 transakcií (desiatky rokov aktívneho používania) bez spomalenia zoznamu histórie.
+
+## 12. Prostredie, automatizácia a CI
+- **Lokálne pred commitom:** lint, typový kontrola, jednotkové testy zmenených modulov [predpoklad: husky].
+- **Pri každom PR (GitHub Actions):** lint, typecheck, jednotkové, komponentové, npm audit, axe-core.
+- **Pri zlúčení do main:** plné E2E (Android a iOS viewport, offline), sieťový test súkromia.
+- **Nasadenie** až po zelenom výsledku všetkých kontrol.
+- **Reprodukovateľnosť:** lock file, pevné verzie závislostí.
+
+## 13. Definícia hotového (Definition of Done)
+**Funkcia je hotová, keď:**
+- prejdú jednotkové, komponentové a E2E testy pre jej tok;
+- axe-core nehlási vážne porušenia;
+- je overená na mobilnom viewporte;
+- dokumenty sú aktualizované (verzia, odkazy na D-xxx);
+- rozhodnutia sú zapísané v `decisions/Decisions.md`.
+
+**Vydanie je hotové, keď:**
+- všetky automatizované kontroly sú zelené;
+- manuálny checklist na reálnom Androide a iPhone je podpísaný v dokumente vydania;
+- prebehol round trip export → import na reálnych dátach (anonymizovaných);
+- offline tok a inštalácia na plochu fungujú;
+- self-test za posledný týždeň neobsahuje blokujúcu chybu.
+
+## 14. Mimo rozsahu MVP
+Bankové a investičné integrácie, viacužívateľské scenáre, daňové výpočty, graf projekcie (odložený, D-008), právne texty a ich overenie.
+
+## 15. Otvorené otázky
+- **O-6 Výdavok z kapitálu väčší než kapitál:** navrhujem pri zadaní upozorniť a ponúknuť zmenu zdroja na „z príjmu“. Ak používateľ potvrdí „z kapitálu“, počíta sa K_pred = 0 a zobrazí sa text „kapitál by bol vyčerpaný“. Potvrdiť? (pridané aj do `04_Functional_Requirements`)
+- **Zariadenia na manuálne testy:** aký model Androidu a iPhonu používaš a aká je verzia systému?
+- **Riziko iOS Safari:** potvrdiť, či má byť v prvom nastavení odporúčanie pridať na plochu (predpokladám áno).
