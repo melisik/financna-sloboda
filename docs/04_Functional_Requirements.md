@@ -1,6 +1,6 @@
 # 04 – Funkčné požiadavky (MVP)
 
-> Stav: v0.1 (2026-10-13). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.2 (2026-10-13). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Pojmy a model dát
 
@@ -9,9 +9,9 @@
 | **Ročné výdavky (V)** | Odhad celkových ročných výdavkov v dôchodku, zadáva používateľ ručne (D-013). |
 | **Miera výberu (p)** | Predvolene 4 %, rozsah 3–4 % (D-011). |
 | **Cieľová suma (T)** | T = V / p. Pri 4 % je T = V × 25 (D-008). |
-| **Kapitál (K)** | Hodnota investícií + nasporená suma, bez rezervy (D-011, viď otvorenú otázku O-1). |
+| **Kapitál (K)** | Hodnota investícií + nasporená suma, bez rezervy (D-011, D-017). |
 | **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 4 %, rozsah 2–6 % (D-011). Počíta sa so všetkými sumami v dnešných cenách. |
-| **Mesačné sporenie (m)** | Priemer transakcií typu „sporenie“ a „investícia“ za posledné 6 mesiacov [predpoklad]. |
+| **Mesačné sporenie (m)** | Súčet transakcií typu „sporenie“ a „investícia“ za posledných 12 mesiacov, delený 12 (D-017). |
 | **Rezerva** | Odporúčanie 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). |
 | **Vyhodnotenie (snapshot)** | Mesačný záznam s dátumom, hodnotou investícií a nasporenou sumou; zadáva sa na konci mesiaca (D-014). |
 | **Posledný stav (K_L)** | K zo snapshotu, ktorý je najnovší. Oficiálny cieľ sa počíta z neho. |
@@ -30,7 +30,7 @@
 |---|---|---|---|
 | dátum | dátum | áno | Predvolene posledný deň mesiaca (D-014). |
 | hodnota investícií | číslo ≥ 0 | áno | |
-| nasporená suma | číslo ≥ 0 | áno | Bez rezervy (O-1). |
+| nasporená suma | číslo ≥ 0 | áno | Bez rezervy (D-017). |
 
 ### Entita Nastavenie cieľa
 V, p, r, rezerva (mesiace), prah výdavkov, dátum vzniku. Každý parameter má predvolenú hodnotu, odporúčaný rozsah a príznak „zmenený používateľom“ (UR-02).
@@ -46,7 +46,7 @@ Výpočet v reálnych hodnotách, mesačné sporenie na konci mesiaca, mesačná
 - Ak K ≥ T: cieľ je dosiahnutý, dátum = dnes.
 - Inak: `n = ln((T·i + m) / (K·i + m)) / ln(1 + i)`
 - Ak r = 0: `n = (T − K) / m`.
-- Ak m = 0 a r = 0, alebo ak `K·i + m ≤ 0`: cieľ nie je pri zadaných hodnotách dosiahnuteľný; zobrazí sa text „Pri aktuálnom sporení sa cieľ nedosiahne“ (bez dátumu).
+- Ak `K·i + m = 0` (teda K = 0 a m = 0, alebo r = 0 a m = 0): kapitál nerastie, cieľ nie je dosiahnuteľný; zobrazí sa text „Bez sporenia a výnosu sa cieľ nedosiahne“ (bez dátumu). Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môže byť veľmi vzdialený (viď O-5).
 - Dátum cieľa = dnešný dátum + `ceil(n)` mesiacov, zobrazený ako mesiac a rok.
 
 **Overený príklad [predpoklad, na kontrolu]:** V = 24 000 €, K = 100 000 €, m = 500 €, r = 4 %. Dostaneme T = 600 000 €, i ≈ 0,3274 %, n ≈ 334 mesiacov (≈ 27 rokov 10 mesiacov).
