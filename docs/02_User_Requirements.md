@@ -1,6 +1,6 @@
 # 02 – Požiadavky používateľa
 
-> Stav: v0.2 (2026-10-13), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
+> Stav: v0.3 (2026-10-13), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
 
 ## Používateľské príbehy (MVP)
 
@@ -34,6 +34,20 @@
 - Model „výdavok znižuje kapitál“ predpokladá, že sa výdavok hradí z naakumulovaného kapitálu. Ak ho používateľ v skutočnosti platí z bežného príjmu, aplikácia bude dátum cieľa nadhodnocovať (cieľ vyzerá ďalej, než je). Treba to používateľovi jasne povedať a zvážiť pri zadávaní výdavku voľbu „hradené z kapitálu / z príjmu“ (otvorená otázka 1).
 - Aby nedochádzalo k dvojitému započítaniu, mesačné sporenie sa počíta len z transakcií sporenie/investícia.
 
+## Návrh: zdroj úhrady a mesačné vyhodnotenie kapitálu (na potvrdenie)
+Zadanie [user]: pri výdavku riešiť zdroj úhrady (z kapitálu / z príjmu); **bežný kapitál vyhodnocovať mesačne, nie denne.**
+
+Interpretácia [predpoklad, treba potvrdiť]:
+1. Pri zadaní výdavku používateľ zvolí **zdroj úhrady**: „z príjmu“ (predvolené, kapitál sa nemení) alebo „z kapitálu“ (znižuje kapitál).
+2. Kapitál sa **oficiálne prepočítava raz mesačne** pri „mesačnom vyhodnotení“: používateľ zadá aktuálnu hodnotu investícií a nasporenú sumu. Tým sa kapitál zosúladí so skutočnosťou (opraví aj chyby a rozdiely z trhu) a odhadovaný dátum cieľa sa potom bere z tohto stavu.
+3. Medzi mesačnými vyhodnoteniami aplikácia po každej transakcii ukáže len **predbežný dopad** (napr. „predbežne +2 mesiace“), ktorý sa pri vyhodnotení nahradí skutočným stavom.
+
+Dôsledok pre D-004 (cieľ sa prepočíta po každom rozhodnutí): oficiálny prepočet je mesačný, po transakcii je viditeľný len predbežný dopad. Ak to chceš inak, musí sa D-004 upraviť.
+
+Výhody [predpoklad]: menej výkyvov, ktoré by mohli demotivovať (nízka záťaž, ako sme chceli); menej údajov na zadávanie; skutočný stav sa pravidelne opravuje.
+Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál a dátum cieľa zastarajú; aplikácia má pripomenúť, nie nútiť, a jasne ukázať dátum posledného vyhodnotenia.
+
 ## Otvorené otázky
-1. Má mať výdavok pri zadaní voľbu zdroja úhrady (z kapitálu / z príjmu)? Ak áno, znižuje kapitál len prvá možnosť.
-2. Ako sa v aplikácii zobrazí, že dátum cieľa sa posunul po konkrétnej transakcii (napr. „+2 mesiace“)?
+1. Potvrdiť interpretáciu mesačného vyhodnotenia vyššie (najmä: kapitál = aktuálna hodnota investícií + sporenie, zadáva používateľ).
+2. Kedy v mesiaci sa vyhodnotenie robí (koniec mesiaca, pevný deň, kedykoľvek raz za mesiac)?
+3. Ako sa zobrazí predbežný dopad transakcie (text bez farieb a upozornení)?
