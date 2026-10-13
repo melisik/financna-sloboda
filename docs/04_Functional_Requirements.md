@@ -146,7 +146,7 @@ Ak neboli exportované dáta viac ako 30 dní (alebo nikdy), zobrazí sa jemná 
 | Situácia | Správanie |
 |---|---|
 | Cieľ je dosiahnutý (K ≥ T) | „Cieľ je dosiahnutý“; výpočet dátumu sa neukazuje. |
-| Cieľ nie je dosiahnuteľný | Text bez dátumu, návrh zvýšiť sporenie alebo znížiť výdavky (bez nátlaku, FR-19 princípy UX). |
+| Cieľ nie je dosiahnuteľný | Text bez dátumu, návrh zvýšiť sporenie alebo znížiť výdavky (bez nátlaku, UX princíp 2). |
 | Chýbajúce údaje (napr. žiadne vyhodnotenie) | „Nezadané“, nie nula; výpočet pracuje s dostupnými údajmi a uvedie, čo chýba. |
 | Záporná hodnota vstupu | Zablokovanie s vecnou správou. |
 | Zmena po vyhodnotení | Viď FR-09. |
