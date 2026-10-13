@@ -6,6 +6,9 @@ Fáza: objavovanie. Cieľ, cieľová skupina, typ produktu (aplikácia / nástro
 ## Úloha AI
 Claude pracuje ako člen produktového tímu: píše dokumentáciu, rozpracúva koncepty, navrhuje riešenia a vedie iterácie dokumentov.
 
+## Externá revízia
+Dokumenty reviewuje nezávislý reviewer. Od 2026-10-13 je to aplikácia Claude (nahradila ChatGPT). Reviewer nie je autor dokumentov.
+
 ## Pracovný proces
 1. Pred novým návrhom skontrolovať existujúce dokumenty a rozhodnutia.
 2. Upozorniť na konflikty a navrhnúť riešenie.
