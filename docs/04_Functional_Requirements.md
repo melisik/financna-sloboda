@@ -73,7 +73,7 @@ Pre každú transakciu po poslednom vyhodnotení sa počíta pracovný kapitál:
 
 „Po K_L“ znamená transakcie s **dátumom po D_L** (dátum posledného vyhodnotenia), nie podľa času zadania. Transakcia zadaná neskôr s dátumom pred D_L je už v K_L a nepridáva sa znovu (FR-05).
 
-Dopad = n(K_L) − n(K_pred). Ak |dopad| ≥ 1 mesiac, zobrazí sa v celých mesiacoch (D-014, napr. „predbežne +2 mesiace“). Ak |dopad| < 1 mesiac, zobrazí sa v dňoch (napr. „predbežne +4 dni“), aby drobné transakcie (napr. 100 €, cca 0,12 mesiaca) nevyšli ako „bez zmeny“ (M1). Obe n sa počítajú od D_L, takže dopad nezávisí od dnešného dátumu (D-024). Kladné číslo = cieľ bližšie, záporné = ďalej.
+Dopad = ceil(n(K_L)) − ceil(n(K_pred)) v mesiacoch (rovnaké ceil ako pri dátume, aby dopad zodpovedal rozdielu dátumov; K1). Ak |dopad| ≥ 1 mesiac, zobrazí sa v celých mesiacoch (D-014, napr. „predbežne +2 mesiace“). Ak |dopad| < 1 mesiac, zobrazí sa v dňoch (1 mesiac = 30,44 dňa) (napr. „predbežne +4 dni“), aby drobné transakcie (napr. 100 €, cca 0,12 mesiaca) nevyšli ako „bez zmeny“ (M1). Obe n sa počítajú od D_L, takže dopad nezávisí od dnešného dátumu (D-024). Kladné číslo = cieľ bližšie, záporné = ďalej.
 - Výsledok sa zobrazí ako krátky text (D-014), napr. „predbežne +2 mesiace“.
 - Ak je dopad 0, zobrazí sa „bez zmeny“.
 - Pracovný kapitál sa **nepremieta do oficiálneho cieľa**, kým sa neurobí vyhodnotenie.

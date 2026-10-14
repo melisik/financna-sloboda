@@ -61,7 +61,7 @@ Výstup: nálezy zoradené podľa závažnosti (kritický, vysoký, stredný, n�
 ### Testy (`07_Testing_Strategy`)
 - Pokrytie: FR-06, FR-11, FR-13 až FR-15, FR-19, UR-09; D-030; zobrazenie dopadu v dňoch; M2 dátum vyhodnotenia.
 - GC-13: dátum cieľa nezmenený, zobrazený ako august 2054 (interne 2054-08-14), zostáva 332 mesiacov.
-- GC-15: K_L = 100 000, dva výdavky po 60 000 € z kapitálu po D_L → K_pred = 0, dopad −154 mesiacov.
+- GC-15: K_L = 100 000, dva výdavky po 60 000 € z kapitálu po D_L → K_pred = 0, dopad −155 mesiacov.
 - GC-16: tri mesiace sporenia po 500 € → m = 500 (nie 125).
 - Invariant: K_uzavretý(k) definovaný; nezápornosť K_pred.
 - Checklist iPhone pred M2 (plocha, neaktivita 14 dní).

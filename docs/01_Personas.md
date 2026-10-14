@@ -6,7 +6,7 @@
 - **Cieľ:** nezávislosť od zamestnania [user].
 - **Frekvencia používania:** týždenne [user].
 - **Zariadenie:** telefón [user] → webová aplikácia musí byť navrhnutá mobile-first.
-- **Čo eviduje:** len väčšie výdavky a rozhodnutia nad prahovú sumu [user]. Prah je **parameter** a závisí od cieľa používateľa [user]; predvolená hodnota 100 € (D-013).
+- **Čo eviduje:** všetky rozhodnutia; výdavky pod prahovú sumu sa ukladajú s príznakom a prah je filter [user, upravené podľa D-030]. Prah je **parameter** a závisí od cieľa používateľa [user]; predvolená hodnota 100 € (D-013).
 - **Investícia:** už nejakú má; hodnotu a predpokladaný výnos zadáva ručne [user].
 - **Typická situácia** [predpoklad]: raz týždenne si sadne, zadá pár transakcií od posledného zadania a pozrie, ako sa posunul dátum cieľa.
 - **Potreby** [predpoklad]: rýchle zadanie na telefóne (pár polí), jasný prehľad „kde som a kedy to dosiahnem“, istota, že dáta nezmiznú (záloha), žiadny tlak ani zbytočné upozornenia.

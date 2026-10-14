@@ -59,7 +59,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-12 | K = 100 000, m = 500, r = 4 %, T = 2 000 000 | n ≈ 655,4 → **656 mesiacov** (≈ 54,6 roka); zobrazí sa „viac ako 50 rokov“ | FR-02, D-019 |
 | GC-13 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2026-12-14 (bez nového vyhodnotenia) | dátum cieľa **nezmenený**: august 2054 (interne 2054-08-14 = D_L + 334 mesiacov); zostávajúci čas = **332 mesiacov** | D-024, FR-02 |
 | GC-14 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2055-01-01 (po dátume cieľa) | „Dátum vypršal, urobte vyhodnotenie“; žiadny záporný čas; dátum sa nemení | FR-10, D-024 |
-| GC-15 | K_L = 100 000, m = 500, r = 4 %, T = 600 000; po D_L dva výdavky z kapitálu po 60 000 € | K_pred = max(0; −20 000) = **0**; dopad = n(K_L) − n(0) = 334 − 488 = **−154 mesiacov**; text „kapitál by bol vyčerpaný“, žiadny záporný kapitál | FR-04, FR-08, H2 |
+| GC-15 | K_L = 100 000, m = 500, r = 4 %, T = 600 000; po D_L dva výdavky z kapitálu po 60 000 € | K_pred = max(0; −20 000) = **0**; dopad = ceil(n(K_L)) − ceil(n(0)) = 334 − 489 = **−155 mesiacov** (K1: rovnaké ceil ako v FR-04); text „kapitál by bol vyčerpaný“, žiadny záporný kapitál | FR-04, FR-08, H2 |
 | GC-16 | sporenie 500 € v každom z troch mesiacov pred D_L, žiadne staršie transakcie | m = 1 500 / 3 = **500** (nie 125; D-031) | D-031 |
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
@@ -68,7 +68,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 
 ## 4. Invarianty (property-based testy)
 Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10], T ∈ [1 000; 10 000 000]):
-- **Hraničná podmienka:** pre n = `monthsToTarget(...)` platí K_uzavretý(⌈n − 1e-6⌉ − 1) < T ≤ K_uzavretý(⌈n − 1e-6⌉), kde K_uzavretý(k) = K·(1+i)^k + m·((1+i)^k − 1)/i je kapitál po k mesiacoch (D-024). Toto je presnejšie než porovnanie so simuláciou a zachytí chybu v zaokrúhľovaní.
+- **Hraničná podmienka:** pre n = `monthsToTarget(...)` platí K_uzavretý(⌈n − 1e-6⌉ − 1) < T ≤ K_uzavretý(⌈n − 1e-6⌉), kde K_uzavretý(k) = K·(1+i)^k + m·((1+i)^k − 1)/i je kapitál po k mesiacoch (D-024) pre i > 0; pre i = 0 (r = 0) je K_uzavretý(k) = K + m·k. Property test pokrýva r = 0 samostatne (K2). Toto je presnejšie než porovnanie so simuláciou a zachytí chybu v zaokrúhľovaní.
 - **Nezápornosť:** K_pred ≥ 0 pre ľubovoľnú postupnosť výdavkov z kapitálu po D_L (H2).
 - **Monotónnosť:** n nerastie so zvyšovaním K, m alebo r; n nerastie s klesaním T.
 - **Predbežný dopad:**

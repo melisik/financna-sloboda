@@ -132,7 +132,7 @@ Používateľ už investíciu má; produkt s ňou počíta a uvažuje s jej výn
 - **Cieľ:** nezávislosť od zamestnania [user].
 - **Frekvencia používania:** týždenne [user].
 - **Zariadenie:** telefón [user] → webová aplikácia musí byť navrhnutá mobile-first.
-- **Čo eviduje:** len väčšie výdavky a rozhodnutia nad prahovú sumu [user]. Prah je **parameter** a závisí od cieľa používateľa [user]; predvolená hodnota 100 € (D-013).
+- **Čo eviduje:** všetky rozhodnutia; výdavky pod prahovú sumu sa ukladajú s príznakom a prah je filter [user, upravené podľa D-030]. Prah je **parameter** a závisí od cieľa používateľa [user]; predvolená hodnota 100 € (D-013).
 - **Investícia:** už nejakú má; hodnotu a predpokladaný výnos zadáva ručne [user].
 - **Typická situácia** [predpoklad]: raz týždenne si sadne, zadá pár transakcií od posledného zadania a pozrie, ako sa posunul dátum cieľa.
 - **Potreby** [predpoklad]: rýchle zadanie na telefóne (pár polí), jasný prehľad „kde som a kedy to dosiahnem“, istota, že dáta nezmiznú (záloha), žiadny tlak ani zbytočné upozornenia.
@@ -157,7 +157,7 @@ Zatiaľ nedefinované. Definujeme po overení MVP na vlastnom použití. Treba p
 | UR-03 | Ako používateľ zadám existujúcu investíciu: aktuálnu hodnotu. Výnos je jeden globálny predpoklad pre celý kapitál, ktorý si nastavím. | D-010, D-032 |
 | UR-04 | Ako používateľ zadám transakciu (sporenie, investícia, výdavok) – rýchlo, na telefóne. | D-006, persona 1 |
 | UR-10 | Ako používateľ zadám ročné výdavky v dôchodku ručne ako odhad. | D-013 |
-| UR-05 | Ako používateľ nastavím prahovú sumu pre evidenciu výdavkov (predvolene 100 €). | [user], D-013 |
+| UR-05 | Ako používateľ nastavím prahovú sumu, od ktorej sa výdavok zvýrazní v prehľade; všetky výdavky sa ukladajú s príznakom (predvolene 100 €). | [user], D-013, D-030 |
 | UR-06 | Ako používateľ po každej transakcii vidím predbežný dopad na dátum cieľa (krátky text). | D-004, D-014 |
 | UR-11 | Ako používateľ na konci mesiaca urobím mesačné vyhodnotenie (pripomenutie pri vynechaní, D-016): zadám hodnotu investícií a nasporenú sumu a vidím prepočítaný cieľ (cieľová suma a dátum ako rozsah opatrný/základný/optimistický). | D-011, D-014 |
 | UR-12 | Ako používateľ pri zadaní výdavku zvolím zdroj úhrady (z príjmu – predvolené / z kapitálu). | D-014 |
@@ -343,7 +343,7 @@ Pre každú transakciu po poslednom vyhodnotení sa počíta pracovný kapitál:
 
 „Po K_L“ znamená transakcie s **dátumom po D_L** (dátum posledného vyhodnotenia), nie podľa času zadania. Transakcia zadaná neskôr s dátumom pred D_L je už v K_L a nepridáva sa znovu (FR-05).
 
-Dopad = n(K_L) − n(K_pred). Ak |dopad| ≥ 1 mesiac, zobrazí sa v celých mesiacoch (D-014, napr. „predbežne +2 mesiace“). Ak |dopad| < 1 mesiac, zobrazí sa v dňoch (napr. „predbežne +4 dni“), aby drobné transakcie (napr. 100 €, cca 0,12 mesiaca) nevyšli ako „bez zmeny“ (M1). Obe n sa počítajú od D_L, takže dopad nezávisí od dnešného dátumu (D-024). Kladné číslo = cieľ bližšie, záporné = ďalej.
+Dopad = ceil(n(K_L)) − ceil(n(K_pred)) v mesiacoch (rovnaké ceil ako pri dátume, aby dopad zodpovedal rozdielu dátumov; K1). Ak |dopad| ≥ 1 mesiac, zobrazí sa v celých mesiacoch (D-014, napr. „predbežne +2 mesiace“). Ak |dopad| < 1 mesiac, zobrazí sa v dňoch (1 mesiac = 30,44 dňa) (napr. „predbežne +4 dni“), aby drobné transakcie (napr. 100 €, cca 0,12 mesiaca) nevyšli ako „bez zmeny“ (M1). Obe n sa počítajú od D_L, takže dopad nezávisí od dnešného dátumu (D-024). Kladné číslo = cieľ bližšie, záporné = ďalej.
 - Výsledok sa zobrazí ako krátky text (D-014), napr. „predbežne +2 mesiace“.
 - Ak je dopad 0, zobrazí sa „bez zmeny“.
 - Pracovný kapitál sa **nepremieta do oficiálneho cieľa**, kým sa neurobí vyhodnotenie.
@@ -801,7 +801,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-12 | K = 100 000, m = 500, r = 4 %, T = 2 000 000 | n ≈ 655,4 → **656 mesiacov** (≈ 54,6 roka); zobrazí sa „viac ako 50 rokov“ | FR-02, D-019 |
 | GC-13 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2026-12-14 (bez nového vyhodnotenia) | dátum cieľa **nezmenený**: august 2054 (interne 2054-08-14 = D_L + 334 mesiacov); zostávajúci čas = **332 mesiacov** | D-024, FR-02 |
 | GC-14 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2055-01-01 (po dátume cieľa) | „Dátum vypršal, urobte vyhodnotenie“; žiadny záporný čas; dátum sa nemení | FR-10, D-024 |
-| GC-15 | K_L = 100 000, m = 500, r = 4 %, T = 600 000; po D_L dva výdavky z kapitálu po 60 000 € | K_pred = max(0; −20 000) = **0**; dopad = n(K_L) − n(0) = 334 − 488 = **−154 mesiacov**; text „kapitál by bol vyčerpaný“, žiadny záporný kapitál | FR-04, FR-08, H2 |
+| GC-15 | K_L = 100 000, m = 500, r = 4 %, T = 600 000; po D_L dva výdavky z kapitálu po 60 000 € | K_pred = max(0; −20 000) = **0**; dopad = ceil(n(K_L)) − ceil(n(0)) = 334 − 489 = **−155 mesiacov** (K1: rovnaké ceil ako v FR-04); text „kapitál by bol vyčerpaný“, žiadny záporný kapitál | FR-04, FR-08, H2 |
 | GC-16 | sporenie 500 € v každom z troch mesiacov pred D_L, žiadne staršie transakcie | m = 1 500 / 3 = **500** (nie 125; D-031) | D-031 |
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
@@ -810,7 +810,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 
 ## 4. Invarianty (property-based testy)
 Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10], T ∈ [1 000; 10 000 000]):
-- **Hraničná podmienka:** pre n = `monthsToTarget(...)` platí K_uzavretý(⌈n − 1e-6⌉ − 1) < T ≤ K_uzavretý(⌈n − 1e-6⌉), kde K_uzavretý(k) = K·(1+i)^k + m·((1+i)^k − 1)/i je kapitál po k mesiacoch (D-024). Toto je presnejšie než porovnanie so simuláciou a zachytí chybu v zaokrúhľovaní.
+- **Hraničná podmienka:** pre n = `monthsToTarget(...)` platí K_uzavretý(⌈n − 1e-6⌉ − 1) < T ≤ K_uzavretý(⌈n − 1e-6⌉), kde K_uzavretý(k) = K·(1+i)^k + m·((1+i)^k − 1)/i je kapitál po k mesiacoch (D-024) pre i > 0; pre i = 0 (r = 0) je K_uzavretý(k) = K + m·k. Property test pokrýva r = 0 samostatne (K2). Toto je presnejšie než porovnanie so simuláciou a zachytí chybu v zaokrúhľovaní.
 - **Nezápornosť:** K_pred ≥ 0 pre ľubovoľnú postupnosť výdavkov z kapitálu po D_L (H2).
 - **Monotónnosť:** n nerastie so zvyšovaním K, m alebo r; n nerastie s klesaním T.
 - **Predbežný dopad:**
@@ -936,7 +936,7 @@ Otvorené:
 | D-009 | 2026-10-13 | MVP je webová aplikácia s ručným zadávaním transakcií a lokálnym ukladaním dát (s exportom/importom). Neskôr mobilná aplikácia s integráciami na banku a investičné aplikácie. | Jednoduchosť a ochrana citlivých dát v osobnej fáze; zadanie zakladateľa. |
 | D-010 | 2026-10-13 | Existujúca investícia sa v MVP zadáva ručne: aktuálna hodnota a predpokladaný ročný výnos (viditeľný predpoklad). | Jednoduchosť; bez trhových dát. |
 | D-011 | 2026-10-13 | Odporúčania pri nastavení cieľa: parametre a predvolené hodnoty podľa tabuľky vo vízii v0.9 (výdavky, miera výberu 4 % [3–4 %], reálny výnos 4 % [2–6 %], mesačné sporenie, rezerva 3 mesiace [3–6]). MVP ukazuje aj odhadovaný dátum cieľa ako rozsah. | Potvrdené zakladateľom; číselné hodnoty treba overiť v zdrojoch. |
-| D-012 | 2026-10-13 | MVP je mobile-first (telefón), používanie týždenne; evidujú sa len výdavky nad prahovú sumu (100–500 €), prah je parameter. | Zadanie zakladateľa. |
+| D-012 | 2026-10-13 | MVP je mobile-first (telefón), používanie týždenne; evidujú sa len výdavky nad prahovú sumu (100–500 €), prah je parameter. Upresnené D-030: všetky výdavky sa ukladajú s príznakom; prah je filter. | Zadanie zakladateľa. |
 | D-013 | 2026-10-13 | Ročné výdavky v dôchodku zadáva používateľ ručne; mesačné sporenie sa odvodzuje z transakcií sporenie/investícia; prah platí len pre výdavky, predvolene 100 €; evidovaný výdavok znižuje kapitál len vtedy, ak je hradený z kapitálu (upresnené D-014 a FR-08) (cieľová suma sa nemení). Upresňuje D-011. | Potvrdené zakladateľom; vyriešený konflikt prahu a odvodzovania výdavkov. |
 | D-014 | 2026-10-13 | Pri výdavku sa volí zdroj úhrady (predvolene z príjmu; z kapitálu znižuje kapitál). Kapitál sa oficiálne prepočítava raz mesačne na konci mesiaca (hodnota investícií + sporenie zadáva používateľ); po transakcii sa ukáže len predbežný dopad ako krátky text bez farieb. Upresňuje D-004 a D-013. | Potvrdené zakladateľom; nižšia záťaž, menej výkyvov. |
 | D-015 | 2026-10-13 | Externý reviewer dokumentov je aplikácia Claude (nahradila ChatGPT). | Rozhodnutie zakladateľa. |
