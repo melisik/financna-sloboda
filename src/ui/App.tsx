@@ -1,161 +1,311 @@
-import { useMemo, useState } from "react";
-import { targetAmountCents } from "../domain/goal";
+import { useEffect, useMemo, useState } from "react";
+import { openRepository } from "../storage/indexeddb";
+import type { Repository } from "../storage/repository";
+import { SOURCES, type AppData, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { currentCapital, reserveBalance } from "../app/ledger";
+import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact } from "../domain/impact";
-import {
-  Capital,
-  impactMonthsSplit,
-  monthsToTargetSplit,
-  payFromCash,
-  payFromInvestments,
-  transferToInvestments,
-} from "../domain/capital";
-import { targetDate } from "../domain/goal";
+import { impactMonthsSplit, monthsToTargetSplit, payFromCash, payFromInvestments, transferToInvestments, type Capital } from "../domain/capital";
 
 const MONTHS = ["januára", "februára", "marca", "apríla", "mája", "júna", "júla", "augusta", "septembra", "októbra", "novembra", "decembra"];
-
-/** Dátum „mesiac rok“ podľa FR-06 (napr. „august 2054“). */
-function formatMonthYear(iso: string): string {
+const cents = (x: number) => Math.round(x * 100);
+const eur = (c: number) => `${(c / 100).toLocaleString("sk-SK", { maximumFractionDigits: 0 })} €`;
+const todayIso = () => new Date().toISOString().slice(0, 10);
+const monthYear = (iso: string) => {
   const [y, m] = iso.split("-").map(Number);
   return `${MONTHS[m - 1]} ${y}`;
-}
+};
+const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-type Source = "income" | "cash" | "investments";
+const DEFAULT_SETTINGS: Settings = {
+  expensesCents: cents(24_000),
+  withdrawalRate: 0.037,
+  realReturn: 0.035,
+  reserveCents: cents(6_000),
+  thresholdCents: cents(100),
+  savingInvCents: cents(500),
+  savingCashCents: 0,
+};
+
+const TYPE_LABEL: Record<TransactionType, string> = {
+  sporenie: "sporenie (do hotovosti)",
+  investicia: "investícia",
+  vydavok: "výdavok",
+  rezerva: "vklad do rezervy",
+  vyber_rezervy: "výber z rezervy",
+};
+const SOURCE_LABEL: Record<Source, string> = { z_prijmu: "z príjmu", z_hotovosti: "z hotovosti", z_investicii: "z investícií" };
 
 export function App() {
-  // Vstupy v eurách (zobrazenie); výpočty v centoch (05 §4).
-  const [expenses, setExpenses] = useState(24000);
-  const [withdrawalPct, setWithdrawalPct] = useState(3.7);
-  const [returnPct, setReturnPct] = useState(3.5);
-  const [capitalInv, setCapitalInv] = useState(100000);
-  const [capitalCash, setCapitalCash] = useState(20000);
-  const [savingInv, setSavingInv] = useState(500);
-  const [savingCash, setSavingCash] = useState(0);
-  const [reserve, setReserve] = useState(6000);
-  const [lastReview, setLastReview] = useState("2026-10-14");
+  const [repo, setRepo] = useState<Repository | null>(null);
+  const [data, setData] = useState<AppData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Náhľady (predbežné, nemenia oficiálny cieľ, D-014).
-  const [expAmount, setExpAmount] = useState(15000);
-  const [expSource, setExpSource] = useState<Source>("cash");
-  const [transferAmount, setTransferAmount] = useState(5000);
+  useEffect(() => {
+    let alive = true;
+    openRepository()
+      .then(async (r) => {
+        const d = await r.getData();
+        if (!alive) return;
+        setRepo(r);
+        setData(d);
+      })
+      .catch((e) => setError(`Úložisko sa nepodarilo otvoriť: ${String(e)}`));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
-  const cents = (x: number) => Math.round(x * 100);
-  const targetC = useMemo(
-    () => targetAmountCents(cents(expenses), withdrawalPct / 100),
-    [expenses, withdrawalPct],
-  );
-
-  const base: Capital = { inv: cents(capitalInv), cash: cents(capitalCash) };
-  const mInv = cents(savingInv);
-  const mCash = cents(savingCash);
-  const r = returnPct / 100;
-
-  const scenario = (rate: number) => {
-    const n = monthsToTargetSplit(base, mInv, mCash, rate, targetC);
-    if (n === null) return "Bez sporenia a výnosu sa cieľ nedosiahne";
-    if (n === 0) return "Cieľ je dosiahnutý";
-    return formatMonthYear(targetDate(lastReview, n));
+  const reload = async () => {
+    if (repo) setData(await repo.getData());
   };
 
-  // Náhľad výdavku alebo presunu.
-  const preview = useMemo(() => {
-    const res = { after: base as Capital | null, message: "", warning: false };
-    if (expSource === "income") {
-      res.message = "Výdavok z príjmu nemení kapitál.";
-    } else if (expSource === "cash") {
-      const r1 = payFromCash(base, cents(expAmount), cents(reserve));
-      if (r1.ok) res.after = r1.capital;
-      else {
-        res.after = null;
-        res.message = "Hotovosť by klesla pod rezervu. Zvoľ zdroj „z investícií“.";
-      }
-    } else {
-      const r1 = payFromInvestments(base, cents(expAmount));
-      if (r1.ok) {
-        res.after = r1.capital;
-        if (r1.warning === "exhausted") {
-          res.warning = true;
-          res.message = "Investície by nestačili; kapitál je 0 €.";
-        }
-      }
-    }
-    return res;
-  }, [base.inv, base.cash, expAmount, expSource, reserve]);
+  if (error) return <Shell><p style={{ color: "#8a0000" }}>{error}</p></Shell>;
+  if (!repo || !data) return <Shell><p>Načítavam údaje…</p></Shell>;
 
-  const expenseImpact =
-    preview.after === null
-      ? null
-      : impactMonthsSplit(base, preview.after, mInv, mCash, r, targetC);
+  return (
+    <Shell>
+      <SettingsSection repo={repo} settings={data.settings ?? DEFAULT_SETTINGS} onSaved={reload} />
+      <SnapshotSection repo={repo} snapshots={data.snapshots} onSaved={reload} />
+      <GoalSection data={data} />
+      <TransactionSection repo={repo} data={data} onChanged={reload} />
+    </Shell>
+  );
+}
 
-  // Presun hotovosti do investícií (doinvestovanie, D-045).
-  const transfer = transferToInvestments(base, cents(transferAmount), cents(reserve));
-  const transferImpact = transfer.ok
-    ? impactMonthsSplit(base, transfer.capital, mInv, mCash, r, targetC)
-    : null;
-
-  const eur = (c: number) => `${(c / 100).toLocaleString("sk-SK", { maximumFractionDigits: 0 })} €`;
-
+function Shell({ children }: { children: React.ReactNode }) {
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
       <h1 style={{ fontSize: "1.5rem" }}>Finančná sloboda (prototyp)</h1>
-      <p style={{ color: "#555" }}>Syntetické údaje. Výpočet je pred daňou a poplatkami (D-043, D-050).</p>
-
-      <section>
-        <h2 style={{ fontSize: "1.1rem" }}>Vstupy</h2>
-        <Field label="Ročné výdavky pri nezávislosti (€)" value={expenses} onChange={setExpenses} />
-        <Field label="Miera výberu (%)" value={withdrawalPct} onChange={setWithdrawalPct} step={0.1} />
-        <Field label="Reálny výnos r (%)" value={returnPct} onChange={setReturnPct} step={0.1} />
-        <Field label="Investovaný kapitál K_inv (€)" value={capitalInv} onChange={setCapitalInv} />
-        <Field label="Hotovosť K_cash (€)" value={capitalCash} onChange={setCapitalCash} />
-        <Field label="Mesačné sporenie do investícií (€)" value={savingInv} onChange={setSavingInv} />
-        <Field label="Mesačné sporenie do hotovosti (€)" value={savingCash} onChange={setSavingCash} />
-        <Field label="Rezerva (€)" value={reserve} onChange={setReserve} />
-        <Field label="Posledné vyhodnotenie D_L (RRRR-MM-DD)" value={lastReview} onChange={setLastReview} type="text" />
-      </section>
-
-      <section>
-        <h2 style={{ fontSize: "1.1rem" }}>Cieľ</h2>
-        <p>Cieľová suma: <strong>{eur(targetC)}</strong></p>
-        <ul>
-          <li>Opatrný (r − 2 p. b.): {scenario(Math.max(0, r - 0.02))}</li>
-          <li>Základný (r): {scenario(r)}</li>
-          <li>Optimistický (r + 2 p. b.): {scenario(r + 0.02)}</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2 style={{ fontSize: "1.1rem" }}>Výdavok (náhľad)</h2>
-        <Field label="Suma výdavku (€)" value={expAmount} onChange={setExpAmount} />
-        <label style={{ display: "block", margin: "8px 0" }}>
-          <span style={{ display: "block", fontSize: "0.9rem" }}>Zdroj úhrady</span>
-          <select value={expSource} onChange={(e) => setExpSource(e.target.value as Source)} style={{ width: "100%", padding: "8px", fontSize: "1rem" }}>
-            <option value="income">z príjmu</option>
-            <option value="cash">z hotovosti</option>
-            <option value="investments">z investícií</option>
-          </select>
-        </label>
-        {preview.message && <p style={{ color: preview.warning ? "#8a4b00" : "#8a0000" }}>{preview.message}</p>}
-        {preview.after && (
-          <p>
-            Predbežný dopad: <strong>{expenseImpact === null ? "Bez sporenia a výnosu sa cieľ nedosiahne" : formatImpact(expenseImpact)}</strong>
-          </p>
-        )}
-      </section>
-
-      <section>
-        <h2 style={{ fontSize: "1.1rem" }}>Presun do investícií (náhľad)</h2>
-        <Field label="Suma presunu z hotovosti (€)" value={transferAmount} onChange={setTransferAmount} />
-        {!transfer.ok && <p style={{ color: "#8a0000" }}>Hotovosť by klesla pod rezervu.</p>}
-        {transfer.ok && transferImpact !== null && (
-          <p>Predbežný dopad: <strong>{formatImpact(transferImpact)}</strong> (K sa nemení, mení sa rozdelenie).</p>
-        )}
-      </section>
-
-      <p style={{ color: "#555", fontSize: "0.9rem" }}>
-        Náhľady ukazujú predbežný dopad. Oficiálny cieľ sa mení až pri vyhodnotení (D-014).
-      </p>
+      <p style={{ color: "#555" }}>Údaje sa ukladajú len v tomto prehliadači. Výpočet je pred daňou a poplatkami (D-043, D-050).</p>
+      {children}
     </main>
   );
 }
+
+function SettingsSection({ repo, settings, onSaved }: { repo: Repository; settings: Settings; onSaved: () => void }) {
+  const [v, setV] = useState({
+    expenses: settings.expensesCents / 100,
+    withdrawalPct: settings.withdrawalRate * 100,
+    returnPct: settings.realReturn * 100,
+    reserve: settings.reserveCents / 100,
+    threshold: settings.thresholdCents / 100,
+    savingInv: settings.savingInvCents / 100,
+    savingCash: settings.savingCashCents / 100,
+  });
+  const save = async () => {
+    await repo.saveSettings({
+      expensesCents: cents(v.expenses),
+      withdrawalRate: v.withdrawalPct / 100,
+      realReturn: v.returnPct / 100,
+      reserveCents: cents(v.reserve),
+      thresholdCents: cents(v.threshold),
+      savingInvCents: cents(v.savingInv),
+      savingCashCents: cents(v.savingCash),
+    });
+    onSaved();
+  };
+  return (
+    <section>
+      <h2 style={{ fontSize: "1.1rem" }}>Nastavenia</h2>
+      <Field label="Ročné výdavky pri nezávislosti (€)" value={v.expenses} onChange={(x) => setV({ ...v, expenses: x })} />
+      <Field label="Miera výberu (%)" value={v.withdrawalPct} step={0.1} onChange={(x) => setV({ ...v, withdrawalPct: x })} />
+      <Field label="Reálny výnos r (%)" value={v.returnPct} step={0.1} onChange={(x) => setV({ ...v, returnPct: x })} />
+      <Field label="Rezerva, cieľová hodnota (€)" value={v.reserve} onChange={(x) => setV({ ...v, reserve: x })} />
+      <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })} />
+      <Field label="Mesačné sporenie do investícií (€)" value={v.savingInv} onChange={(x) => setV({ ...v, savingInv: x })} />
+      <Field label="Mesačné sporenie do hotovosti (€)" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })} />
+      <button onClick={save} style={btn}>Uložiť nastavenia</button>
+    </section>
+  );
+}
+
+function SnapshotSection({ repo, snapshots, onSaved }: { repo: Repository; snapshots: Snapshot[]; onSaved: () => void }) {
+  const latest = [...snapshots].sort((a, b) => a.date.localeCompare(b.date)).at(-1);
+  const [date, setDate] = useState(todayIso());
+  const [inv, setInv] = useState(latest ? latest.investmentsCents / 100 : 100000);
+  const [cash, setCash] = useState(latest ? latest.cashCents / 100 : 20000);
+  const [err, setErr] = useState<string | null>(null);
+  const save = async () => {
+    if (date > todayIso()) return setErr("Dátum vyhodnotenia nesmie byť v budúcnosti.");
+    if (inv < 0 || cash < 0) return setErr("Hodnoty nesmú byť záporné.");
+    setErr(null);
+    await repo.addSnapshot({ id: uid(), date, investmentsCents: cents(inv), cashCents: cents(cash), createdAt: new Date().toISOString() });
+    onSaved();
+  };
+  return (
+    <section>
+      <h2 style={{ fontSize: "1.1rem" }}>Vyhodnotenie (D_L)</h2>
+      <p style={{ color: "#555" }}>
+        {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom (L6)."}
+      </p>
+      <Field label="Dátum vyhodnotenia (RRRR-MM-DD)" value={date} type="text" onChange={setDate} />
+      <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} />
+      <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} />
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť vyhodnotenie</button>
+    </section>
+  );
+}
+
+function GoalSection({ data }: { data: AppData }) {
+  const s = data.settings ?? DEFAULT_SETTINGS;
+  const latest = [...data.snapshots].sort((a, b) => a.date.localeCompare(b.date)).at(-1) ?? null;
+  const capital = useMemo(() => currentCapital(latest, data.transactions), [latest, data.transactions]);
+  const target = targetAmountCents(s.expensesCents, s.withdrawalRate);
+  const reserve = reserveBalance(data.transactions);
+  const scenario = (rate: number) => {
+    if (!latest) return "—";
+    const n = monthsToTargetSplit(capital, s.savingInvCents, s.savingCashCents, rate, target);
+    if (n === null) return "Bez sporenia a výnosu sa cieľ nedosiahne";
+    if (n === 0) return "Cieľ je dosiahnutý";
+    return monthYear(targetDate(latest.date, n));
+  };
+  return (
+    <section>
+      <h2 style={{ fontSize: "1.1rem" }}>Cieľ</h2>
+      <p>Cieľová suma: <strong>{eur(target)}</strong></p>
+      <p>Kapitál: investície {eur(capital.inv)}, hotovosť {eur(capital.cash)}. Rezerva: {eur(reserve)}.</p>
+      <ul>
+        <li>Opatrný (r − 2 p. b.): {scenario(Math.max(0, s.realReturn - 0.02))}</li>
+        <li>Základný (r): {scenario(s.realReturn)}</li>
+        <li>Optimistický (r + 2 p. b.): {scenario(s.realReturn + 0.02)}</li>
+      </ul>
+      {latest && <p style={{ color: "#555", fontSize: "0.9rem" }}>Dátum platí k poslednému vyhodnoteniu ({latest.date}).</p>}
+    </section>
+  );
+}
+
+function TransactionSection({ repo, data, onChanged }: { repo: Repository; data: AppData; onChanged: () => void }) {
+  const s = data.settings ?? DEFAULT_SETTINGS;
+  const latest = [...data.snapshots].sort((a, b) => a.date.localeCompare(b.date)).at(-1) ?? null;
+  const capital = useMemo(() => currentCapital(latest, data.transactions), [latest, data.transactions]);
+  const reserve = reserveBalance(data.transactions);
+
+  const [type, setType] = useState<TransactionType>("vydavok");
+  const [amount, setAmount] = useState(15000);
+  const [date, setDate] = useState(todayIso());
+  const [source, setSource] = useState<Source>("z_hotovosti");
+  const [note, setNote] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  const needsSource = type === "vydavok" || type === "investicia";
+  const target = targetAmountCents(s.expensesCents, s.withdrawalRate);
+
+  // Náhľad dopadu nového záznamu (predbežný, D-014).
+  const preview = useMemo(() => {
+    if (!latest || !(amount > 0)) return null;
+    const a = cents(amount);
+    let after: Capital | null = capital;
+    if (type === "vydavok" && source === "z_hotovosti") {
+      const r = payFromCash(capital, a, s.reserveCents);
+      after = r.ok ? r.capital : null;
+    } else if (type === "vydavok" && source === "z_investicii") {
+      const r = payFromInvestments(capital, a);
+      after = r.ok ? r.capital : null;
+    } else if (type === "investicia" && source === "z_hotovosti") {
+      const r = transferToInvestments(capital, a, s.reserveCents);
+      after = r.ok ? r.capital : null;
+    } else if (type === "investicia") {
+      after = { inv: capital.inv + a, cash: capital.cash };
+    } else if (type === "sporenie") {
+      after = { inv: capital.inv, cash: capital.cash + a };
+    } else if (type === "vydavok") {
+      after = capital; // z príjmu
+    }
+    if (after === null) return { blocked: true as const };
+    const d = impactMonthsSplit(capital, after, s.savingInvCents, s.savingCashCents, s.realReturn, target);
+    return { blocked: false as const, impact: d };
+  }, [latest, capital, type, source, amount, s, target]);
+
+  const save = async () => {
+    if (!(amount > 0)) return setErr("Suma musí byť kladná.");
+    if (date > todayIso()) return setErr("Dátum nesmie byť v budúcnosti.");
+    if (!latest) return setErr("Najprv zadaj vyhodnotenie (D_L).");
+    if (type === "vydavok" && source === "z_hotovosti") {
+      const r = payFromCash(capital, cents(amount), s.reserveCents);
+      if (!r.ok) return setErr("Hotovosť by klesla pod rezervu. Zvoľ zdroj „z investícií“.");
+    }
+    if (type === "investicia" && source === "z_hotovosti") {
+      const r = transferToInvestments(capital, cents(amount), s.reserveCents);
+      if (!r.ok) return setErr("Hotovosť by klesla pod rezervu.");
+    }
+    if (type === "vyber_rezervy" && cents(amount) > reserve) return setErr("Výber je väčší než stav rezervy.");
+    setErr(null);
+    const t: Transaction = {
+      id: uid(),
+      date,
+      type,
+      amountCents: cents(amount),
+      ...(needsSource ? { source } : {}),
+      ...(type === "vydavok" ? { belowThreshold: cents(amount) < s.thresholdCents } : {}),
+      ...(note ? { note: note.slice(0, 200) } : {}),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    await repo.addTransaction(t);
+    setNote("");
+    onChanged();
+  };
+
+  const remove = async (id: string) => {
+    await repo.deleteTransaction(id);
+    onChanged();
+  };
+
+  const list = [...data.transactions].sort((a, b) => (a.date === b.date ? b.createdAt.localeCompare(a.createdAt) : b.date.localeCompare(a.date)));
+
+  return (
+    <section>
+      <h2 style={{ fontSize: "1.1rem" }}>Transakcie</h2>
+      <label style={{ display: "block", margin: "8px 0" }}>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>Typ</span>
+        <select value={type} onChange={(e) => setType(e.target.value as TransactionType)} style={inp}>
+          {(Object.keys(TYPE_LABEL) as TransactionType[]).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
+        </select>
+      </label>
+      {needsSource && (
+        <label style={{ display: "block", margin: "8px 0" }}>
+          <span style={{ display: "block", fontSize: "0.9rem" }}>Zdroj</span>
+          <select value={source} onChange={(e) => setSource(e.target.value as Source)} style={inp}>
+            {SOURCES.map((x) => <option key={x} value={x}>{SOURCE_LABEL[x]}</option>)}
+          </select>
+        </label>
+      )}
+      <Field label="Suma (€)" value={amount} onChange={setAmount} />
+      <Field label="Dátum (RRRR-MM-DD)" value={date} type="text" onChange={setDate} />
+      <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} />
+      {preview && (
+        <p>
+          {preview.blocked
+            ? "Hotovosť by klesla pod rezervu. Zvoľ zdroj „z investícií“."
+            : <>Predbežný dopad: <strong>{preview.impact === null ? "Bez sporenia a výnosu sa cieľ nedosiahne" : formatImpact(preview.impact)}</strong></>}
+        </p>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť transakciu</button>
+
+      <h3 style={{ fontSize: "1rem", marginTop: 24 }}>Zapísané transakcie</h3>
+      {list.length === 0 && <p style={{ color: "#555" }}>Zatiaľ žiadne.</p>}
+      <ul style={{ paddingLeft: 0, listStyle: "none" }}>
+        {list.map((t) => (
+          <li key={t.id} style={{ borderBottom: "1px solid #ddd", padding: "6px 0", display: "flex", justifyContent: "space-between", gap: 8 }}>
+            <span>
+              {t.date} · {TYPE_LABEL[t.type]} · {eur(t.amountCents)}
+              {t.source ? ` (${SOURCE_LABEL[t.source]})` : ""}
+              {t.belowThreshold ? " · pod prahom" : ""}
+              {t.note ? ` · ${t.note}` : ""}
+            </span>
+            <button onClick={() => remove(t.id)} style={{ ...btn, padding: "2px 8px" }}>Zmazať</button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+const inp: React.CSSProperties = { width: "100%", padding: "8px", fontSize: "1rem", boxSizing: "border-box" };
+const btn: React.CSSProperties = { padding: "8px 14px", fontSize: "1rem", marginTop: 8 };
 
 function Field(props: { label: string; value: number | string; onChange: (v: any) => void; step?: number; type?: string }) {
   return (
@@ -166,7 +316,7 @@ function Field(props: { label: string; value: number | string; onChange: (v: any
         step={props.step ?? 1}
         value={props.value}
         onChange={(e) => props.onChange(props.type === "text" ? e.target.value : Number(e.target.value))}
-        style={{ width: "100%", padding: "8px", fontSize: "1rem", boxSizing: "border-box" }}
+        style={inp}
       />
     </label>
   );
