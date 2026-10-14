@@ -13,9 +13,9 @@
 | M3 | Jedno globálne r | rozhodnuté | D-032 |
 | M4 | m v nastaveniach | uzavreté | 04 entita Nastavenie; 05 store settings |
 | M5 | Nasporená suma = stav | rozhodnuté | D-033 |
-| M6 | Zdroj predvolených r a výberu | otvorené (O-9) | 04 §7; pred M3 |
+| M6 | Zdroj predvolených r a výberu | rozhodnuté | D-049, D-050, D-051 |
 | M7 | Klasifikácia spotreby | odložené (O-7, 1b) | D-038; backlog N-03 |
-| M8 | Rozsah prahu podľa cieľa | otvorené (O-8) | 04 §7; pred M3 |
+| M8 | Rozsah prahu podľa cieľa | rozhodnuté | D-048 |
 | L1 | Dátum: mesiac a rok, interne orezanie | uzavreté | 04 FR-06; GC-13 |
 | L2 | ceil(n − 1e-6) všade | uzavreté | 04 FR-02, 05 §5, 07 §3, §5 |
 | L3 | Poradie vetiev FR-02 | uzavreté | 04 FR-02 |
@@ -45,3 +45,12 @@
 | L2 | Tón hlásení | uzavreté | 02, 04, 05, 07 (D-019, D-021 ponechané) |
 | L3 | Nedefinované kódy | uzavreté | tento súbor |
 | L4 | Vyčerpaný kapitál v tabuľke | uzavreté | 04 §5 |
+| RR1 | Výnos na hotovosť (read-only) | uzavreté | D-036; 04 pojmy a FR-02 |
+| RR2 | Rezerva dvakrát (ledger vs. kontrola) | rozhodnuté | D-058 (voľba A); GC-19 |
+| RR3 | T = V × 27 pri 3,7 % | uzavreté | 00, 04, D-049 (T = V / p) |
+| RR4 | Dva texty uplynutého dátumu | uzavreté | D-024, 04 FR-10 |
+| RR5 | Počet testov v zadaní | uzavreté | zadanie (63 + 6 E2E) |
+| RR6 | GC-21 zaokrúhlenie | uzavreté | 07 GC-21 (1,7 dňa) |
+| RR7 | Commit v zadaní | uzavreté | zadanie („alebo novší“) |
+| R26 | Nulový a takmer nulový dopad | otvorené (návrh) | review/poznamky-k-revizii-2026-10-14.md §2 |
+| R26b | Text „cieľ sa nedosiahne“ pri dopade | otvorené (návrh) | review/poznamky-k-revizii-2026-10-14.md §2 |

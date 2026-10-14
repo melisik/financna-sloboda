@@ -324,7 +324,7 @@ Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môž
 - Dátum cieľa = D_L + `ceil(n − 1e-6)` mesiacov, orezané na posledný deň cieľového mesiaca (interný výpočet; zobrazuje sa mesiac a rok, FR-06). ε chráni pred chybou pohyblivej desatinnej čiarky (GC-10). Počíta sa z K = K_L a m (D-024).
 - Zostávajúci čas = počet mesiacov od dneška do dátumu cieľa; mení sa s časom, dátum nie. Ak dátum uplynul bez vyhodnotenia, zobrazí sa „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie“, nie záporný čas (FR-10).
 - **Dvojaký kapitál (D-036, D-039, D-041):** K_L = K_inv + K_cash. K_cash sa nezhodnocuje (0 % reálne). Investícia (m_inv) ide do K_inv a zhodnocuje sa; sporenie (m_cash) ide do K_cash bez zhodnotenia (D-041). Ak m_cash > 0, n sa počíta iteráciou po celých mesiacoch a zlomok interpoláciou (D-046). Cieľ je dosiahnutý, keď K_L ≥ T (teda K_inv ≥ T − K_cash). Vzorce vyššie platia s K := K_inv a T := T − K_cash. Ak K_cash ≥ T, cieľ je dosiahnutý. Hradenie výdavkov z K_inv alebo K_cash je otvorené (O-10).
-- **Presun do investícií (D-045):** investícia zadaná so zdrojom „z hotovosti“ presúva sumu z K_cash do K_inv. K sa nemení; mení sa len rozdelenie.
+- **Presun do investícií (D-045):** investícia zadaná so zdrojom „z hotovosti“ presúva sumu z K_cash do K_inv. K sa nemení; mení sa len rozdelenie. Presun je obmedzený na K_cash (D-058).
 - Výnos medzi vyhodnoteniami sa na K_L nepripisuje; dátum je tak konzervatívny (D-024). Výnos r je jeden predpoklad (predvolene 3,5 %, D-050) pre investovaný kapitál K_inv, nastavuje ho používateľ (D-025, D-032); hotovosť K_cash je bez výnosu (D-036).
 - Zobrazený dátum cieľa platí k poslednému vyhodnoteniu (D_L): text „dátum platí k poslednému vyhodnoteniu“ (S6).
 - Hranica „viac ako 50 rokov“ sa meria od D_L (D-019 upresnené).
@@ -374,7 +374,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 
 ### FR-08 – Zdroj úhrady výdavku (D-014)
 - „Z príjmu“: K sa nemení.
-- „Z hotovosti“ (K_cash): K_pred sa znižuje o sumu, ale nesmie klesnúť pod rezervu (3 mesiace výdavkov, D-045). Ak by klesol, zobrazí sa upozornenie a ponuka zdroja „z investícií“. Po vyhodnotení sa zohľadní v nasporenej sume.
+- „Z hotovosti“ (K_cash): K_pred sa znižuje o sumu, ale K_cash nesmie klesnúť pod 0 (D-058; rezerva je mimo K_cash a do kontroly nevstupuje). Ak by nestačil, výdavok sa nevykoná, zobrazí sa upozornenie a ponuka zdroja „z investícií“. Po vyhodnotení sa zohľadní v nasporenej sume.
 - „Z investícií“ (K_inv): K_pred sa znižuje o sumu; K_cash sa nemení (D-045).
 - Ak je výdavok z kapitálu väčší než K_L, alebo ak súčet výdavkov z kapitálu po D_L presiahne K_L, navrhuje sa upozornenie a ponuka zmeny na „z príjmu“; ak používateľ potvrdí, K_pred = 0 a zobrazí sa „Hotovosť nestačila; kapitál je 0 €“ (D-021 rozšírené na kumulatívny prípad, H2).
 
@@ -731,7 +731,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 - **Platba všetkých daní (napr. z príjmu, z predaja investícií):** mimo MVP (D-008, 04 oddiel 6). Platba dane je regulovaná; vyžaduje právne posúdenie pred fázou 2. Možný menší variant: len pripomienka termínu bez výpočtu dane.
 - **API do banky na pravidelné transakcie:** v rozpore s D-009 a FR-16 (žiadne volania na externé API v MVP). Patrí do fázy 3, viazané na PSD2 (oddiel 7). Prvý krok je import CSV výpisu (oddiel 7, bod 2).
 - **Pravidelné platby ako pripomienky:** nový typ údajov (plán opakovaných platieb) a zmena výpočtu dopadu (FR-04). Nie je to drobnosť; treba samostatný návrh a rozhodnutie.
-- **Automatický presun hotovosti pred platbou:** aplikácia nepresúva peniaze sama (presun ostáva manuálny, D-046). Možný variant je pripomienka „pred splatnosťou zváž presun X €“, ktorá kontroluje rezervu (D-052) a nie je odporúčaním na kúpu alebo predaj.
+- **Automatický presun hotovosti pred platbou:** aplikácia nepresúva peniaze sama (presun ostáva manuálny, D-046). Možný variant je pripomienka „pred splatnosťou zváž presun X €“, ktorá kontroluje, či hotovosť stačí (K_cash, D-058) a nie je odporúčaním na kúpu alebo predaj.
 
 ## 9. Rozhodnutia potrebné pred ďalšími krokmi
 
@@ -836,7 +836,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-16 | sporenie 500 € v každom z troch mesiacov pred D_L, žiadne staršie transakcie | m = 1 500 / 3 = **500** (nie 125; D-031) | D-031 |
 | GC-17 | D_L = 2026-10-14, K_inv = 50 000, K_cash = 60 000, m = 500, r = 4 %, T = 100 000 | K_L = 110 000 ≥ T → cieľ dosiahnutý, dátum = D_L (hotovosť sa počíta v K) | FR-02, D-036 |
 | GC-18 | D_L = 2026-10-14, K_inv = 90 000, K_cash = 5 000, m = 500 (investícia, m_inv), r = 4 %, T = 100 000 | T′ = T − K_cash = 95 000; n ≈ 6,24 → **7 mesiacov** (dátum D_L + 7 mesiacov) | FR-02, D-036, D-039 |
-| GC-19 | V = 24 000 €, K_cash = 20 000 €, rezerva = 3 × 2 000 = 6 000 €, výdavok 15 000 € z hotovosti | zostatok 5 000 € < rezerva 6 000 € → upozornenie a ponuka „z investícií“; výdavok z investícií je povolený | FR-08, D-045 |
+| GC-19 | V = 24 000 €, K_cash = 20 000 €, rezerva = 3 × 2 000 = 6 000 € (mimo K_cash), výdavok 15 000 € z hotovosti | prejde; K_cash = 5 000 €, rezerva zostáva 6 000 € (nezasahuje); výdavok 25 000 € > K_cash je zamietnutý s ponukou „z investícií“ | FR-08, D-045, D-058 |
 | GC-20 | K_inv = 100 000, K_cash = 0, m_inv = 0, m_cash = 500, r = 4 %, T = 600 000 | n ≈ 417,42 → **418 mesiacov** (iterácia po celých mesiacoch, D-046); pri m_cash = 0 je uzavretý tvar 333,92 | D-046 |
 | GC-21 | ako GC-20, ale K_cash = 100 € navyše | dopad = 417,417 − 417,360 = **0,056 mesiaca ≈ 1,7 dňa** (interpolácia; prepočítané cez `monthsToTargetSplit`); zobrazí sa v dňoch | FR-04, D-046 |
 | GC-22 | vklad do rezervy 6 000 €, potom výber z rezervy 1 000 € | stav rezervy = 6 000 − 1 000 = **5 000 €** (vklady mínus výbery); K sa nemení | D-047 |
@@ -1011,18 +1011,19 @@ Otvorené:
 | D-042 | 2026-10-14 | Pridanie appky na plochu je na iPhone **povinné** (nie odporúčané). Ruší odporúčanie v D-034 a D-035 v časti o povinnosti. | Rozhodnutie zakladateľa (opätovná recenzia N3). |
 | D-043 (nahradené D-051) | 2026-10-14 | Predvolená miera výberu zostáva 4 % aj pri skorom odchode, s upozornením, že pri dlhom horizonte je 3–3,5 % konzervatívnejšie. T je pred daňou a poplatkami. | Rozhodnutie zakladateľa (opätovná recenzia N8, V6). |
 | D-044 | 2026-10-14 | Referenčný dátum D_L je vyhodnotenie s najneskorším dátumom vyhodnotenia, nie čas zápisu. Spätné vyhodnotenie s dátumom pred D_L nezmení D_L. | Rozhodnutie zakladateľa (opätovná recenzia N9). |
-| D-045 | 2026-10-14 | Zdroj úhrady: výdavok z hotovosti (K_cash) sa smie znížiť najviac na rezervu (3 mesiace výdavkov, D-011); presah sa upozorní a ponúkne sa zdroj „z investícií“ (K_inv). Presun hotovosti do investícií (doinvestovanie) nie je výdavok: K sa nemení, K_cash klesne a K_inv vzrastie o rovnakú sumu, len ak hotovosť zostane nad rezervou. Uzatvára O-10. | Rozhodnutie zakladateľa (zadanie: reinvestovanie z K_inv, doinvestovanie z K_cash nad kritickú hranicu; hranica = rezerva). |
+| D-045 | 2026-10-14 | Zdroj úhrady: výdavok z hotovosti (K_cash) sa smie znížiť najviac na 0 (pôvodne na rezervu; nahradené D-058); presah sa upozorní a ponúkne sa zdroj „z investícií“ (K_inv). Presun hotovosti do investícií (doinvestovanie) nie je výdavok: K sa nemení, K_cash klesne a K_inv vzrastie o rovnakú sumu, len ak hotovosť nestačí (K_cash ≥ suma; pôvodne nad rezervou, nahradené D-058). Uzatvára O-10. Pravidlo o rezerve (hranica = rezerva) nahradené D-058. | Rozhodnutie zakladateľa (zadanie: reinvestovanie z K_inv, doinvestovanie z K_cash nad kritickú hranicu; hranica = rezerva). |
 | D-046 | 2026-10-14 | Keď m_cash > 0, n sa počíta iteráciou po celých mesiacoch: najmenšie k, pre ktoré K_inv(k) + K_cash + m_cash·k ≥ T, kde K_inv(k) = K_inv·(1+i)^k + m_inv·((1+i)^k − 1)/i. Zlomok sa získa lineárnou interpoláciou medzi k−1 a k. Dopad pod mesiac sa zobrazuje v dňoch (interpoláciou), aj pri m_cash = 0. Uzatvára O-11. | Rozhodnutie zakladateľa (O-11: v dňoch, interpoláciou). Postup overený GC-20 a GC-21. |
 | D-047 | 2026-10-14 | Stav rezervy = vklady mínus výbery. Vklad je transakcia typu „rezerva“, výber je transakcia typu „výber z rezervy“. Rezerva nie je v K a nezhodnocuje sa. Hranica pre výdavok z hotovosti (D-045) je tento stav. Upresňuje D-037. | Rozhodnutie zakladateľa (N5). |
 | D-048 | 2026-10-14 | Prah výdavkov (zvýraznenie v prehľade) je pevná predvolená hodnota 100 €, ktorú používateľ zmení v rozsahu 100–500 €. Bez automatického pravidla podľa cieľa alebo V. Prah nevplýva na výpočet cieľa (D-030). Uzatvára O-8. | Rozhodnutie zakladateľa (O-8). |
 | D-049 | 2026-10-14 | Predvolená miera výberu je 3,7 % (rozsah 3–4 %), nie 4 %. Základ: Morningstar 2025, základný prípad USA (prognózy, 90 % pravdepodobnosť 30 rokov). Pri 3,7 % je T = V / p ≈ V × 27,03 (pre V = 24 000 € je T = 648 649 €); pravidlo 4 % (V × 25, D-008) ostáva ako historická referencia. Presný tvar je V / p, nie zaokrúhlený násobok (revízia, nález 3). Upresňuje D-008 a D-011. | Rozhodnutie zakladateľa (O-9). Podklady: review/o9-podklady.md. |
 | D-050 | 2026-10-14 | Predvolený reálny výnos r je 3,5 % pred daňou a poplatkami (rozsah 2–6 %). Scenáre: opatrný r − 2 p. b. (1,5 %), základný r (3,5 %), optimistický r + 2 p. b. (5,5 %). Upresňuje D-011 a D-025. | Rozhodnutie zakladateľa (O-9). Podklady: review/o9-podklady.md. |
 | D-051 | 2026-10-14 | Predvolená miera výberu je 3,7 % (D-049). D-043 (4 %) je nahradené; dokumenty sa zjednotia. | Rozhodnutie zakladateľa (revízia R8). |
-| D-052 | 2026-10-14 | Limit výdavku z hotovosti je stav rezervy (vklady mínus výbery, D-047), nie cieľová rezerva z nastavení. | Rozhodnutie zakladateľa (revízia R6). |
+| D-052 | 2026-10-14 | Limit výdavku z hotovosti je stav rezervy (vklady mínus výbery, D-047), nie cieľová rezerva z nastavení. | Rozhodnutie zakladateľa (revízia R6). Nahradené D-058. |
 | D-053 | 2026-10-14 | Na iPhone je pridanie appky na plochu povinná výzva pri prvom otvorení v Safari (ruší odporúčanie v D-034 a D-042 ako nepovinné). | Rozhodnutie zakladateľa (revízia R9). |
 | D-054 | 2026-10-14 | Mazanie transakcie je okamžité; stačí vrátenie späť na 8 sekúnd, bez potvrdenia. | Rozhodnutie zakladateľa (revízia R19). |
 | D-055 | 2026-10-14 | Vyhodnotenie s dátumom, ktorý už existuje, sa prepíše len po potvrdení; história sa zachová (FR-05). | Rozhodnutie zakladateľa (revízia R9, FR-05). |
 | D-056 | 2026-10-14 | Na verejný Pages sa nasadzuje len vetva main. Vetvy na testovanie len spúšťajú testy vrátane E2E. | Rozhodnutie zakladateľa (revízia R10). |
 | D-057 | 2026-10-14 | Pri prvom spustení sú polia prázdne, odporúčané hodnoty sa zobrazia ako výzva pod poľom, nepredvyplnia sa. | Rozhodnutie zakladateľa (revízia R11). |
+| D-058 | 2026-10-14 | Rezerva nie je súčasťou hotovosti K_cash (potvrdené D-047). Výdavok z hotovosti a presun do investícií sú obmedzené len voči K_cash (nesmú vyčerpať viac než K_cash, teda klesnúť pod 0); rezerva do týchto kontrol nevstupuje. Nahrádza pravidlo „hotovosť nesmie klesnúť pod rezervu“ v D-045 a D-052. Vklad do rezervy je výdavok z K_cash (limit K_cash). Výber z rezervy zvyšuje K_cash. | Rozhodnutie zakladateľa (revízia, nález 2: voľba A). |
 
 ---

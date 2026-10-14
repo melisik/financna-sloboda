@@ -385,8 +385,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     const ca = cents(a);
     if (type === "vydavok") {
       if (source === "z_hotovosti") {
-        const r = payFromCash(cap, ca, base.reserve);
-        return r.ok ? { after: r.capital } : { after: null, message: "Hotovosť by klesla pod rezervu. Zvoľ zdroj „z investícií“." };
+        const r = payFromCash(cap, ca);
+        return r.ok ? { after: r.capital } : { after: null, message: "Hotovosti nestačí na tento výdavok. Zvoľ zdroj „z investícií“." };
       }
       if (source === "z_investicii") {
         const r = payFromInvestments(cap, ca);
@@ -397,8 +397,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     }
     if (type === "investicia") {
       if (source === "z_hotovosti") {
-        const r = transferToInvestments(cap, ca, base.reserve);
-        return r.ok ? { after: r.capital } : { after: null, message: "Hotovosť by klesla pod rezervu." };
+        const r = transferToInvestments(cap, ca);
+        return r.ok ? { after: r.capital } : { after: null, message: "Hotovosti nestačí na presun do investícií." };
       }
       return { after: { inv: cap.inv + ca, cash: cap.cash } };
     }

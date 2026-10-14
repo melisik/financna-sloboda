@@ -47,17 +47,17 @@ describe("monthsToTargetSplit (D-046)", () => {
 });
 
 describe("výdavky z kapitálu (D-045)", () => {
-  // GC-19: V = 24 000, K_cash = 20 000, rezerva = 6 000, výdavok 15 000 z hotovosti → zamietnutý
-  it("GC-19: výdavok z hotovosti pod rezervu je zamietnutý a navrhne sa zdroj z investícií", () => {
-    const r = payFromCash({ inv: eur(100_000), cash: eur(20_000) }, eur(15_000), eur(6_000));
-    expect(r).toEqual({ ok: false, reason: "below_reserve", suggestion: "investments" });
+  // GC-19 (D-058): K_cash = 20 000, rezerva = 6 000 mimo K_cash; výdavok 15 000 z hotovosti prejde, rezerva sa nedotkne
+  it("GC-19: výdavok z hotovosti do výšky K_cash prejde; rezerva nie je v kontrole", () => {
+    const r = payFromCash({ inv: eur(100_000), cash: eur(20_000) }, eur(15_000));
+    expect(r.ok && r.capital).toEqual({ inv: eur(100_000), cash: eur(5_000) });
     const inv = payFromInvestments({ inv: eur(100_000), cash: eur(20_000) }, eur(15_000));
     expect(inv.ok && inv.capital.inv).toBe(eur(85_000));
   });
 
-  it("výdavok z hotovosti nad rezervu prejde a zníži len K_cash", () => {
-    const r = payFromCash({ inv: eur(100_000), cash: eur(20_000) }, eur(10_000), eur(6_000));
-    expect(r.ok && r.capital).toEqual({ inv: eur(100_000), cash: eur(10_000) });
+  it("výdavok z hotovosti nad K_cash je zamietnutý a navrhne sa zdroj z investícií", () => {
+    const r = payFromCash({ inv: eur(100_000), cash: eur(20_000) }, eur(25_000));
+    expect(r).toEqual({ ok: false, reason: "insufficient_cash", suggestion: "investments" });
   });
 
   // GC-15: dva výdavky po 60 000 € z investícií: K_inv sa zastaví na 0, dopad −154 mesiacov
@@ -76,10 +76,10 @@ describe("výdavky z kapitálu (D-045)", () => {
     expect(formatImpact(d!)).toBe("predbežne −154 mesiace");
   });
 
-  it("presun do investícií nemení K a rešpektuje rezervu", () => {
-    const ok = transferToInvestments({ inv: eur(100_000), cash: eur(20_000) }, eur(10_000), eur(6_000));
+  it("presun do investícií nemení K a nesmie vyčerpať viac než K_cash (D-058)", () => {
+    const ok = transferToInvestments({ inv: eur(100_000), cash: eur(20_000) }, eur(10_000));
     expect(ok.ok && ok.capital).toEqual({ inv: eur(110_000), cash: eur(10_000) });
-    const blocked = transferToInvestments({ inv: eur(100_000), cash: eur(20_000) }, eur(15_000), eur(6_000));
+    const blocked = transferToInvestments({ inv: eur(100_000), cash: eur(20_000) }, eur(25_000));
     expect(blocked.ok).toBe(false);
   });
 });

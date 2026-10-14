@@ -49,14 +49,14 @@ export function monthsToTargetSplit(
 /** Výsledok výdavku alebo presunu: nový stav a prípadné upozornenie (D-021, D-045). */
 export type MoveResult =
   | { ok: true; capital: Capital; warning?: "exhausted" }
-  | { ok: false; reason: "below_reserve"; suggestion: "investments" };
+  | { ok: false; reason: "insufficient_cash"; suggestion: "investments" };
 
 /**
- * Výdavok z hotovosti (D-045): hotovosť smie klesnúť najviac na rezervu.
- * Ak by klesla pod rezervu, výdavok sa nevykoná a navrhne sa zdroj „z investícií“.
+ * Výdavok z hotovosti (D-058): limit je K_cash (voľná hotovosť). Rezerva je mimo K_cash a do kontroly nevstupuje.
+ * Ak by K_cash klesol pod 0, výdavok sa nevykoná a navrhne sa zdroj „z investícií“.
  */
-export function payFromCash(c: Capital, amount: number, reserve: number): MoveResult {
-  if (c.cash - amount < reserve) return { ok: false, reason: "below_reserve", suggestion: "investments" };
+export function payFromCash(c: Capital, amount: number): MoveResult {
+  if (c.cash - amount < 0) return { ok: false, reason: "insufficient_cash", suggestion: "investments" };
   return { ok: true, capital: { inv: c.inv, cash: c.cash - amount } };
 }
 
@@ -71,11 +71,11 @@ export function payFromInvestments(c: Capital, amount: number): MoveResult {
 }
 
 /**
- * Presun hotovosti do investícií (doinvestovanie, D-045): K sa nemení.
- * Smie len v takej výške, aby hotovosť zostala nad rezervou.
+ * Presun hotovosti do investícií (doinvestovanie, D-045, upresnené D-058): K sa nemení.
+ * Smie najviac vyčerpať K_cash; rezerva sa nedotkne.
  */
-export function transferToInvestments(c: Capital, amount: number, reserve: number): MoveResult {
-  if (c.cash - amount < reserve) return { ok: false, reason: "below_reserve", suggestion: "investments" };
+export function transferToInvestments(c: Capital, amount: number): MoveResult {
+  if (c.cash - amount < 0) return { ok: false, reason: "insufficient_cash", suggestion: "investments" };
   return { ok: true, capital: { inv: c.inv + amount, cash: c.cash - amount } };
 }
 

@@ -54,7 +54,7 @@ Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môž
 - Dátum cieľa = D_L + `ceil(n − 1e-6)` mesiacov, orezané na posledný deň cieľového mesiaca (interný výpočet; zobrazuje sa mesiac a rok, FR-06). ε chráni pred chybou pohyblivej desatinnej čiarky (GC-10). Počíta sa z K = K_L a m (D-024).
 - Zostávajúci čas = počet mesiacov od dneška do dátumu cieľa; mení sa s časom, dátum nie. Ak dátum uplynul bez vyhodnotenia, zobrazí sa „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie“, nie záporný čas (FR-10).
 - **Dvojaký kapitál (D-036, D-039, D-041):** K_L = K_inv + K_cash. K_cash sa nezhodnocuje (0 % reálne). Investícia (m_inv) ide do K_inv a zhodnocuje sa; sporenie (m_cash) ide do K_cash bez zhodnotenia (D-041). Ak m_cash > 0, n sa počíta iteráciou po celých mesiacoch a zlomok interpoláciou (D-046). Cieľ je dosiahnutý, keď K_L ≥ T (teda K_inv ≥ T − K_cash). Vzorce vyššie platia s K := K_inv a T := T − K_cash. Ak K_cash ≥ T, cieľ je dosiahnutý. Hradenie výdavkov z K_inv alebo K_cash je otvorené (O-10).
-- **Presun do investícií (D-045):** investícia zadaná so zdrojom „z hotovosti“ presúva sumu z K_cash do K_inv. K sa nemení; mení sa len rozdelenie.
+- **Presun do investícií (D-045):** investícia zadaná so zdrojom „z hotovosti“ presúva sumu z K_cash do K_inv. K sa nemení; mení sa len rozdelenie. Presun je obmedzený na K_cash (D-058).
 - Výnos medzi vyhodnoteniami sa na K_L nepripisuje; dátum je tak konzervatívny (D-024). Výnos r je jeden predpoklad (predvolene 3,5 %, D-050) pre investovaný kapitál K_inv, nastavuje ho používateľ (D-025, D-032); hotovosť K_cash je bez výnosu (D-036).
 - Zobrazený dátum cieľa platí k poslednému vyhodnoteniu (D_L): text „dátum platí k poslednému vyhodnoteniu“ (S6).
 - Hranica „viac ako 50 rokov“ sa meria od D_L (D-019 upresnené).
@@ -104,7 +104,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 
 ### FR-08 – Zdroj úhrady výdavku (D-014)
 - „Z príjmu“: K sa nemení.
-- „Z hotovosti“ (K_cash): K_pred sa znižuje o sumu, ale nesmie klesnúť pod rezervu (3 mesiace výdavkov, D-045). Ak by klesol, zobrazí sa upozornenie a ponuka zdroja „z investícií“. Po vyhodnotení sa zohľadní v nasporenej sume.
+- „Z hotovosti“ (K_cash): K_pred sa znižuje o sumu, ale K_cash nesmie klesnúť pod 0 (D-058; rezerva je mimo K_cash a do kontroly nevstupuje). Ak by nestačil, výdavok sa nevykoná, zobrazí sa upozornenie a ponuka zdroja „z investícií“. Po vyhodnotení sa zohľadní v nasporenej sume.
 - „Z investícií“ (K_inv): K_pred sa znižuje o sumu; K_cash sa nemení (D-045).
 - Ak je výdavok z kapitálu väčší než K_L, alebo ak súčet výdavkov z kapitálu po D_L presiahne K_L, navrhuje sa upozornenie a ponuka zmeny na „z príjmu“; ak používateľ potvrdí, K_pred = 0 a zobrazí sa „Hotovosť nestačila; kapitál je 0 €“ (D-021 rozšírené na kumulatívny prípad, H2).
 

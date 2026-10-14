@@ -78,7 +78,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-16 | sporenie 500 € v každom z troch mesiacov pred D_L, žiadne staršie transakcie | m = 1 500 / 3 = **500** (nie 125; D-031) | D-031 |
 | GC-17 | D_L = 2026-10-14, K_inv = 50 000, K_cash = 60 000, m = 500, r = 4 %, T = 100 000 | K_L = 110 000 ≥ T → cieľ dosiahnutý, dátum = D_L (hotovosť sa počíta v K) | FR-02, D-036 |
 | GC-18 | D_L = 2026-10-14, K_inv = 90 000, K_cash = 5 000, m = 500 (investícia, m_inv), r = 4 %, T = 100 000 | T′ = T − K_cash = 95 000; n ≈ 6,24 → **7 mesiacov** (dátum D_L + 7 mesiacov) | FR-02, D-036, D-039 |
-| GC-19 | V = 24 000 €, K_cash = 20 000 €, rezerva = 3 × 2 000 = 6 000 €, výdavok 15 000 € z hotovosti | zostatok 5 000 € < rezerva 6 000 € → upozornenie a ponuka „z investícií“; výdavok z investícií je povolený | FR-08, D-045 |
+| GC-19 | V = 24 000 €, K_cash = 20 000 €, rezerva = 3 × 2 000 = 6 000 € (mimo K_cash), výdavok 15 000 € z hotovosti | prejde; K_cash = 5 000 €, rezerva zostáva 6 000 € (nezasahuje); výdavok 25 000 € > K_cash je zamietnutý s ponukou „z investícií“ | FR-08, D-045, D-058 |
 | GC-20 | K_inv = 100 000, K_cash = 0, m_inv = 0, m_cash = 500, r = 4 %, T = 600 000 | n ≈ 417,42 → **418 mesiacov** (iterácia po celých mesiacoch, D-046); pri m_cash = 0 je uzavretý tvar 333,92 | D-046 |
 | GC-21 | ako GC-20, ale K_cash = 100 € navyše | dopad = 417,417 − 417,360 = **0,056 mesiaca ≈ 1,7 dňa** (interpolácia; prepočítané cez `monthsToTargetSplit`); zobrazí sa v dňoch | FR-04, D-046 |
 | GC-22 | vklad do rezervy 6 000 €, potom výber z rezervy 1 000 € | stav rezervy = 6 000 − 1 000 = **5 000 €** (vklady mínus výbery); K sa nemení | D-047 |
