@@ -53,6 +53,8 @@ class IdbRepository implements Repository {
 
   async replaceAll(data: AppData): Promise<void> {
     const tx = this.db.transaction(["transactions", "snapshots", "settings"], "readwrite");
+    // Pri zrušení transakcie by tx.done odmietla promise bez poslucháča (neošetrená chyba).
+    tx.done.catch(() => undefined);
     try {
       await tx.objectStore("transactions").clear();
       await tx.objectStore("snapshots").clear();
