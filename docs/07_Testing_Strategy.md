@@ -26,7 +26,7 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
 
 ## 3. Zlaté prípady (golden cases)
-Hodnoty sú overené tromi spôsobmi: uzavretým vzorcom (FR-02), mesačnou simuláciou a tabuľkovou funkciou NPER (viď nižšie). Všetky sú uložené v `tests/golden/goal-cases.json` a každý má odkaz na požiadavku.
+Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overené tabuľkovou funkciou NPER (viď nižšie). Mesačná simulácia a overenie ostatných prípadov nie sú zatiaľ spustené; doplnia sa v M1. Prípady budú uložené v `tests/golden/goal-cases.json` a každý bude mať odkaz na požiadavku.
 
 | ID | Vstup | Očakávaný výsledok | Zdroj |
 |---|---|---|---|
@@ -39,7 +39,7 @@ Hodnoty sú overené tromi spôsobmi: uzavretým vzorcom (FR-02), mesačnou simu
 | GC-07 | K = 100 000, m = 0, r = 4 % | n = 548,21 → **549** (≈ 45,7 roka, dátum sa zobrazí, pretože je do 50 rokov) | FR-02, D-019 |
 | GC-08 | K = 0, m = 0, r = 4 % | bez dátumu: „Bez sporenia a výnosu sa cieľ nedosiahne“ | D-019 |
 | GC-09 | K = 0, m = 500, r = 4 % | n = 488,02 → **489** | FR-02 |
-| GC-10 | K = 100 000, m = 500, r = 0 % | n = (T − K) / m = **1 000** | FR-02 |
+| GC-10 | K = 100 000, T = 600 000, m = 500, r = 0 % | n = (T − K) / m = **1 000** (presne celé číslo; `ceil(n − 1e-6)` musí dať 1 000, nie 1 001) | FR-02 |
 | GC-11 | K_L ≥ T | cieľ dosiahnutý, dátum = D_L (dátum posledného vyhodnotenia) | FR-02, D-024 |
 | GC-12 | K = 100 000, m = 500, r = 4 %, T = 2 000 000 | n ≈ 655,4 → **656 mesiacov** (≈ 54,6 roka); zobrazí sa „viac ako 50 rokov“ | FR-02, D-019 |
 | GC-13 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2026-12-14 (bez nového vyhodnotenia) | dátum cieľa **nezmenený** = 2054-08-14 (n = 334 od D_L); zostávajúci čas = **332 mesiacov** | FR-02, D-024 |
@@ -47,7 +47,7 @@ Hodnoty sú overené tromi spôsobmi: uzavretým vzorcom (FR-02), mesačnou simu
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
 
-**Tolerancia:** porovnávame celé mesiace po `ceil`; interné hodnoty n sa porovnávajú s presnosťou 1e-6.
+**Tolerancia:** porovnávame celé mesiace po `ceil(n − 1e-6)`; interné hodnoty n sa porovnávajú s presnosťou 1e-6.
 
 ## 4. Invarianty (property-based testy)
 Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10], T ∈ [1 000; 10 000 000]):
@@ -63,7 +63,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 ## 5. Dátum a čas
 - Dátumy sa ukladajú ako `YYYY-MM-DD` bez časovej zóny; test, že sa pri prechode na letný čas (Europe/Bratislava) dátum neposúva o deň.
 - Hranice mesiaca: transakcia dňa 31. a vyhodnotenie dňa 30. (FR-05, „≤ dátum vyhodnotenia“); priestupný rok (29. 2.).
-- Dátum cieľa = dnes + ⌈n⌉ mesiacov s **orezaním na posledný deň cieľového mesiaca** (31. 1. + 1 mesiac = 28. 2.). Test s falošnými hodinami (fake timers) pre dni 1., 28., 29., 30. a 31.
+- Dátum cieľa = D_L + ⌈n − 1e-6⌉ mesiacov (D-024) s **orezaním na posledný deň cieľového mesiaca** (31. 1. + 1 mesiac = 28. 2.). Test s falošnými hodinami (fake timers) pre dni 1., 28., 29., 30. a 31.
 - Pripomienka konca mesiaca sa testuje s nastavenou časovou zónou.
 
 ## 6. Dáta a úložisko

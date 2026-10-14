@@ -173,7 +173,7 @@ Zatiaľ nedefinované. Definujeme po overení MVP na vlastnom použití. Treba p
 - **Ročné výdavky v dôchodku** zadáva používateľ ručne (odhad celkových výdavkov); z transakcií sa neodvodzujú, pretože sa evidujú len výdavky nad prahom.
 - **Mesačné sporenie a investovanie** sa odvodzuje z transakcií typu sporenie/investícia (evidujú sa vždy).
 - **Prah** platí len pre výdavky. Predvolená hodnota je **100 €**, používateľ ju môže zmeniť.
-- **Vplyv cielenej spotreby na cieľ:** evidovaný výdavok **znižuje kapitál** (investovateľný kapitál sa zníži o sumu výdavku), čo posunie odhadovaný dátum cieľa. Cieľová suma (ročné výdavky × 25) sa výdavkom nemení.
+- **Vplyv cielenej spotreby na cieľ:** evidovaný výdavok **znižuje kapitál len vtedy, ak je hradený z kapitálu** (zdroj úhrady, D-014 a FR-08); výdavok z príjmu kapitál nemení. Ak je hradený z kapitálu, investovateľný kapitál sa zníži o sumu výdavku a posunie sa odhadovaný dátum cieľa. Cieľová suma (ročné výdavky × 25) sa výdavkom nemení.
 
 ## Predpoklady a riziká k vyriešeným rozhodnutiam [predpoklad]
 - Model „výdavok znižuje kapitál“ predpokladá, že sa výdavok hradí z naakumulovaného kapitálu. Ak ho používateľ v skutočnosti platí z bežného príjmu, aplikácia bude dátum cieľa nadhodnocovať (cieľ vyzerá ďalej, než je). Treba to používateľovi jasne povedať a zvážiť pri zadávaní výdavku voľbu „hradené z kapitálu / z príjmu“ (zdroj úhrady podľa D-014).
@@ -315,7 +315,7 @@ Výpočet v reálnych hodnotách, mesačné sporenie na konci mesiaca, mesačná
 - Inak: `n = ln((T·i + m) / (K·i + m)) / ln(1 + i)`
 - Ak r = 0: `n = (T − K) / m`.
 - Ak `K·i + m = 0` (teda K = 0 a m = 0, alebo r = 0 a m = 0): kapitál nerastie, cieľ nie je dosiahnuteľný; zobrazí sa text „Bez sporenia a výnosu sa cieľ nedosiahne“ (bez dátumu). Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môže byť veľmi vzdialený (viď O-5).
-- Dátum cieľa = D_L + `ceil(n)` mesiacov (orezané na posledný deň cieľového mesiaca), zobrazený ako mesiac a rok (D-024). Počíta sa z K = K_L a m, takže sa mení len pri novom vyhodnotení, nie s plynutím času.
+- Dátum cieľa = D_L + `ceil(n − 1e-6)` mesiacov (ε chráni pred chybou pohyblivej desatinnej čiarky, GC-10) (orezané na posledný deň cieľového mesiaca), zobrazený ako mesiac a rok (D-024). Počíta sa z K = K_L a m, takže sa mení len pri novom vyhodnotení, nie s plynutím času.
 - Zostávajúci čas = počet mesiacov od dneška do dátumu cieľa; mení sa s časom, dátum nie. Ak dátum uplynul bez vyhodnotenia, zobrazí sa „Dátum vypršal, urobte vyhodnotenie“, nie záporný čas (FR-10).
 - Výnos medzi vyhodnoteniami sa na K_L nepripisuje. Dátum je tak konzervatívny; skutočné K môže byť medzitým vyššie. Pripisovanie by dátum posúvalo automaticky, čo je v rozpore s D-014 a FR-10. Výnos r je jeden predvolený predpoklad 4 % na celý kapitál vrátane hotovosti; klient si ho nastavuje sám (D-025).
 
@@ -333,6 +333,8 @@ Zobrazí sa ako „od – do“ (UX D-016): najskorší (optimistický) až najn
 Pre každú transakciu po poslednom vyhodnotení sa počíta pracovný kapitál:
 
 `K_pred = K_L + Σ(sporenie/investícia po K_L) − Σ(výdavky „z kapitálu“ po K_L)`
+
+„Po K_L“ znamená transakcie s **dátumom po D_L** (dátum posledného vyhodnotenia), nie podľa času zadania. Transakcia zadaná neskôr s dátumom pred D_L je už v K_L a nepridáva sa znovu (FR-05).
 
 Dopad = n(K_L) − n(K_pred), zaokrúhlený na celé mesiace. Obe n sa počítajú od D_L, takže dopad nezávisí od dnešného dátumu (D-024). Kladné číslo = cieľ bližšie, záporné = ďalej.
 - Výsledok sa zobrazí ako krátky text (D-014), napr. „predbežne +2 mesiace“.
@@ -526,7 +528,7 @@ tests/             jednotkové testy domain/ a storage/
 {
   "app": "financna-sloboda",
   "schemaVersion": 1,
-  "exportedAt": "2038-03-31T10:00:00Z",
+  "exportedAt": "2026-10-14T10:00:00Z",
   "settings": { ... },
   "transactions": [ ... ],
   "snapshots": [ ... ]
@@ -547,7 +549,7 @@ Import: validácia schémy (typy, rozsahy, povinné polia) → náhľad → nahr
 - `targetDate(D_L, n) → date` (D_L + ceil(n) mesiacov, orezané na posledný deň mesiaca; D-024). Počíta sa z K_L, takže sa mení len pri novom vyhodnotení.
 - `monthsLeft(today, targetDate) → mesiace | null` (zostávajúci čas od dneška; záporná hodnota = dátum uplynul, zobrazí sa „Dátum vypršal, urobte vyhodnotenie“; D-024).
 
-Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n)` mesiacov od dnešného dňa.
+Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6)` mesiacov od D_L (D-024), nie od dnešného dňa.
 
 ### Overené príklady (jednotkové testy)
 | Vstup | Očakávaný výsledok |
@@ -618,7 +620,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n)` mesiac
 | Fáza | Cieľ | Stav | Brána na vstup |
 |---|---|---|---|
 | 0 – Discovery a dokumentácia | vízia, požiadavky, architektúra, testy | prebieha | externá revízia dokumentov |
-| 1 – MVP (osobné použitie) | webová PWA pre zakladateľa | plán | rozhodnutia z oddielu 6 |
+| 1 – MVP (osobné použitie) | webová PWA pre zakladateľa | plán | rozhodnutia z oddielu 9 |
 | 1b – Pilot | 3 mesiace reálneho používania | plán | dokončené M1–M7 |
 | 2 – EÚ webový produkt | viac používateľov, účty, GDPR, jazyky | plán | právne posúdenie, monetizácia, rozhodnutie o účtoch a šifrovaní |
 | 3 – Mobil a integrácie | natívna appka, banka a investičné appky | plán | licencie a zmluvy, bezpečnostný audit |
@@ -753,7 +755,7 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
 
 ## 3. Zlaté prípady (golden cases)
-Hodnoty sú overené tromi spôsobmi: uzavretým vzorcom (FR-02), mesačnou simuláciou a tabuľkovou funkciou NPER (viď nižšie). Všetky sú uložené v `tests/golden/goal-cases.json` a každý má odkaz na požiadavku.
+Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overené tabuľkovou funkciou NPER (viď nižšie). Mesačná simulácia a overenie ostatných prípadov nie sú zatiaľ spustené; doplnia sa v M1. Prípady budú uložené v `tests/golden/goal-cases.json` a každý bude mať odkaz na požiadavku.
 
 | ID | Vstup | Očakávaný výsledok | Zdroj |
 |---|---|---|---|
@@ -766,7 +768,7 @@ Hodnoty sú overené tromi spôsobmi: uzavretým vzorcom (FR-02), mesačnou simu
 | GC-07 | K = 100 000, m = 0, r = 4 % | n = 548,21 → **549** (≈ 45,7 roka, dátum sa zobrazí, pretože je do 50 rokov) | FR-02, D-019 |
 | GC-08 | K = 0, m = 0, r = 4 % | bez dátumu: „Bez sporenia a výnosu sa cieľ nedosiahne“ | D-019 |
 | GC-09 | K = 0, m = 500, r = 4 % | n = 488,02 → **489** | FR-02 |
-| GC-10 | K = 100 000, m = 500, r = 0 % | n = (T − K) / m = **1 000** | FR-02 |
+| GC-10 | K = 100 000, T = 600 000, m = 500, r = 0 % | n = (T − K) / m = **1 000** (presne celé číslo; `ceil(n − 1e-6)` musí dať 1 000, nie 1 001) | FR-02 |
 | GC-11 | K_L ≥ T | cieľ dosiahnutý, dátum = D_L (dátum posledného vyhodnotenia) | FR-02, D-024 |
 | GC-12 | K = 100 000, m = 500, r = 4 %, T = 2 000 000 | n ≈ 655,4 → **656 mesiacov** (≈ 54,6 roka); zobrazí sa „viac ako 50 rokov“ | FR-02, D-019 |
 | GC-13 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2026-12-14 (bez nového vyhodnotenia) | dátum cieľa **nezmenený** = 2054-08-14 (n = 334 od D_L); zostávajúci čas = **332 mesiacov** | FR-02, D-024 |
@@ -774,7 +776,7 @@ Hodnoty sú overené tromi spôsobmi: uzavretým vzorcom (FR-02), mesačnou simu
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
 
-**Tolerancia:** porovnávame celé mesiace po `ceil`; interné hodnoty n sa porovnávajú s presnosťou 1e-6.
+**Tolerancia:** porovnávame celé mesiace po `ceil(n − 1e-6)`; interné hodnoty n sa porovnávajú s presnosťou 1e-6.
 
 ## 4. Invarianty (property-based testy)
 Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10], T ∈ [1 000; 10 000 000]):
@@ -790,7 +792,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 ## 5. Dátum a čas
 - Dátumy sa ukladajú ako `YYYY-MM-DD` bez časovej zóny; test, že sa pri prechode na letný čas (Europe/Bratislava) dátum neposúva o deň.
 - Hranice mesiaca: transakcia dňa 31. a vyhodnotenie dňa 30. (FR-05, „≤ dátum vyhodnotenia“); priestupný rok (29. 2.).
-- Dátum cieľa = dnes + ⌈n⌉ mesiacov s **orezaním na posledný deň cieľového mesiaca** (31. 1. + 1 mesiac = 28. 2.). Test s falošnými hodinami (fake timers) pre dni 1., 28., 29., 30. a 31.
+- Dátum cieľa = D_L + ⌈n − 1e-6⌉ mesiacov (D-024) s **orezaním na posledný deň cieľového mesiaca** (31. 1. + 1 mesiac = 28. 2.). Test s falošnými hodinami (fake timers) pre dni 1., 28., 29., 30. a 31.
 - Pripomienka konca mesiaca sa testuje s nastavenou časovou zónou.
 
 ## 6. Dáta a úložisko
@@ -904,7 +906,7 @@ Otvorené:
 | D-010 | 2026-10-13 | Existujúca investícia sa v MVP zadáva ručne: aktuálna hodnota a predpokladaný ročný výnos (viditeľný predpoklad). | Jednoduchosť; bez trhových dát. |
 | D-011 | 2026-10-13 | Odporúčania pri nastavení cieľa: parametre a predvolené hodnoty podľa tabuľky vo vízii v0.9 (výdavky, miera výberu 4 % [3–4 %], reálny výnos 4 % [2–6 %], mesačné sporenie, rezerva 3 mesiace [3–6]). MVP ukazuje aj odhadovaný dátum cieľa ako rozsah. | Potvrdené zakladateľom; číselné hodnoty treba overiť v zdrojoch. |
 | D-012 | 2026-10-13 | MVP je mobile-first (telefón), používanie týždenne; evidujú sa len výdavky nad prahovú sumu (100–500 €), prah je parameter. | Zadanie zakladateľa. |
-| D-013 | 2026-10-13 | Ročné výdavky v dôchodku zadáva používateľ ručne; mesačné sporenie sa odvodzuje z transakcií sporenie/investícia; prah platí len pre výdavky, predvolene 100 €; evidovaný výdavok znižuje kapitál (cieľová suma sa nemení). Upresňuje D-011. | Potvrdené zakladateľom; vyriešený konflikt prahu a odvodzovania výdavkov. |
+| D-013 | 2026-10-13 | Ročné výdavky v dôchodku zadáva používateľ ručne; mesačné sporenie sa odvodzuje z transakcií sporenie/investícia; prah platí len pre výdavky, predvolene 100 €; evidovaný výdavok znižuje kapitál len vtedy, ak je hradený z kapitálu (upresnené D-014 a FR-08) (cieľová suma sa nemení). Upresňuje D-011. | Potvrdené zakladateľom; vyriešený konflikt prahu a odvodzovania výdavkov. |
 | D-014 | 2026-10-13 | Pri výdavku sa volí zdroj úhrady (predvolene z príjmu; z kapitálu znižuje kapitál). Kapitál sa oficiálne prepočítava raz mesačne na konci mesiaca (hodnota investícií + sporenie zadáva používateľ); po transakcii sa ukáže len predbežný dopad ako krátky text bez farieb. Upresňuje D-004 a D-013. | Potvrdené zakladateľom; nižšia záťaž, menej výkyvov. |
 | D-015 | 2026-10-13 | Externý reviewer dokumentov je aplikácia Claude (nahradila ChatGPT). | Rozhodnutie zakladateľa. |
 | D-016 | 2026-10-13 | UX MVP: rozsah dátumov ako text „od – do“ (graf neskôr); svetlý/tmavý režim podľa systému; pri vynechanom mesačnom vyhodnotení jemná pripomienka a viditeľný dátum posledného vyhodnotenia, bez automatických zmien; po vyhodnotení jedna veta o rozdiele oproti predbežnému dopadu. | Zadanie zakladateľa; štvrtá otázka navrhnutá Claude a schválená zakladateľom. |

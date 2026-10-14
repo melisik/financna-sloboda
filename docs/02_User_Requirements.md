@@ -30,7 +30,7 @@
 - **Ročné výdavky v dôchodku** zadáva používateľ ručne (odhad celkových výdavkov); z transakcií sa neodvodzujú, pretože sa evidujú len výdavky nad prahom.
 - **Mesačné sporenie a investovanie** sa odvodzuje z transakcií typu sporenie/investícia (evidujú sa vždy).
 - **Prah** platí len pre výdavky. Predvolená hodnota je **100 €**, používateľ ju môže zmeniť.
-- **Vplyv cielenej spotreby na cieľ:** evidovaný výdavok **znižuje kapitál** (investovateľný kapitál sa zníži o sumu výdavku), čo posunie odhadovaný dátum cieľa. Cieľová suma (ročné výdavky × 25) sa výdavkom nemení.
+- **Vplyv cielenej spotreby na cieľ:** evidovaný výdavok **znižuje kapitál len vtedy, ak je hradený z kapitálu** (zdroj úhrady, D-014 a FR-08); výdavok z príjmu kapitál nemení. Ak je hradený z kapitálu, investovateľný kapitál sa zníži o sumu výdavku a posunie sa odhadovaný dátum cieľa. Cieľová suma (ročné výdavky × 25) sa výdavkom nemení.
 
 ## Predpoklady a riziká k vyriešeným rozhodnutiam [predpoklad]
 - Model „výdavok znižuje kapitál“ predpokladá, že sa výdavok hradí z naakumulovaného kapitálu. Ak ho používateľ v skutočnosti platí z bežného príjmu, aplikácia bude dátum cieľa nadhodnocovať (cieľ vyzerá ďalej, než je). Treba to používateľovi jasne povedať a zvážiť pri zadávaní výdavku voľbu „hradené z kapitálu / z príjmu“ (zdroj úhrady podľa D-014).
