@@ -4,6 +4,8 @@ import type { Repository } from "../storage/repository";
 import { SOURCES, type AppData, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { currentCapital, reserveBalance } from "../app/ledger";
 import { buildBackup, parseBackup } from "../storage/backup";
+import { filterHistory, totalsByType } from "../app/history";
+import { recommendedSettings } from "../domain/recommendations";
 import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact } from "../domain/impact";
 import { impactMonthsSplit, monthsToTargetSplit, payFromCash, payFromInvestments, transferToInvestments, type Capital } from "../domain/capital";
@@ -66,7 +68,7 @@ export function App() {
 
   return (
     <Shell>
-      <SettingsSection repo={repo} settings={data.settings ?? DEFAULT_SETTINGS} onSaved={reload} />
+      <SettingsSection repo={repo} settings={data.settings ?? DEFAULT_SETTINGS} isFirst={data.settings === null} onSaved={reload} />
       <SnapshotSection repo={repo} snapshots={data.snapshots} onSaved={reload} />
       <GoalSection data={data} />
       <TransactionSection repo={repo} data={data} onChanged={reload} />
@@ -85,7 +87,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SettingsSection({ repo, settings, onSaved }: { repo: Repository; settings: Settings; onSaved: () => void }) {
+function SettingsSection({ repo, settings, isFirst, onSaved }: { repo: Repository; settings: Settings; isFirst: boolean; onSaved: () => void }) {
   const [v, setV] = useState({
     expenses: settings.expensesCents / 100,
     withdrawalPct: settings.withdrawalRate * 100,
@@ -95,6 +97,9 @@ function SettingsSection({ repo, settings, onSaved }: { repo: Repository; settin
     savingInv: settings.savingInvCents / 100,
     savingCash: settings.savingCashCents / 100,
   });
+  const rec = recommendedSettings(cents(v.expenses));
+  const pct = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
+  const eurs = (c: number) => `${(c / 100).toLocaleString("sk-SK")} €`;
   const save = async () => {
     await repo.saveSettings({
       expensesCents: cents(v.expenses),
@@ -110,13 +115,24 @@ function SettingsSection({ repo, settings, onSaved }: { repo: Repository; settin
   return (
     <section>
       <h2 style={{ fontSize: "1.1rem" }}>Nastavenia</h2>
+      {isFirst && (
+        <p style={{ background: "#eef5f1", padding: 8, borderRadius: 6 }}>
+          Prvé nastavenie: skontroluj hodnoty. Pod každým poľom je odporúčanie a tlačidlo na jeho vrátenie. Ročné výdavky zadaj sám (UR-10).
+        </p>
+      )}
       <Field label="Ročné výdavky pri nezávislosti (€)" value={v.expenses} onChange={(x) => setV({ ...v, expenses: x })} />
-      <Field label="Miera výberu (%)" value={v.withdrawalPct} step={0.1} onChange={(x) => setV({ ...v, withdrawalPct: x })} />
-      <Field label="Reálny výnos r (%)" value={v.returnPct} step={0.1} onChange={(x) => setV({ ...v, returnPct: x })} />
-      <Field label="Rezerva, cieľová hodnota (€)" value={v.reserve} onChange={(x) => setV({ ...v, reserve: x })} />
-      <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })} />
-      <Field label="Mesačné sporenie do investícií (€)" value={v.savingInv} onChange={(x) => setV({ ...v, savingInv: x })} />
-      <Field label="Mesačné sporenie do hotovosti (€)" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })} />
+      <Field label="Miera výberu (%)" value={v.withdrawalPct} step={0.1} onChange={(x) => setV({ ...v, withdrawalPct: x })}
+        hint={`odporúčané ${pct(rec.withdrawalRate)}`} onReset={() => setV({ ...v, withdrawalPct: rec.withdrawalRate * 100 })} />
+      <Field label="Reálny výnos r (%)" value={v.returnPct} step={0.1} onChange={(x) => setV({ ...v, returnPct: x })}
+        hint={`odporúčané ${pct(rec.realReturn)}`} onReset={() => setV({ ...v, returnPct: rec.realReturn * 100 })} />
+      <Field label="Rezerva, cieľová hodnota (€)" value={v.reserve} onChange={(x) => setV({ ...v, reserve: x })}
+        hint={`odporúčané ${eurs(rec.reserveCents)} (3 mesiace výdavkov)`} onReset={() => setV({ ...v, reserve: rec.reserveCents / 100 })} />
+      <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })}
+        hint={`odporúčané ${eurs(rec.thresholdCents)}`} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
+      <Field label="Mesačné sporenie do investícií (€)" value={v.savingInv} onChange={(x) => setV({ ...v, savingInv: x })}
+        hint="odporúčané 0 €" onReset={() => setV({ ...v, savingInv: 0 })} />
+      <Field label="Mesačné sporenie do hotovosti (€)" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}
+        hint="odporúčané 0 €" onReset={() => setV({ ...v, savingCash: 0 })} />
       <button onClick={save} style={btn}>Uložiť nastavenia</button>
     </section>
   );
@@ -190,6 +206,9 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
   const [source, setSource] = useState<Source>("z_hotovosti");
   const [note, setNote] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [fType, setFType] = useState<"all" | TransactionType>("all");
+  const [fFrom, setFFrom] = useState("");
+  const [fTo, setFTo] = useState("");
 
   const needsSource = type === "vydavok" || type === "investicia";
   const target = targetAmountCents(s.expensesCents, s.withdrawalRate);
@@ -255,7 +274,8 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
     onChanged();
   };
 
-  const list = [...data.transactions].sort((a, b) => (a.date === b.date ? b.createdAt.localeCompare(a.createdAt) : b.date.localeCompare(a.date)));
+  const list = filterHistory(data.transactions, { type: fType === "all" ? undefined : fType, from: fFrom || undefined, to: fTo || undefined });
+  const totals = totalsByType(list);
 
   return (
     <section>
@@ -287,7 +307,20 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť transakciu</button>
 
-      <h3 style={{ fontSize: "1rem", marginTop: 24 }}>Zapísané transakcie</h3>
+      <h3 style={{ fontSize: "1rem", marginTop: 24 }}>História</h3>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <select aria-label="Filter typu" value={fType} onChange={(e) => setFType(e.target.value as "all" | TransactionType)} style={{ ...inp, width: "auto" }}>
+          <option value="all">všetky typy</option>
+          {(Object.keys(TYPE_LABEL) as TransactionType[]).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
+        </select>
+        <input aria-label="Od (RRRR-MM-DD)" type="text" placeholder="od RRRR-MM-DD" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
+        <input aria-label="Do (RRRR-MM-DD)" type="text" placeholder="do RRRR-MM-DD" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
+      </div>
+      <p style={{ fontSize: "0.9rem", color: "#555" }}>
+        Súčty: {(Object.keys(totals) as TransactionType[]).length === 0
+          ? "žiadne"
+          : (Object.keys(totals) as TransactionType[]).map((t) => `${TYPE_LABEL[t]} ${eur(totals[t] ?? 0)}`).join(" · ")}
+      </p>
       {list.length === 0 && <p style={{ color: "#555" }}>Zatiaľ žiadne.</p>}
       <ul style={{ paddingLeft: 0, listStyle: "none" }}>
         {list.map((t) => (
@@ -309,7 +342,7 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
 const inp: React.CSSProperties = { width: "100%", padding: "8px", fontSize: "1rem", boxSizing: "border-box" };
 const btn: React.CSSProperties = { padding: "8px 14px", fontSize: "1rem", marginTop: 8 };
 
-function Field(props: { label: string; value: number | string; onChange: (v: any) => void; step?: number; type?: string }) {
+function Field(props: { label: string; value: number | string; onChange: (v: any) => void; step?: number; type?: string; hint?: string; onReset?: () => void }) {
   return (
     <label style={{ display: "block", margin: "8px 0" }}>
       <span style={{ display: "block", fontSize: "0.9rem" }}>{props.label}</span>
@@ -320,6 +353,16 @@ function Field(props: { label: string; value: number | string; onChange: (v: any
         onChange={(e) => props.onChange(props.type === "text" ? e.target.value : Number(e.target.value))}
         style={inp}
       />
+      {props.hint && (
+        <span style={{ display: "flex", gap: 8, alignItems: "center", fontSize: "0.85rem", color: "#555" }}>
+          {props.hint}
+          {props.onReset && (
+            <button type="button" onClick={props.onReset} style={{ ...btn, padding: "2px 8px", fontSize: "0.85rem", marginTop: 0 }}>
+              Vrátiť odporúčanie
+            </button>
+          )}
+        </span>
+      )}
     </label>
   );
 }
