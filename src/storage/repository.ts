@@ -9,5 +9,7 @@ export interface Repository {
   saveSettings(s: Settings): Promise<void>;
   /** Nahradí všetky dáta v jednej transakcii; pri chybe zostanú pôvodné dáta (FR-18, D-018). */
   replaceAll(data: AppData): Promise<void>;
+  getMeta(key: string): Promise<string | null>;
+  setMeta(key: string, value: string): Promise<void>;
   close(): void;
 }

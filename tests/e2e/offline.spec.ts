@@ -18,7 +18,7 @@ test.describe("PWA a offline režim (M5)", () => {
     await page.getByLabel("Hodnota investícií (€)").fill("100000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
-    await expect(page.getByText("Posledné vyhodnotenie:")).toBeVisible();
+    await expect(page.getByText("Posledné vyhodnotenie:").first()).toBeVisible();
 
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
     await page.getByLabel("Suma (€)").fill("250");

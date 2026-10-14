@@ -6,6 +6,7 @@ import { currentCapital, reserveBalance } from "../app/ledger";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { filterHistory, totalsByType } from "../app/history";
 import { recommendedSettings } from "../domain/recommendations";
+import { backupOverdue, reviewOverdue } from "../app/reminders";
 import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact } from "../domain/impact";
 import { impactMonthsSplit, monthsToTargetSplit, payFromCash, payFromInvestments, transferToInvestments, type Capital } from "../domain/capital";
@@ -43,6 +44,7 @@ export function App() {
   const [repo, setRepo] = useState<Repository | null>(null);
   const [data, setData] = useState<AppData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastExport, setLastExport] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -52,6 +54,7 @@ export function App() {
         if (!alive) return;
         setRepo(r);
         setData(d);
+        setLastExport(await r.getMeta("lastExportAt"));
       })
       .catch((e) => setError(`Úložisko sa nepodarilo otvoriť: ${String(e)}`));
     return () => {
@@ -68,11 +71,12 @@ export function App() {
 
   return (
     <Shell>
+      <HomeSection data={data} lastExport={lastExport} />
       <SettingsSection repo={repo} settings={data.settings ?? DEFAULT_SETTINGS} isFirst={data.settings === null} onSaved={reload} />
       <SnapshotSection repo={repo} snapshots={data.snapshots} onSaved={reload} />
       <GoalSection data={data} />
       <TransactionSection repo={repo} data={data} onChanged={reload} />
-      <BackupSection repo={repo} data={data} onChanged={reload} />
+      <BackupSection repo={repo} data={data} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
     </Shell>
   );
 }
@@ -206,6 +210,8 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
   const [source, setSource] = useState<Source>("z_hotovosti");
   const [note, setNote] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [undo, setUndo] = useState<Transaction | null>(null);
   const [fType, setFType] = useState<"all" | TransactionType>("all");
   const [fFrom, setFFrom] = useState("");
   const [fTo, setFTo] = useState("");
@@ -239,6 +245,29 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
     return { blocked: false as const, impact: d };
   }, [latest, capital, type, source, amount, s, target]);
 
+  useEffect(() => {
+    if (!undo) return;
+    const h = setTimeout(() => setUndo(null), 8000);
+    return () => clearTimeout(h);
+  }, [undo]);
+
+  const resetForm = () => {
+    setEditingId(null);
+    setNote("");
+    setAmount(15000);
+    setDate(todayIso());
+  };
+
+  const startEdit = (t: Transaction) => {
+    setEditingId(t.id);
+    setType(t.type);
+    setAmount(t.amountCents / 100);
+    setDate(t.date);
+    setSource(t.source ?? "z_hotovosti");
+    setNote(t.note ?? "");
+    setErr(null);
+  };
+
   const save = async () => {
     if (!(amount > 0)) return setErr("Suma musí byť kladná.");
     if (date > todayIso()) return setErr("Dátum nesmie byť v budúcnosti.");
@@ -253,24 +282,35 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
     }
     if (type === "vyber_rezervy" && cents(amount) > reserve) return setErr("Výber je väčší než stav rezervy.");
     setErr(null);
+    const existing = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
     const t: Transaction = {
-      id: uid(),
+      id: existing?.id ?? uid(),
       date,
       type,
       amountCents: cents(amount),
       ...(needsSource ? { source } : {}),
       ...(type === "vydavok" ? { belowThreshold: cents(amount) < s.thresholdCents } : {}),
       ...(note ? { note: note.slice(0, 200) } : {}),
-      createdAt: new Date().toISOString(),
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     await repo.addTransaction(t);
-    setNote("");
+    resetForm();
     onChanged();
   };
 
   const remove = async (id: string) => {
+    const gone = data.transactions.find((x) => x.id === id) ?? null;
     await repo.deleteTransaction(id);
+    if (editingId === id) resetForm();
+    setUndo(gone);
+    onChanged();
+  };
+
+  const restore = async () => {
+    if (!undo) return;
+    await repo.addTransaction(undo);
+    setUndo(null);
     onChanged();
   };
 
@@ -278,8 +318,8 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
   const totals = totalsByType(list);
 
   return (
-    <section>
-      <h2 style={{ fontSize: "1.1rem" }}>Transakcie</h2>
+    <section id="nova-transakcia">
+      <h2 style={{ fontSize: "1.1rem" }}>{editingId ? "Úprava transakcie" : "Transakcie"}</h2>
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Typ</span>
         <select aria-label="Typ transakcie" value={type} onChange={(e) => setType(e.target.value as TransactionType)} style={inp}>
@@ -305,7 +345,11 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
         </p>
       )}
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť transakciu</button>
+      {editingId && latest && date <= latest.date && (
+        <p style={{ color: "#555" }}>Zmena neovplyvní oficiálny cieľ, kým neurobíte nové vyhodnotenie.</p>
+      )}
+      <button onClick={save} style={btn}>{editingId ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
+      {editingId && <button onClick={resetForm} style={{ ...btn, marginLeft: 8 }}>Zrušiť úpravu</button>}
 
       <h3 style={{ fontSize: "1rem", marginTop: 24 }}>História</h3>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -322,6 +366,11 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
           : (Object.keys(totals) as TransactionType[]).map((t) => `${TYPE_LABEL[t]} ${eur(totals[t] ?? 0)}`).join(" · ")}
       </p>
       {list.length === 0 && <p style={{ color: "#555" }}>Zatiaľ žiadne.</p>}
+      {undo && (
+        <p style={{ background: "#f4f1e8", padding: 8, borderRadius: 6 }}>
+          Transakcia bola zmazaná. <button onClick={restore} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Vrátiť späť</button>
+        </p>
+      )}
       <ul style={{ paddingLeft: 0, listStyle: "none" }}>
         {list.map((t) => (
           <li key={t.id} style={{ borderBottom: "1px solid #ddd", padding: "6px 0", display: "flex", justifyContent: "space-between", gap: 8 }}>
@@ -331,7 +380,10 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
               {t.belowThreshold ? " · pod prahom" : ""}
               {t.note ? ` · ${t.note}` : ""}
             </span>
-            <button onClick={() => remove(t.id)} style={{ ...btn, padding: "2px 8px" }}>Zmazať</button>
+            <span style={{ display: "flex", gap: 6 }}>
+              <button onClick={() => startEdit(t)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Upraviť</button>
+              <button onClick={() => remove(t.id)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>
+            </span>
           </li>
         ))}
       </ul>
@@ -369,13 +421,15 @@ function Field(props: { label: string; value: number | string; onChange: (v: any
 
 type Preview = { data: AppData; counts: { transactions: number; snapshots: number }; exportedAt: string };
 
-function BackupSection({ repo, data, onChanged }: { repo: Repository; data: AppData; onChanged: () => void }) {
+function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository; data: AppData; onChanged: () => void; onExported: (iso: string) => void }) {
   const [preview, setPreview] = useState<Preview | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
 
   const exportBackup = () => {
-    const obj = buildBackup(data, new Date().toISOString());
+    const nowIso = new Date().toISOString();
+    const obj = buildBackup(data, nowIso);
+    onExported(nowIso);
     const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -454,6 +508,61 @@ function BackupSection({ repo, data, onChanged }: { repo: Repository; data: AppD
       )}
 
       {status && <p style={{ marginTop: 12 }}>{status}</p>}
+    </section>
+  );
+}
+
+function HomeSection({ data, lastExport }: { data: AppData; lastExport: string | null }) {
+  const s = data.settings ?? DEFAULT_SETTINGS;
+  const today = todayIso();
+  const latest = [...data.snapshots].sort((a, b) => a.date.localeCompare(b.date)).at(-1) ?? null;
+  const target = targetAmountCents(s.expensesCents, s.withdrawalRate);
+  const capital = useMemo(() => currentCapital(latest, data.transactions), [latest, data.transactions]);
+  const dateFor = (rate: number) => {
+    if (!latest) return null;
+    const n = monthsToTargetSplit(capital, s.savingInvCents, s.savingCashCents, rate, target);
+    if (n === null) return "Bez sporenia a výnosu sa cieľ nedosiahne";
+    if (n === 0) return "Cieľ je dosiahnutý";
+    return monthYear(targetDate(latest.date, n));
+  };
+  const optimistic = dateFor(s.realReturn + 0.02);
+  const cautious = dateFor(Math.max(0, s.realReturn - 0.02));
+  const base = dateFor(s.realReturn);
+  // Predbežný dopad posledných transakcií: stav pri vyhodnotení oproti aktuálnemu (FR-14, FR-04).
+  const pending = latest
+    ? impactMonthsSplit({ inv: latest.investmentsCents, cash: latest.cashCents }, capital, s.savingInvCents, s.savingCashCents, s.realReturn, target)
+    : null;
+
+  return (
+    <section style={{ background: "#f7f5f0", padding: 12, borderRadius: 8, marginBottom: 8 }}>
+      <h2 style={{ fontSize: "1.1rem", marginTop: 0 }}>Prehľad</h2>
+      {reviewOverdue(latest?.date ?? null, today) && (
+        <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
+          Vyhodnotenie za predchádzajúci mesiac ešte nie je urobené. Dátum cieľa sa mení len pri vyhodnotení.
+        </p>
+      )}
+      {backupOverdue(lastExport, today) && (
+        <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
+          Záloha ešte nebola exportovaná alebo je staršia ako 7 dní (FR-19). Dáta sú len v tomto zariadení.
+        </p>
+      )}
+      <p>Cieľová suma: <strong>{eur(target)}</strong></p>
+      {latest ? (
+        <>
+          <p>Dátum cieľa: <strong>{base}</strong></p>
+          <p style={{ fontSize: "0.9rem" }}>Rozsah: od {optimistic} do {cautious} (opatrný – základný – optimistický).</p>
+          <p>Posledné vyhodnotenie: <strong>{latest.date}</strong></p>
+          <p>
+            Predbežný dopad posledných transakcií:{" "}
+            <strong>{pending === null ? "Bez sporenia a výnosu sa cieľ nedosiahne" : formatImpact(pending)}</strong>
+          </p>
+        </>
+      ) : (
+        <p>Zatiaľ nie je vyhodnotenie. Dátum cieľa sa zobrazí po prvom vyhodnotení (L6).</p>
+      )}
+      <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid #888", borderRadius: 4 }}>
+        Pridať transakciu
+      </a>
     </section>
   );
 }

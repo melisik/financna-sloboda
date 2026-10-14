@@ -70,6 +70,14 @@ class IdbRepository implements Repository {
     }
   }
 
+  async getMeta(key: string): Promise<string | null> {
+    return ((await this.db.get("meta", key)) as string | undefined) ?? null;
+  }
+
+  async setMeta(key: string, value: string): Promise<void> {
+    await this.db.put("meta", value, key);
+  }
+
   close(): void {
     this.db.close();
   }
