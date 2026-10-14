@@ -12,7 +12,7 @@
 | **Kapitál (K)** | Hodnota investícií + nasporená suma (kumulatívny stav hotovosti, D-033), bez rezervy (D-011, D-017). |
 | **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 4 %, rozsah 2–6 % (D-011). Jeden globálny predpoklad pre celý kapitál vrátane hotovosti (D-025, D-032). Počíta sa so všetkými sumami v dnešných cenách. |
 | **Mesačné sporenie (m)** | Súčet transakcií typu „sporenie“ a „investícia“ za 12 mesiacov, ktoré končia pri D_L, delený počtom mesiacov histórie (najviac 12) (D-031). Používateľ môže zadať vlastnú hodnotu (UR-02). |
-| **Rezerva** | Odporúčanie 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). |
+| **Rezerva** | Odporúčanie 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). Stav = vklady mínus výbery (D-047); je hranicou pre výdavok z hotovosti (D-045). |
 | **Vyhodnotenie (snapshot)** | Mesačný záznam s dátumom, hodnotou investícií a nasporenou sumou; zadáva sa na konci mesiaca (D-014). |
 | **Referenčný dátum (D_L)** | Dátum posledného vyhodnotenia podľa dátumu vyhodnotenia, nie času zápisu (D-044). K_L a m sa vzťahujú k tomuto dňu. Dátum cieľa sa počíta od D_L a mení sa len pri novom vyhodnotení (D-024). |
 | **Posledný stav (K_L)** | K zo snapshotu, ktorý je najnovší. Oficiálny cieľ sa počíta z neho, od D_L. |
@@ -21,7 +21,7 @@
 | Pole | Typ | Povinné | Pravidlo |
 |---|---|---|---|
 | dátum | dátum | áno | Predvolene dnes; nesmie byť v budúcnosti. |
-| typ | sporenie / investícia / výdavok / rezerva | áno | Rezerva sa nezapočítava do m ani do K; zobrazí sa ako stav rezervy (D-037). |
+| typ | sporenie / investícia / výdavok / rezerva (vklad) / výber z rezervy | áno | Rezerva nie je v K ani v m; stav = vklady mínus výbery (D-037, D-047). |
 | suma | číslo, EUR, > 0 | áno | Na 2 desatinné miesta. |
 | zdroj úhrady | z príjmu / z hotovosti / z investícií | áno pri výdavku | Predvolene „z príjmu“ (D-014). Pri sporení a investícii sa nezadáva. |
 | poznámka | text, max. 200 znakov | nie | |

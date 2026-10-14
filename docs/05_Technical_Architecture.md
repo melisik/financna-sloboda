@@ -62,7 +62,7 @@ tests/             jednotkové testy domain/ a storage/
 ### Úložisko (IndexedDB, databáza `financna-sloboda`, verzia 1)
 | Store | Kľúč | Indexy | Obsah |
 |---|---|---|---|
-| `transactions` | `id` (UUID) | `date`, `type` | dátum, typ (sporenie / investícia / výdavok / rezerva, D-037), suma (cent), zdroj úhrady, príznak pod prahom (D-030), poznámka, `createdAt`, `updatedAt` |
+| `transactions` | `id` (UUID) | `date`, `type` | dátum, typ (sporenie / investícia / výdavok / rezerva – vklad / výber z rezervy; D-037, D-047), suma (cent), zdroj úhrady, príznak pod prahom (D-030), poznámka, `createdAt`, `updatedAt` |
 | `snapshots` | `id` (UUID) | `date` | dátum vyhodnotenia (nesmie byť v budúcnosti, M2), hodnota investícií (cent), nasporená suma = kumulatívny stav hotovosti (cent, D-033), `createdAt` |
 | `settings` | `key` (jediný záznam `"current"`) | – | V, p, r, rezerva (mesiace), prah výdavkov, m (odvodené; voliteľné prepísanie), a pre každý parameter príznak „zmenený používateľom“ (UR-02) |
 | `meta` | `key` | – | `schemaVersion`, `lastExportAt` (FR-19) |
