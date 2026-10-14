@@ -1,6 +1,6 @@
 # 06 – Roadmapa
 
-> Stav: v0.2 (2026-10-14). Veľkosti milníkov sú relatívne (S / M / L), nie dátumy. Kapacita: hodiny denne (potvrdené zakladateľom); presný odhad trvania doplníme po M1 podľa skutočného tempa. **[predpoklad]** = návrh Claude.
+> Stav: v0.3 (2026-10-14). Veľkosti milníkov sú relatívne (S / M / L), nie dátumy. Kapacita: hodiny denne (potvrdené zakladateľom); presný odhad trvania doplníme po M1 podľa skutočného tempa. **[predpoklad]** = návrh Claude.
 
 ## 1. Princípy plánovania
 - **Poradie fáz:** najprv hodnota pre zakladateľa, potom EÚ, potom mobil a integrácie (D-005, zadanie).
@@ -98,6 +98,12 @@
 - graf projekcie podľa výnosu a inflácie (odložený, D-008);
 - daňové výpočty (mimo MVP, D-008 a 04 oddiel 6);
 - odporúčanie konkrétnych produktov (vylúčené, D-007).
+
+**Odložené nápady (bez rozhodnutia, nie sú v rozsahu MVP; zapísané 2026-10-14):**
+- **Platba dane z príjmu:** mimo MVP (D-008, 04 oddiel 6). Platba dane je regulovaná; vyžaduje právne posúdenie pred fázou 2. Možný menší variant: len pripomienka termínu bez výpočtu dane.
+- **API do banky na pravidelné transakcie:** v rozpore s D-009 a FR-16 (žiadne volania na externé API v MVP). Patrí do fázy 3, viazané na PSD2 (oddiel 7). Prvý krok je import CSV výpisu (oddiel 7, bod 2).
+- **Pravidelné platby ako pripomienky:** nový typ údajov (plán opakovaných platieb) a zmena výpočtu dopadu (FR-04). Nie je to drobnosť; treba samostatný návrh a rozhodnutie.
+- **Automatický presun hotovosti pred platbou:** aplikácia nepresúva peniaze sama (presun ostáva manuálny, D-046). Možný variant je pripomienka „pred splatnosťou zváž presun X €“, ktorá kontroluje rezervu (D-052) a nie je odporúčaním na kúpu alebo predaj.
 
 ## 9. Rozhodnutia potrebné pred ďalšími krokmi
 
