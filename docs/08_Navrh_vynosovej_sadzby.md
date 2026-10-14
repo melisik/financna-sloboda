@@ -1,6 +1,6 @@
 # 08 – Návrh: určenie výnosovej sadzby r (architektúra)
 
-> Stav: **schválený návrh** (2026-10-14): model A, rozhodnutia D-062 až D-065. Implementácia zatiaľ nie je urobená. Nič z tohto dokumentu nie je v kóde. Rozhodnutia sa zapíšu do `decisions/Decisions.md` až po schválení. [predpoklad] = návrh Claude, treba potvrdiť.
+> Stav: **schválený návrh** (2026-10-14): model A, rozhodnutia D-062 až D-065. Implementované (2026-10-14): `src/domain/assumptions.ts`, poplatky v nastaveniach, nominálne zobrazenie, poznámka pri dlhom horizonte. Nič z tohto dokumentu nie je v kóde. Rozhodnutia sa zapíšu do `decisions/Decisions.md` až po schválení. [predpoklad] = návrh Claude, treba potvrdiť.
 
 ## 1. Čo treba vyriešiť
 Výpočet (FR-02, FR-03, FR-04) pracuje s **jedným číslom r** pre investovaný kapitál K_inv (D-032). Otázka je, odkiaľ r pochádza, kto ho určí, ako sa zdôvodní a ako sa zobrazí.
@@ -69,4 +69,4 @@ src/ui/                       zobrazenie: hodnota, zdroj, dátum overenia, „vl
 4. **Reálne aj nominálne:** výpočet je reálny, zobrazenie aj nominálne s inflačným predpokladom 2 % [predpoklad] (D-063).
 5. **Poznámka pri dlhom horizonte** nad 20 rokov (D-065).
 
-**Implementácia (ďalší krok, čaká na potvrdenie):** `src/domain/assumptions.ts` (predvolené hodnoty, verzia, zdroj, dátum), pole `feesRate` v nastaveniach s validáciou a testom, nominálne zobrazenie, poznámka pri dlhom horizonte, aktualizácia FR-02 a zálohy (voliteľné pole, `schemaVersion` 1).
+**Implementácia (hotová):** `src/domain/assumptions.ts` (predvolené hodnoty, verzia, zdroj, dátum), pole `feesRate` v nastaveniach s validáciou a testom, nominálne zobrazenie, poznámka pri dlhom horizonte, aktualizácia FR-02 a zálohy (voliteľné pole, `schemaVersion` 1).

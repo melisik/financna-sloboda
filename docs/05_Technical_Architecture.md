@@ -41,6 +41,7 @@ Jazyk UI: slovenčina; texty v jednom súbore pripravenom na preklady (fáza 2) 
 src/
   domain/          čisté funkcie, žiadny React ani IndexedDB
     goal.ts        T = V / p, dátum cieľa, scenáre (FR-01 až FR-03)
+    assumptions.ts verzovaná tabuľka výnosových predpokladov, nominálne zobrazenie, poplatky (D-062 až D-065)
     impact.ts      predbežný dopad (FR-04)
     snapshot.ts    prepočet pri mesačnom vyhodnotení (FR-05)
     types.ts       Transakcia, Vyhodnotenie, Nastavenie

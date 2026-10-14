@@ -34,6 +34,7 @@ export interface Settings {
   thresholdCents: number; // prah výdavkov (D-048)
   savingInvCents?: number; // m_inv, prepísané používateľom; bez hodnoty sa použije odvodená (D-031)
   savingCashCents?: number; // m_cash, rovnako
+  feesRate?: number; // poplatky p. a., napr. 0.005; bez hodnoty = 0 (D-064)
   lastReviewDate?: string; // D_L
 }
 

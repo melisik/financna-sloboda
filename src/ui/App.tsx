@@ -11,6 +11,7 @@ import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
 import { recommendedSettings } from "../domain/recommendations";
+import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
 import {
   impactMonthsSplit,
   monthsToTargetSplit,
@@ -61,6 +62,7 @@ interface Ctx {
   mCash: number;
   target: number | null;
   realReturn: number;
+  longHorizon: boolean;
 }
 
 function makeCtx(data: AppData): Ctx {
@@ -68,6 +70,11 @@ function makeCtx(data: AppData): Ctx {
   const s = data.settings;
   const derived = latest ? monthlySaving(data.transactions, latest.date) : { inv: 0, cash: 0 };
   const flags = capitalWithFlags(latest, data.transactions);
+  const target = s ? targetAmountCents(s.expensesCents, s.withdrawalRate) : null;
+  const mInv = s?.savingInvCents ?? derived.inv;
+  const mCash = s?.savingCashCents ?? derived.cash;
+  const realReturn = netRealReturn(s?.realReturn ?? RETURN_ASSUMPTIONS.realReturn, s?.feesRate ?? 0);
+  const n = latest && target !== null ? monthsToTargetSplit(flags.capital, mInv, mCash, realReturn, target) : null;
   return {
     settings: s,
     latest,
@@ -75,12 +82,15 @@ function makeCtx(data: AppData): Ctx {
     negative: flags.negative,
     derived,
     reserve: reserveBalance(data.transactions),
-    mInv: s?.savingInvCents ?? derived.inv,
-    mCash: s?.savingCashCents ?? derived.cash,
-    target: s ? targetAmountCents(s.expensesCents, s.withdrawalRate) : null,
-    realReturn: s?.realReturn ?? 0,
+    mInv,
+    mCash,
+    target,
+    realReturn,
+    longHorizon: n !== null && n > LONG_HORIZON_MONTHS,
   };
 }
+
+const pctText = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
 
 /** Dátum cieľa pre danú mieru výnosu (FR-02, FR-03). */
 function scenarioText(ctx: Ctx, rate: number, capital: Capital = ctx.capital): string {
@@ -155,7 +165,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
       <h1 style={{ fontSize: "1.5rem" }}>Finančná sloboda (prototyp)</h1>
-      <p style={{ color: "#555" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou a poplatkami (D-043, D-049).</p>
+      <p style={{ color: "#555" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš (D-064).</p>
       {children}
     </main>
   );
@@ -190,6 +200,14 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
         <>
           <p>Dátum cieľa: <strong>{scenarioText(ctx, ctx.realReturn)}</strong></p>
           <p style={{ fontSize: "0.9rem" }}>
+            Výnos: {pctText(ctx.realReturn)} reálne po poplatkoch, nominálne ≈ {pctText(nominalFromReal(ctx.realReturn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 % (predpoklad, D-063).
+          </p>
+          {ctx.longHorizon && (
+            <p style={{ fontSize: "0.9rem", background: "#fff4e0", padding: 8, borderRadius: 6 }}>
+              Pri dlhom horizonte (viac ako 20 rokov) je predpoklad výnosu menej istý; výsledok je v dnešných eurách (D-065).
+            </p>
+          )}
+          <p style={{ fontSize: "0.9rem" }}>
             Rozsah: od {scenarioText(ctx, ctx.realReturn + 0.02)} do {scenarioText(ctx, Math.max(0, ctx.realReturn - 0.02))} (opatrný – základný – optimistický).
           </p>
           <p>Posledné vyhodnotenie: <strong>{ctx.latest.date}</strong>. Dátum platí k tomuto dňu.</p>
@@ -214,6 +232,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
     expenses: settings ? settings.expensesCents / 100 : "" as NumIn,
     withdrawalPct: settings ? settings.withdrawalRate * 100 : "" as NumIn,
     returnPct: settings ? settings.realReturn * 100 : "" as NumIn,
+    fees: settings ? (settings.feesRate ?? 0) * 100 : "" as NumIn,
     reserve: settings ? settings.reserveCents / 100 : "" as NumIn,
     threshold: settings ? settings.thresholdCents / 100 : "" as NumIn,
     savingInv: settings?.savingInvCents !== undefined ? settings.savingInvCents / 100 : "" as NumIn,
@@ -225,9 +244,12 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   // Východiskové hodnoty sa počítajú z práve zadaných výdavkov (R21/R22: jeden zdroj, bez natvrdo zadanej sumy).
   const expCents = typeof v.expenses === "number" ? cents(v.expenses) : 0;
   const rec = recommendedSettings(expCents);
+  const realIn = typeof v.returnPct === "number" ? v.returnPct / 100 : rec.realReturn;
 
   const save = async () => {
     const vals = [v.expenses, v.withdrawalPct, v.returnPct, v.reserve, v.threshold].map(asNum);
+    const fee = v.fees === "" ? 0 : v.fees;
+    if (!(fee >= 0 && fee < 100)) return setErr("Poplatky musia byť od 0 do menej ako 100 % ročne.");
     if (vals.some((x) => Number.isNaN(x))) return setErr("Vyplň ročné výdavky, mieru výberu, výnos, rezervu a prah.");
     const [exp, wr, rr, res, thr] = vals;
     if (!(exp > 0)) return setErr("Ročné výdavky musia byť väčšie ako 0.");
@@ -240,6 +262,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
         expensesCents: cents(exp),
         withdrawalRate: wr / 100,
         realReturn: rr / 100,
+        feesRate: fee / 100,
         reserveCents: cents(res),
         thresholdCents: cents(thr),
         ...(v.savingInv === "" ? {} : { savingInvCents: cents(v.savingInv) }),
@@ -263,11 +286,13 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
       <Field label="Miera výberu (%)" value={v.withdrawalPct} step={0.1} onChange={(x) => setV({ ...v, withdrawalPct: x })}
         hint={`východisková hodnota ${pct(rec.withdrawalRate)}`} onReset={() => setV({ ...v, withdrawalPct: rec.withdrawalRate * 100 })} />
       <Field label="Reálny výnos r (%)" value={v.returnPct} step={0.1} onChange={(x) => setV({ ...v, returnPct: x })}
-        hint={`východisková hodnota ${pct(rec.realReturn)}`} onReset={() => setV({ ...v, returnPct: rec.realReturn * 100 })} />
+        hint={`východisková hodnota ${pct(rec.realReturn)}; nominálne ≈ ${pct(nominalFromReal(realIn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 % (D-063)`} onReset={() => setV({ ...v, returnPct: rec.realReturn * 100 })} />
       <Field label="Rezerva, cieľová hodnota (€)" value={v.reserve} onChange={(x) => setV({ ...v, reserve: x })}
         hint={`východisková hodnota ${eurs(rec.reserveCents)} (3 mesiace výdavkov)`} onReset={() => setV({ ...v, reserve: rec.reserveCents / 100 })} />
       <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })}
         hint={`východisková hodnota ${eurs(rec.thresholdCents)}`} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
+      <Field label="Poplatky p. a. (%)" value={v.fees} step={0.01} onChange={(x) => setV({ ...v, fees: x })}
+        hint="predvolene 0 %, zatiaľ bez overeného údaja; doplň z dokumentácie poskytovateľa (D-064)" onReset={() => setV({ ...v, fees: 0 })} />
       <Field label="Mesačné sporenie do investícií (€), prázdne = odvodené" value={v.savingInv} onChange={(x) => setV({ ...v, savingInv: x })}
         hint={`prázdne = odvodené z transakcií: ${eurs(derived.inv)} mesačne (D-031)`} onReset={() => setV({ ...v, savingInv: "" })} />
       <Field label="Mesačné sporenie do hotovosti (€), prázdne = odvodené" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}

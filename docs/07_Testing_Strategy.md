@@ -25,7 +25,7 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 8. **Súkromie a bezpečnosť** – sieťové testy, npm audit, CSP (oddiel 7).
 9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
 
-**Stav automatizovaných testov (2026-10-14, R18, S2):** tabuľka nižšie je *cieľové* pokrytie. Dnes je automatizované (70 jednotkových testov Vitest a 6 E2E testov Playwright):
+**Stav automatizovaných testov (2026-10-14, R18, S2):** tabuľka nižšie je *cieľové* pokrytie. Dnes je automatizované (76 jednotkových testov Vitest a 6 E2E testov Playwright):
 - GC: GC-01, GC-02, GC-03, GC-04, GC-05, GC-06, GC-08, GC-11, GC-13, GC-15 až GC-21, GC-23, GC-24 (ID v názvoch testov); GC-16 (`saving.test.ts`);
 - FR: FR-01, FR-02, FR-04, FR-05, FR-09, FR-10, FR-13, FR-14, FR-15, FR-16, FR-17, FR-18, FR-19 (jednotkové alebo E2E podľa tabuľky v `tests/`);
 - úložisko (CRUD, validácia, atomicita importu, duplicitné id): FR-17, FR-18;

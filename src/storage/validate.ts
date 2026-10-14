@@ -57,7 +57,7 @@ export function validateSnapshot(s: unknown, today: string, label = "vyhodnoteni
 export function validateSettings(s: unknown, today: string): string[] {
   if (typeof s !== "object" || s === null || Array.isArray(s)) return ["nastavenia: musia byť objekt"];
   const o = s as Record<string, unknown>;
-  const errors = unknownKeys(o, ["expensesCents", "withdrawalRate", "realReturn", "reserveCents", "thresholdCents", "savingInvCents", "savingCashCents", "lastReviewDate"], "nastavenia");
+  const errors = unknownKeys(o, ["expensesCents", "withdrawalRate", "realReturn", "reserveCents", "thresholdCents", "savingInvCents", "savingCashCents", "feesRate", "lastReviewDate"], "nastavenia");
   if (typeof o.expensesCents !== "number" || !Number.isInteger(o.expensesCents) || o.expensesCents <= 0) errors.push("nastavenia: výdavky musia byť kladné celé číslo v centoch");
   if (typeof o.withdrawalRate !== "number" || !(o.withdrawalRate > 0 && o.withdrawalRate <= 1)) errors.push("nastavenia: miera výberu musí byť v (0, 1]");
   if (typeof o.realReturn !== "number" || !(o.realReturn >= 0 && o.realReturn <= 1)) errors.push("nastavenia: výnos r musí byť v [0, 1]");
@@ -67,6 +67,7 @@ export function validateSettings(s: unknown, today: string): string[] {
   for (const k of ["savingInvCents", "savingCashCents"]) {
     if (o[k] !== undefined && !isCents(o[k])) errors.push(`nastavenia: ${k} musí byť celé číslo ≥ 0 alebo prázdne`);
   }
+  if (o.feesRate !== undefined && !(typeof o.feesRate === "number" && o.feesRate >= 0 && o.feesRate < 1)) errors.push("nastavenia: poplatky musia byť v [0, 1) alebo chýbať (D-064)");
   if (o.lastReviewDate !== undefined) errors.push(...checkDate(o.lastReviewDate, today, "nastavenia: D_L"));
   return errors;
 }
