@@ -12,7 +12,7 @@
 | **Kapitál (K)** | Hodnota investícií + nasporená suma (kumulatívny stav hotovosti, D-033), bez rezervy (D-011, D-017). |
 | **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 3,5 %, rozsah 2–6 % (D-011, D-050). Jeden predpoklad pre investovaný kapitál K_inv; hotovosť K_cash sa nezhodnocuje, 0 % reálne (D-036, upresňuje D-025 a D-032). Počíta sa so všetkými sumami v dnešných cenách. |
 | **Mesačné sporenie (m)** | Súčet transakcií typu „sporenie“ a „investícia“ za 12 mesiacov, ktoré končia pri D_L, delený počtom mesiacov histórie (najviac 12) (D-031). Používateľ môže zadať vlastnú hodnotu (UR-02). |
-| **Rezerva** | Odporúčanie 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). Stav = vklady mínus výbery (D-047); je hranicou pre výdavok z hotovosti (D-045). |
+| **Rezerva** | Odporúčanie 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). Stav = vklady mínus výbery (D-047). Rezerva nie je v K ani hranicou výdavkov: vklad berie z K_cash, výber ju dopĺňa (D-058; upravuje D-045, D-047, D-052). |
 | **Vyhodnotenie (snapshot)** | Mesačný záznam s dátumom, hodnotou investícií a nasporenou sumou; zadáva sa na konci mesiaca (D-014). |
 | **Referenčný dátum (D_L)** | Dátum posledného vyhodnotenia podľa dátumu vyhodnotenia, nie času zápisu (D-044). K_L a m sa vzťahujú k tomuto dňu. Dátum cieľa sa počíta od D_L a mení sa len pri novom vyhodnotení (D-024). |
 | **Posledný stav (K_L)** | K zo snapshotu, ktorý je najnovší. Oficiálny cieľ sa počíta z neho, od D_L. |
@@ -23,7 +23,7 @@
 | dátum | dátum | áno | Predvolene dnes; nesmie byť v budúcnosti. |
 | typ | sporenie / investícia / výdavok / rezerva (vklad) / výber z rezervy | áno | Rezerva nie je v K ani v m; stav = vklady mínus výbery (D-037, D-047). |
 | suma | číslo, EUR, > 0 | áno | Na 2 desatinné miesta. |
-| zdroj úhrady | z príjmu / z hotovosti / z investícií | áno pri výdavku | Predvolene „z príjmu“ (D-014). Pri sporení a investícii sa nezadáva. |
+| zdroj úhrady | z príjmu / z hotovosti / z investícií | áno pri výdavku a investícii | Predvolene „z príjmu“ (D-014). Pri investícii „z hotovosti“ ide o presun (D-045). Pri sporení a vklade do rezervy sa nezadáva; vklad sa berie z K_cash (D-058). |
 | poznámka | text, max. 200 znakov | nie | |
 | príznak pod prahom | áno/nie | odvodené | Výdavok pod prahom v čase zápisu; uložený a zahrnutý do predbežného dopadu aj prehľadu spotreby (D-030). |
 
@@ -35,7 +35,7 @@
 | nasporená suma | číslo ≥ 0 | áno | Kumulatívny stav hotovosti, bez rezervy (D-017, D-033). |
 
 ### Entita Nastavenie cieľa
-V, p, r, rezerva (mesiace), prah výdavkov, m (odvodené z transakcií, D-031; používateľ môže zadať vlastnú hodnotu), dátum vzniku. Každý parameter má predvolenú hodnotu, odporúčaný rozsah a príznak „zmenený používateľom“ (UR-02).
+V, p, r, rezerva (mesiace), prah výdavkov, m (odvodené z transakcií, D-031; používateľ môže zadať vlastnú hodnotu). Ak v 12-mesačnom okne pred D_L nie je žiadna transakcia sporenia alebo investície, m = 0; čiastočný prvý mesiac histórie sa počíta ako celý mesiac (D-031), dátum vzniku. Každý parameter má predvolenú hodnotu, odporúčaný rozsah a príznak „zmenený používateľom“ (UR-02).
 
 ## 2. Výpočty
 
@@ -53,7 +53,7 @@ Výpočet v reálnych hodnotách, mesačné sporenie na konci mesiaca, mesačná
 Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môže byť veľmi vzdialený (viď O-5).
 - Dátum cieľa = D_L + `ceil(n − 1e-6)` mesiacov, orezané na posledný deň cieľového mesiaca (interný výpočet; zobrazuje sa mesiac a rok, FR-06). ε chráni pred chybou pohyblivej desatinnej čiarky (GC-10). Počíta sa z K = K_L a m (D-024).
 - Zostávajúci čas = počet mesiacov od dneška do dátumu cieľa; mení sa s časom, dátum nie. Ak dátum uplynul bez vyhodnotenia, zobrazí sa „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie“, nie záporný čas (FR-10).
-- **Dvojaký kapitál (D-036, D-039, D-041):** K_L = K_inv + K_cash. K_cash sa nezhodnocuje (0 % reálne). Investícia (m_inv) ide do K_inv a zhodnocuje sa; sporenie (m_cash) ide do K_cash bez zhodnotenia (D-041). Ak m_cash > 0, n sa počíta iteráciou po celých mesiacoch a zlomok interpoláciou (D-046). Cieľ je dosiahnutý, keď K_L ≥ T (teda K_inv ≥ T − K_cash). Vzorce vyššie platia s K := K_inv a T := T − K_cash. Ak K_cash ≥ T, cieľ je dosiahnutý. Hradenie výdavkov z K_inv alebo K_cash je otvorené (O-10).
+- **Dvojaký kapitál (D-036, D-039, D-041):** K_L = K_inv + K_cash. K_cash sa nezhodnocuje (0 % reálne). Investícia (m_inv) ide do K_inv a zhodnocuje sa; sporenie (m_cash) ide do K_cash bez zhodnotenia (D-041). Uzavretý tvar (vzorec FR-02) platí len pri m_cash = 0, lebo vtedy je celé m v K_inv a zhodnocuje sa. Ak m_cash > 0, n sa počíta iteráciou po celých mesiacoch a zlomok interpoláciou (D-046). Cieľ je dosiahnutý, keď K_L ≥ T (teda K_inv ≥ T − K_cash). Vzorce vyššie platia s K := K_inv a T := T − K_cash. Ak K_cash ≥ T, cieľ je dosiahnutý. Hradenie výdavkov z K_inv alebo K_cash je otvorené (O-10).
 - **Presun do investícií (D-045):** investícia zadaná so zdrojom „z hotovosti“ presúva sumu z K_cash do K_inv. K sa nemení; mení sa len rozdelenie. Presun je obmedzený na K_cash (D-058).
 - Výnos medzi vyhodnoteniami sa na K_L nepripisuje; dátum je tak konzervatívny (D-024). Výnos r je jeden predpoklad (predvolene 3,5 %, D-050) pre investovaný kapitál K_inv, nastavuje ho používateľ (D-025, D-032); hotovosť K_cash je bez výnosu (D-036).
 - Zobrazený dátum cieľa platí k poslednému vyhodnoteniu (D_L): text „dátum platí k poslednému vyhodnoteniu“ (S6).
@@ -72,7 +72,7 @@ Zobrazí sa ako „od – do“ (UX D-016): najskorší (optimistický) až najn
 ### FR-04 – Predbežný dopad transakcie
 Pre každú transakciu po poslednom vyhodnotení sa počíta pracovný kapitál:
 
-`K_pred = max(0; K_L + Σ(sporenie/investícia po D_L) − Σ(výdavky „z kapitálu“ po D_L))`
+`K_pred = max(0; K_L + Σ(sporenie po D_L) + Σ(investícia z príjmu po D_L) + Σ(výbery z rezervy po D_L) − Σ(vklady do rezervy po D_L) − Σ(výdavky „z kapitálu“ po D_L))`. Presun z hotovosti do investícií (investícia „z hotovosti“) K nemení. Stav rezervy sa do K nezapočíta (D-058).
 
 „Po K_L“ znamená transakcie s **dátumom po D_L** (dátum posledného vyhodnotenia), nie podľa času zadania. Transakcia zadaná neskôr s dátumom pred D_L je už v K_L a nepridáva sa znovu (FR-05).
 
@@ -112,7 +112,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 - Úprava a mazanie sú možné vždy.
 - Ak je dátum transakcie po poslednom vyhodnotení, prepočíta sa len predbežný dopad.
 - Ak je dátum pred posledným vyhodnotením, zobrazí sa text: „Zmena neovplyvní oficiálny cieľ, kým neurobíte nové vyhodnotenie.“
-- Mazanie: potvrdenie a možnosť vrátiť späť (krátko po zmazaní), UX princíp 4.
+- Mazanie transakcie: bez potvrdenia; možnosť vrátiť späť 8 sekúnd (D-054, UX princíp 4). Mazanie všetkých dát a import potvrdenie vyžadujú (D-018).
 
 ### FR-10 – Vynechané vyhodnotenie (D-016)
 - Oficiálny cieľ sa **nemení automaticky**; počíta sa z K_L a D_L. Dátum cieľa sa nemení, kým sa neurobí vyhodnotenie.
@@ -124,7 +124,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 - Vypnuteľná v nastaveniach.
 
 ### FR-12 – Prvé nastavenie
-Postupnosť: cieľ (V, p, r, rezerva) s predvolenými hodnotami → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Každý krok sa dá preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
+Postupnosť: cieľ (V, p, r, rezerva) s odporúčanými hodnotami ako výzvou (D-057) → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Každý krok sa dá preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
 
 ### FR-13 – Odporúčania
 - Odporúčanie je viditeľne označené a odlíšené od hodnoty používateľa (UR-02).
@@ -152,6 +152,7 @@ Zoznam transakcií od najnovšej, filter podľa typu a obdobia, súčty za obdob
 ### FR-18 – Import
 - Import načíta súbor, overí verziu schémy a zobrazí náhľad (počet transakcií, vyhodnotení, dátum exportu).
 - Import **nahradí** aktuálne dáta až po potvrdení (D-018).
+- Texty z poznámky a z importovaného súboru sa zobrazujú len ako text (bez vkladania HTML) a nikdy sa nevykonávajú (S10).
 - Neplatný súbor sa neimportuje a nič sa nezmení.
 - Neznáme polia sa odmietnu (nie ticho ignorujú), overia sa typy, rozsahy a maximálna veľkosť súboru (návrh: 5 MB; N11, S5).
 
@@ -183,17 +184,14 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 ## 7. Rozhodnuté a otvorené otázky
 **Rozhodnuté:**
 - **O-1 Rezerva:** nie je v kapitáli K ani v cieli (D-017).
-- **O-2 Výdavky pod prahom:** sa neukladajú (D-017).
+- **O-2 Výdavky pod prahom:** nahradené D-030 (ukladajú sa s príznakom).
 - **O-3 Import zálohy:** nahradí aktuálne dáta po potvrdení (D-018).
 - **O-4 Priemer sporenia:** za 12 mesiacov do D_L, delené počtom mesiacov histórie, najviac 12 (D-031; upresňuje D-017).
 - **O-5 Veľmi vzdialený dátum:** do 50 rokov, ďalej „viac ako 50 rokov“; bez kapitálu a sporenia text bez dátumu (D-019).
 - **O-6 Výdavok z kapitálu väčší než kapitál:** upozornenie a ponuka zmeny na „z príjmu“; pri potvrdení K_pred = 0 a text „Hotovosť nestačila; kapitál je 0 €“ (D-021).
 
-- **Rozhodnuté ďalej (D-030 až D-034):** prah a príznak pod prahom, m = za 12 mesiacov do D_L delené počtom mesiacov, globálne r, nasporená suma je stav, plocha odporúčaná (nie povinná).
+- **Rozhodnuté ďalej (D-030 až D-034):** prah a príznak pod prahom, m = za 12 mesiacov do D_L delené počtom mesiacov, globálne r, nasporená suma je stav. Plocha (iPhone): pôvodne odporúčaná (D-034), upravené na povinnú výzvu (D-042, D-053).
+- **Vyriešené (O-8 až O-11):** rozsah prahu D-048, zdroj predvolených r a výberu D-049 a D-050, zdroj úhrady výdavku z kapitálu D-045, výpočet n pri m_cash > 0 D-046.
 
 **Otvorené:**
 - **O-7 Klasifikácia spotreby (M7), odložené do fázy 1b (D-038):** pravidelná vs. cielená spotreba; pravidlo a kategórie treba zadať pred implementáciou prehľadu.
-- **O-8 Rozsah prahu (M8): vyriešené D-048.**
-- **O-11 Výpočet n pri m_cash > 0: vyriešené D-046.**
-- **O-10 Zdroj úhrady výdavku z kapitálu: vyriešené D-045.**
-- **O-9 Zdroj predvolených hodnôt r a miery výberu (M6): vyriešené D-049 a D-050.**

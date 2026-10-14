@@ -24,7 +24,7 @@
 
 **Čo ešte chýba:**
 - externá revízia dokumentov (Claude ako reviewer, podľa `CLAUDE.md`),
-- rozhodnutie o hostingu. Šifrovanie v MVP je rozhodnuté (D-026: nie). O-6 je uzavretý (D-021).
+- hosting je uzavretý: GitHub Pages (D-056). Šifrovanie v MVP je rozhodnuté (D-026: nie). O-6 je uzavretý (D-021).
 
 **Výstupná brána:** pripomienky z revízie sú zapracované a rozhodnutia zapísané v `Decisions.md`.
 
@@ -109,7 +109,7 @@
 
 | Kedy | Rozhodnutie | Kto |
 |---|---|---|
-| pred M5 | hosting (GitHub Pages, alebo iný) | zakladateľ |
+| – | hosting: uzavreté, GitHub Pages (D-056) | – |
 | pred M2 | overenie uchovania dát na reálnom iPhone (plocha, neaktivita); plocha na iPhone povinná (D-042) | zakladateľ |
 | pred fázou 2 | monetizácia, právne posúdenie, účty a šifrovanie | zakladateľ, právnik |
 | po M1 | presnejší odhad trvania milníkov podľa tempa | zakladateľ |

@@ -63,3 +63,13 @@ describe("capitalWithFlags (R2)", () => {
     expect(r.negative).toEqual({ inv: false, cash: true });
   });
 });
+
+describe("GC-24 (D-058): rezerva v K_pred", () => {
+  it("vklad do rezervy znižuje K_cash a výber z rezervy ho zvyšuje; K_inv sa nemení", () => {
+    const snap = { id: "s", date: "2026-10-01", investmentsCents: eur(100_000), cashCents: eur(20_000), createdAt: "2026-10-01T00:00:00Z" };
+    const dep = currentCapital(snap, [tx({ date: "2026-10-05", type: "rezerva", amountCents: eur(6_000) })]);
+    expect(dep).toEqual({ inv: eur(100_000), cash: eur(14_000) });
+    const wd = currentCapital(snap, [tx({ date: "2026-10-05", type: "rezerva", amountCents: eur(6_000) }), tx({ date: "2026-10-06", type: "vyber_rezervy", amountCents: eur(1_000) })]);
+    expect(wd).toEqual({ inv: eur(100_000), cash: eur(15_000) });
+  });
+});

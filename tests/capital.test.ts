@@ -83,3 +83,20 @@ describe("výdavky z kapitálu (D-045)", () => {
     expect(blocked.ok).toBe(false);
   });
 });
+
+describe("scenáre a hranice (D-050, GC-05, GC-06, GC-23)", () => {
+  const cap = { inv: eur(100_000), cash: 0 };
+  const T = eur(600_000);
+  it("GC-05: optimistický scenár je základ + 2 p. b. = 5,5 %; n ≈ 271,67 → 272 mesiacov", () => {
+    expect(Math.ceil(monthsToTargetSplit(cap, eur(500), 0, 0.055, T)! - 1e-6)).toBe(272);
+  });
+  it("GC-23: základ 3,5 % (D-050); n ≈ 362,10 → 363 mesiacov", () => {
+    expect(Math.ceil(monthsToTargetSplit(cap, eur(500), 0, 0.035, T)! - 1e-6)).toBe(363);
+  });
+  it("GC-06: opatrný scenár je základ − 2 p. b. = 1,5 %; n ≈ 556,46 → 557 mesiacov", () => {
+    expect(Math.ceil(monthsToTargetSplit(cap, eur(500), 0, 0.015, T)! - 1e-6)).toBe(557);
+  });
+  it("r = 0 a m = 0 pri K > 0 je nedosiahnuteľné (null)", () => {
+    expect(monthsToTargetSplit(cap, 0, 0, 0, T)).toBeNull();
+  });
+});

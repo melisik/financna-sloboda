@@ -1,6 +1,6 @@
 # 07 – Testovacia stratégia (MVP)
 
-> Stav: v0.8 (2026-10-14). Oddiely 2–4 opisujú skutočné a cieľové pokrytie (R18).
+> Stav: v0.9 (2026-10-14). Oddiely 2–4 opisujú skutočné a cieľové pokrytie (R18, S2).
 
 ## 1. Priority testovania
 Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu váhu než chyba v ostatných:
@@ -25,12 +25,13 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 8. **Súkromie a bezpečnosť** – sieťové testy, npm audit, CSP (oddiel 7).
 9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
 
-**Stav automatizovaných testov (2026-10-14, R18):** tabuľka nižšie je *cieľové* pokrytie. Dnes automatizované sú:
-- jednotkové testy (Vitest, 63 testov): GC-01, GC-02, GC-03, GC-04, GC-08, GC-11, GC-13, GC-15 až GC-21 (ID v názvoch testov); FR-01, FR-02, FR-04, FR-05, FR-13, FR-14, FR-15, FR-16 (manifest a offline cez E2E), FR-17, FR-18, FR-19, FR-09, FR-10 (pripomienky a história v čistých funkciách a v E2E);
+**Stav automatizovaných testov (2026-10-14, R18, S2):** tabuľka nižšie je *cieľové* pokrytie. Dnes je automatizované (70 jednotkových testov Vitest a 6 E2E testov Playwright):
+- GC: GC-01, GC-02, GC-03, GC-04, GC-05, GC-06, GC-08, GC-11, GC-13, GC-15 až GC-21, GC-23, GC-24 (ID v názvoch testov); GC-16 (`saving.test.ts`);
+- FR: FR-01, FR-02, FR-04, FR-05, FR-09, FR-10, FR-13, FR-14, FR-15, FR-16, FR-17, FR-18, FR-19 (jednotkové alebo E2E podľa tabuľky v `tests/`);
 - úložisko (CRUD, validácia, atomicita importu, duplicitné id): FR-17, FR-18;
-- E2E (Playwright, desktop a mobil 390): záloha, úprava a vrátenie, offline režim.
+- E2E (desktop a mobil 390): úprava a vrátenie transakcie (FR-09), prehľad (FR-14), záloha (FR-17, FR-18), offline a manifest (FR-16).
 
-Neautomatizované (zatiaľ len cieľ): GC-05, GC-06, GC-07, GC-09, GC-10, GC-12, GC-14, GC-22; komponentové testy FR-06, FR-11, FR-12, FR-13 (vizuálne odlíšenie), FR-14 (rozsah), FR-07, D-030, M2 (dátum v budúcnosti v UI); axe-core a čítačky. Pri neautomatizovanej položke sa testovanie robí ručne.
+Neautomatizované (zatiaľ len cieľ): GC-07, GC-09, GC-10, GC-12, GC-14, GC-22 (bez označeného testu); FR-03 (okrem GC-05 a GC-06), FR-06, FR-07, FR-08, FR-11, FR-12; komponentové testy formulárov a zobrazenia; axe-core a čítačky. Pri neautomatizovanej položke sa testovanie robí ručne.
 
 **Pokrytie požiadaviek bez výpočtovej GC (cieľ, doplnené po revízii):**
 
@@ -64,8 +65,8 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-02 | V = 24 000 €, p = 3 % | T = 800 000 € | FR-01, D-011 |
 | GC-03 | K = 100 000, m = 500, r = 4 %, T = 600 000 | n = 333,92 → **334 mesiacov** | FR-02 |
 | GC-04 | K = 105 000 (predbežne), m = 500, r = 4 % | n = 327,93 → **328**; dopad **+6 mesiacov skôr** | FR-04 |
-| GC-05 | K = 100 000, m = 500, r = 6 % (optimistický) | n = 256,01 → **257** | FR-03 |
-| GC-06 | K = 100 000, m = 500, r = 2 % (opatrný) | n = 489,11 → **490** | FR-03 |
+| GC-05 | K = 100 000, m = 500, r = 5,5 % (optimistický = základ 3,5 % + 2 p. b., D-050) | n = 271,67 → **272** | FR-03, D-050 |
+| GC-06 | K = 100 000, m = 500, r = 1,5 % (opatrný = základ 3,5 % − 2 p. b., D-050) | n = 556,46 → **557** | FR-03, D-050 |
 | GC-07 | K = 100 000, m = 0, r = 4 % | n = 548,21 → **549** (≈ 45,7 roka, dátum sa zobrazí, pretože je do 50 rokov) | FR-02, D-019 |
 | GC-08 | K = 0, m = 0, r = 4 % | bez dátumu: „Pri súčasnom sporení a výnose sa cieľ nedosiahne“ | D-019 |
 | GC-09 | K = 0, m = 500, r = 4 % | n = 488,02 → **489** | FR-02 |
@@ -82,10 +83,12 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-20 | K_inv = 100 000, K_cash = 0, m_inv = 0, m_cash = 500, r = 4 %, T = 600 000 | n ≈ 417,42 → **418 mesiacov** (iterácia po celých mesiacoch, D-046); pri m_cash = 0 je uzavretý tvar 333,92 | D-046 |
 | GC-21 | ako GC-20, ale K_cash = 100 € navyše | dopad = 417,417 − 417,360 = **0,056 mesiaca ≈ 1,7 dňa** (interpolácia; prepočítané cez `monthsToTargetSplit`); zobrazí sa v dňoch | FR-04, D-046 |
 | GC-22 | vklad do rezervy 6 000 €, potom výber z rezervy 1 000 € | stav rezervy = 6 000 − 1 000 = **5 000 €** (vklady mínus výbery); K sa nemení | D-047 |
+| GC-23 | K = 100 000, m = 500, r = 3,5 % (základ, D-050), T = 600 000 | n = 362,10 → **363** | FR-02, D-050 |
+| GC-24 | K_inv = 100 000, K_cash = 20 000, vklad do rezervy 6 000 € | K_pred: K_cash = 14 000 €, K_inv nezmenené; výber z rezervy 1 000 € → K_cash = 15 000 € | FR-04, D-058 |
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
 
-**Stav:** GC-03, GC-04, GC-08, GC-11, GC-13, GC-15 až GC-21 sú označené v jednotkových testoch; GC-05, GC-06, GC-07, GC-09, GC-10, GC-12, GC-14 a GC-22 zatiaľ nemajú označený test. Súbor `tests/golden/goal-cases.json` zatiaľ neexistuje.
+**Stav:** GC-01 až GC-06, GC-08, GC-11, GC-13, GC-15 až GC-21, GC-23 a GC-24 sú označené v testoch; GC-07, GC-09, GC-10, GC-12, GC-14 a GC-22 zatiaľ nemajú označený test. Súbor `tests/golden/goal-cases.json` zatiaľ neexistuje.
 
 **Tolerancia:** porovnávame celé mesiace po `ceil(n − 1e-6)`; interné hodnoty n sa porovnávajú s presnosťou 1e-6.
 

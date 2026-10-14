@@ -86,7 +86,7 @@ function makeCtx(data: AppData): Ctx {
 function scenarioText(ctx: Ctx, rate: number, capital: Capital = ctx.capital): string {
   if (!ctx.latest || ctx.target === null) return "—";
   const n = monthsToTargetSplit(capital, ctx.mInv, ctx.mCash, rate, ctx.target);
-  if (n === null) return "Bez sporenia a výnosu sa cieľ nedosiahne";
+  if (n === null) return "Pri súčasnom sporení a výnose sa cieľ nedosiahne";
   if (n === 0) return "Cieľ je dosiahnutý";
   return monthYear(targetDate(ctx.latest.date, n));
 }

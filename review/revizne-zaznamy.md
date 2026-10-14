@@ -54,3 +54,26 @@
 | RR7 | Commit v zadaní | uzavreté | zadanie („alebo novší“) |
 | R26 | Nulový a takmer nulový dopad | uzavreté | 04 FR-04; formatImpact; tests/impact.test.ts |
 | R26b | Text „cieľ sa nedosiahne“ pri dopade | uzavreté | `UNREACHABLE_IMPACT_TEXT` v `impact.ts`; 04 FR-04 |
+| RR8 | Predbežný dopad ignoruje rezervu (V1) | uzavreté | 04 FR-04 K_pred (vklad −, výber +); ledger; GC-24 |
+| RR9 | Investícia „z hotovosti“ v K_pred (nový nález) | uzavreté | 04 FR-04 (presun nemení K) |
+| RR10 | Prečerpanie K_inv: zamietnutie, alebo orez na 0 s potvrdením (V2) | otvorené (zakladateľ) | 04 FR-08, O-6, D-021; kód: UI blokuje, ledger orezáva na 0 |
+| RR11 | Stará definícia rezervy (V3) | uzavreté | 04 §1 Rezerva; D-045, D-047, D-052 označené D-058 |
+| RR12 | Rozhodnutý zoznam tvrdí opak FR-07 (V4) | uzavreté | 04 §7: O-2 nahradené D-030 |
+| RR13 | Stará formula cieľa × 25 (V5) | uzavreté | 00, 02 (T = V / p, D-049) |
+| RR14 | GC-05 a GC-06 nezodpovedajú D-050 (S1) | uzavreté | 07 GC-05 (272), GC-06 (557), GC-23 (363); testy v capital.test.ts |
+| RR15 | Počty testov a kategórie (S2) | uzavreté | 07 §2 (70 testov); FR a GC zoznamy zosúladené |
+| RR16 | Mazanie: undo, alebo potvrdenie (S3) | uzavreté | D-054 (undo 8 s); 04 FR-09 |
+| RR17 | Plocha na iPhone: povinná, alebo nie (S4) | uzavreté | D-042, D-053; 05 §11; D-034 a D-035 označené |
+| RR18 | Predvolené hodnoty pri prvom spustení (S5) | uzavreté | D-057 (prázdne polia, výzva); 02 UR-01, 03, 04 FR-12 |
+| RR19 | Vklad do rezervy bez zdroja úhrady (S6) | uzavreté | 04 tabuľka transakcií; D-058 |
+| RR20 | Zastarané rozhodnutia bez označenia (S7) | uzavreté | D-011, D-019, D-025, D-035, D-039, D-047 označené |
+| RR21 | Pravidlá m, m_cash a delenie nulou (S8) | čiastočne | 04 FR-02 (uzavretý tvar iba pri m_cash = 0); 04 m (prvý mesiac, žiadna transakcia). Otázka zákona o odporúčaniach (S9) je samostatná |
+| RR22 | Odporúčania a MiFID (S9) | otvorené (zakladateľ) | návrh: „východiskové predpoklady“ namiesto „odporúčania“ v UI |
+| RR23 | Escapovanie textu z poznámky a importu (S10) | uzavreté | 04 FR-18; React zobrazuje text bez HTML |
+| RR24 | Hraničné testy 50 rokov a r = 0, m = 0 (N1) | čiastočne | tests: r = 0, m = 0 pri K > 0 → null; hranica 600 mesiacov zatiaľ bez testu |
+| RR25 | Hosting ako otvorený (N2) | uzavreté | 05 §11 bod 1; 06 §9 (D-056) |
+| RR26 | Otvorené položky už vyriešené (N3) | uzavreté | 04 §7 (O-8 až O-11 presunuté k rozhodnutým) |
+| RR27 | UR-12 dve možnosti, FR-03 tri (N4) | uzavreté | 02 UR-12 (tri možnosti, D-045) |
+| RR28 | Kódy a zdroje v balíku nie sú definované (N5) | uzavreté | prílohy balíka: tento súbor a poznámky |
+| RR29 | Zdroj 3,5 % a 3,7 % (Morningstar 2025) mimo balíka (N6) | otvorené | podklad je v review/o9-podklady.md (príloha balíka); overenie zdroja nie je v repozitári |
+| RR30 | Chýba SW cache a interpolácia (R24, R21 z predchádzajúcej evidencie) | otvorené (poznámka) | – |

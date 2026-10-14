@@ -34,9 +34,9 @@ Dôsledok [predpoklad]: v prvej fáze netreba viacužívateľskú architektúru 
 
 ## Model výpočtu cieľa [user, MVP]
 - MVP: cieľový kapitál = ročné výdavky / miera výberu; predvolená miera výberu je 3,7 % (D-049), čo dáva T = V / p ≈ V × 27,03 (pre V = 24 000 € je T = 648 649 €). Pravidlo 4 % (T = V × 25) zostáva ako historická referencia (D-008).
-- Predpoklady (miera výberu 4 %, ročné výdavky) musia byť v aplikácii viditeľné a upraviteľné.
+- Predpoklady (miera výberu, ročné výdavky) musia byť v aplikácii viditeľné a upraviteľné.
 - Projekcia podľa výnosu a inflácie je **odložená** na neskôr (zatiaľ príliš zložitá).
-- Známe obmedzenie [predpoklad]: pravidlo 4 % nezohľadňuje inflačný ani výnosový scenár ani dĺžku obdobia; v aplikácii to treba stručne uviesť.
+- Známe obmedzenie [predpoklad]: predvolená miera výberu 3,7 % (D-049) nezohľadňuje inflačný ani výnosový scenár ani dĺžku obdobia; v aplikácii to treba stručne uviesť. Pravidlo 4 % (D-008) je len historická referencia.
 
 ## Typ produktu a ukladanie dát [user]
 - **Fáza 1 (MVP):** webová aplikácia, ručné zadávanie transakcií, dáta uložené **lokálne** (v prehliadači).
