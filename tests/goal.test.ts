@@ -7,4 +7,10 @@ describe("targetAmountCents (FR-01)", () => {
     const expensesCents = 24_000 * 100;
     expect(targetAmountCents(expensesCents, 0.04)).toBe(600_000 * 100);
   });
+
+  // GC-02: V = 24 000 €, p = 3 % → T = 800 000 € (FR-01, D-011)
+  it("GC-02: V = 24 000 €, p = 3 % dá T = 800 000 €", () => {
+    const expensesCents = 24_000 * 100;
+    expect(targetAmountCents(expensesCents, 0.03)).toBe(800_000 * 100);
+  });
 });
