@@ -85,7 +85,7 @@ Odporúčania sa týkajú len parametrov cieľa, nie produktov. Parametre a pred
 | Parameter | Zadáva | Predvolená hodnota | Odporúčaný rozsah | Poznámka pre používateľa |
 |---|---|---|---|---|
 | Ročné výdavky pri nezávislosti | používateľ | zadáva ručne ako odhad (D-013) | – | Základ cieľa. Aplikácia ukáže, koľko z výdavkov je pravidelných a koľko cielená spotreba (odložené do fázy 1b, D-038). |
-| Miera výberu | používateľ | 4 % (D-008) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. |
+| Miera výberu | používateľ | 4 % (D-008) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. Predvolená 4 % ostáva; T je pred daňou a poplatkami (D-043). |
 | Výnos r (reálny, po inflácii, globálny) | používateľ | 4 % | 2 – 6 % | Jeden predpoklad pre celý kapitál (D-032). Rozsah ako opatrný / základný / optimistický; vždy s upozornením, že ide o odhad. Východiskové hodnoty sa overia zdrojom pred M3 (M6). |
 | Mesačné sporenie (m) | používateľ (odvodené, možno prepísať) | priemer za 12 mesiacov do posledného vyhodnotenia, delený počtom mesiacov histórie (D-031) | – | Spolu s výnosom určuje odhadovaný dátum cieľa. |
 | Rezerva (núdzový fond) | používateľ | 3 mesiace výdavkov | 3 – 6 mesiacov | Odporúča sa mať ju mimo investícií; do cieľa sa nezapočítava. |
@@ -247,7 +247,7 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 - Cielená spotreba je legitímna súčasť plánu, nie „chyba“ (D-004, D-014). [predpoklad]
 
 ## Kľúčové toky (náčrt, bez návrhu obrazoviek)
-1. **Prvé nastavenie:** cieľ (UR-01, UR-10) → investícia (UR-03) → prah (UR-05) → prvé vyhodnotenie. Odporúčania a predvolené hodnoty pri každom kroku. Odporúčaný krok: pridať appku na plochu (D-034). Kým nie je prvé vyhodnotenie, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6).
+1. **Prvé nastavenie:** cieľ (UR-01, UR-10) → investícia (UR-03) → prah (UR-05) → prvé vyhodnotenie. Odporúčania a predvolené hodnoty pri každom kroku. Krok na iPhone: pridanie appky na plochu je povinné (D-042). Kým nie je prvé vyhodnotenie, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6).
 2. **Týždenné zadanie:** otvoriť → pridať transakciu → vidieť predbežný dopad → hotovo.
 3. **Mesačné vyhodnotenie (koniec mesiaca):** zadať hodnotu investícií a sporenie → vidieť prepočítaný cieľ a dátum ako rozsah.
 4. **Prehľad:** história transakcií (UR-07) a aktuálny stav cieľa.
@@ -284,7 +284,7 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 | **Mesačné sporenie (m)** | Súčet transakcií typu „sporenie“ a „investícia“ za 12 mesiacov, ktoré končia pri D_L, delený počtom mesiacov histórie (najviac 12) (D-031). Používateľ môže zadať vlastnú hodnotu (UR-02). |
 | **Rezerva** | Odporúčanie 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). |
 | **Vyhodnotenie (snapshot)** | Mesačný záznam s dátumom, hodnotou investícií a nasporenou sumou; zadáva sa na konci mesiaca (D-014). |
-| **Referenčný dátum (D_L)** | Dátum posledného vyhodnotenia (najnovší snapshot). K_L a m sa vzťahujú k tomuto dňu. Dátum cieľa sa počíta od D_L a mení sa len pri novom vyhodnotení (D-024). |
+| **Referenčný dátum (D_L)** | Dátum posledného vyhodnotenia podľa dátumu vyhodnotenia, nie času zápisu (D-044). K_L a m sa vzťahujú k tomuto dňu. Dátum cieľa sa počíta od D_L a mení sa len pri novom vyhodnotení (D-024). |
 | **Posledný stav (K_L)** | K zo snapshotu, ktorý je najnovší. Oficiálny cieľ sa počíta z neho, od D_L. |
 
 ### Entita Transakcia
@@ -392,7 +392,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 - Vypnuteľná v nastaveniach.
 
 ### FR-12 – Prvé nastavenie
-Postupnosť: cieľ (V, p, r, rezerva) s predvolenými hodnotami → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Každý krok sa dá preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu sa odporúča, nie je povinné (D-034).
+Postupnosť: cieľ (V, p, r, rezerva) s predvolenými hodnotami → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Každý krok sa dá preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
 
 ### FR-13 – Odporúčania
 - Odporúčanie je viditeľne označené a odlíšené od hodnoty používateľa (UR-02).
@@ -462,6 +462,7 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 **Otvorené:**
 - **O-7 Klasifikácia spotreby (M7), odložené do fázy 1b (D-038):** pravidelná vs. cielená spotreba; pravidlo a kategórie treba zadať pred implementáciou prehľadu.
 - **O-8 Rozsah prahu podľa cieľa (M8):** 100–500 € je odporúčanie; pravidlo výberu prahu nie je určené.
+- **O-11 Výpočet n pri m_cash > 0 (blokuje M1):** uzavretý tvar platí len pre m_cash = 0. Treba určiť iteráciu po mesiacoch a zobrazenie dopadu pod 1 mesiac.
 - **O-10 Zdroj úhrady výdavku z kapitálu (D-036; blokuje M1):** z K_inv, alebo z K_cash? Ovplyvňuje FR-04 a FR-08.
 - **O-9 Zdroj predvolených hodnôt r a miery výberu (M6):** overiť zdrojom a zapísať do Decisions pred M3.
 
@@ -668,7 +669,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 **Poradie:** M1 → M2 → M3 → M4 → M5 → M6 → M7. M5 a M6 sa dajú začať paralelne s M4, ak to kapacita dovolí.
 
 **Hlavné riziká fázy 1:**
-- **Dáta na iOS Safari** (vysoké riziko, jediná kópia dát): odporúčaná inštalácia na plochu v prvom nastavení (D-034), overenie na reálnom iPhone pred M2, pripomienka zálohy po 7 dňoch (FR-19, D-035). [predpoklad, overiť].
+- **Dáta na iOS Safari** (vysoké riziko, jediná kópia dát): povinná inštalácia na plochu na iPhone (D-042), overenie na reálnom iPhone pred M2, pripomienka zálohy po 7 dňoch (FR-19, D-035). [predpoklad, overiť].
 - **Právne riziko rozsahov v MVP:** rozsahy výnosu (2–6 %) a výberu (3–4 %) sa zobrazujú už vo Fáze 1, kým právne posúdenie je brána pre Fázu 2 (D-028). Prijaté zakladateľom; mitigácia: viditeľné predpoklady a upozornenie, že ide o odhad, nie o radu.
 - **Hotovosť 0 % reálne:** predpoklad, že hotovosť len drží kúpnu silu, je konzervatívny vo výnose, ale nezachytí infláciu nad rámec predpokladu. Viditeľné v UR-09 (D-036).
 - **Chyba vo vzorci** by viedla k zlému rozhodnutiu. Mitigácia: GC testy, NPER overenie, property testy.
@@ -729,7 +730,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 | Kedy | Rozhodnutie | Kto |
 |---|---|---|
 | pred M5 | hosting (GitHub Pages, alebo iný) | zakladateľ |
-| pred M2 | overenie uchovania dát na reálnom iPhone (plocha, neaktivita); odporúčanie na plochu rozhodnuté (D-034) | zakladateľ |
+| pred M2 | overenie uchovania dát na reálnom iPhone (plocha, neaktivita); plocha na iPhone povinná (D-042) | zakladateľ |
 | pred fázou 2 | monetizácia, právne posúdenie, účty a šifrovanie | zakladateľ, právnik |
 | po M1 | presnejší odhad trvania milníkov podľa tempa | zakladateľ |
 
@@ -819,7 +820,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-15 | K_L = 100 000, m = 500, r = 4 %, T = 600 000; po D_L dva výdavky z kapitálu po 60 000 € | K_pred = max(0; −20 000) = **0**; dopad = n(K_L) − n(0) = 333,92 − 488,02 = **−154 mesiacov** (zaokrúhlené; N1: surový rozdiel); text „Hotovosť nestačila; kapitál je 0 €“, žiadny záporný kapitál | FR-04, FR-08, H2 |
 | GC-16 | sporenie 500 € v každom z troch mesiacov pred D_L, žiadne staršie transakcie | m = 1 500 / 3 = **500** (nie 125; D-031) | D-031 |
 | GC-17 | D_L = 2026-10-14, K_inv = 50 000, K_cash = 60 000, m = 500, r = 4 %, T = 100 000 | K_L = 110 000 ≥ T → cieľ dosiahnutý, dátum = D_L (hotovosť sa počíta v K) | FR-02, D-036 |
-| GC-18 | D_L = 2026-10-14, K_inv = 90 000, K_cash = 5 000, m = 500 (do K_inv), r = 4 %, T = 100 000 | T′ = T − K_cash = 95 000; n ≈ 6,24 → **7 mesiacov** (dátum D_L + 7 mesiacov) | FR-02, D-036, D-039 |
+| GC-18 | D_L = 2026-10-14, K_inv = 90 000, K_cash = 5 000, m = 500 (investícia, m_inv), r = 4 %, T = 100 000 | T′ = T − K_cash = 95 000; n ≈ 6,24 → **7 mesiacov** (dátum D_L + 7 mesiacov) | FR-02, D-036, D-039 |
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
 
@@ -933,7 +934,7 @@ Zodpovedané:
 - **O-6 (D-021):** výdavok z kapitálu väčší než kapitál sa rieši upozornením a ponukou zmeny na „z príjmu“.
 
 Otvorené:
-- **Riziko iOS Safari:** rozhodnuté (D-034): plocha je odporúčaná, nie povinná. Overenie na reálnom iPhone pred M2 (nie po M2).
+- **Riziko iOS Safari:** rozhodnuté (D-042): plocha je na iPhone povinná. Overenie na reálnom iPhone pred M2 (nie po M2).
 
 ---
 

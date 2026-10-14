@@ -43,7 +43,7 @@
 **Poradie:** M1 → M2 → M3 → M4 → M5 → M6 → M7. M5 a M6 sa dajú začať paralelne s M4, ak to kapacita dovolí.
 
 **Hlavné riziká fázy 1:**
-- **Dáta na iOS Safari** (vysoké riziko, jediná kópia dát): odporúčaná inštalácia na plochu v prvom nastavení (D-034), overenie na reálnom iPhone pred M2, pripomienka zálohy po 7 dňoch (FR-19, D-035). [predpoklad, overiť].
+- **Dáta na iOS Safari** (vysoké riziko, jediná kópia dát): povinná inštalácia na plochu na iPhone (D-042), overenie na reálnom iPhone pred M2, pripomienka zálohy po 7 dňoch (FR-19, D-035). [predpoklad, overiť].
 - **Právne riziko rozsahov v MVP:** rozsahy výnosu (2–6 %) a výberu (3–4 %) sa zobrazujú už vo Fáze 1, kým právne posúdenie je brána pre Fázu 2 (D-028). Prijaté zakladateľom; mitigácia: viditeľné predpoklady a upozornenie, že ide o odhad, nie o radu.
 - **Hotovosť 0 % reálne:** predpoklad, že hotovosť len drží kúpnu silu, je konzervatívny vo výnose, ale nezachytí infláciu nad rámec predpokladu. Viditeľné v UR-09 (D-036).
 - **Chyba vo vzorci** by viedla k zlému rozhodnutiu. Mitigácia: GC testy, NPER overenie, property testy.
@@ -104,7 +104,7 @@
 | Kedy | Rozhodnutie | Kto |
 |---|---|---|
 | pred M5 | hosting (GitHub Pages, alebo iný) | zakladateľ |
-| pred M2 | overenie uchovania dát na reálnom iPhone (plocha, neaktivita); odporúčanie na plochu rozhodnuté (D-034) | zakladateľ |
+| pred M2 | overenie uchovania dát na reálnom iPhone (plocha, neaktivita); plocha na iPhone povinná (D-042) | zakladateľ |
 | pred fázou 2 | monetizácia, právne posúdenie, účty a šifrovanie | zakladateľ, právnik |
 | po M1 | presnejší odhad trvania milníkov podľa tempa | zakladateľ |
 
