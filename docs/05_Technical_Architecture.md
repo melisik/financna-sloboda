@@ -1,6 +1,6 @@
 # 05 – Technická architektúra (MVP)
 
-> Stav: v0.2 (2026-10-13). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.3 (2026-10-14). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Prehľad
 Statická single-page aplikácia (PWA) bez servera. Všetky dáta a výpočty bežia v prehliadači na zariadení.
@@ -107,8 +107,6 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n)` mesiac
 | K ≥ T | cieľ dosiahnutý |
 | r = 0, m = 500 | n = (T − K) / m |
 
-Poznámka: v predchádzajúcom popise som uviedol približne 60 rokov pre prípad bez sporenia. Presný výpočet je približne 46 rokov (K = 100 000, T = 600 000, r = 4 %); toto je správna hodnota (viď `07_Testing_Strategy`, GC-07).
-
 ## 6. Správanie offline a aktualizácie
 - Service Worker ukladá aplikáciu do cache po prvom načítaní; funguje offline (FR-16).
 - Nová verzia sa načíta pri ďalšom otvorení; aplikácia neprepíše dáta.
@@ -126,7 +124,7 @@ Poznámka: v predchádzajúcom popise som uviedol približne 60 rokov pre prípa
 - Hosting musí byť HTTPS (Service Worker a inštalácia vyžadujú HTTPS).
 - Verzia aplikácie v `package.json`, tag v gite pri každom vydaní.
 
-## 9. Kvalita a testovanie (zhoda s `07_Testing_Strategy`, ešte nevytvorený)
+## 9. Kvalita a testovanie (zhoda s `07_Testing_Strategy`)
 - **Jednotkové testy domain/:** všetky vzorce a hraničné stavy z FR-02, FR-04, FR-05 a tabuľky vyššie.
 - **Testy storage/:** zápis, čítanie, migrácia, import s neplatným súborom (nič sa nezmení).
 - **End-to-end (neskôr):** prvé nastavenie → transakcia → vyhodnotenie → export → import.

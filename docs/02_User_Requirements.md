@@ -1,6 +1,6 @@
 # 02 – Požiadavky používateľa
 
-> Stav: v0.5 (2026-10-13), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
+> Stav: v0.6 (2026-10-14), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
 
 ## Používateľské príbehy (MVP)
 
@@ -33,7 +33,7 @@
 - **Vplyv cielenej spotreby na cieľ:** evidovaný výdavok **znižuje kapitál** (investovateľný kapitál sa zníži o sumu výdavku), čo posunie odhadovaný dátum cieľa. Cieľová suma (ročné výdavky × 25) sa výdavkom nemení.
 
 ## Predpoklady a riziká k vyriešeným rozhodnutiam [predpoklad]
-- Model „výdavok znižuje kapitál“ predpokladá, že sa výdavok hradí z naakumulovaného kapitálu. Ak ho používateľ v skutočnosti platí z bežného príjmu, aplikácia bude dátum cieľa nadhodnocovať (cieľ vyzerá ďalej, než je). Treba to používateľovi jasne povedať a zvážiť pri zadávaní výdavku voľbu „hradené z kapitálu / z príjmu“ (otvorená otázka 1).
+- Model „výdavok znižuje kapitál“ predpokladá, že sa výdavok hradí z naakumulovaného kapitálu. Ak ho používateľ v skutočnosti platí z bežného príjmu, aplikácia bude dátum cieľa nadhodnocovať (cieľ vyzerá ďalej, než je). Treba to používateľovi jasne povedať a zvážiť pri zadávaní výdavku voľbu „hradené z kapitálu / z príjmu“ (zdroj úhrady podľa D-014).
 - Aby nedochádzalo k dvojitému započítaniu, mesačné sporenie sa počíta len z transakcií sporenie/investícia.
 
 ## Zdroj úhrady a mesačné vyhodnotenie kapitálu (potvrdené, D-014)

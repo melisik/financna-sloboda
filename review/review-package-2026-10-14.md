@@ -143,7 +143,7 @@ Zatiaľ nedefinované. Definujeme po overení MVP na vlastnom použití. Treba p
 
 # 02 – Požiadavky používateľa
 
-> Stav: v0.5 (2026-10-13), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
+> Stav: v0.6 (2026-10-14), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
 
 ## Používateľské príbehy (MVP)
 
@@ -176,7 +176,7 @@ Zatiaľ nedefinované. Definujeme po overení MVP na vlastnom použití. Treba p
 - **Vplyv cielenej spotreby na cieľ:** evidovaný výdavok **znižuje kapitál** (investovateľný kapitál sa zníži o sumu výdavku), čo posunie odhadovaný dátum cieľa. Cieľová suma (ročné výdavky × 25) sa výdavkom nemení.
 
 ## Predpoklady a riziká k vyriešeným rozhodnutiam [predpoklad]
-- Model „výdavok znižuje kapitál“ predpokladá, že sa výdavok hradí z naakumulovaného kapitálu. Ak ho používateľ v skutočnosti platí z bežného príjmu, aplikácia bude dátum cieľa nadhodnocovať (cieľ vyzerá ďalej, než je). Treba to používateľovi jasne povedať a zvážiť pri zadávaní výdavku voľbu „hradené z kapitálu / z príjmu“ (otvorená otázka 1).
+- Model „výdavok znižuje kapitál“ predpokladá, že sa výdavok hradí z naakumulovaného kapitálu. Ak ho používateľ v skutočnosti platí z bežného príjmu, aplikácia bude dátum cieľa nadhodnocovať (cieľ vyzerá ďalej, než je). Treba to používateľovi jasne povedať a zvážiť pri zadávaní výdavku voľbu „hradené z kapitálu / z príjmu“ (zdroj úhrady podľa D-014).
 - Aby nedochádzalo k dvojitému započítaniu, mesačné sporenie sa počíta len z transakcií sporenie/investícia.
 
 ## Zdroj úhrady a mesačné vyhodnotenie kapitálu (potvrdené, D-014)
@@ -446,7 +446,7 @@ Ak neboli exportované dáta viac ako 30 dní (alebo nikdy), zobrazí sa jemná 
 
 # 05 – Technická architektúra (MVP)
 
-> Stav: v0.2 (2026-10-13). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.3 (2026-10-14). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Prehľad
 Statická single-page aplikácia (PWA) bez servera. Všetky dáta a výpočty bežia v prehliadači na zariadení.
@@ -553,8 +553,6 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n)` mesiac
 | K ≥ T | cieľ dosiahnutý |
 | r = 0, m = 500 | n = (T − K) / m |
 
-Poznámka: v predchádzajúcom popise som uviedol približne 60 rokov pre prípad bez sporenia. Presný výpočet je približne 46 rokov (K = 100 000, T = 600 000, r = 4 %); toto je správna hodnota (viď `07_Testing_Strategy`, GC-07).
-
 ## 6. Správanie offline a aktualizácie
 - Service Worker ukladá aplikáciu do cache po prvom načítaní; funguje offline (FR-16).
 - Nová verzia sa načíta pri ďalšom otvorení; aplikácia neprepíše dáta.
@@ -572,7 +570,7 @@ Poznámka: v predchádzajúcom popise som uviedol približne 60 rokov pre prípa
 - Hosting musí byť HTTPS (Service Worker a inštalácia vyžadujú HTTPS).
 - Verzia aplikácie v `package.json`, tag v gite pri každom vydaní.
 
-## 9. Kvalita a testovanie (zhoda s `07_Testing_Strategy`, ešte nevytvorený)
+## 9. Kvalita a testovanie (zhoda s `07_Testing_Strategy`)
 - **Jednotkové testy domain/:** všetky vzorce a hraničné stavy z FR-02, FR-04, FR-05 a tabuľky vyššie.
 - **Testy storage/:** zápis, čítanie, migrácia, import s neplatným súborom (nič sa nezmení).
 - **End-to-end (neskôr):** prvé nastavenie → transakcia → vyhodnotenie → export → import.
@@ -722,7 +720,7 @@ Zodpovedané: kapacita (hodiny denne) a zariadenie (iPhone 16, iOS 26.6.2, viď 
 
 # 07 – Testovacia stratégia (MVP)
 
-> Stav: v0.2 (2026-10-14). Pokrýva `04_Functional_Requirements` (FR), `03_UX_Principles` (UX) a `05_Technical_Architecture`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.3 (2026-10-14). Pokrýva `04_Functional_Requirements` (FR), `03_UX_Principles` (UX) a `05_Technical_Architecture`. **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Priority testovania
 Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu váhu než chyba v ostatných:
@@ -816,7 +814,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 | Android Chrome, emulácia viewportu 412 × 915 | automatizované E2E | každý PR |
 | iOS Safari, emulácia viewportu 390 × 844 | automatizované E2E (WebKit) | každý PR |
 | Reálny iPhone 16 (iOS 26.6.2) | manuálny checklist: dotyky, inštalácia na plochu, offline, Safari úložisko | pred každým vydaním |
-| Reálny Android | manuálny checklist – **nie je k dispozícii**; do získania zariadenia len emulácia | pred vydaním, keď bude zariadenie |
+| Reálny Android (zariadenie k dispozícii; model a verzia systému sa doplnia) | manuálny checklist: dotyky, inštalácia na plochu, offline | pred každým vydaním |
 | Desktop Chrome, Firefox, Safari | základné toky | pred vydaním |
 | Viewporty 360, 390, 768, 1280 px | bez horizontálneho scrollu, čitateľnosť | každý PR |
 | Zoom 200 % a najväčšie systémové písmo | žiadna stratená informácia | pred vydaním |
@@ -861,7 +859,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 
 **Vydanie je hotové, keď:**
 - všetky automatizované kontroly sú zelené;
-- manuálny checklist na reálnom iPhone 16 je podpísaný v dokumente vydania (Android, keď bude k dispozícii);
+- manuálny checklist na reálnom iPhone 16 aj na reálnom Androide je podpísaný v dokumente vydania;
 - prebehol round trip export → import na reálnych dátach (anonymizovaných);
 - offline tok a inštalácia na plochu fungujú;
 - self-test za posledný týždeň neobsahuje blokujúcu chybu.
@@ -871,7 +869,7 @@ Bankové a investičné integrácie, viacužívateľské scenáre, daňové výp
 
 ## 15. Otvorené otázky
 Zodpovedané:
-- **Zariadenia:** iPhone 16, iOS 26.6.2. Android nemáme, takže Android sa testuje len emuláciou. Pri manuálnych testoch to znamená, že Android nie je overený na reálnom zariadení.
+- **Zariadenia:** iPhone 16 (iOS 26.6.2) a Android zariadenie (model a verzia systému sa doplnia).
 - **O-6 (D-021):** výdavok z kapitálu väčší než kapitál sa rieši upozornením a ponukou zmeny na „z príjmu“.
 
 Otvorené:
@@ -895,7 +893,7 @@ Otvorené:
 | D-008 | 2026-10-13 | MVP počíta cieľ podľa pravidla 4 % (ročné výdavky × 25) s viditeľnými predpokladmi; projekcia podľa výnosu a inflácie je odložená. | Jednoduchosť pre MVP; zadanie zakladateľa. |
 | D-009 | 2026-10-13 | MVP je webová aplikácia s ručným zadávaním transakcií a lokálnym ukladaním dát (s exportom/importom). Neskôr mobilná aplikácia s integráciami na banku a investičné aplikácie. | Jednoduchosť a ochrana citlivých dát v osobnej fáze; zadanie zakladateľa. |
 | D-010 | 2026-10-13 | Existujúca investícia sa v MVP zadáva ručne: aktuálna hodnota a predpokladaný ročný výnos (viditeľný predpoklad). | Jednoduchosť; bez trhových dát. |
-| D-011 | 2026-10-13 | Odporúčania pri nastavení cieľa: parametre a predvolené hodnoty podľa tabuľky vo vízii v0.6 (výdavky, miera výberu 4 % [3–4 %], reálny výnos 4 % [2–6 %], mesačné sporenie, rezerva 3 mesiace [3–6]). MVP ukazuje aj odhadovaný dátum cieľa ako rozsah. | Potvrdené zakladateľom; číselné hodnoty treba overiť v zdrojoch. |
+| D-011 | 2026-10-13 | Odporúčania pri nastavení cieľa: parametre a predvolené hodnoty podľa tabuľky vo vízii v0.9 (výdavky, miera výberu 4 % [3–4 %], reálny výnos 4 % [2–6 %], mesačné sporenie, rezerva 3 mesiace [3–6]). MVP ukazuje aj odhadovaný dátum cieľa ako rozsah. | Potvrdené zakladateľom; číselné hodnoty treba overiť v zdrojoch. |
 | D-012 | 2026-10-13 | MVP je mobile-first (telefón), používanie týždenne; evidujú sa len výdavky nad prahovú sumu (100–500 €), prah je parameter. | Zadanie zakladateľa. |
 | D-013 | 2026-10-13 | Ročné výdavky v dôchodku zadáva používateľ ručne; mesačné sporenie sa odvodzuje z transakcií sporenie/investícia; prah platí len pre výdavky, predvolene 100 €; evidovaný výdavok znižuje kapitál (cieľová suma sa nemení). Upresňuje D-011. | Potvrdené zakladateľom; vyriešený konflikt prahu a odvodzovania výdavkov. |
 | D-014 | 2026-10-13 | Pri výdavku sa volí zdroj úhrady (predvolene z príjmu; z kapitálu znižuje kapitál). Kapitál sa oficiálne prepočítava raz mesačne na konci mesiaca (hodnota investícií + sporenie zadáva používateľ); po transakcii sa ukáže len predbežný dopad ako krátky text bez farieb. Upresňuje D-004 a D-013. | Potvrdené zakladateľom; nižšia záťaž, menej výkyvov. |
@@ -906,5 +904,7 @@ Otvorené:
 | D-019 | 2026-10-13 | Dátum cieľa sa zobrazuje do 50 rokov; ďalej „viac ako 50 rokov“. Bez kapitálu a sporenia: „Bez sporenia a výnosu sa cieľ nedosiahne“. | Potvrdené zakladateľom (O-5). |
 | D-020 | 2026-10-13 | Technológia MVP: statická PWA (TypeScript, React, Vite), IndexedDB, bez servera; výpočty v čistej doménovej vrstve oddelenej od UI a úložiska. | Potvrdené zakladateľom; lokálne dáta (D-009), offline a neskorší prechod na mobil. |
 | D-021 | 2026-10-14 | Výdavok z kapitálu väčší než nasporený kapitál: pri zadaní upozornenie a ponuka zmeny na „z príjmu“; ak používateľ potvrdí „z kapitálu“, kapitál sa počíta ako 0 a zobrazí sa „kapitál by bol vyčerpaný“. | Potvrdené zakladateľom (O-6). |
+| D-022 | 2026-10-14 | Poradie: najprv externá revízia dokumentov (balík `review/review-package-2026-10-14.md`), až potom M1 (doménová vrstva). | Rozhodnutie zakladateľa; revízia môže zmeniť vzorce alebo GC prípady, ktoré by M1 inak natvrdo zakódoval. |
+| D-023 | 2026-10-14 | Vetvenie: dokumenty a rozhodnutia ostávajú priamo na `main`; kód (M1 a ďalšie milníky) ide na samostatnú vetvu a na `main` sa zlúči až po zelených testoch. | Rozhodnutie zakladateľa. |
 
 ---
