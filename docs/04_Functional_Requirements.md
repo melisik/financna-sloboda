@@ -1,6 +1,6 @@
 # 04 – Funkčné požiadavky (MVP)
 
-> Stav: v0.5 (2026-10-14). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.6 (2026-10-14). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Pojmy a model dát
 
@@ -14,7 +14,8 @@
 | **Mesačné sporenie (m)** | Súčet transakcií typu „sporenie“ a „investícia“ za posledných 12 mesiacov, delený 12 (D-017). |
 | **Rezerva** | Odporúčanie 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). |
 | **Vyhodnotenie (snapshot)** | Mesačný záznam s dátumom, hodnotou investícií a nasporenou sumou; zadáva sa na konci mesiaca (D-014). |
-| **Posledný stav (K_L)** | K zo snapshotu, ktorý je najnovší. Oficiálny cieľ sa počíta z neho. |
+| **Referenčný dátum (D_L)** | Dátum posledného vyhodnotenia (najnovší snapshot). K_L a m sa vzťahujú k tomuto dňu. Dátum cieľa sa počíta od D_L a mení sa len pri novom vyhodnotení (D-024). |
+| **Posledný stav (K_L)** | K zo snapshotu, ktorý je najnovší. Oficiálny cieľ sa počíta z neho, od D_L. |
 
 ### Entita Transakcia
 | Pole | Typ | Povinné | Pravidlo |
@@ -43,11 +44,13 @@ T = V / p. Ak V ≤ 0 alebo p ≤ 0, výpočet sa nespustí a zobrazí sa výzva
 ### FR-02 – Dátum cieľa (počet mesiacov do cieľa)
 Výpočet v reálnych hodnotách, mesačné sporenie na konci mesiaca, mesačná sadzba `i = (1 + r)^(1/12) − 1`:
 
-- Ak K ≥ T: cieľ je dosiahnutý, dátum = dnes.
+- Ak K_L ≥ T: cieľ je dosiahnutý, dátum = D_L (dátum posledného vyhodnotenia).
 - Inak: `n = ln((T·i + m) / (K·i + m)) / ln(1 + i)`
 - Ak r = 0: `n = (T − K) / m`.
 - Ak `K·i + m = 0` (teda K = 0 a m = 0, alebo r = 0 a m = 0): kapitál nerastie, cieľ nie je dosiahnuteľný; zobrazí sa text „Bez sporenia a výnosu sa cieľ nedosiahne“ (bez dátumu). Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môže byť veľmi vzdialený (viď O-5).
-- Dátum cieľa = dnešný dátum + `ceil(n)` mesiacov, zobrazený ako mesiac a rok.
+- Dátum cieľa = D_L + `ceil(n)` mesiacov (orezané na posledný deň cieľového mesiaca), zobrazený ako mesiac a rok (D-024). Počíta sa z K = K_L a m, takže sa mení len pri novom vyhodnotení, nie s plynutím času.
+- Zostávajúci čas = počet mesiacov od dneška do dátumu cieľa; mení sa s časom, dátum nie. Ak dátum uplynul bez vyhodnotenia, zobrazí sa „Dátum vypršal, urobte vyhodnotenie“, nie záporný čas (FR-10).
+- Výnos medzi vyhodnoteniami sa na K_L nepripisuje. Dátum je tak konzervatívny; skutočné K môže byť medzitým vyššie. Pripisovanie by dátum posúvalo automaticky, čo je v rozpore s D-014 a FR-10. Výnos r je jeden predvolený predpoklad 4 % na celý kapitál vrátane hotovosti; klient si ho nastavuje sám (D-025).
 
 **Overený príklad [predpoklad, na kontrolu]:** V = 24 000 €, K = 100 000 €, m = 500 €, r = 4 %. Dostaneme T = 600 000 €, i ≈ 0,3274 %, n ≈ 334 mesiacov (≈ 27 rokov 10 mesiacov).
 
@@ -57,14 +60,14 @@ Tri scenáre sa počítajú rovnakým vzorcom s inými výnosmi (D-011):
 - základný: r = nastavené r (predvolene 4 %),
 - optimistický: r = 6 %.
 
-Zobrazí sa ako „od – do“ (UX D-016): najskorší (optimistický) až najneskorší (opatrný) dátum. Základný je vyznačený textom, nie samostatným číslom.
+Zobrazí sa ako „od – do“ (UX D-016): najskorší (optimistický) až najneskorší (opatrný) dátum. Základný je vyznačený textom, nie samostatným číslom. Všetky tri dátumy sa počítajú od D_L (D-024).
 
 ### FR-04 – Predbežný dopad transakcie
 Pre každú transakciu po poslednom vyhodnotení sa počíta pracovný kapitál:
 
 `K_pred = K_L + Σ(sporenie/investícia po K_L) − Σ(výdavky „z kapitálu“ po K_L)`
 
-Dopad = n(K_L) − n(K_pred), zaokrúhlený na celé mesiace. Kladné číslo = cieľ bližšie, záporné = ďalej.
+Dopad = n(K_L) − n(K_pred), zaokrúhlený na celé mesiace. Obe n sa počítajú od D_L, takže dopad nezávisí od dnešného dátumu (D-024). Kladné číslo = cieľ bližšie, záporné = ďalej.
 - Výsledok sa zobrazí ako krátky text (D-014), napr. „predbežne +2 mesiace“.
 - Ak je zaokrúhlený dopad 0, zobrazí sa „bez zmeny v mesiacoch“.
 - Pracovný kapitál sa **nepremieta do oficiálneho cieľa**, kým sa neurobí vyhodnotenie.
@@ -100,7 +103,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 - Mazanie: potvrdenie a možnosť vrátiť späť (krátko po zmazaní), UX princíp 4.
 
 ### FR-10 – Vynechané vyhodnotenie (D-016)
-- Oficiálny cieľ sa **nemení automaticky**; počíta sa z K_L.
+- Oficiálny cieľ sa **nemení automaticky**; počíta sa z K_L a D_L. Dátum cieľa sa nemení, kým sa neurobí vyhodnotenie.
 - Po uplynutí konca mesiaca bez vyhodnotenia sa zobrazí jemná pripomienka a dátum posledného vyhodnotenia.
 - Predbežný dopad sa aj naďalej zobrazuje.
 
@@ -109,7 +112,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 - Vypnuteľná v nastaveniach.
 
 ### FR-12 – Prvé nastavenie
-Postupnosť: cieľ (V, p, r, rezerva) s predvolenými hodnotami → investícia (aktuálna hodnota, predpokladaný výnos, UR-03) → prah → prvé vyhodnotenie. Každý krok sa dá preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula.
+Postupnosť: cieľ (V, p, r, rezerva) s predvolenými hodnotami → investícia (aktuálna hodnota, predpokladaný výnos, UR-03) → prah → prvé vyhodnotenie. Každý krok sa dá preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, dátum cieľa sa nezobrazuje.
 
 ### FR-13 – Odporúčania
 - Odporúčanie je viditeľne označené a odlíšené od hodnoty používateľa (UR-02).
@@ -117,7 +120,7 @@ Postupnosť: cieľ (V, p, r, rezerva) s predvolenými hodnotami → investícia 
 - Odporúčania sa týkajú len parametrov (D-007); aplikácia neodporúča produkty.
 
 ### FR-14 – Prehľad
-Domovská obrazovka: cieľová suma, aktuálny dátum cieľa ako rozsah, predbežný dopad posledných transakcií, dátum posledného vyhodnotenia, tlačidlo na pridanie transakcie.
+Domovská obrazovka: cieľová suma, dátum cieľa ako rozsah (od D_L) a zostávajúci čas od dneška (D-024), predbežný dopad posledných transakcií, dátum posledného vyhodnotenia, tlačidlo na pridanie transakcie.
 
 ### FR-15 – História
 Zoznam transakcií od najnovšej, filter podľa typu a obdobia, súčty za obdobie. Zobrazenie vyhodnotení (snapshotov) v samostatnej časti (UR-07).
@@ -146,7 +149,8 @@ Ak neboli exportované dáta viac ako 30 dní (alebo nikdy), zobrazí sa jemná 
 
 | Situácia | Správanie |
 |---|---|
-| Cieľ je dosiahnutý (K ≥ T) | „Cieľ je dosiahnutý“; výpočet dátumu sa neukazuje. |
+| Dátum cieľa uplynul bez vyhodnotenia | „Dátum vypršal, urobte vyhodnotenie“; bez záporného zostávajúceho času; dátum sa nepreposúva automaticky (D-024). |
+| Cieľ je dosiahnutý (K_L ≥ T) | „Cieľ je dosiahnutý“; dátum = D_L (D-024). |
 | Cieľ nie je dosiahnuteľný (bez kapitálu a sporenia) | „Bez sporenia a výnosu sa cieľ nedosiahne“, bez dátumu (D-019). |
 | Dátum ďalej ako 50 rokov | „viac ako 50 rokov“ (D-019). |
 | Chýbajúce údaje (napr. žiadne vyhodnotenie) | „Nezadané“, nie nula; výpočet pracuje s dostupnými údajmi a uvedie, čo chýba. |

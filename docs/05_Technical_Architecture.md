@@ -1,6 +1,6 @@
 # 05 – Technická architektúra (MVP)
 
-> Stav: v0.3 (2026-10-14). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.4 (2026-10-14). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Prehľad
 Statická single-page aplikácia (PWA) bez servera. Všetky dáta a výpočty bežia v prehliadači na zariadení.
@@ -93,6 +93,9 @@ Import: validácia schémy (typy, rozsahy, povinné polia) → náhľad → nahr
 - `dateEstimates(K, m, T, {r_optimistic, r_base, r_cautious}) → {from, base, to}` (FR-03).
 - `pendingImpact(snapshot, transactionsAfter, settings) → {K_pred, deltaMonths}` (FR-04, FR-08).
 - `monthlySaving(transactions, today) → m` (súčet sporenia a investícií za 12 mesiacov ÷ 12, D-017).
+- `lastReviewDate(snapshots) → D_L` (dátum najnovšieho snapshotu; bez snapshotu `null`, D-024).
+- `targetDate(D_L, n) → date` (D_L + ceil(n) mesiacov, orezané na posledný deň mesiaca; D-024). Počíta sa z K_L, takže sa mení len pri novom vyhodnotení.
+- `monthsLeft(today, targetDate) → mesiace | null` (zostávajúci čas od dneška; záporná hodnota = dátum uplynul, zobrazí sa „Dátum vypršal, urobte vyhodnotenie“; D-024).
 
 Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n)` mesiacov od dnešného dňa.
 

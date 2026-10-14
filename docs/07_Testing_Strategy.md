@@ -1,6 +1,6 @@
 # 07 – Testovacia stratégia (MVP)
 
-> Stav: v0.4 (2026-10-14). Pokrýva `04_Functional_Requirements` (FR), `03_UX_Principles` (UX) a `05_Technical_Architecture`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.5 (2026-10-14). Pokrýva `04_Functional_Requirements` (FR), `03_UX_Principles` (UX) a `05_Technical_Architecture`. **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Priority testovania
 Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu váhu než chyba v ostatných:
@@ -40,8 +40,10 @@ Hodnoty sú overené tromi spôsobmi: uzavretým vzorcom (FR-02), mesačnou simu
 | GC-08 | K = 0, m = 0, r = 4 % | bez dátumu: „Bez sporenia a výnosu sa cieľ nedosiahne“ | D-019 |
 | GC-09 | K = 0, m = 500, r = 4 % | n = 488,02 → **489** | FR-02 |
 | GC-10 | K = 100 000, m = 500, r = 0 % | n = (T − K) / m = **1 000** | FR-02 |
-| GC-11 | K ≥ T | cieľ dosiahnutý, dátum = dnes | FR-02 |
+| GC-11 | K_L ≥ T | cieľ dosiahnutý, dátum = D_L (dátum posledného vyhodnotenia) | FR-02, D-024 |
 | GC-12 | K = 100 000, m = 500, r = 4 %, T = 2 000 000 | n ≈ 655,4 → **656 mesiacov** (≈ 54,6 roka); zobrazí sa „viac ako 50 rokov“ | FR-02, D-019 |
+| GC-13 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2026-12-14 (bez nového vyhodnotenia) | dátum cieľa **nezmenený** = 2054-08-14 (n = 334 od D_L); zostávajúci čas = **332 mesiacov** | FR-02, D-024 |
+| GC-14 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2055-01-01 (po dátume cieľa) | „Dátum vypršal, urobte vyhodnotenie“; žiadny záporný čas; dátum sa nemení | FR-10, D-024 |
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
 
