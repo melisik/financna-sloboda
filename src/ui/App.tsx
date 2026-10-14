@@ -260,14 +260,14 @@ function TransactionSection({ repo, data, onChanged }: { repo: Repository; data:
       <h2 style={{ fontSize: "1.1rem" }}>Transakcie</h2>
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Typ</span>
-        <select value={type} onChange={(e) => setType(e.target.value as TransactionType)} style={inp}>
+        <select aria-label="Typ transakcie" value={type} onChange={(e) => setType(e.target.value as TransactionType)} style={inp}>
           {(Object.keys(TYPE_LABEL) as TransactionType[]).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
         </select>
       </label>
       {needsSource && (
         <label style={{ display: "block", margin: "8px 0" }}>
           <span style={{ display: "block", fontSize: "0.9rem" }}>Zdroj</span>
-          <select value={source} onChange={(e) => setSource(e.target.value as Source)} style={inp}>
+          <select aria-label="Zdroj úhrady" value={source} onChange={(e) => setSource(e.target.value as Source)} style={inp}>
             {SOURCES.map((x) => <option key={x} value={x}>{SOURCE_LABEL[x]}</option>)}
           </select>
         </label>
