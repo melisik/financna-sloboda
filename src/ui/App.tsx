@@ -3,6 +3,7 @@ import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
 import { SOURCES, type AppData, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { currentCapital, reserveBalance } from "../app/ledger";
+import { buildBackup, parseBackup } from "../storage/backup";
 import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact } from "../domain/impact";
 import { impactMonthsSplit, monthsToTargetSplit, payFromCash, payFromInvestments, transferToInvestments, type Capital } from "../domain/capital";
@@ -69,6 +70,7 @@ export function App() {
       <SnapshotSection repo={repo} snapshots={data.snapshots} onSaved={reload} />
       <GoalSection data={data} />
       <TransactionSection repo={repo} data={data} onChanged={reload} />
+      <BackupSection repo={repo} data={data} onChanged={reload} />
     </Shell>
   );
 }
@@ -319,5 +321,96 @@ function Field(props: { label: string; value: number | string; onChange: (v: any
         style={inp}
       />
     </label>
+  );
+}
+
+type Preview = { data: AppData; counts: { transactions: number; snapshots: number }; exportedAt: string };
+
+function BackupSection({ repo, data, onChanged }: { repo: Repository; data: AppData; onChanged: () => void }) {
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [status, setStatus] = useState<string | null>(null);
+
+  const exportBackup = () => {
+    const obj = buildBackup(data, new Date().toISOString());
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `financna-sloboda-zaloha-${todayIso()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setStatus("Záloha sa stiahla. Obsahuje citlivé finančné údaje: neukladaj ju do verejných priečinkov (FR-17).");
+  };
+
+  const onFile = async (file: File) => {
+    setErrors([]);
+    setPreview(null);
+    setStatus(null);
+    let json: unknown;
+    try {
+      json = JSON.parse(await file.text());
+    } catch {
+      setErrors(["Súbor nie je platný JSON. Nič sa nezmenilo."]);
+      return;
+    }
+    const res = parseBackup(json, todayIso());
+    if (!res.ok) {
+      setErrors([...res.errors, "Nič sa nezmenilo."]);
+      return;
+    }
+    setPreview({ data: res.data!, counts: res.counts!, exportedAt: (json as { exportedAt: string }).exportedAt });
+  };
+
+  const confirmImport = async () => {
+    if (!preview) return;
+    await repo.replaceAll(preview.data);
+    setPreview(null);
+    setStatus("Dáta boli nahradené zálohou.");
+    onChanged();
+  };
+
+  return (
+    <section>
+      <h2 style={{ fontSize: "1.1rem" }}>Záloha</h2>
+      <p style={{ color: "#555" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu (FR-17, FR-19).</p>
+      <button onClick={exportBackup} style={btn}>Exportovať zálohu</button>
+
+      <label style={{ display: "block", margin: "16px 0 8px" }}>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>Import zálohy (JSON)</span>
+        <input
+          type="file"
+          accept="application/json,.json"
+          aria-label="Súbor zálohy"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void onFile(f);
+            e.target.value = "";
+          }}
+        />
+      </label>
+
+      {errors.length > 0 && (
+        <ul style={{ color: "#8a0000" }}>
+          {errors.map((e, i) => <li key={i}>{e}</li>)}
+        </ul>
+      )}
+
+      {preview && (
+        <div style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6 }}>
+          <p>
+            Záloha z {preview.exportedAt.slice(0, 10)}: {preview.counts.transactions} transakcií,{" "}
+            {preview.counts.snapshots} vyhodnotení.
+          </p>
+          <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong></p>
+          <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}
+          <button onClick={() => setPreview(null)} style={btn}>Zrušiť</button>
+        </div>
+      )}
+
+      {status && <p style={{ marginTop: 12 }}>{status}</p>}
+    </section>
   );
 }
