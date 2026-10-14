@@ -650,6 +650,7 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
   const confirmImport = async () => {
     if (!preview) return;
     try {
+      exportBackup(); // D-071: pred nahradením sa stiahne záloha aktuálnych dát
       await repo.replaceAll(preview.data);
     } catch {
       setErrors([STORAGE_ERROR]);
@@ -684,7 +685,7 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
           <p>
             Záloha z {preview.exportedAt.slice(0, 10)}: {preview.counts.transactions} transakcií, {preview.counts.snapshots} vyhodnotení.
           </p>
-          <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong></p>
+          <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong> Pred nahradením sa automaticky stiahne záloha aktuálnych dát (D-071).</p>
           <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}
           <button onClick={() => setPreview(null)} style={btn}>Zrušiť</button>
         </div>

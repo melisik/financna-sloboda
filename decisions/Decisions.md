@@ -72,3 +72,5 @@
 | D-068 | 2026-10-14 | Pridanie na plochu na iPhone je povinná výzva (D-042, D-053); FR-12 ju vyníma z krokov, ktoré sa dajú preskočiť. | Rozhodnutie zakladateľa (RR38, potvrdené). |
 | D-069 | 2026-10-14 | Predvolená miera výberu 3,7 % sa neupravuje. Dokumenty uvádzajú, že je kalibrovaná na 30-ročný horizont a pri dlhšom horizonte je menej istá (D-065). | Rozhodnutie zakladateľa (RR35, potvrdené: uviesť, neupravovať). |
 | D-070 | 2026-10-14 | Výnos r sa uplatňuje len na investovaný kapitál K_inv; hotovosť K_cash je bez výnosu (D-036). Dokumenty 00, 02 (UR-03) a 05 §5 sa zosúladia. | Rozhodnutie zakladateľa (RR32, RR33, potvrdené). |
+| D-071 | 2026-10-14 | Import zálohy pred nahradením dát automaticky stiahne zálohu aktuálnych dát (FR-18). Ak používateľ potvrdí import, záloha je už uložená v zariadení. | Rozhodnutie zakladateľa (V6: áno). |
+| D-072 | 2026-10-14 | Kód M2–M4 je v `main` ako výnimka z D-022 (revízia pred M1). Pokračuje sa v revízii dokumentov. Roadmapa uvádza stav podľa skutočnosti. | Rozhodnutie zakladateľa (V7: výnimka). |

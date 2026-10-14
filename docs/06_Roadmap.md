@@ -13,8 +13,8 @@
 
 | Fáza | Cieľ | Stav | Brána na vstup |
 |---|---|---|---|
-| 0 – Discovery a dokumentácia | vízia, požiadavky, architektúra, testy | prebieha | externá revízia dokumentov |
-| 1 – MVP (osobné použitie) | webová PWA pre zakladateľa | plán | rozhodnutia z oddielu 9 |
+| 0 – Discovery a dokumentácia | vízia, požiadavky, architektúra, testy | takmer hotová; revízia prebieha | externá revízia dokumentov |
+| 1 – MVP (osobné použitie) | webová PWA pre zakladateľa | prebieha: kód M2–M4 je v `main` ako výnimka z D-022 (D-072) | rozhodnutia z oddielu 9 |
 | 1b – Pilot | 3 mesiace reálneho používania | plán | dokončené M1–M7 |
 | 2 – EÚ webový produkt | viac používateľov, účty, GDPR, jazyky | plán | právne posúdenie, monetizácia, rozhodnutie o účtoch a šifrovaní |
 | 3 – Mobil a integrácie | natívna appka, banka a investičné appky | plán | licencie a zmluvy, bezpečnostný audit |

@@ -310,7 +310,7 @@ V, p, r, rezerva (mesiace), prah výdavkov, m (odvodené z transakcií, D-031; p
 ## 2. Výpočty
 
 ### FR-01 – Cieľová suma
-T = V / p. Ak V ≤ 0 alebo p ≤ 0, výpočet sa nespustí a zobrazí sa výzva na opravu vstupu.
+T = V / p. Ak V ≤ 0 alebo p ≤ 0, výpočet sa nespustí a zobrazí sa výzva na opravu vstupu. Ak V, p alebo r chýba (prvé spustenie, prázdne polia, D-057), cieľ sa nepočíta a Prehľad vyzve na nastavenie. Ak r nie je zadané, výpočet sa nespustí. Bez histórie transakcií pre m je m = 0 (D-031, V2).
 
 ### FR-02 – Dátum cieľa (počet mesiacov do cieľa)
 Výpočet v reálnych hodnotách, mesačné sporenie na konci mesiaca, mesačná sadzba `i = (1 + r)^(1/12) − 1`. Poradie vetiev je záväzné:
@@ -421,7 +421,7 @@ Zoznam transakcií od najnovšej, filter podľa typu a obdobia, súčty za obdob
 
 ### FR-18 – Import
 - Import načíta súbor, overí verziu schémy a zobrazí náhľad (počet transakcií, vyhodnotení, dátum exportu).
-- Import **nahradí** aktuálne dáta až po potvrdení (D-018).
+- Import **nahradí** aktuálne dáta až po potvrdení (D-018). Pred nahradením sa automaticky stiahne záloha aktuálnych dát (D-071).
 - Texty z poznámky a z importovaného súboru sa zobrazujú len ako text (bez vkladania HTML) a nikdy sa nevykonávajú (S10).
 - Neplatný súbor sa neimportuje a nič sa nezmení.
 - Neznáme polia sa odmietnu (nie ticho ignorujú), overia sa typy, rozsahy a maximálna veľkosť súboru (návrh: 5 MB; N11, S5).
@@ -640,8 +640,8 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 
 | Fáza | Cieľ | Stav | Brána na vstup |
 |---|---|---|---|
-| 0 – Discovery a dokumentácia | vízia, požiadavky, architektúra, testy | prebieha | externá revízia dokumentov |
-| 1 – MVP (osobné použitie) | webová PWA pre zakladateľa | plán | rozhodnutia z oddielu 9 |
+| 0 – Discovery a dokumentácia | vízia, požiadavky, architektúra, testy | takmer hotová; revízia prebieha | externá revízia dokumentov |
+| 1 – MVP (osobné použitie) | webová PWA pre zakladateľa | prebieha: kód M2–M4 je v `main` ako výnimka z D-022 (D-072) | rozhodnutia z oddielu 9 |
 | 1b – Pilot | 3 mesiace reálneho používania | plán | dokončené M1–M7 |
 | 2 – EÚ webový produkt | viac používateľov, účty, GDPR, jazyky | plán | právne posúdenie, monetizácia, rozhodnutie o účtoch a šifrovaní |
 | 3 – Mobil a integrácie | natívna appka, banka a investičné appky | plán | licencie a zmluvy, bezpečnostný audit |
@@ -661,7 +661,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 |---|---|---|---|---|
 | **M1 Doménová vrstva** | cieľ, dátumy (scenáre), predbežný dopad, mesačné vyhodnotenie – čisté funkcie | M | všetky GC-01 až GC-14 prejdú (vrátane GC-13 a GC-14 pre stabilitu dátumu, D-024; GC-15 pre K_pred ≥ 0 a GC-16 pre m pri krátkej histórii, D-031; GC-17 až GC-21 pre rozdelený kapitál, rezervu a m_cash > 0, D-036, D-039, D-045, D-046); property testy zelené; overenie NPER | FR-01 až FR-05, FR-07, FR-08 |
 | **M2 Úložisko a záloha** | IndexedDB, CRUD, export a import s validáciou a atomicitou, schéma v1 | M | round trip test zelený; neplatný import nič nezmení | FR-16 až FR-19 |
-| **M3 Nastavenie a transakcie** | prvé nastavenie s východiskové predpokladymi, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy; predvolené hodnoty r a miery výberu majú zdroj zapísaný v Decisions (M6; D-049, D-050) | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-06, FR-12, FR-13, FR-15 |
+| **M3 Nastavenie a transakcie** | prvé nastavenie s východiskovými predpokladmi, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy; predvolené hodnoty r a miery výberu majú zdroj zapísaný v Decisions (M6; D-049, D-050) | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-06, FR-12, FR-13, FR-15 |
 | **M4 Prehľad a vyhodnotenie** | domovská obrazovka s rozsahom dátumov, predbežný dopad, mesačné vyhodnotenie, pripomienka, upozornenie pri vynechaní | M | E2E tok „transakcia → vyhodnotenie → dátum“ prejde | UR-06, UR-11, FR-09, FR-10, FR-11, FR-14, UR-09 |
 | **M5 PWA a offline** | service worker, manifest, ikony, inštalácia na plochu | S | všetky toky offline; sieťový test súkromia zelený | FR-16 |
 | **M6 Dostupnosť a kvalita** | axe-core bez vážnych chýb, čítačky, tmavý režim, zoom 200 % | S | nulové vážne porušenia; checklist čítačiek vyplnený | UX, 07 oddiel 9 |
@@ -1116,6 +1116,9 @@ src/ui/                       zobrazenie: hodnota, zdroj, dátum overenia, „vl
 | D-068 | 2026-10-14 | Pridanie na plochu na iPhone je povinná výzva (D-042, D-053); FR-12 ju vyníma z krokov, ktoré sa dajú preskočiť. | Rozhodnutie zakladateľa (RR38, potvrdené). |
 | D-069 | 2026-10-14 | Predvolená miera výberu 3,7 % sa neupravuje. Dokumenty uvádzajú, že je kalibrovaná na 30-ročný horizont a pri dlhšom horizonte je menej istá (D-065). | Rozhodnutie zakladateľa (RR35, potvrdené: uviesť, neupravovať). |
 | D-070 | 2026-10-14 | Výnos r sa uplatňuje len na investovaný kapitál K_inv; hotovosť K_cash je bez výnosu (D-036). Dokumenty 00, 02 (UR-03) a 05 §5 sa zosúladia. | Rozhodnutie zakladateľa (RR32, RR33, potvrdené). |
+| D-071 | 2026-10-14 | Import zálohy pred nahradením dát automaticky stiahne zálohu aktuálnych dát (FR-18). Ak používateľ potvrdí import, záloha je už uložená v zariadení. | Rozhodnutie zakladateľa (V6: áno). |
+| D-072 | 2026-10-14 | Kód M2–M4 je v `main` ako výnimka z D-022 (revízia pred M1). Pokračuje sa v revízii dokumentov. Roadmapa uvádza stav podľa skutočnosti. | Rozhodnutie zakladateľa (V7: výnimka). |
+
 ---
 
 # Prílohy: kódy nálezov, poznámky k revízii, podklady k miere výberu

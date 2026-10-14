@@ -151,7 +151,7 @@ Zoznam transakcií od najnovšej, filter podľa typu a obdobia, súčty za obdob
 
 ### FR-18 – Import
 - Import načíta súbor, overí verziu schémy a zobrazí náhľad (počet transakcií, vyhodnotení, dátum exportu).
-- Import **nahradí** aktuálne dáta až po potvrdení (D-018).
+- Import **nahradí** aktuálne dáta až po potvrdení (D-018). Pred nahradením sa automaticky stiahne záloha aktuálnych dát (D-071).
 - Texty z poznámky a z importovaného súboru sa zobrazujú len ako text (bez vkladania HTML) a nikdy sa nevykonávajú (S10).
 - Neplatný súbor sa neimportuje a nič sa nezmení.
 - Neznáme polia sa odmietnu (nie ticho ignorujú), overia sa typy, rozsahy a maximálna veľkosť súboru (návrh: 5 MB; N11, S5).
