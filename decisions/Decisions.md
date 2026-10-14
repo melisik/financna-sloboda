@@ -40,3 +40,5 @@
 | D-036 | 2026-10-14 | Hotovosť má vlastnú sadzbu, predvolene 0 % reálne; investovaný kapitál má r (predvolene 4 %). Upresňuje D-025 a D-032. Zapracovanie do vzorca FR-02 čaká na rozhodnutie, kam smeruje mesačné sporenie m (investície alebo hotovosť). | Rozhodnutie zakladateľa (revízia, V1). |
 | D-037 | 2026-10-14 | Sporenie do rezervy je samostatný typ transakcie „rezerva“. Nezapočítava sa do m ani do K, zobrazuje sa ako stav rezervy v mesiacoch výdavkov (V/12 × mesiace). | Rozhodnutie zakladateľa (revízia, V5). |
 | D-038 | 2026-10-14 | Prehľad spotreby (pravidelná vs. cielená, O-7) je odložený do fázy 1b. V MVP nie je vo FR ani v milníku M3/M4. | Rozhodnutie zakladateľa (revízia, V4). |
+| D-039 | 2026-10-14 | Mesačné sporenie m smeruje do investovaného kapitálu K_inv (zhodnocuje sa r). Hotovosť K_cash je pevná (0 % reálne, D-036). | Rozhodnutie zakladateľa (revízia, V1). |
+| D-040 | 2026-10-14 | História pre m sa počíta od prvej transakcie. Okno 12 mesiacov končí pri D_L (D-031). | Rozhodnutie zakladateľa (revízia, V7). |
