@@ -31,7 +31,7 @@ function plural(n: number, one: string, few: string, many: string): string {
 
 /**
  * Text dopadu (FR-04, D-014): v mesiacoch pri |dopad| ≥ 1, inak v dňoch (N1).
- * Nula sa zobrazí ako „bez zmeny“.
+ * Presne nula sa zobrazí ako „bez zmeny“; nenulový dopad pod pol dňa ako „menej ako 1 deň“ so znamienkom (R26).
  */
 export function formatImpact(delta: number): string {
   if (Math.abs(delta) >= 1) {
@@ -40,8 +40,9 @@ export function formatImpact(delta: number): string {
     const sign = delta > 0 ? "+" : "−";
     return `predbežne ${sign}${k} ${plural(k, "mesiac", "mesiace", "mesiacov")}`;
   }
+  if (delta === 0) return "bez zmeny";
   const days = Math.round(Math.abs(delta) * DAYS_PER_MONTH);
-  if (days === 0) return "bez zmeny";
   const sign = delta > 0 ? "+" : "−";
+  if (days === 0) return `predbežne ${sign}menej ako 1 deň`;
   return `predbežne ${sign}${days} ${plural(days, "deň", "dni", "dní")}`;
 }

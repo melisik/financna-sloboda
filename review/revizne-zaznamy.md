@@ -52,5 +52,5 @@
 | RR5 | Počet testov v zadaní | uzavreté | zadanie (63 + 6 E2E) |
 | RR6 | GC-21 zaokrúhlenie | uzavreté | 07 GC-21 (1,7 dňa) |
 | RR7 | Commit v zadaní | uzavreté | zadanie („alebo novší“) |
-| R26 | Nulový a takmer nulový dopad | otvorené (návrh) | review/poznamky-k-revizii-2026-10-14.md §2 |
+| R26 | Nulový a takmer nulový dopad | uzavreté | 04 FR-04; formatImpact; tests/impact.test.ts |
 | R26b | Text „cieľ sa nedosiahne“ pri dopade | otvorené (návrh) | review/poznamky-k-revizii-2026-10-14.md §2 |

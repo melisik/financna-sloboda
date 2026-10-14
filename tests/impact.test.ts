@@ -33,4 +33,10 @@ describe("impactMonths (FR-04)", () => {
     expect(formatImpact(-2)).toBe("predbežne −2 mesiace");
     expect(formatImpact(5)).toBe("predbežne +5 mesiacov");
   });
+
+  it("R26: nenulový dopad pod pol dňa nie je „bez zmeny“, ale „menej ako 1 deň“ so znamienkom", () => {
+    expect(formatImpact(0.001)).toBe("predbežne +menej ako 1 deň");
+    expect(formatImpact(-0.001)).toBe("predbežne −menej ako 1 deň");
+    expect(formatImpact(0)).toBe("bez zmeny");
+  });
 });

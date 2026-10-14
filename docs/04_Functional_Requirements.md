@@ -78,7 +78,7 @@ Pre každú transakciu po poslednom vyhodnotení sa počíta pracovný kapitál:
 
 Dopad = n(K_L) − n(K_pred) (surový rozdiel, nie rozdiel zaokrúhlených dátumov; N1). Ak |dopad| ≥ 1 mesiac, zobrazí sa zaokrúhlene na najbližší celý mesiac (D-014, napr. „predbežne +2 mesiace“). Ak |dopad| < 1 mesiac, zobrazí sa v dňoch (1 mesiac = 30,44 dňa) (napr. „predbežne +4 dni“), aby drobné transakcie (napr. 100 €, cca 0,12 mesiaca) nevyšli ako „bez zmeny“ (M1). Obe n sa počítajú od D_L, takže dopad nezávisí od dnešného dátumu (D-024). Kladné číslo = cieľ bližšie, záporné = ďalej.
 - Výsledok sa zobrazí ako krátky text (D-014), napr. „predbežne +2 mesiace“.
-- Ak je dopad 0, zobrazí sa „bez zmeny“.
+- Ak je dopad presne 0, zobrazí sa „bez zmeny“. Nenulový dopad pod pol dňa sa zobrazí ako „predbežne +menej ako 1 deň“ (resp. „−“), nie ako „bez zmeny“ (R26).
 - Pracovný kapitál sa **nepremieta do oficiálneho cieľa**, kým sa neurobí vyhodnotenie.
 - Ak K_pred = 0 a m = 0, dopad sa nezobrazuje; zobrazí sa „Hotovosť nestačila; kapitál je 0 €“ a „bez sporenia a výnosu sa cieľ nedosiahne“ (H2).
 - Ak K_L ≥ T, dopad sa nezobrazuje; zobrazí sa „cieľ je dosiahnutý“. Ak K_pred ≥ T a K_L < T, zobrazí sa „cieľ je dosiahnutý o X mesiacov skôr“ (S2).
