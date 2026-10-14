@@ -21,7 +21,7 @@
 | Pole | Typ | Povinné | Pravidlo |
 |---|---|---|---|
 | dátum | dátum | áno | Predvolene dnes; nesmie byť v budúcnosti. |
-| typ | sporenie / investícia / výdavok | áno | |
+| typ | sporenie / investícia / výdavok / rezerva | áno | Rezerva sa nezapočítava do m ani do K; zobrazí sa ako stav rezervy (D-037). |
 | suma | číslo, EUR, > 0 | áno | Na 2 desatinné miesta. |
 | zdroj úhrady | z príjmu / z kapitálu | áno pri výdavku | Predvolene „z príjmu“ (D-014). Pri sporení a investícii sa nezadáva. |
 | poznámka | text, max. 200 znakov | nie | |
@@ -150,7 +150,7 @@ Zoznam transakcií od najnovšej, filter podľa typu a obdobia, súčty za obdob
 - Neplatný súbor sa neimportuje a nič sa nezmení.
 
 ### FR-19 – Pripomenutie zálohy
-Ak neboli exportované dáta viac ako 14 dní (alebo nikdy), zobrazí sa jemná pripomienka v prehľade [predpoklad; skrátené z 30 dní kvôli riziku vymazania dát na iOS, H4].
+Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná pripomienka v prehľade [predpoklad; D-035: 7 dní kvôli 7-dňovému limitu WebKit pre Safari, H4].
 
 ## 5. Chybové a hraničné stavy
 
@@ -185,6 +185,6 @@ Ak neboli exportované dáta viac ako 14 dní (alebo nikdy), zobrazí sa jemná 
 - **Rozhodnuté ďalej (D-030 až D-034):** prah a príznak pod prahom, m = za 12 mesiacov do D_L delené počtom mesiacov, globálne r, nasporená suma je stav, plocha odporúčaná (nie povinná).
 
 **Otvorené:**
-- **O-7 Klasifikácia spotreby (M7):** pravidelná vs. cielená spotreba; pravidlo a kategórie treba zadať pred implementáciou prehľadu.
+- **O-7 Klasifikácia spotreby (M7), odložené do fázy 1b (D-038):** pravidelná vs. cielená spotreba; pravidlo a kategórie treba zadať pred implementáciou prehľadu.
 - **O-8 Rozsah prahu podľa cieľa (M8):** 100–500 € je odporúčanie; pravidlo výberu prahu nie je určené.
 - **O-9 Zdroj predvolených hodnôt r a miery výberu (M6):** overiť zdrojom a zapísať do Decisions pred M3.

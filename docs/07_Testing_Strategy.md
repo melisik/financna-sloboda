@@ -34,7 +34,7 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 | FR-13 Odporúčania | odporúčanie je označené odlišne od vlastnej hodnoty; vrátenie odporúčanej hodnoty jedným úkonom | komponentový |
 | FR-14 Prehľad | cieľ, dátum ako rozsah od D_L, zostávajúci čas, predbežný dopad, dátum posledného vyhodnotenia | komponentový, E2E |
 | FR-15 História | zoradenie od najnovšej, filter podľa typu a obdobia, súčty za obdobie | komponentový |
-| FR-19 Pripomenutie zálohy | banner po 14 dňoch bez exportu alebo ak sa nikdy neexportovalo; zmizne po exporte | komponentový |
+| FR-19 Pripomenutie zálohy | banner po 7 dňoch bez exportu alebo ak sa nikdy neexportovalo; zmizne po exporte | komponentový |
 | D-030 výdavok pod prahom | uložený s príznakom, zahrnutý do predbežného dopadu a prehľadu spotreby | jednotkový, komponentový |
 | FR-04 zobrazenie pod 1 mesiac | dopad 100 € (≈ 0,12 mesiaca) sa zobrazí v dňoch, nie ako „bez zmeny“ | jednotkový |
 | M2 dátum vyhodnotenia | dátum v budúcnosti sa odmietne; predvolená hodnota je min(koniec mesiaca; dnes) | jednotkový, komponentový |
@@ -113,7 +113,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 |---|---|---|
 | Android Chrome, emulácia viewportu 412 × 915 | automatizované E2E | každý PR |
 | iOS Safari, emulácia viewportu 390 × 844 | automatizované E2E (WebKit) | každý PR |
-| Reálny iPhone 16 (iOS 26.6.2) | manuálny checklist: plocha a neaktivita (IndexedDB po 14 dňoch bez použitia), dotyky, offline, Safari úložisko | pred M2 a pred každým vydaním |
+| Reálny iPhone 16 (iOS 26.6.2) | manuálny checklist: plocha a neaktivita (IndexedDB po 7 dňoch bez použitia), dotyky, offline, Safari úložisko | pred M2 a pred každým vydaním |
 | Reálny Android (zariadenie k dispozícii; model a verzia systému sa doplnia) | manuálny checklist: dotyky, inštalácia na plochu, offline | pred každým vydaním |
 | Desktop Chrome, Firefox, Safari | základné toky | pred vydaním |
 | Viewporty 360, 390, 768, 1280 px | bez horizontálneho scrollu, čitateľnosť | každý PR |
