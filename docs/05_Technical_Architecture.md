@@ -92,7 +92,7 @@ Import: validácia schémy (typy, rozsahy, povinné polia, neznáme polia sa odm
 - `targetAmount(V, p) → T` (FR-01).
 - `monthsToTargetSplit(K_inv, K_cash, m_inv, m_cash, r, T) → n | null` podľa vzorca z FR-02 a D-046 (m_cash = 0 dá uzavretý tvar; r sa uplatní len na K_inv, D-036) (`null` = nedosiahnuteľné, viď D-019).
 - `dateEstimates(K, m, T, {r_optimistic, r_base, r_cautious}) → {from, base, to}` (FR-03).
-- `pendingImpact(snapshot, transactionsAfter, settings)` (K_inv a K_cash sa počítajú zvlášť podľa D-041 a D-058; m sa delí na m_inv a m_cash podľa typu transakcie) → {K_pred, deltaMonths | deltaDays}` (K_pred = max(0, …) podľa FR-04, H2; dopad v dňoch pod 1 mesiac podľa FR-04).
+- `pendingImpact(snapshot, transactionsAfter, settings)` (K_inv a K_cash sa počítajú zvlášť podľa D-041 a D-058; m sa delí na m_inv a m_cash podľa typu transakcie) → {K_pred, deltaMonths | deltaDays} (K_pred = max(0, …) podľa FR-04, H2; dopad v dňoch pod 1 mesiac podľa FR-04).
 - `monthlySaving(transactions, D_L) → m` (sporenie + investície za 12 mesiacov do D_L, delené počtom mesiacov histórie, najviac 12; D-031).
 - `lastReviewDate(snapshots) → D_L` (dátum najnovšieho snapshotu; bez snapshotu `null`, D-024).
 - `targetDate(D_L, n) → date` (D_L + ceil(n − 1e-6) mesiacov, orezané na posledný deň mesiaca; D-024). Počíta sa z K_L, takže sa mení len pri novom vyhodnotení.

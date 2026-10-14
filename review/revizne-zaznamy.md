@@ -5,7 +5,7 @@
 | Kód | Téma | Stav | Kde |
 |---|---|---|---|
 | H1 | Výdavky pod prahom sa ukladajú | rozhodnuté | D-030; 04 FR-07 |
-| H2 | Záporný K_pred | uzavreté | 04 FR-04; GC-15 (−155) |
+| H2 | Záporný K_pred | uzavreté | 04 FR-04; GC-15 (−154) |
 | H3 | Okno m do D_L | rozhodnuté | D-031, D-040 |
 | H4 | Riziko iOS, plocha | rozhodnuté | D-034, D-035 |
 | M1 | Dopad pod 1 mesiac v dňoch | uzavreté | 04 FR-04, FR-06 |
@@ -41,10 +41,10 @@
 | S7 | Predvyplnenie sumy | odložené | backlog N-04 |
 | S8 | Chýbajúce testy | uzavreté | 07 §2 pokrytie |
 | S9 | Terminológia „v dôchodku“ | uzavreté | 00, 02, 04 (D-013 ponechané ako história) |
-| L1 | Verzia 00, výnos | uzavreté | 00 hlavička; 00 investícia |
-| L2 | Tón hlásení | uzavreté | 02, 04, 05, 07 (D-019, D-021 ponechané) |
-| L3 | Nedefinované kódy | uzavreté | tento súbor |
-| L4 | Vyčerpaný kapitál v tabuľke | uzavreté | 04 §5 |
+| L8 | Verzia 00, výnos | uzavreté | 00 hlavička; 00 investícia |
+| L9 | Tón hlásení | uzavreté | 02, 04, 05, 07 (D-019, D-021 ponechané) |
+| L10 | Nedefinované kódy | uzavreté | tento súbor |
+| L11 | Vyčerpaný kapitál v tabuľke | uzavreté | 04 §5 |
 | RR1 | Výnos na hotovosť (read-only) | uzavreté | D-036; 04 pojmy a FR-02 |
 | RR2 | Rezerva dvakrát (ledger vs. kontrola) | rozhodnuté | D-058 (voľba A); GC-19 |
 | RR3 | T = V × 27 pri 3,7 % | uzavreté | 00, 04, D-049 (T = V / p) |
