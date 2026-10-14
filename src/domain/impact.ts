@@ -7,9 +7,9 @@ import { monthsToTarget } from "./goal";
 export const UNREACHABLE_IMPACT_TEXT =
   "Po tejto transakcii sa cieľ pri súčasnom sporení a výnose nedosiahne. Ako sa k nemu dostať: " +
   "(1) zvýšiť mesačné sporenie do investícií alebo hotovosti; " +
-  "(2) znížiť ročné výdavky, čím klesne cieľ T = V / p; " +
+  "(2) znížiť ročné výdavky, čím sa zmenší cieľová suma; " +
   "(3) pri výdavku zvoliť zdroj „z príjmu“, ak to ide, aby kapitál zostal; " +
-  "(4) zvážiť vyššiu mieru výberu p v rozsahu 3–4 %, čo cieľ zníži, ale zvyšuje riziko, že peniaze vydržia kratšie. " +
+  "(4) zvážiť vyššiu mieru výberu v rozsahu 3–4 %: cieľová suma sa zníži, ale kapitál by pri zlom vývoji trhu vydržal kratšie. " +
   "Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.";
 
 /** Priemerný počet dní v mesiaci (FR-04, N1: 1 mesiac = 30,44 dňa). */
