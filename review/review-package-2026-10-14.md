@@ -280,7 +280,7 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 | **Miera výberu (p)** | Predvolene 3,7 %, rozsah 3–4 % (D-011, D-049). |
 | **Cieľová suma (T)** | T = V / p. Pri 3,7 % je T ≈ V × 27,03 (D-049), napr. pre V = 24 000 € je T = 648 649 €; pri 4 % je T = V × 25 (D-008). |
 | **Kapitál (K)** | Hodnota investícií + nasporená suma (kumulatívny stav hotovosti, D-033), bez rezervy (D-011, D-017). |
-| **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 3,5 %, rozsah 2–6 % (D-011, D-050). Jeden predpoklad pre investovaný kapitál K_inv; hotovosť K_cash sa nezhodnocuje, 0 % reálne (D-036, upresňuje D-025 a D-032). Počíta sa so všetkými sumami v dnešných cenách. |
+| **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 3,5 %, rozsah 2–6 % (D-011, D-050). Jeden predpoklad pre investovaný kapitál K_inv; hotovosť K_cash sa nezhodnocuje, 0 % reálne (D-036, upresňuje D-025 a D-032). Počíta sa so všetkými sumami v dnešných cenách. Zobrazuje sa aj nominálne (D-063, π = 2 % [predpoklad]); poplatky sa odpočítavajú od r (D-064); pri horizonte nad 20 rokov poznámka (D-065). |
 | **Mesačné sporenie (m)** | Súčet transakcií typu „sporenie“ a „investícia“ za 12 mesiacov, ktoré končia pri D_L, delený počtom mesiacov histórie (najviac 12) (D-031). Používateľ môže zadať vlastnú hodnotu (UR-02). |
 | **Rezerva** | Východisková hodnota 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). Stav = vklady mínus výbery (D-047). Rezerva nie je v K ani hranicou výdavkov: vklad berie z K_cash, výber ju dopĺňa (D-058; upravuje D-045, D-047, D-052). |
 | **Vyhodnotenie (snapshot)** | Mesačný záznam s dátumom, hodnotou investícií a nasporenou sumou; zadáva sa na konci mesiaca (D-014). |
@@ -513,6 +513,7 @@ Jazyk UI: slovenčina; texty v jednom súbore pripravenom na preklady (fáza 2) 
 src/
   domain/          čisté funkcie, žiadny React ani IndexedDB
     goal.ts        T = V / p, dátum cieľa, scenáre (FR-01 až FR-03)
+    assumptions.ts verzovaná tabuľka výnosových predpokladov, nominálne zobrazenie, poplatky (D-062 až D-065)
     impact.ts      predbežný dopad (FR-04)
     snapshot.ts    prepočet pri mesačnom vyhodnotení (FR-05)
     types.ts       Transakcia, Vyhodnotenie, Nastavenie
@@ -781,7 +782,7 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 8. **Súkromie a bezpečnosť** – sieťové testy, npm audit, CSP (oddiel 7).
 9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
 
-**Stav automatizovaných testov (2026-10-14, R18, S2):** tabuľka nižšie je *cieľové* pokrytie. Dnes je automatizované (70 jednotkových testov Vitest a 6 E2E testov Playwright):
+**Stav automatizovaných testov (2026-10-14, R18, S2):** tabuľka nižšie je *cieľové* pokrytie. Dnes je automatizované (76 jednotkových testov Vitest a 6 E2E testov Playwright):
 - GC: GC-01, GC-02, GC-03, GC-04, GC-05, GC-06, GC-08, GC-11, GC-13, GC-15 až GC-21, GC-23, GC-24 (ID v názvoch testov); GC-16 (`saving.test.ts`);
 - FR: FR-01, FR-02, FR-04, FR-05, FR-09, FR-10, FR-13, FR-14, FR-15, FR-16, FR-17, FR-18, FR-19 (jednotkové alebo E2E podľa tabuľky v `tests/`);
 - úložisko (CRUD, validácia, atomicita importu, duplicitné id): FR-17, FR-18;
@@ -962,6 +963,83 @@ Otvorené:
 
 ---
 
+<!-- ===== docs/08_Navrh_vynosovej_sadzby.md ===== -->
+
+# 08 – Návrh: určenie výnosovej sadzby r (architektúra)
+
+> Stav: **schválený návrh** (2026-10-14): model A, rozhodnutia D-062 až D-065. Implementované (2026-10-14): `src/domain/assumptions.ts`, poplatky v nastaveniach, nominálne zobrazenie, poznámka pri dlhom horizonte. Nič z tohto dokumentu nie je v kóde. Rozhodnutia sa zapíšu do `decisions/Decisions.md` až po schválení. [predpoklad] = návrh Claude, treba potvrdiť.
+
+## 1. Čo treba vyriešiť
+Výpočet (FR-02, FR-03, FR-04) pracuje s **jedným číslom r** pre investovaný kapitál K_inv (D-032). Otázka je, odkiaľ r pochádza, kto ho určí, ako sa zdôvodní a ako sa zobrazí.
+
+Požiadavky z existujúcich rozhodnutí:
+- r je **reálny, pred daňou a poplatkami** (D-050, UR-09).
+- Predvolená hodnota **3,5 %** s scenármi ±2 p. b. (D-050); hotovosť je 0 % (D-036).
+- Používateľ ju **vidí a môže zmeniť** a je označené, či je predvolená alebo vlastná (UR-02).
+- Bez sieťových volaní a bez účtov v MVP (FR-16, D-009).
+- Nie je to poradenstvo a neodporúčame produkty (D-007, D-061, 06 §6).
+
+## 2. Možnosti
+
+| Možnosť | Popis | Výhody | Nevýhody |
+|---|---|---|---|
+| **A. Fixná hodnota** (súčasný stav) | Jedna predvolená hodnota z dokumentu, používateľ ju prepíše. | Jednoduché, transparentné, bez nových údajov. | Predvolená hodnota nemá viditeľné zdôvodnenie v aplikácii; používateľ nevie, čo predpokladá. |
+| **B. Odvodenie z mixu** | Používateľ zadá podiely (akcie / dlhopisy / hotovosť), aplikácia vypočíta r = Σ wᵢ·Rᵢ − poplatky. Rᵢ sú verzované predpoklady pre triedy aktív. | Predpoklad je vysvetlený a zdrojovaný; r zostáva jedno číslo pre výpočet. | Viac vstupov; Rᵢ sú sami o sebe odhady a nebezpečne blízko odporúčania aktív (D-007, 06 §6); mení D-032. |
+| **C. Trhové dáta** | Aplikácia načíta aktuálne výnosy z API. | Aktuálne čísla. | Porušuje FR-16 a D-009 (sieť, dáta mimo zariadenia); nevhodné pre MVP. **Zamietam.** |
+| **D. Scenáre z tabuľky** | Tri hodnoty (opatrná, základná, optimistická) z verzovanej tabuľky, používateľ vyberie. | Rozsah je priamo zdrojovaný. | Ostáva voľba nezdôvodnená; viac UI než A. |
+
+**Odporúčanie (návrh):** **A + vysvetlenie predpokladu**, s možnosťou prechodu na B v neskoršej verzii. Výpočet ostáva jednoduchý (jedno r), predvolená hodnota dostane zdroj, dátum overenia a verziu. Možnosť B nechať na rozhodnutie až po právnom posúdení (06 §6, D-028), lebo odvodenie zo zloženia portfólia sa blíži k odporúčaniu produktu.
+
+## 3. Navrhovaná architektúra (pre A + vysvetlenie)
+
+```
+src/domain/assumptions.ts     verzovaná tabuľka predpokladov (hodnota, zdroj, dátum overenia, verzia)
+src/domain/goal.ts            r sa použije len cez Settings.realReturn; žiadne nové vzorce
+src/storage/types.ts          Settings.realReturn (už existuje) + voliteľné returnSource
+src/ui/                       zobrazenie: hodnota, zdroj, dátum overenia, „vlastná hodnota“
+```
+
+**Tok dát:**
+1. `assumptions.ts` drží predvolenú hodnotu 3,5 % s odkazom na zdroj (`review/o9-podklady.md`), dátumom overenia a verziou tabuľky.
+2. Pri prvom nastavení sa hodnota zobrazí ako výzva (D-057), s textom zdroja a rozsahom 2–6 %.
+3. Používateľ môže hodnotu prijať alebo zmeniť. Uloží sa `returnSource`: `default` (verzia tabuľky) alebo `manual` (dátum zmeny).
+4. Výpočet dostane len číslo `realReturn`; scenáre sú ±2 p. b. (D-050) bez zmeny vzorcov.
+5. Zobrazenie vždy ukáže: hodnota, že je predvolená alebo vlastná, dátum overenia zdroja a poznámku „pred daňou a poplatkami“.
+
+**Verzovanie:** pri zmene tabuľky sa `assumptionsVersion` uloží do nastavení. Zmena predvolenej hodnoty nikdy nezmení uložené nastavenie bez súhlasu používateľa; aplikácia len ukáže, že nová verzia existuje.
+
+**Záloha a migrácia:** nové polia sú voliteľné, `schemaVersion` zostáva 1 (rovnaké pravidlo ako pri ostatných voliteľných nastaveniach). Import starej zálohy bez polí použije predvolenú verziu.
+
+## 4. Testy (ak sa schváli)
+- Predvolená hodnota z `assumptions.ts` je 3,5 %, zdroj a dátum overenia sú vyplnené (test štruktúry tabuľky).
+- Scenáre: r − 2 p. b., r, r + 2 p. b.; r sa neorezáva pod 0 pri scenári opatrný (test hraníc).
+- Import zálohy bez `returnSource` zachová predvolenú hodnotu a neprepíše vlastnú.
+- Zobrazenie rozlíši predvolenú a vlastnú hodnotu (komponentový test, ak bude RTL).
+
+## 5. Otvorené rozhodnutia pre zakladateľa
+1. **Model:** A (fixná hodnota so zdrojom), alebo B (odvodenie z mixu)? Odporúčam A teraz, B až po právnom posúdení.
+2. **Zdroj predvolenej hodnoty:** kým nie je overený (RR29), zostáva 3,5 % ako predpoklad s poznámkou [predpoklad]. Potvrdíš, že takto ju môžeme ukázať?
+3. **Poplatky:** zadávať ako samostatný vstup p. a. (áno/nie)? Ak áno, r_čisté = r − poplatky; ak nie, dokument hovorí „pred poplatkami“ (súčasný stav).
+4. **Reálne vs. nominálne:** zostáva reálne (D-050), alebo prepočítať na nominálne s inflačným predpokladom?
+5. **Horizont:** má aplikácia upozorniť, že dlhý horizont (40+ rokov) znižuje bezpečnosť predpokladu? Navrhujem stručnú poznámku v UI.
+
+## 6. Konflikty s existujúcimi dokumentmi
+- **D-032** („výnos sa neviaže na jednotlivé investície“): model B by ho zmenil. Model A ho nemení.
+- **D-011** (4 % reálne) a **D-025** (4 %): nahradené D-050 (3,5 %). Treba označiť ako upravené.
+- **UR-09 a FR-02:** text „predpoklad“ treba doplniť o zdroj a dátum overenia.
+- **06 §4 riziko:** „Hotovosť 0 % reálne“ je v poriadku; výnosová sadzba má samostatné riziko (zdroj a overenie), ktoré treba doplniť.
+
+## 7. Schválené rozhodnutia (2026-10-14)
+1. **Model A** (fixná predvolená hodnota so zdrojom), nie odvodenie z mixu (D-062).
+2. **Predvolená r = 3,5 % reálne** s poznámkou, že ide o odhad a zdroj treba overiť (D-050, RR29).
+3. **Poplatky:** samostatný vstup v % ročne, predvolene 0 %; hodnoty z oficiálnej dokumentácie sa doplnia postupne, každá s odkazom a dátumom (D-064).
+4. **Reálne aj nominálne:** výpočet je reálny, zobrazenie aj nominálne s inflačným predpokladom 2 % [predpoklad] (D-063).
+5. **Poznámka pri dlhom horizonte** nad 20 rokov (D-065).
+
+**Implementácia (hotová):** `src/domain/assumptions.ts` (predvolené hodnoty, verzia, zdroj, dátum), pole `feesRate` v nastaveniach s validáciou a testom, nominálne zobrazenie, poznámka pri dlhom horizonte, aktualizácia FR-02 a zálohy (voliteľné pole, `schemaVersion` 1).
+
+---
+
 <!-- ===== decisions/Decisions.md ===== -->
 
 # Rozhodnutia
@@ -1029,6 +1107,10 @@ Otvorené:
 | D-059 | 2026-10-14 | Výdavok z investícií nad K_inv sa uloží až po potvrdení používateľa. Pred potvrdením sa zobrazí upozornenie „Investície nestačia; po uložení bude K_inv 0 €“ a ponuka zdroja „z príjmu“. Po potvrdení K_inv = 0 € (nie záporný); K_cash sa nemení. Nahrádza zamietnutie v UI, ktoré bolo v rozpore s D-021 a s ledgerom. | Rozhodnutie zakladateľa (odpoveď na otvorenú otázku 1: orez s potvrdením). |
 | D-060 | 2026-10-14 | Stav rezervy nie je v kapitáli ani v cieli (D-017, D-058). Vklad do rezervy preto znižuje K (cieľový kapitál) a výber z rezervy ho zvyšuje. Náhľad transakcie to výslovne ukáže („Vklad do rezervy zníži kapitál pre cieľ o X €; peniaze zostávajú v rezerve“). Konzervatívne nastavenie. | Rozhodnutie zakladateľa (odpoveď na otvorenú otázku 2: áno). |
 | D-061 | 2026-10-14 | Hodnoty 3,7 %, 3,5 %, rezerva a prah sa v aplikácii a dokumentoch volajú „východiskové predpoklady“ alebo „východisková hodnota“, nie „odporúčanie“. Zostáva veta, že nejde o finančné poradenstvo. Historické znenie rozhodnutí sa neupravuje. | Rozhodnutie zakladateľa (odpoveď na otvorenú otázku 3: áno, MiFID). |
+| D-062 | 2026-10-14 | Výnosová sadzba r sa určuje ako fixná predvolená hodnota s vysvetlením zdroja (model A, `docs/08`), nie odvodením z mixu aktív. Výpočet ostáva s jedným číslom r (D-032). Odvodenie z mixu (model B) sa odkladá až po právnom posúdení (D-028, 06 §6). | Rozhodnutie zakladateľa (návrh 08 §2, odpoveď: model A). |
+| D-063 | 2026-10-14 | Výpočet používa reálny výnos r (cieľ je v dnešných eurách). Aplikácia zobrazí aj nominálny ekvivalent (1 + r)(1 + π) − 1 s predpokladom inflácie π = 2 % [predpoklad, treba overiť zdroj]. Nominálne číslo je hlavné zobrazenie pre pochopenie; reálne sa uplatňuje najmä pri dlhom horizonte. | Rozhodnutie zakladateľa (odpoveď 4: obe hodnoty). |
+| D-064 | 2026-10-14 | Poplatky sú samostatný vstup v % ročne, predvolene 0 %, a odpočítavajú sa od r (r_čisté = max(0; r − poplatky)). Hodnoty sa postupne doplnia z oficiálnej dokumentácie poskytovateľov, každá s odkazom a dátumom overenia. Dovtedy aplikácia hovorí „pred poplatkami“. | Rozhodnutie zakladateľa (odpoveď 3). |
+| D-065 | 2026-10-14 | Pri dlhom horizonte (viac ako 20 rokov, n > 240 mesiacov) sa v prehľade zobrazí poznámka, že predpoklad výnosu je menej istý a výsledok je v dnešných eurách. Text bez poradenstva. | Rozhodnutie zakladateľa (odpoveď 5: áno). |
 
 ---
 
