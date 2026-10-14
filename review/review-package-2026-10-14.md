@@ -110,7 +110,7 @@ Používateľ už investíciu má; produkt s ňou počíta a uvažuje s globáln
 1. Overiť číselné hodnoty odporúčaní (miera výberu, rozsah výnosu, rezerva) v zdrojoch.
 2. Monetizácia.
 3. Klasifikácia výdavkov na pravidelné a cielené (O-7, M7).
-4. Rozsah prahu výdavkov podľa cieľa (O-8, M8).
+4. Prah výdavkov: pevná predvolená hodnota 100 €, zmena používateľom (vyriešené D-048).
 5. Zdroj predvolených hodnôt r a miery výberu (O-9, M6).
 
 ## Riziká a upozornenia (Claude) [predpoklad]
@@ -368,7 +368,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 ## 3. Správanie a pravidlá
 
 ### FR-07 – Prah výdavkov (D-013)
-- Prah sa uplatní **len na výdavky**; predvolene 100 € (rozsah 100–500 € je odporúčanie; pravidlo podľa cieľa je otvorené, O-8).
+- Prah sa uplatní **len na výdavky**; predvolene 100 €; používateľ ho zmení v rozsahu 100–500 € (odporúčaný rozsah, bez automatického pravidla; D-048).
 - Výdavok pod prahom sa **uloží** s príznakom „pod prahom“ a zahrnie sa do predbežného dopadu (D-030; ruší D-017 O-2; prehľad spotreby je odložený, D-038).
 - Sporenie a investície sa ukladajú vždy bez ohľadu na sumu.
 
@@ -463,7 +463,7 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 
 **Otvorené:**
 - **O-7 Klasifikácia spotreby (M7), odložené do fázy 1b (D-038):** pravidelná vs. cielená spotreba; pravidlo a kategórie treba zadať pred implementáciou prehľadu.
-- **O-8 Rozsah prahu podľa cieľa (M8):** 100–500 € je odporúčanie; pravidlo výberu prahu nie je určené.
+- **O-8 Rozsah prahu (M8): vyriešené D-048.**
 - **O-11 Výpočet n pri m_cash > 0: vyriešené D-046.**
 - **O-10 Zdroj úhrady výdavku z kapitálu: vyriešené D-045.**
 - **O-9 Zdroj predvolených hodnôt r a miery výberu (M6):** overiť zdrojom a zapísať do Decisions pred M3.
@@ -997,5 +997,6 @@ Otvorené:
 | D-045 | 2026-10-14 | Zdroj úhrady: výdavok z hotovosti (K_cash) sa smie znížiť najviac na rezervu (3 mesiace výdavkov, D-011); presah sa upozorní a ponúkne sa zdroj „z investícií“ (K_inv). Presun hotovosti do investícií (doinvestovanie) nie je výdavok: K sa nemení, K_cash klesne a K_inv vzrastie o rovnakú sumu, len ak hotovosť zostane nad rezervou. Uzatvára O-10. | Rozhodnutie zakladateľa (zadanie: reinvestovanie z K_inv, doinvestovanie z K_cash nad kritickú hranicu; hranica = rezerva). |
 | D-046 | 2026-10-14 | Keď m_cash > 0, n sa počíta iteráciou po celých mesiacoch: najmenšie k, pre ktoré K_inv(k) + K_cash + m_cash·k ≥ T, kde K_inv(k) = K_inv·(1+i)^k + m_inv·((1+i)^k − 1)/i. Zlomok sa získa lineárnou interpoláciou medzi k−1 a k. Dopad pod mesiac sa zobrazuje v dňoch (interpoláciou), aj pri m_cash = 0. Uzatvára O-11. | Rozhodnutie zakladateľa (O-11: v dňoch, interpoláciou). Postup overený GC-20 a GC-21. |
 | D-047 | 2026-10-14 | Stav rezervy = vklady mínus výbery. Vklad je transakcia typu „rezerva“, výber je transakcia typu „výber z rezervy“. Rezerva nie je v K a nezhodnocuje sa. Hranica pre výdavok z hotovosti (D-045) je tento stav. Upresňuje D-037. | Rozhodnutie zakladateľa (N5). |
+| D-048 | 2026-10-14 | Prah výdavkov (zvýraznenie v prehľade) je pevná predvolená hodnota 100 €, ktorú používateľ zmení v rozsahu 100–500 €. Bez automatického pravidla podľa cieľa alebo V. Prah nevplýva na výpočet cieľa (D-030). Uzatvára O-8. | Rozhodnutie zakladateľa (O-8). |
 
 ---

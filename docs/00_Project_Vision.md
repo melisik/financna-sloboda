@@ -78,7 +78,7 @@ Používateľ už investíciu má; produkt s ňou počíta a uvažuje s globáln
 1. Overiť číselné hodnoty odporúčaní (miera výberu, rozsah výnosu, rezerva) v zdrojoch.
 2. Monetizácia.
 3. Klasifikácia výdavkov na pravidelné a cielené (O-7, M7).
-4. Rozsah prahu výdavkov podľa cieľa (O-8, M8).
+4. Prah výdavkov: pevná predvolená hodnota 100 €, zmena používateľom (vyriešené D-048).
 5. Zdroj predvolených hodnôt r a miery výberu (O-9, M6).
 
 ## Riziká a upozornenia (Claude) [predpoklad]
