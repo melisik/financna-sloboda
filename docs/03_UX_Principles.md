@@ -7,7 +7,7 @@
 ### 1. Nízka kognitívna záťaž
 - Každá obrazovka má jednu hlavnú úlohu. [predpoklad]
 - Zadanie transakcie: čo najmenej polí. Povinné: typ, suma. Voliteľné: poznámka. Pri výdavku zdroj úhrady (predvolene „z príjmu“, D-014). [predpoklad]
-- Predvolené hodnoty a odporúčania všade, kde sa dajú (D-011), vždy s možnosťou zmeny.
+- Predvolené hodnoty a východiskové predpoklady všade, kde sa dajú (D-011), vždy s možnosťou zmeny.
 - Žiadny odborný žargón bez vysvetlenia (napr. „miera výberu“ má krátke vysvetlenie).
 
 ### 2. Informácia, nie tlak
@@ -21,7 +21,7 @@
 - Dátum cieľa sa vždy ukazuje ako **rozsah** (opatrný – základný – optimistický), nikdy ako jediný presný dátum (D-011).
 - Vždy je vidieť, či ide o predbežný dopad alebo o stav z mesačného vyhodnotenia, a kedy bolo posledné (D-014).
 - Stručné upozornenie na obmedzenia: odhad, nie sľub; bez daní a poplatkov (D-008, D-011).
-- Odporúčanie je vždy označené ako odporúčanie a odlíšené od hodnoty, ktorú nastavil používateľ (UR-02).
+- Východisková hodnota je vždy označené ako východisková hodnota a odlíšené od hodnoty, ktorú nastavil používateľ (UR-02).
 
 ### 4. Predvídateľnosť
 - Rovnaké akcie fungujú vždy rovnako; stabilná navigácia, rovnaké umiestnenie hlavných akcií. [predpoklad]
@@ -42,7 +42,7 @@
 - Cielená spotreba je legitímna súčasť plánu, nie „chyba“ (D-004, D-014). [predpoklad]
 
 ## Kľúčové toky (náčrt, bez návrhu obrazoviek)
-1. **Prvé nastavenie:** cieľ (UR-01, UR-10) → investícia (UR-03) → prah (UR-05) → prvé vyhodnotenie. Odporúčania ako výzva pri každom kroku; polia sú prázdne (D-057). Krok na iPhone: pridanie appky na plochu je povinné (D-042). Kým nie je prvé vyhodnotenie, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6).
+1. **Prvé nastavenie:** cieľ (UR-01, UR-10) → investícia (UR-03) → prah (UR-05) → prvé vyhodnotenie. Východiskové predpoklady ako výzva pri každom kroku; polia sú prázdne (D-057). Krok na iPhone: pridanie appky na plochu je povinné (D-042). Kým nie je prvé vyhodnotenie, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6).
 2. **Týždenné zadanie:** otvoriť → pridať transakciu → vidieť predbežný dopad → hotovo.
 3. **Mesačné vyhodnotenie (koniec mesiaca):** zadať hodnotu investícií a sporenie → vidieť prepočítaný cieľ a dátum ako rozsah.
 4. **Prehľad:** história transakcií (UR-07) a aktuálny stav cieľa.

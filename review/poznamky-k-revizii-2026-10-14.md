@@ -40,10 +40,10 @@ Testy po zmene: `tsc` bez chýb, 63 jednotkových testov prechádza. E2E po zmen
 
 Kód a testy sú na `main` pri commite aktualizovanom touto zmenou (70 jednotkových testov, 6 E2E). Opravy dokumentov sú bez nových rozhodnutí, okrem rozhodnutia A (D-058), ktoré už bolo zapísané.
 
-**Otvorené otázky pre zakladateľa:**
-1. **Prečerpanie K_inv (RR10):** zamietnuť výdavok z investícií, alebo orez K_inv na 0 s potvrdením? Dnes UI výdavok z investícií nad K_inv zamietne, ale `ledger.ts` a D-021 počítajú s orezom na 0 a textom „kapitál je 0 €“.
-2. **Vklad do rezervy znižuje cieľový kapitál (RR8, V1):** je to zámer? Podľa D-058 áno, lebo vklad berie z K_cash. Potvrď, alebo zadaj inú možnosť.
-3. **Odporúčania a MiFID (RR22, S9):** premenovať „odporúčania“ v UI na „východiskové predpoklady“? Navrhujem áno.
+**Otvorené otázky pre zakladateľa (všetky tri zodpovedané, D-059 až D-061):**
+1. **Prečerpanie K_inv (RR10, D-059):** zodpovedané, orez na 0 s potvrdením. zamietnuť výdavok z investícií, alebo orez K_inv na 0 s potvrdením? Dnes UI výdavok z investícií nad K_inv zamietne, ale `ledger.ts` a D-021 počítajú s orezom na 0 a textom „kapitál je 0 €“.
+2. **Vklad do rezervy znižuje cieľový kapitál (RR8, V1, D-060):** zodpovedané, áno. je to zámer? Podľa D-058 áno, lebo vklad berie z K_cash. Potvrď, alebo zadaj inú možnosť.
+3. **Odporúčania a MiFID (RR22, S9, D-061):** zodpovedané, premenované na východiskové predpoklady. premenovať „odporúčania“ v UI na „východiskové predpoklady“? Navrhujem áno.
 
 **Už rozhodnuté (len zosúladené dokumenty):** mazanie transakcie bez potvrdenia s undo 8 s (D-054), povinná plocha na iPhone (D-042, D-053), prázdne polia pri prvom spustení (D-057), prah 100 € s rozsahom 100–500 € (D-048).
 

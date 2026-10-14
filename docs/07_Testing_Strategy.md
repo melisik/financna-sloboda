@@ -39,7 +39,7 @@ Neautomatizované (zatiaľ len cieľ): GC-07, GC-09, GC-10, GC-12, GC-14, GC-22 
 |---|---|---|
 | FR-06 Formát | zobrazenie sumy v celých eurách, mesiace celé čísla, dátum slovensky („marec 2038“) | jednotkový |
 | FR-11 Pripomienka | pripomienka na konci mesiaca bez vyhodnotenia; vypnutie v nastaveniach; systémová notifikácia len po povolení | komponentový |
-| FR-13 Odporúčania | odporúčanie je označené odlišne od vlastnej hodnoty; vrátenie odporúčanej hodnoty jedným úkonom | komponentový |
+| FR-13 Východiskové predpoklady | východisková hodnota je označené odlišne od vlastnej hodnoty; vrátenie východiskovej hodnoty jedným úkonom | komponentový |
 | FR-14 Prehľad | cieľ, dátum ako rozsah od D_L, zostávajúci čas, predbežný dopad, dátum posledného vyhodnotenia | komponentový, E2E |
 | FR-15 História | zoradenie od najnovšej, filter podľa typu a obdobia, súčty za obdobie | komponentový |
 | FR-19 Pripomenutie zálohy | banner po 7 dňoch bez exportu alebo ak sa nikdy neexportovalo; zmizne po exporte | komponentový |
@@ -126,7 +126,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 | Zálohy vo verzii 1 zostanú čitateľné aj po budúcich zmenách | fixture `tests/fixtures/export-v1.json` sa importuje v každom vydaní | regresia |
 | Dve karty naraz | zápis v jednej karte sa prejaví v druhej (BroadcastChannel); žiadne prepísanie | manuálny, neskôr E2E |
 
-**Riziko iOS Safari [predpoklad, overiť aktuálne správanie]:** Safari môže po dlhšom nepoužívaní webu vymazať dáta uložené skriptom vrátane IndexedDB, ak aplikácia nie je pridaná na plochu. Test: manuálne na reálnom iPhone (pridanie na plochu, neskoré otvorenie). Mitigácia: odporúčanie pridať na plochu v prvom nastavení a pripomienka zálohy (FR-19).
+**Riziko iOS Safari [predpoklad, overiť aktuálne správanie]:** Safari môže po dlhšom nepoužívaní webu vymazať dáta uložené skriptom vrátane IndexedDB, ak aplikácia nie je pridaná na plochu. Test: manuálne na reálnom iPhone (pridanie na plochu, neskoré otvorenie). Mitigácia: východisková hodnota pridať na plochu v prvom nastavení a pripomienka zálohy (FR-19).
 
 **Pravidlo pre fixtures:** v repozitári sú len anonymizované alebo syntetické dáta. Žiadne reálne finančné údaje.
 

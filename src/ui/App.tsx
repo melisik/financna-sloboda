@@ -222,7 +222,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   const [err, setErr] = useState<string | null>(null);
   const pct = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
   const eurs = (c: number) => `${(c / 100).toLocaleString("sk-SK")} €`;
-  // Odporúčania sa počítajú z práve zadaných výdavkov (R21/R22: jeden zdroj, bez natvrdo zadanej sumy).
+  // Východiskové hodnoty sa počítajú z práve zadaných výdavkov (R21/R22: jeden zdroj, bez natvrdo zadanej sumy).
   const expCents = typeof v.expenses === "number" ? cents(v.expenses) : 0;
   const rec = recommendedSettings(expCents);
 
@@ -256,18 +256,18 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
       <h2 style={{ fontSize: "1.1rem" }}>Nastavenia</h2>
       {!settings && (
         <p style={{ background: "#eef5f1", padding: 8, borderRadius: 6 }}>
-          Prvé nastavenie: polia sú prázdne. Pod každým je odporúčanie; ročné výdavky zadaj sám (UR-10, D-057).
+          Prvé nastavenie: polia sú prázdne. Pod každým je východisková hodnota; ročné výdavky zadaj sám (UR-10, D-057).
         </p>
       )}
       <Field label="Ročné výdavky pri nezávislosti (€)" value={v.expenses} onChange={(x) => setV({ ...v, expenses: x })} />
       <Field label="Miera výberu (%)" value={v.withdrawalPct} step={0.1} onChange={(x) => setV({ ...v, withdrawalPct: x })}
-        hint={`odporúčané ${pct(rec.withdrawalRate)}`} onReset={() => setV({ ...v, withdrawalPct: rec.withdrawalRate * 100 })} />
+        hint={`východisková hodnota ${pct(rec.withdrawalRate)}`} onReset={() => setV({ ...v, withdrawalPct: rec.withdrawalRate * 100 })} />
       <Field label="Reálny výnos r (%)" value={v.returnPct} step={0.1} onChange={(x) => setV({ ...v, returnPct: x })}
-        hint={`odporúčané ${pct(rec.realReturn)}`} onReset={() => setV({ ...v, returnPct: rec.realReturn * 100 })} />
+        hint={`východisková hodnota ${pct(rec.realReturn)}`} onReset={() => setV({ ...v, returnPct: rec.realReturn * 100 })} />
       <Field label="Rezerva, cieľová hodnota (€)" value={v.reserve} onChange={(x) => setV({ ...v, reserve: x })}
-        hint={`odporúčané ${eurs(rec.reserveCents)} (3 mesiace výdavkov)`} onReset={() => setV({ ...v, reserve: rec.reserveCents / 100 })} />
+        hint={`východisková hodnota ${eurs(rec.reserveCents)} (3 mesiace výdavkov)`} onReset={() => setV({ ...v, reserve: rec.reserveCents / 100 })} />
       <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })}
-        hint={`odporúčané ${eurs(rec.thresholdCents)}`} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
+        hint={`východisková hodnota ${eurs(rec.thresholdCents)}`} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
       <Field label="Mesačné sporenie do investícií (€), prázdne = odvodené" value={v.savingInv} onChange={(x) => setV({ ...v, savingInv: x })}
         hint={`prázdne = odvodené z transakcií: ${eurs(derived.inv)} mesačne (D-031)`} onReset={() => setV({ ...v, savingInv: "" })} />
       <Field label="Mesačné sporenie do hotovosti (€), prázdne = odvodené" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}
@@ -362,6 +362,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   const [fType, setFType] = useState<"all" | TransactionType>("all");
   const [fFrom, setFFrom] = useState("");
   const [fTo, setFTo] = useState("");
+  const [confirmExhausted, setConfirmExhausted] = useState(false);
+  useEffect(() => setConfirmExhausted(false), [type, source, amount]);
 
   useEffect(() => {
     if (!undo) return;
@@ -378,7 +380,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   }, [data.transactions, editingId, ctx.latest]);
 
   /** Výsledok náhľadu: nový kapitál, alebo dôvod zamietnutia (D-045, D-052, FR-08). */
-  const check = (): { after: Capital | null; message?: string; warning?: boolean } => {
+  const check = (): { after: Capital | null; message?: string; needsConfirm?: boolean } => {
     const a = asNum(amount);
     const cap = base.capital;
     if (Number.isNaN(a) || !(a > 0)) return { after: cap };
@@ -390,7 +392,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       }
       if (source === "z_investicii") {
         const r = payFromInvestments(cap, ca);
-        if (r.ok && r.warning === "exhausted") return { after: null, message: "Investície by nestačili. Zvoľ zdroj „z príjmu“ alebo zníž sumu (FR-08)." };
+        if (r.ok && r.warning === "exhausted") return { after: r.capital, needsConfirm: true, message: "Investície nestačia. Po uložení bude K_inv 0 € (D-059). Ak výdavok platíš z príjmu, zvoľ zdroj „z príjmu“." };
         return { after: r.ok ? r.capital : cap };
       }
       return { after: cap }; // z príjmu
@@ -405,7 +407,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     if (type === "sporenie") return { after: { inv: cap.inv, cash: cap.cash + ca } };
     if (type === "rezerva") {
       if (cap.cash - ca < 0) return { after: null, message: "Hotovosť nestačí na vklad do rezervy." };
-      return { after: { inv: cap.inv, cash: cap.cash - ca } };
+      return { after: { inv: cap.inv, cash: cap.cash - ca }, message: `Vklad do rezervy zníži kapitál pre cieľ o ${eur(ca)}; peniaze zostávajú v rezerve (D-060).` };
     }
     if (ca > base.reserve) return { after: null, message: "Výber je väčší než stav rezervy." };
     return { after: { inv: cap.inv, cash: cap.cash + ca } }; // výber z rezervy
@@ -416,10 +418,11 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     const c = check();
     if (c.after === null) return { blocked: true as const, message: c.message };
     const d = impactMonthsSplit(base.capital, c.after, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target);
-    return { blocked: false as const, impact: d };
+    return { blocked: false as const, impact: d, note: c.message, needsConfirm: !!c.needsConfirm };
   }, [type, source, amount, base, ctx]);
 
   const resetForm = () => {
+    setConfirmExhausted(false);
     setEditingId(null);
     setNote("");
     setAmount("");
@@ -445,6 +448,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     if (dateErr.length) return setErr(dateErr[0]);
     const c = check();
     if (c.after === null) return setErr(c.message ?? "Transakciu nie je možné uložiť.");
+    if (c.needsConfirm && !confirmExhausted) return setErr("Potvrď, že investície sa vyčerpajú (D-059).");
     const existing = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
     const t: Transaction = {
       id: existing?.id ?? uid(),
@@ -519,6 +523,14 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
             ? preview.message
             : <>Predbežný dopad: <strong>{preview.impact === null ? UNREACHABLE_IMPACT_TEXT : formatImpact(preview.impact)}</strong></>}
         </p>
+      )}
+      {preview && !preview.blocked && preview.note && (
+        <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>{preview.note}</p>
+      )}
+      {preview && !preview.blocked && preview.needsConfirm && (
+        <label style={{ display: "block", margin: "8px 0" }}>
+          <input type="checkbox" checked={confirmExhausted} onChange={(e) => setConfirmExhausted(e.target.checked)} /> Rozumiem, investície sa vyčerpajú a K_inv bude 0 € (D-059).
+        </label>
       )}
       {inEdit && date <= (ctx.latest?.date ?? "") && (
         <p style={{ color: "#555" }}>Zmena neovplyvní oficiálny cieľ, kým neurobíte nové vyhodnotenie.</p>
@@ -677,7 +689,7 @@ function Field(props: { label: string; value: NumIn | string; onChange: (v: any)
           {props.hint}
           {props.onReset && (
             <button type="button" onClick={props.onReset} style={{ ...btn, padding: "2px 8px", fontSize: "0.85rem", marginTop: 0 }}>
-              Vrátiť odporúčanie
+              Vrátiť východiskovú hodnotu
             </button>
           )}
         </span>

@@ -1,9 +1,9 @@
 import type { Settings } from "../storage/types";
 
 /**
- * Odporúčané hodnoty parametrov (FR-13, UR-02, D-011, D-043, D-049, D-050).
- * Odporúčanie je len východisko; používateľ ho môže kedykoľvek zmeniť.
- * Ročné výdavky sa neodporúčajú: zadáva ich používateľ (D-013).
+ * Východiskové hodnoty parametrov (D-061) (FR-13, UR-02, D-011, D-043, D-049, D-050).
+ * Východisková hodnota je len štartovací predpoklad; používateľ ho môže kedykoľvek zmeniť.
+ * Ročné výdavky sa nedajú odvodiť: zadáva ich používateľ (D-013).
  */
 export function recommendedReserveCents(expensesCents: number, months = 3): number {
   return Math.round((expensesCents * months) / 12);

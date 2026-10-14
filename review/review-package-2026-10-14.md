@@ -59,10 +59,10 @@ Používateľ vidí, ako každé jeho finančné rozhodnutie posúva dátum a/al
 
 Dôsledok [predpoklad]: v prvej fáze netreba viacužívateľskú architektúru ani súlad s EÚ reguláciou, ale dátový model a ukladanie dát sa majú navrhnúť tak, aby sa neskôr dali rozšíriť (viac používateľov, meny, krajiny, GDPR).
 
-## Nastavenie cieľa a odporúčania [user]
+## Nastavenie cieľa a východiskové predpoklady [user]
 - Každý používateľ si cieľ nastaví sám.
-- Pri nastavovaní dostane odporúčania (napr. predvolené hodnoty a rozumné rozsahy parametrov cieľa).
-- Rozsah odporúčaní [predpoklad, treba potvrdiť]: odporúčania sa týkajú **parametrov cieľa**, nie výberu konkrétnych produktov.
+- Pri nastavovaní dostane východiskové predpoklady (napr. predvolené hodnoty a rozumné rozsahy parametrov cieľa).
+- Rozsah východiskových [predpoklad, treba potvrdiť]: východiskové predpoklady sa týkajú **parametrov cieľa**, nie výberu konkrétnych produktov.
 
 ## Model výpočtu cieľa [user, MVP]
 - MVP: cieľový kapitál = ročné výdavky / miera výberu; predvolená miera výberu je 3,7 % (D-049), čo dáva T = V / p ≈ V × 27,03 (pre V = 24 000 € je T = 648 649 €). Pravidlo 4 % (T = V × 25) zostáva ako historická referencia (D-008).
@@ -79,19 +79,19 @@ Dôsledok [predpoklad]: v prvej fáze netreba viacužívateľskú architektúru 
 ## Existujúca investícia v MVP [user]
 Používateľ zadáva ručne **aktuálnu hodnotu** investícií. Výnos sa nezadáva za jednotlivú investíciu: je to jeden globálny predpoklad r pre celý kapitál, ktorý nastavuje používateľ (D-032). Bez napojenia na trhové dáta; hodnotu aktualizuje používateľ.
 
-## Odporúčania pri nastavení cieľa [user potvrdil parametre a predvolené hodnoty; MVP ukazuje aj dátum cieľa]
-Odporúčania sa týkajú len parametrov cieľa, nie produktov. Parametre a predvolené hodnoty potvrdil zakladateľ, no samotné čísla sú **východiskové predpoklady, ktoré treba pred implementáciou overiť** v zdrojoch.
+## Východiskové predpoklady pri nastavení cieľa [user potvrdil parametre a predvolené hodnoty; MVP ukazuje aj dátum cieľa]
+Východiskové predpoklady sa týkajú len parametrov cieľa, nie produktov. Parametre a predvolené hodnoty potvrdil zakladateľ, no samotné čísla sú **východiskové predpoklady, ktoré treba pred implementáciou overiť** v zdrojoch.
 
-| Parameter | Zadáva | Predvolená hodnota | Odporúčaný rozsah | Poznámka pre používateľa |
+| Parameter | Zadáva | Predvolená hodnota | Východiskový rozsah | Poznámka pre používateľa |
 |---|---|---|---|---|
 | Ročné výdavky pri nezávislosti | používateľ | zadáva ručne ako odhad (D-013) | – | Základ cieľa. Aplikácia ukáže, koľko z výdavkov je pravidelných a koľko cielená spotreba (odložené do fázy 1b, D-038). |
 | Miera výberu | používateľ | 3,7 % (D-049, D-051) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. Predvolená 3,7 % (D-051); T je pred daňou a poplatkami (D-043, D-049). |
 | Výnos r (reálny, po inflácii, globálny) | používateľ | 3,5 % (D-050) | 2 – 6 % | Jeden predpoklad pre celý kapitál (D-032). Rozsah ako opatrný / základný / optimistický; vždy s upozornením, že ide o odhad. Východiskové hodnoty sa overia zdrojom pred M3 (M6). |
 | Mesačné sporenie (m) | používateľ (odvodené, možno prepísať) | priemer za 12 mesiacov do posledného vyhodnotenia, delený počtom mesiacov histórie (D-031) | – | Spolu s výnosom určuje odhadovaný dátum cieľa. |
-| Rezerva (núdzový fond) | používateľ | 3 mesiace výdavkov | 3 – 6 mesiacov | Odporúča sa mať ju mimo investícií; do cieľa sa nezapočítava. |
+| Rezerva (núdzový fond) | používateľ | 3 mesiace výdavkov | 3 – 6 mesiacov | Predpoklad: mať ju mimo investícií; do cieľa sa nezapočítava. |
 
-Pravidlá odporúčaní:
-- Používateľ vždy vidí **čo je odporúčanie a čo jeho vlastná hodnota**, a môže ju zmeniť.
+Pravidlá východiskových:
+- Používateľ vždy vidí **čo je východisková hodnota a čo jeho vlastná hodnota**, a môže ju zmeniť.
 - Dátum cieľa sa ukazuje ako **rozsah** (opatrný – základný – optimistický), nie jedno presné číslo.
 - Používame reálny výnos (po inflácii), takže výdavky sú v dnešných cenách; netreba zadávať infláciu zvlášť.
 - Dane a poplatky sa v MVP neriešia (uvedie sa v upozornení).
@@ -103,18 +103,18 @@ Rozhodnutie = **transakcia** (sporenie, investícia alebo výdavok). Plánovanie
 Používateľ už investíciu má; produkt s ňou počíta a uvažuje s globálnym výnosom r (D-032). Produkt nevyberá ani nenavrhuje investície.
 
 ## Mimo rozsahu
-- Odporúčanie konkrétnych investičných produktov [user].
+- Východisková hodnota konkrétnych investičných produktov [user].
 - Ostatné zatiaľ neurčené (otvorené).
 
 ## Otvorené otázky
-1. Overiť číselné hodnoty odporúčaní (miera výberu, rozsah výnosu, rezerva) v zdrojoch.
+1. Overiť číselné hodnoty východiskových (miera výberu, rozsah výnosu, rezerva) v zdrojoch.
 2. Monetizácia.
 3. Klasifikácia výdavkov na pravidelné a cielené (O-7, M7).
 4. Prah výdavkov: pevná predvolená hodnota 100 €, zmena používateľom (vyriešené D-048).
 5. Zdroj predvolených hodnôt r a miery výberu: vyriešené D-049 a D-050 (podklady review/o9-podklady.md).
 
 ## Riziká a upozornenia (Claude) [predpoklad]
-- **Právo/regulácia**: rozhodnutie nevyberať produkty znižuje riziko investičného poradenstva. Pri „odporúčaniach“ pri nastavení cieľa však treba strážiť, aby nešlo o osobné odporúčanie typu „investuj X do Y“. Pred rozšírením do EÚ treba právne posúdenie (MiFID II, GDPR, spotrebiteľské právo, rozdiely medzi krajinami).
+- **Právo/regulácia**: rozhodnutie nevyberať produkty znižuje riziko investičného poradenstva. Pri „východiskové predpokladych“ pri nastavení cieľa však treba strážiť, aby nešlo o osobné východisková hodnota typu „investuj X do Y“. Pred rozšírením do EÚ treba právne posúdenie (MiFID II, GDPR, spotrebiteľské právo, rozdiely medzi krajinami).
 - **Zavádzajúce projekcie**: dynamický cieľ závisí od predpokladaných výnosov a inflácie. Bez viditeľných predpokladov a rozsahov vzniká falošná istota.
 - **Privacy/bezpečnosť**: finančné dáta sú citlivé; treba rozhodnúť o ukladaní a šifrovaní skôr než o architektúre.
 - **Kognitívna a emočná záťaž**: neustále prepočítavanie cieľa môže vyvolávať stres alebo posadnutosť; treba zvážiť tón a frekvenciu zobrazovania.
@@ -152,8 +152,8 @@ Zatiaľ nedefinované. Definujeme po overení MVP na vlastnom použití. Treba p
 
 | ID | Príbeh | Zdroj |
 |----|--------|-------|
-| UR-01 | Ako používateľ si nastavím cieľ (ročné výdavky, miera výberu, výnos, mesačné sporenie, rezerva) s odporúčanými hodnotami, ktoré sa zobrazia ako výzva; polia sú pri prvom spustení prázdne (D-057). | D-008, D-011 |
-| UR-02 | Ako používateľ vidím, ktorá hodnota je odporúčanie a ktorá moja vlastná, a môžem ju zmeniť. | D-011 |
+| UR-01 | Ako používateľ si nastavím cieľ (ročné výdavky, miera výberu, výnos, mesačné sporenie, rezerva) s východiskovými hodnotami, ktoré sa zobrazia ako výzva; polia sú pri prvom spustení prázdne (D-057). | D-008, D-011 |
+| UR-02 | Ako používateľ vidím, ktorá hodnota je východisková hodnota a ktorá moja vlastná, a môžem ju zmeniť. | D-011 |
 | UR-03 | Ako používateľ zadám existujúcu investíciu: aktuálnu hodnotu. Výnos je jeden globálny predpoklad pre celý kapitál, ktorý si nastavím. | D-010, D-032 |
 | UR-04 | Ako používateľ zadám transakciu (sporenie, investícia, výdavok) – rýchlo, na telefóne. | D-006, persona 1 |
 | UR-10 | Ako používateľ zadám ročné výdavky pri nezávislosti ručne ako odhad. | D-013 |
@@ -212,7 +212,7 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 ### 1. Nízka kognitívna záťaž
 - Každá obrazovka má jednu hlavnú úlohu. [predpoklad]
 - Zadanie transakcie: čo najmenej polí. Povinné: typ, suma. Voliteľné: poznámka. Pri výdavku zdroj úhrady (predvolene „z príjmu“, D-014). [predpoklad]
-- Predvolené hodnoty a odporúčania všade, kde sa dajú (D-011), vždy s možnosťou zmeny.
+- Predvolené hodnoty a východiskové predpoklady všade, kde sa dajú (D-011), vždy s možnosťou zmeny.
 - Žiadny odborný žargón bez vysvetlenia (napr. „miera výberu“ má krátke vysvetlenie).
 
 ### 2. Informácia, nie tlak
@@ -226,7 +226,7 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 - Dátum cieľa sa vždy ukazuje ako **rozsah** (opatrný – základný – optimistický), nikdy ako jediný presný dátum (D-011).
 - Vždy je vidieť, či ide o predbežný dopad alebo o stav z mesačného vyhodnotenia, a kedy bolo posledné (D-014).
 - Stručné upozornenie na obmedzenia: odhad, nie sľub; bez daní a poplatkov (D-008, D-011).
-- Odporúčanie je vždy označené ako odporúčanie a odlíšené od hodnoty, ktorú nastavil používateľ (UR-02).
+- Východisková hodnota je vždy označené ako východisková hodnota a odlíšené od hodnoty, ktorú nastavil používateľ (UR-02).
 
 ### 4. Predvídateľnosť
 - Rovnaké akcie fungujú vždy rovnako; stabilná navigácia, rovnaké umiestnenie hlavných akcií. [predpoklad]
@@ -247,7 +247,7 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 - Cielená spotreba je legitímna súčasť plánu, nie „chyba“ (D-004, D-014). [predpoklad]
 
 ## Kľúčové toky (náčrt, bez návrhu obrazoviek)
-1. **Prvé nastavenie:** cieľ (UR-01, UR-10) → investícia (UR-03) → prah (UR-05) → prvé vyhodnotenie. Odporúčania ako výzva pri každom kroku; polia sú prázdne (D-057). Krok na iPhone: pridanie appky na plochu je povinné (D-042). Kým nie je prvé vyhodnotenie, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6).
+1. **Prvé nastavenie:** cieľ (UR-01, UR-10) → investícia (UR-03) → prah (UR-05) → prvé vyhodnotenie. Východiskové predpoklady ako výzva pri každom kroku; polia sú prázdne (D-057). Krok na iPhone: pridanie appky na plochu je povinné (D-042). Kým nie je prvé vyhodnotenie, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6).
 2. **Týždenné zadanie:** otvoriť → pridať transakciu → vidieť predbežný dopad → hotovo.
 3. **Mesačné vyhodnotenie (koniec mesiaca):** zadať hodnotu investícií a sporenie → vidieť prepočítaný cieľ a dátum ako rozsah.
 4. **Prehľad:** história transakcií (UR-07) a aktuálny stav cieľa.
@@ -282,7 +282,7 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 | **Kapitál (K)** | Hodnota investícií + nasporená suma (kumulatívny stav hotovosti, D-033), bez rezervy (D-011, D-017). |
 | **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 3,5 %, rozsah 2–6 % (D-011, D-050). Jeden predpoklad pre investovaný kapitál K_inv; hotovosť K_cash sa nezhodnocuje, 0 % reálne (D-036, upresňuje D-025 a D-032). Počíta sa so všetkými sumami v dnešných cenách. |
 | **Mesačné sporenie (m)** | Súčet transakcií typu „sporenie“ a „investícia“ za 12 mesiacov, ktoré končia pri D_L, delený počtom mesiacov histórie (najviac 12) (D-031). Používateľ môže zadať vlastnú hodnotu (UR-02). |
-| **Rezerva** | Odporúčanie 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). Stav = vklady mínus výbery (D-047). Rezerva nie je v K ani hranicou výdavkov: vklad berie z K_cash, výber ju dopĺňa (D-058; upravuje D-045, D-047, D-052). |
+| **Rezerva** | Východisková hodnota 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). Stav = vklady mínus výbery (D-047). Rezerva nie je v K ani hranicou výdavkov: vklad berie z K_cash, výber ju dopĺňa (D-058; upravuje D-045, D-047, D-052). |
 | **Vyhodnotenie (snapshot)** | Mesačný záznam s dátumom, hodnotou investícií a nasporenou sumou; zadáva sa na konci mesiaca (D-014). |
 | **Referenčný dátum (D_L)** | Dátum posledného vyhodnotenia podľa dátumu vyhodnotenia, nie času zápisu (D-044). K_L a m sa vzťahujú k tomuto dňu. Dátum cieľa sa počíta od D_L a mení sa len pri novom vyhodnotení (D-024). |
 | **Posledný stav (K_L)** | K zo snapshotu, ktorý je najnovší. Oficiálny cieľ sa počíta z neho, od D_L. |
@@ -305,7 +305,7 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 | nasporená suma | číslo ≥ 0 | áno | Kumulatívny stav hotovosti, bez rezervy (D-017, D-033). |
 
 ### Entita Nastavenie cieľa
-V, p, r, rezerva (mesiace), prah výdavkov, m (odvodené z transakcií, D-031; používateľ môže zadať vlastnú hodnotu). Ak v 12-mesačnom okne pred D_L nie je žiadna transakcia sporenia alebo investície, m = 0; čiastočný prvý mesiac histórie sa počíta ako celý mesiac (D-031), dátum vzniku. Každý parameter má predvolenú hodnotu, odporúčaný rozsah a príznak „zmenený používateľom“ (UR-02).
+V, p, r, rezerva (mesiace), prah výdavkov, m (odvodené z transakcií, D-031; používateľ môže zadať vlastnú hodnotu). Ak v 12-mesačnom okne pred D_L nie je žiadna transakcia sporenia alebo investície, m = 0; čiastočný prvý mesiac histórie sa počíta ako celý mesiac (D-031), dátum vzniku. Každý parameter má predvolenú hodnotu, východiskový rozsah a príznak „zmenený používateľom“ (UR-02).
 
 ## 2. Výpočty
 
@@ -342,7 +342,7 @@ Zobrazí sa ako „od – do“ (UX D-016): najskorší (optimistický) až najn
 ### FR-04 – Predbežný dopad transakcie
 Pre každú transakciu po poslednom vyhodnotení sa počíta pracovný kapitál:
 
-`K_pred = max(0; K_L + Σ(sporenie po D_L) + Σ(investícia z príjmu po D_L) + Σ(výbery z rezervy po D_L) − Σ(vklady do rezervy po D_L) − Σ(výdavky „z kapitálu“ po D_L))`. Presun z hotovosti do investícií (investícia „z hotovosti“) K nemení. Stav rezervy sa do K nezapočíta (D-058).
+`K_pred = max(0; K_L + Σ(sporenie po D_L) + Σ(investícia z príjmu po D_L) + Σ(výbery z rezervy po D_L) − Σ(vklady do rezervy po D_L) − Σ(výdavky „z kapitálu“ po D_L))`. Presun z hotovosti do investícií (investícia „z hotovosti“) K nemení. Stav rezervy nie je v K (D-017, D-058); vklad do rezervy K zníži, výber ho zvýši (D-060).
 
 „Po K_L“ znamená transakcie s **dátumom po D_L** (dátum posledného vyhodnotenia), nie podľa času zadania. Transakcia zadaná neskôr s dátumom pred D_L je už v K_L a nepridáva sa znovu (FR-05).
 
@@ -368,14 +368,14 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 ## 3. Správanie a pravidlá
 
 ### FR-07 – Prah výdavkov (D-013)
-- Prah sa uplatní **len na výdavky**; predvolene 100 €; používateľ ho zmení v rozsahu 100–500 € (odporúčaný rozsah, bez automatického pravidla; D-048).
+- Prah sa uplatní **len na výdavky**; predvolene 100 €; používateľ ho zmení v rozsahu 100–500 € (východiskový rozsah, bez automatického pravidla; D-048).
 - Výdavok pod prahom sa **uloží** s príznakom „pod prahom“ a zahrnie sa do predbežného dopadu (D-030; ruší D-017 O-2; prehľad spotreby je odložený, D-038).
 - Sporenie a investície sa ukladajú vždy bez ohľadu na sumu.
 
 ### FR-08 – Zdroj úhrady výdavku (D-014)
 - „Z príjmu“: K sa nemení.
 - „Z hotovosti“ (K_cash): K_pred sa znižuje o sumu, ale K_cash nesmie klesnúť pod 0 (D-058; rezerva je mimo K_cash a do kontroly nevstupuje). Ak by nestačil, výdavok sa nevykoná, zobrazí sa upozornenie a ponuka zdroja „z investícií“. Po vyhodnotení sa zohľadní v nasporenej sume.
-- „Z investícií“ (K_inv): K_pred sa znižuje o sumu; K_cash sa nemení (D-045).
+- „Z investícií“ (K_inv): K_pred sa znižuje o sumu; K_cash sa nemení (D-045). Ak suma presiahne K_inv, upozorní sa „Investície nestačia“, navrhne sa zdroj „z príjmu“ a uloží sa až po potvrdení; K_inv = 0 € (D-059).
 - Ak je výdavok z kapitálu väčší než K_L, alebo ak súčet výdavkov z kapitálu po D_L presiahne K_L, navrhuje sa upozornenie a ponuka zmeny na „z príjmu“; ak používateľ potvrdí, K_pred = 0 a zobrazí sa „Hotovosť nestačila; kapitál je 0 €“ (D-021 rozšírené na kumulatívny prípad, H2).
 
 ### FR-09 – Úprava a mazanie transakcie
@@ -394,12 +394,12 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 - Vypnuteľná v nastaveniach.
 
 ### FR-12 – Prvé nastavenie
-Postupnosť: cieľ (V, p, r, rezerva) s odporúčanými hodnotami ako výzvou (D-057) → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Každý krok sa dá preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
+Postupnosť: cieľ (V, p, r, rezerva) s východiskovými hodnotami ako výzvou (D-057) → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Každý krok sa dá preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
 
-### FR-13 – Odporúčania
-- Odporúčanie je viditeľne označené a odlíšené od hodnoty používateľa (UR-02).
-- Používateľ môže kedykoľvek vrátiť odporúčanú hodnotu jedným úkonom.
-- Odporúčania sa týkajú len parametrov (D-007); aplikácia neodporúča produkty.
+### FR-13 – Východiskové predpoklady
+- Východisková hodnota je viditeľne označené a odlíšené od hodnoty používateľa (UR-02).
+- Používateľ môže kedykoľvek vrátiť východiskovú hodnotu jedným úkonom.
+- Východiskové predpoklady sa týkajú len parametrov (D-007); aplikácia neodporúča produkty.
 
 ### FR-14 – Prehľad
 Domovská obrazovka: cieľová suma, dátum cieľa ako rozsah (od D_L) a zostávajúci čas od dneška (D-024), predbežný dopad posledných transakcií, dátum posledného vyhodnotenia, tlačidlo na pridanie transakcie.
@@ -458,9 +458,9 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 - **O-3 Import zálohy:** nahradí aktuálne dáta po potvrdení (D-018).
 - **O-4 Priemer sporenia:** za 12 mesiacov do D_L, delené počtom mesiacov histórie, najviac 12 (D-031; upresňuje D-017).
 - **O-5 Veľmi vzdialený dátum:** do 50 rokov, ďalej „viac ako 50 rokov“; bez kapitálu a sporenia text bez dátumu (D-019).
-- **O-6 Výdavok z kapitálu väčší než kapitál:** upozornenie a ponuka zmeny na „z príjmu“; pri potvrdení K_pred = 0 a text „Hotovosť nestačila; kapitál je 0 €“ (D-021).
+- **O-6 Výdavok z kapitálu väčší než kapitál:** upozornenie a ponuka zmeny na „z príjmu“; pri potvrdení K_pred = 0 a text „Hotovosť nestačila; kapitál je 0 €“ (D-021; pre investície D-059).
 
-- **Rozhodnuté ďalej (D-030 až D-034):** prah a príznak pod prahom, m = za 12 mesiacov do D_L delené počtom mesiacov, globálne r, nasporená suma je stav. Plocha (iPhone): pôvodne odporúčaná (D-034), upravené na povinnú výzvu (D-042, D-053).
+- **Rozhodnuté ďalej (D-030 až D-034):** prah a príznak pod prahom, m = za 12 mesiacov do D_L delené počtom mesiacov, globálne r, nasporená suma je stav. Plocha (iPhone): pôvodne východisková (D-034), upravené na povinnú výzvu (D-042, D-053).
 - **Vyriešené (O-8 až O-11):** rozsah prahu D-048, zdroj predvolených r a výberu D-049 a D-050, zdroj úhrady výdavku z kapitálu D-045, výpočet n pri m_cash > 0 D-046.
 
 **Otvorené:**
@@ -618,7 +618,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 1. **Hosting:** uzavreté: GitHub Pages (D-056; nasadzuje sa len z main).
 2. **Šifrovanie dát v kľude:** rozhodnuté (D-026): v MVP nie je, rieši sa pred Fázou 2.
 3. **Názov a doména:** pracovný názov sa zmení (D-002); nasadenie zatiaľ bez vlastnej domény.
-4. **Riziko iOS Safari:** dáta môžu byť vymazané po neaktivite, ak appka nie je na ploche. Rozhodnuté (D-042, D-053): na iPhone je plocha povinná výzva; kým appka nie je na ploche, zobrazí sa len návod (pôvodne odporúčané, D-034). Overenie na reálnom iPhone pred M2 (07 §6).
+4. **Riziko iOS Safari:** dáta môžu byť vymazané po neaktivite, ak appka nie je na ploche. Rozhodnuté (D-042, D-053): na iPhone je plocha povinná výzva; kým appka nie je na ploche, zobrazí sa len návod (pôvodne východiskové, D-034). Overenie na reálnom iPhone pred M2 (07 §6).
 
 ---
 
@@ -660,7 +660,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 |---|---|---|---|---|
 | **M1 Doménová vrstva** | cieľ, dátumy (scenáre), predbežný dopad, mesačné vyhodnotenie – čisté funkcie | M | všetky GC-01 až GC-14 prejdú (vrátane GC-13 a GC-14 pre stabilitu dátumu, D-024; GC-15 pre K_pred ≥ 0 a GC-16 pre m pri krátkej histórii, D-031; GC-17 až GC-21 pre rozdelený kapitál, rezervu a m_cash > 0, D-036, D-039, D-045, D-046); property testy zelené; overenie NPER | FR-01 až FR-05, FR-07, FR-08 |
 | **M2 Úložisko a záloha** | IndexedDB, CRUD, export a import s validáciou a atomicitou, schéma v1 | M | round trip test zelený; neplatný import nič nezmení | FR-16 až FR-19 |
-| **M3 Nastavenie a transakcie** | prvé nastavenie s odporúčaniami, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy; predvolené hodnoty r a miery výberu majú zdroj zapísaný v Decisions (M6; D-049, D-050) | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-06, FR-12, FR-13, FR-15 |
+| **M3 Nastavenie a transakcie** | prvé nastavenie s východiskové predpokladymi, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy; predvolené hodnoty r a miery výberu majú zdroj zapísaný v Decisions (M6; D-049, D-050) | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-06, FR-12, FR-13, FR-15 |
 | **M4 Prehľad a vyhodnotenie** | domovská obrazovka s rozsahom dátumov, predbežný dopad, mesačné vyhodnotenie, pripomienka, upozornenie pri vynechaní | M | E2E tok „transakcia → vyhodnotenie → dátum“ prejde | UR-06, UR-11, FR-09, FR-10, FR-11, FR-14, UR-09 |
 | **M5 PWA a offline** | service worker, manifest, ikony, inštalácia na plochu | S | všetky toky offline; sieťový test súkromia zelený | FR-16 |
 | **M6 Dostupnosť a kvalita** | axe-core bez vážnych chýb, čítačky, tmavý režim, zoom 200 % | S | nulové vážne porušenia; checklist čítačiek vyplnený | UX, 07 oddiel 9 |
@@ -685,12 +685,12 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
   - žiadna neočakávaná zmena čísla;
   - história rozhodnutí je úplná;
   - aspoň jeden round trip export → import na reálnych (anonymizovaných) dátach.
-- **Čo pilot overí:** či sú odporúčania a predvolené hodnoty zrozumiteľné a či sa predbežný dopad dá pochopiť bez vysvetlenia. Výnos sa za 3 mesiace overiť nedá.
+- **Čo pilot overí:** či sú východiskové predpoklady a predvolené hodnoty zrozumiteľné a či sa predbežný dopad dá pochopiť bez vysvetlenia. Výnos sa za 3 mesiace overiť nedá.
 
 ## 6. Fáza 2 – EÚ webový produkt
 
 **Brány (musia byť splnené pred začiatkom):**
-1. **Právne posúdenie:** hranica investičného poradenstva (MiFID II), GDPR (správca, právny základ, práva dotknutých osôb), spotrebiteľské právo, rozdiely medzi krajinami a odporúčania predvolených hodnôt (napr. 3–3,5 % pri skorom odchode; D-028, M6).
+1. **Právne posúdenie:** hranica investičného poradenstva (MiFID II), GDPR (správca, právny základ, práva dotknutých osôb), spotrebiteľské právo, rozdiely medzi krajinami a východiskové predpoklady predvolených hodnôt (napr. 3–3,5 % pri skorom odchode; D-028, M6).
 2. **Monetizácia:** otvorený bod z `00_Project_Vision` (zatiaľ nerozhodnuté).
 3. **Účty a synchronizácia:** cloud alebo lokálne; s tým spojené rozhodnutie o šifrovaní (odložené z MVP).
 4. **Persony EÚ:** definované v `01_Personas` a overené rozhovormi s cieľovou skupinou (07 oddiel 10).
@@ -723,13 +723,13 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 ## 8. Zámerne mimo plánu
 - graf projekcie podľa výnosu a inflácie (odložený, D-008);
 - daňové výpočty (mimo MVP, D-008 a 04 oddiel 6);
-- odporúčanie konkrétnych produktov (vylúčené, D-007).
+- východisková hodnota konkrétnych produktov (vylúčené, D-007).
 
 **Odložené nápady (bez rozhodnutia, nie sú v rozsahu MVP; zapísané 2026-10-14):**
 - **Platba všetkých daní (napr. z príjmu, z predaja investícií):** mimo MVP (D-008, 04 oddiel 6). Platba dane je regulovaná; vyžaduje právne posúdenie pred fázou 2. Možný menší variant: len pripomienka termínu bez výpočtu dane.
 - **API do banky na pravidelné transakcie:** v rozpore s D-009 a FR-16 (žiadne volania na externé API v MVP). Patrí do fázy 3, viazané na PSD2 (oddiel 7). Prvý krok je import CSV výpisu (oddiel 7, bod 2).
 - **Pravidelné platby ako pripomienky:** nový typ údajov (plán opakovaných platieb) a zmena výpočtu dopadu (FR-04). Nie je to drobnosť; treba samostatný návrh a rozhodnutie.
-- **Automatický presun hotovosti pred platbou:** aplikácia nepresúva peniaze sama (presun ostáva manuálny, D-046). Možný variant je pripomienka „pred splatnosťou zváž presun X €“, ktorá kontroluje, či hotovosť stačí (K_cash, D-058) a nie je odporúčaním na kúpu alebo predaj.
+- **Automatický presun hotovosti pred platbou:** aplikácia nepresúva peniaze sama (presun ostáva manuálny, D-046). Možný variant je pripomienka „pred splatnosťou zváž presun X €“, ktorá kontroluje, či hotovosť stačí (K_cash, D-058) a nie je východiskovýchm na kúpu alebo predaj.
 
 ## 9. Rozhodnutia potrebné pred ďalšími krokmi
 
@@ -795,7 +795,7 @@ Neautomatizované (zatiaľ len cieľ): GC-07, GC-09, GC-10, GC-12, GC-14, GC-22 
 |---|---|---|
 | FR-06 Formát | zobrazenie sumy v celých eurách, mesiace celé čísla, dátum slovensky („marec 2038“) | jednotkový |
 | FR-11 Pripomienka | pripomienka na konci mesiaca bez vyhodnotenia; vypnutie v nastaveniach; systémová notifikácia len po povolení | komponentový |
-| FR-13 Odporúčania | odporúčanie je označené odlišne od vlastnej hodnoty; vrátenie odporúčanej hodnoty jedným úkonom | komponentový |
+| FR-13 Východiskové predpoklady | východisková hodnota je označené odlišne od vlastnej hodnoty; vrátenie východiskovej hodnoty jedným úkonom | komponentový |
 | FR-14 Prehľad | cieľ, dátum ako rozsah od D_L, zostávajúci čas, predbežný dopad, dátum posledného vyhodnotenia | komponentový, E2E |
 | FR-15 História | zoradenie od najnovšej, filter podľa typu a obdobia, súčty za obdobie | komponentový |
 | FR-19 Pripomenutie zálohy | banner po 7 dňoch bez exportu alebo ak sa nikdy neexportovalo; zmizne po exporte | komponentový |
@@ -882,7 +882,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 | Zálohy vo verzii 1 zostanú čitateľné aj po budúcich zmenách | fixture `tests/fixtures/export-v1.json` sa importuje v každom vydaní | regresia |
 | Dve karty naraz | zápis v jednej karte sa prejaví v druhej (BroadcastChannel); žiadne prepísanie | manuálny, neskôr E2E |
 
-**Riziko iOS Safari [predpoklad, overiť aktuálne správanie]:** Safari môže po dlhšom nepoužívaní webu vymazať dáta uložené skriptom vrátane IndexedDB, ak aplikácia nie je pridaná na plochu. Test: manuálne na reálnom iPhone (pridanie na plochu, neskoré otvorenie). Mitigácia: odporúčanie pridať na plochu v prvom nastavení a pripomienka zálohy (FR-19).
+**Riziko iOS Safari [predpoklad, overiť aktuálne správanie]:** Safari môže po dlhšom nepoužívaní webu vymazať dáta uložené skriptom vrátane IndexedDB, ak aplikácia nie je pridaná na plochu. Test: manuálne na reálnom iPhone (pridanie na plochu, neskoré otvorenie). Mitigácia: východisková hodnota pridať na plochu v prvom nastavení a pripomienka zálohy (FR-19).
 
 **Pravidlo pre fixtures:** v repozitári sú len anonymizované alebo syntetické dáta. Žiadne reálne finančné údaje.
 
@@ -1026,6 +1026,9 @@ Otvorené:
 | D-056 | 2026-10-14 | Na verejný Pages sa nasadzuje len vetva main. Vetvy na testovanie len spúšťajú testy vrátane E2E. | Rozhodnutie zakladateľa (revízia R10). |
 | D-057 | 2026-10-14 | Pri prvom spustení sú polia prázdne, odporúčané hodnoty sa zobrazia ako výzva pod poľom, nepredvyplnia sa. | Rozhodnutie zakladateľa (revízia R11). |
 | D-058 | 2026-10-14 | Rezerva nie je súčasťou hotovosti K_cash (potvrdené D-047). Výdavok z hotovosti a presun do investícií sú obmedzené len voči K_cash (nesmú vyčerpať viac než K_cash, teda klesnúť pod 0); rezerva do týchto kontrol nevstupuje. Nahrádza pravidlo „hotovosť nesmie klesnúť pod rezervu“ v D-045 a D-052. Vklad do rezervy je výdavok z K_cash (limit K_cash). Výber z rezervy zvyšuje K_cash. | Rozhodnutie zakladateľa (revízia, nález 2: voľba A). |
+| D-059 | 2026-10-14 | Výdavok z investícií nad K_inv sa uloží až po potvrdení používateľa. Pred potvrdením sa zobrazí upozornenie „Investície nestačia; po uložení bude K_inv 0 €“ a ponuka zdroja „z príjmu“. Po potvrdení K_inv = 0 € (nie záporný); K_cash sa nemení. Nahrádza zamietnutie v UI, ktoré bolo v rozpore s D-021 a s ledgerom. | Rozhodnutie zakladateľa (odpoveď na otvorenú otázku 1: orez s potvrdením). |
+| D-060 | 2026-10-14 | Stav rezervy nie je v kapitáli ani v cieli (D-017, D-058). Vklad do rezervy preto znižuje K (cieľový kapitál) a výber z rezervy ho zvyšuje. Náhľad transakcie to výslovne ukáže („Vklad do rezervy zníži kapitál pre cieľ o X €; peniaze zostávajú v rezerve“). Konzervatívne nastavenie. | Rozhodnutie zakladateľa (odpoveď na otvorenú otázku 2: áno). |
+| D-061 | 2026-10-14 | Hodnoty 3,7 %, 3,5 %, rezerva a prah sa v aplikácii a dokumentoch volajú „východiskové predpoklady“ alebo „východisková hodnota“, nie „odporúčanie“. Zostáva veta, že nejde o finančné poradenstvo. Historické znenie rozhodnutí sa neupravuje. | Rozhodnutie zakladateľa (odpoveď na otvorenú otázku 3: áno, MiFID). |
 
 ---
 
@@ -1091,7 +1094,7 @@ Otvorené:
 | R26b | Text „cieľ sa nedosiahne“ pri dopade | uzavreté | `UNREACHABLE_IMPACT_TEXT` v `impact.ts`; 04 FR-04 |
 | RR8 | Predbežný dopad ignoruje rezervu (V1) | uzavreté | 04 FR-04 K_pred (vklad −, výber +); ledger; GC-24 |
 | RR9 | Investícia „z hotovosti“ v K_pred (nový nález) | uzavreté | 04 FR-04 (presun nemení K) |
-| RR10 | Prečerpanie K_inv: zamietnutie, alebo orez na 0 s potvrdením (V2) | otvorené (zakladateľ) | 04 FR-08, O-6, D-021; kód: UI blokuje, ledger orezáva na 0 |
+| RR10 | Prečerpanie K_inv: zamietnutie, alebo orez na 0 s potvrdením (V2) | rozhodnuté | D-059 (orez s potvrdením); UI a FR-08 zosúladené |
 | RR11 | Stará definícia rezervy (V3) | uzavreté | 04 §1 Rezerva; D-045, D-047, D-052 označené D-058 |
 | RR12 | Rozhodnutý zoznam tvrdí opak FR-07 (V4) | uzavreté | 04 §7: O-2 nahradené D-030 |
 | RR13 | Stará formula cieľa × 25 (V5) | uzavreté | 00, 02 (T = V / p, D-049) |
@@ -1103,7 +1106,7 @@ Otvorené:
 | RR19 | Vklad do rezervy bez zdroja úhrady (S6) | uzavreté | 04 tabuľka transakcií; D-058 |
 | RR20 | Zastarané rozhodnutia bez označenia (S7) | uzavreté | D-011, D-019, D-025, D-035, D-039, D-047 označené |
 | RR21 | Pravidlá m, m_cash a delenie nulou (S8) | čiastočne | 04 FR-02 (uzavretý tvar iba pri m_cash = 0); 04 m (prvý mesiac, žiadna transakcia). Otázka zákona o odporúčaniach (S9) je samostatná |
-| RR22 | Odporúčania a MiFID (S9) | otvorené (zakladateľ) | návrh: „východiskové predpoklady“ namiesto „odporúčania“ v UI |
+| RR22 | Odporúčania a MiFID (S9) | rozhodnuté | D-061; UI a aktívne dokumenty |
 | RR23 | Escapovanie textu z poznámky a importu (S10) | uzavreté | 04 FR-18; React zobrazuje text bez HTML |
 | RR24 | Hraničné testy 50 rokov a r = 0, m = 0 (N1) | čiastočne | tests: r = 0, m = 0 pri K > 0 → null; hranica 600 mesiacov zatiaľ bez testu |
 | RR25 | Hosting ako otvorený (N2) | uzavreté | 05 §11 bod 1; 06 §9 (D-056) |
@@ -1112,6 +1115,7 @@ Otvorené:
 | RR28 | Kódy a zdroje v balíku nie sú definované (N5) | uzavreté | prílohy balíka: tento súbor a poznámky |
 | RR29 | Zdroj 3,5 % a 3,7 % (Morningstar 2025) mimo balíka (N6) | otvorené | podklad je v review/o9-podklady.md (príloha balíka); overenie zdroja nie je v repozitári |
 | RR30 | Chýba SW cache a interpolácia (R24, R21 z predchádzajúcej evidencie) | otvorené (poznámka) | – |
+| RR31 | Vklad do rezervy znižuje cieľový kapitál (V1, S6) | rozhodnuté | D-060; náhľad ukáže vplyv na cieľ |
 
 
 <!-- ===== review/poznamky-k-revizii-2026-10-14.md ===== -->
@@ -1158,10 +1162,10 @@ Testy po zmene: `tsc` bez chýb, 63 jednotkových testov prechádza. E2E po zmen
 
 Kód a testy sú na `main` pri commite aktualizovanom touto zmenou (70 jednotkových testov, 6 E2E). Opravy dokumentov sú bez nových rozhodnutí, okrem rozhodnutia A (D-058), ktoré už bolo zapísané.
 
-**Otvorené otázky pre zakladateľa:**
-1. **Prečerpanie K_inv (RR10):** zamietnuť výdavok z investícií, alebo orez K_inv na 0 s potvrdením? Dnes UI výdavok z investícií nad K_inv zamietne, ale `ledger.ts` a D-021 počítajú s orezom na 0 a textom „kapitál je 0 €“.
-2. **Vklad do rezervy znižuje cieľový kapitál (RR8, V1):** je to zámer? Podľa D-058 áno, lebo vklad berie z K_cash. Potvrď, alebo zadaj inú možnosť.
-3. **Odporúčania a MiFID (RR22, S9):** premenovať „odporúčania“ v UI na „východiskové predpoklady“? Navrhujem áno.
+**Otvorené otázky pre zakladateľa (všetky tri zodpovedané, D-059 až D-061):**
+1. **Prečerpanie K_inv (RR10, D-059):** zodpovedané, orez na 0 s potvrdením. zamietnuť výdavok z investícií, alebo orez K_inv na 0 s potvrdením? Dnes UI výdavok z investícií nad K_inv zamietne, ale `ledger.ts` a D-021 počítajú s orezom na 0 a textom „kapitál je 0 €“.
+2. **Vklad do rezervy znižuje cieľový kapitál (RR8, V1, D-060):** zodpovedané, áno. je to zámer? Podľa D-058 áno, lebo vklad berie z K_cash. Potvrď, alebo zadaj inú možnosť.
+3. **Odporúčania a MiFID (RR22, S9, D-061):** zodpovedané, premenované na východiskové predpoklady. premenovať „odporúčania“ v UI na „východiskové predpoklady“? Navrhujem áno.
 
 **Už rozhodnuté (len zosúladené dokumenty):** mazanie transakcie bez potvrdenia s undo 8 s (D-054), povinná plocha na iPhone (D-042, D-053), prázdne polia pri prvom spustení (D-057), prah 100 € s rozsahom 100–500 € (D-048).
 
