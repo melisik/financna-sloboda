@@ -1,6 +1,6 @@
 # 02 – Požiadavky používateľa
 
-> Stav: v0.6 (2026-10-14), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
+> Stav: v0.7 (2026-10-14), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
 
 ## Používateľské príbehy (MVP)
 
@@ -17,7 +17,7 @@
 | UR-12 | Ako používateľ pri zadaní výdavku zvolím zdroj úhrady (z príjmu – predvolené / z kapitálu). | D-014 |
 | UR-07 | Ako používateľ vidím históriu všetkých transakcií (záznam rozhodnutí). | D-004 |
 | UR-08 | Ako používateľ môžem dáta exportovať a importovať (záloha). | D-009 |
-| UR-09 | Ako používateľ vidím predpoklady a obmedzenia výpočtu (pravidlo 4 %, bez daní a poplatkov). | D-008 |
+| UR-09 | Ako používateľ vidím predpoklady a obmedzenia výpočtu (pravidlo 4 %, bez daní a poplatkov; hotovosť má 0 % reálne – predpoklad, D-036). | D-008 |
 
 ## Nefunkčné požiadavky (MVP) [predpoklad]
 - **Mobile-first:** plne použiteľné na telefóne.

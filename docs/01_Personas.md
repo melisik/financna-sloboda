@@ -1,6 +1,6 @@
 # 01 – Persony
 
-> Stav: v0.1 (2026-10-13). [user] = povedal zakladateľ, [predpoklad] = doplnil Claude, treba potvrdiť.
+> Stav: v0.2 (2026-10-14). [user] = povedal zakladateľ, [predpoklad] = doplnil Claude, treba potvrdiť.
 
 ## Persona 1 – Zakladateľ (prvý používateľ, fáza 1)
 - **Cieľ:** nezávislosť od zamestnania [user].

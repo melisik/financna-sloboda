@@ -1,6 +1,6 @@
 # 05 – Technická architektúra (MVP)
 
-> Stav: v0.4 (2026-10-14). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.5 (2026-10-14). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Prehľad
 Statická single-page aplikácia (PWA) bez servera. Všetky dáta a výpočty bežia v prehliadači na zariadení.
@@ -62,7 +62,7 @@ tests/             jednotkové testy domain/ a storage/
 ### Úložisko (IndexedDB, databáza `financna-sloboda`, verzia 1)
 | Store | Kľúč | Indexy | Obsah |
 |---|---|---|---|
-| `transactions` | `id` (UUID) | `date`, `type` | dátum, typ (sporenie / investícia / výdavok), suma (cent), zdroj úhrady, príznak pod prahom (D-030), poznámka, `createdAt`, `updatedAt` |
+| `transactions` | `id` (UUID) | `date`, `type` | dátum, typ (sporenie / investícia / výdavok / rezerva, D-037), suma (cent), zdroj úhrady, príznak pod prahom (D-030), poznámka, `createdAt`, `updatedAt` |
 | `snapshots` | `id` (UUID) | `date` | dátum vyhodnotenia (nesmie byť v budúcnosti, M2), hodnota investícií (cent), nasporená suma = kumulatívny stav hotovosti (cent, D-033), `createdAt` |
 | `settings` | `key` (jediný záznam `"current"`) | – | V, p, r, rezerva (mesiace), prah výdavkov, m (odvodené; voliteľné prepísanie), a pre každý parameter príznak „zmenený používateľom“ (UR-02) |
 | `meta` | `key` | – | `schemaVersion`, `lastExportAt` (FR-19) |
@@ -82,7 +82,7 @@ tests/             jednotkové testy domain/ a storage/
   "snapshots": [ ... ]
 }
 ```
-Import: validácia schémy (typy, rozsahy, povinné polia) → náhľad → nahradenie dát v jednej transakcii (D-018). Pri chybe sa nič nezmení.
+Import: validácia schémy (typy, rozsahy, povinné polia, neznáme polia sa odmietnu, limit veľkosti 5 MB; N11) → náhľad → nahradenie dát v jednej transakcii (D-018). Pri chybe sa nič nezmení.
 
 ## 5. Výpočty (domain)
 

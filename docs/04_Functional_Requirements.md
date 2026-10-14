@@ -75,7 +75,7 @@ Pre každú transakciu po poslednom vyhodnotení sa počíta pracovný kapitál:
 
 „Po K_L“ znamená transakcie s **dátumom po D_L** (dátum posledného vyhodnotenia), nie podľa času zadania. Transakcia zadaná neskôr s dátumom pred D_L je už v K_L a nepridáva sa znovu (FR-05).
 
-Dopad = ceil(n(K_L)) − ceil(n(K_pred)) v mesiacoch (rovnaké ceil ako pri dátume, aby dopad zodpovedal rozdielu dátumov; K1). Ak |dopad| ≥ 1 mesiac, zobrazí sa v celých mesiacoch (D-014, napr. „predbežne +2 mesiace“). Ak |dopad| < 1 mesiac, zobrazí sa v dňoch (1 mesiac = 30,44 dňa) (napr. „predbežne +4 dni“), aby drobné transakcie (napr. 100 €, cca 0,12 mesiaca) nevyšli ako „bez zmeny“ (M1). Obe n sa počítajú od D_L, takže dopad nezávisí od dnešného dátumu (D-024). Kladné číslo = cieľ bližšie, záporné = ďalej.
+Dopad = n(K_L) − n(K_pred) (surový rozdiel, nie rozdiel zaokrúhlených dátumov; N1). Ak |dopad| ≥ 1 mesiac, zobrazí sa zaokrúhlene na najbližší celý mesiac (D-014, napr. „predbežne +2 mesiace“). Ak |dopad| < 1 mesiac, zobrazí sa v dňoch (1 mesiac = 30,44 dňa) (napr. „predbežne +4 dni“), aby drobné transakcie (napr. 100 €, cca 0,12 mesiaca) nevyšli ako „bez zmeny“ (M1). Obe n sa počítajú od D_L, takže dopad nezávisí od dnešného dátumu (D-024). Kladné číslo = cieľ bližšie, záporné = ďalej.
 - Výsledok sa zobrazí ako krátky text (D-014), napr. „predbežne +2 mesiace“.
 - Ak je dopad 0, zobrazí sa „bez zmeny“.
 - Pracovný kapitál sa **nepremieta do oficiálneho cieľa**, kým sa neurobí vyhodnotenie.
@@ -98,7 +98,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 
 ### FR-07 – Prah výdavkov (D-013)
 - Prah sa uplatní **len na výdavky**; predvolene 100 € (rozsah 100–500 € je odporúčanie; pravidlo podľa cieľa je otvorené, O-8).
-- Výdavok pod prahom sa **uloží** s príznakom „pod prahom“ a zahrnie sa do predbežného dopadu aj do prehľadu spotreby (D-030; ruší D-017 O-2).
+- Výdavok pod prahom sa **uloží** s príznakom „pod prahom“ a zahrnie sa do predbežného dopadu (D-030; ruší D-017 O-2; prehľad spotreby je odložený, D-038).
 - Sporenie a investície sa ukladajú vždy bez ohľadu na sumu.
 
 ### FR-08 – Zdroj úhrady výdavku (D-014)
@@ -151,6 +151,7 @@ Zoznam transakcií od najnovšej, filter podľa typu a obdobia, súčty za obdob
 - Import načíta súbor, overí verziu schémy a zobrazí náhľad (počet transakcií, vyhodnotení, dátum exportu).
 - Import **nahradí** aktuálne dáta až po potvrdení (D-018).
 - Neplatný súbor sa neimportuje a nič sa nezmení.
+- Neznáme polia sa odmietnu (nie ticho ignorujú), overia sa typy, rozsahy a maximálna veľkosť súboru (návrh: 5 MB; N11, S5).
 
 ### FR-19 – Pripomenutie zálohy
 Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná pripomienka v prehľade [predpoklad; D-035: 7 dní kvôli 7-dňovému limitu WebKit pre Safari, H4].
@@ -191,5 +192,5 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 **Otvorené:**
 - **O-7 Klasifikácia spotreby (M7), odložené do fázy 1b (D-038):** pravidelná vs. cielená spotreba; pravidlo a kategórie treba zadať pred implementáciou prehľadu.
 - **O-8 Rozsah prahu podľa cieľa (M8):** 100–500 € je odporúčanie; pravidlo výberu prahu nie je určené.
-- **O-10 Zdroj úhrady výdavku z kapitálu (D-036):** z K_inv, alebo z K_cash? Ovplyvňuje FR-04 a FR-08.
+- **O-10 Zdroj úhrady výdavku z kapitálu (D-036; blokuje M1):** z K_inv, alebo z K_cash? Ovplyvňuje FR-04 a FR-08.
 - **O-9 Zdroj predvolených hodnôt r a miery výberu (M6):** overiť zdrojom a zapísať do Decisions pred M3.
