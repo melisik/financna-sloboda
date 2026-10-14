@@ -5,8 +5,14 @@ describe("pripomienka vyhodnotenia (FR-10)", () => {
   it("v tom istom mesiaci nie je pripomienka", () => {
     expect(reviewOverdue("2026-10-14", "2026-10-30")).toBe(false);
   });
-  it("v ďalšom mesiaci chýba vyhodnotenie", () => {
-    expect(reviewOverdue("2026-10-14", "2026-11-01")).toBe(true);
+  it("vyhodnotenie z 31. 10. nie je v 1. 11. oneskorené (R13)", () => {
+    expect(reviewOverdue("2026-10-31", "2026-11-01")).toBe(false);
+  });
+  it("vyhodnotenie z 14. 10. nie je v 1. 11. oneskorené", () => {
+    expect(reviewOverdue("2026-10-14", "2026-11-01")).toBe(false);
+  });
+  it("v ďalšom mesiaci po predchádzajúcom chýba vyhodnotenie", () => {
+    expect(reviewOverdue("2026-10-14", "2026-12-01")).toBe(true);
   });
   it("bez vyhodnotenia sa nepripomína (rieši sa výzvou, L6)", () => {
     expect(reviewOverdue(null, "2026-11-01")).toBe(false);

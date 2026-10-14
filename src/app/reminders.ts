@@ -6,7 +6,12 @@
 /** Vyhodnotenie za predchádzajúci mesiac chýba (FR-10): posledné je v inom, staršom mesiaci. */
 export function reviewOverdue(lastReviewIso: string | null, todayIso: string): boolean {
   if (!lastReviewIso) return false; // prvé vyhodnotenie sa rieši výzvou v prvom nastavení (L6)
-  return todayIso.slice(0, 7) > lastReviewIso.slice(0, 7);
+  const idx = (iso: string) => {
+    const [y, m] = iso.slice(0, 7).split("-").map(Number);
+    return y * 12 + (m - 1);
+  };
+  // Vyhodnotenie sa robí na konci mesiaca. Posledné vyhodnotenie v predchádzajúcom alebo tomto mesiaci stačí.
+  return idx(todayIso) - idx(lastReviewIso) >= 2;
 }
 
 /** Záloha chýba viac ako 7 dní alebo nikdy (FR-19, D-035). */

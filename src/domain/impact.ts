@@ -35,10 +35,9 @@ function plural(n: number, one: string, few: string, many: string): string {
  */
 export function formatImpact(delta: number): string {
   if (Math.abs(delta) >= 1) {
-    const months = Math.round(delta);
-    if (months === 0) return "bez zmeny";
-    const sign = months > 0 ? "+" : "−";
-    const k = Math.abs(months);
+    const k = Math.round(Math.abs(delta)); // symetricky: −2,5 a +2,5 dajú 3 mesiace
+    if (k === 0) return "bez zmeny";
+    const sign = delta > 0 ? "+" : "−";
     return `predbežne ${sign}${k} ${plural(k, "mesiac", "mesiace", "mesiacov")}`;
   }
   const days = Math.round(Math.abs(delta) * DAYS_PER_MONTH);

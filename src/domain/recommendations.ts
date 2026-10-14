@@ -16,7 +16,5 @@ export function recommendedSettings(expensesCents: number): Settings {
     realReturn: 0.035, // D-050
     reserveCents: recommendedReserveCents(expensesCents), // 3 mesiace výdavkov (D-011)
     thresholdCents: 10_000, // 100 € (D-048)
-    savingInvCents: 0,
-    savingCashCents: 0,
   };
 }

@@ -26,7 +26,8 @@ const sample: AppData = {
   snapshots: [{ id: "s1", date: "2026-09-30", investmentsCents: 10_000_000, cashCents: 2_000_000, createdAt: "2026-09-30T20:00:00Z" }],
 };
 
-const txJson = (data: AppData) => JSON.stringify(buildBackup(data, "2026-10-14T10:00:00Z"));
+// Neplatné fixtúry sú zámerne mimo typu, preto vstup je unknown (buildBackup len obalí dáta).
+const txJson = (data: unknown) => JSON.stringify(buildBackup(data as AppData, "2026-10-14T10:00:00Z"));
 
 describe("CRUD v IndexedDB (FR-16)", () => {
   it("pridá, načíta a zmaže transakciu", async () => {
@@ -84,6 +85,19 @@ describe("záloha: export a import (FR-17, FR-18)", () => {
     const parsed = parseBackup(JSON.parse(txJson(bad)), TODAY);
     expect(parsed.ok).toBe(false);
     expect(!parsed.ok && parsed.errors.join(" ")).toMatch(/budúcnosti/);
+  });
+
+  it("duplicitné id je odmietnuté (R16)", () => {
+    const dup = { ...sample, transactions: [sample.transactions[0], { ...sample.transactions[0], amountCents: 1 }] };
+    const parsed = parseBackup(JSON.parse(txJson(dup)), TODAY);
+    expect(parsed.ok).toBe(false);
+    expect(!parsed.ok && parsed.errors.join(" ")).toMatch(/duplicitné id/);
+  });
+
+  it("zdroj úhrady pri sporení je odmietnutý (R25)", () => {
+    const bad = { ...sample, transactions: [{ ...sample.transactions[0], source: "z_prijmu" }] };
+    const parsed = parseBackup(JSON.parse(txJson(bad)), TODAY);
+    expect(parsed.ok).toBe(false);
   });
 
   it("neznáme pole je odmietnuté", () => {

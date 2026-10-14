@@ -36,6 +36,7 @@ export function validateTransaction(t: unknown, today: string, label = "transakc
   }
   if (o.type === "vydavok" && !SOURCES.includes(o.source as never)) errors.push(`${label}: výdavok vyžaduje zdroj úhrady`);
   if (o.source !== undefined && !SOURCES.includes(o.source as never)) errors.push(`${label}: neznámy zdroj úhrady`);
+  if (o.source !== undefined && o.type !== "vydavok" && o.type !== "investicia") errors.push(`${label}: zdroj úhrady patrí len k výdavku alebo investícii`);
   if (o.note !== undefined && (typeof o.note !== "string" || o.note.length > 200)) errors.push(`${label}: poznámka max 200 znakov`);
   if (typeof o.createdAt !== "string" || typeof o.updatedAt !== "string") errors.push(`${label}: chýba čas vytvorenia alebo úpravy`);
   return errors;
@@ -60,8 +61,11 @@ export function validateSettings(s: unknown, today: string): string[] {
   if (typeof o.expensesCents !== "number" || !Number.isInteger(o.expensesCents) || o.expensesCents <= 0) errors.push("nastavenia: výdavky musia byť kladné celé číslo v centoch");
   if (typeof o.withdrawalRate !== "number" || !(o.withdrawalRate > 0 && o.withdrawalRate <= 1)) errors.push("nastavenia: miera výberu musí byť v (0, 1]");
   if (typeof o.realReturn !== "number" || !(o.realReturn >= 0 && o.realReturn <= 1)) errors.push("nastavenia: výnos r musí byť v [0, 1]");
-  for (const k of ["reserveCents", "thresholdCents", "savingInvCents", "savingCashCents"]) {
+  for (const k of ["reserveCents", "thresholdCents"]) {
     if (!isCents(o[k])) errors.push(`nastavenia: ${k} musí byť celé číslo ≥ 0`);
+  }
+  for (const k of ["savingInvCents", "savingCashCents"]) {
+    if (o[k] !== undefined && !isCents(o[k])) errors.push(`nastavenia: ${k} musí byť celé číslo ≥ 0 alebo prázdne`);
   }
   if (o.lastReviewDate !== undefined) errors.push(...checkDate(o.lastReviewDate, today, "nastavenia: D_L"));
   return errors;
@@ -77,6 +81,10 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
   else o.transactions.forEach((t, i) => errors.push(...validateTransaction(t, today, `transakcia ${i + 1}`)));
   if (!Array.isArray(o.snapshots)) errors.push("záloha: snapshots musí byť pole");
   else o.snapshots.forEach((s, i) => errors.push(...validateSnapshot(s, today, `vyhodnotenie ${i + 1}`)));
+  const ids = (arr: unknown[]) => arr.map((x) => (x as { id?: unknown })?.id);
+  for (const [name, list] of [["transakcie", ids(o.transactions as unknown[])], ["vyhodnotenia", ids(o.snapshots as unknown[])]] as const) {
+    if (new Set(list).size !== list.length) errors.push(`záloha: duplicitné id v ${name}`);
+  }
   if (errors.length) return { ok: false, errors };
   return {
     ok: true,

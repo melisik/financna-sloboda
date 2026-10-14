@@ -32,8 +32,8 @@ export interface Settings {
   realReturn: number; // r, napr. 0.035 (D-050)
   reserveCents: number; // rezerva (D-047)
   thresholdCents: number; // prah výdavkov (D-048)
-  savingInvCents: number; // m_inv
-  savingCashCents: number; // m_cash
+  savingInvCents?: number; // m_inv, prepísané používateľom; bez hodnoty sa použije odvodená (D-031)
+  savingCashCents?: number; // m_cash, rovnako
   lastReviewDate?: string; // D_L
 }
 

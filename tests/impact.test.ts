@@ -23,6 +23,11 @@ describe("impactMonths (FR-04)", () => {
     expect(formatImpact(0)).toBe("bez zmeny");
   });
 
+  it("zaokrúhľovanie je symetrické: ±2,5 mesiaca dá 3 mesiace", () => {
+    expect(formatImpact(2.5)).toBe("predbežne +3 mesiace");
+    expect(formatImpact(-2.5)).toBe("predbežne −3 mesiace");
+  });
+
   it("plurály: 1 mesiac, 2 mesiace, 5 mesiacov", () => {
     expect(formatImpact(1)).toBe("predbežne +1 mesiac");
     expect(formatImpact(-2)).toBe("predbežne −2 mesiace");
