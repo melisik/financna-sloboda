@@ -10,7 +10,7 @@
 | **Miera výberu (p)** | Predvolene 3,7 %, rozsah 3–4 % (D-011, D-049). |
 | **Cieľová suma (T)** | T = V / p. Pri 3,7 % je T ≈ V × 27,03 (D-049), napr. pre V = 24 000 € je T = 648 649 €; pri 4 % je T = V × 25 (D-008). |
 | **Kapitál (K)** | Hodnota investícií + nasporená suma (kumulatívny stav hotovosti, D-033), bez rezervy (D-011, D-017). |
-| **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 3,5 %, rozsah 2–6 % (D-011, D-050). Jeden predpoklad pre investovaný kapitál K_inv; hotovosť K_cash sa nezhodnocuje, 0 % reálne (D-036, upresňuje D-025 a D-032). Počíta sa so všetkými sumami v dnešných cenách. |
+| **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 3,5 %, rozsah 2–6 % (D-011, D-050). Jeden predpoklad pre investovaný kapitál K_inv; hotovosť K_cash sa nezhodnocuje, 0 % reálne (D-036, upresňuje D-025 a D-032). Počíta sa so všetkými sumami v dnešných cenách. Zobrazuje sa aj nominálne (D-063, π = 2 % [predpoklad]); poplatky sa odpočítavajú od r (D-064); pri horizonte nad 20 rokov poznámka (D-065). |
 | **Mesačné sporenie (m)** | Súčet transakcií typu „sporenie“ a „investícia“ za 12 mesiacov, ktoré končia pri D_L, delený počtom mesiacov histórie (najviac 12) (D-031). Používateľ môže zadať vlastnú hodnotu (UR-02). |
 | **Rezerva** | Východisková hodnota 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). Stav = vklady mínus výbery (D-047). Rezerva nie je v K ani hranicou výdavkov: vklad berie z K_cash, výber ju dopĺňa (D-058; upravuje D-045, D-047, D-052). |
 | **Vyhodnotenie (snapshot)** | Mesačný záznam s dátumom, hodnotou investícií a nasporenou sumou; zadáva sa na konci mesiaca (D-014). |
