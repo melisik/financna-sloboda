@@ -65,7 +65,7 @@ Dôsledok [predpoklad]: v prvej fáze netreba viacužívateľskú architektúru 
 - Rozsah odporúčaní [predpoklad, treba potvrdiť]: odporúčania sa týkajú **parametrov cieľa**, nie výberu konkrétnych produktov.
 
 ## Model výpočtu cieľa [user, MVP]
-- MVP: **pravidlo 4 %**: cieľový kapitál = ročné výdavky × 25.
+- MVP: cieľový kapitál = ročné výdavky / miera výberu; predvolená miera výberu je 3,7 % (D-049), čo dáva T = V × 27. Pravidlo 4 % (T = V × 25) zostáva ako historická referencia (D-008).
 - Predpoklady (miera výberu 4 %, ročné výdavky) musia byť v aplikácii viditeľné a upraviteľné.
 - Projekcia podľa výnosu a inflácie je **odložená** na neskôr (zatiaľ príliš zložitá).
 - Známe obmedzenie [predpoklad]: pravidlo 4 % nezohľadňuje inflačný ani výnosový scenár ani dĺžku obdobia; v aplikácii to treba stručne uviesť.
@@ -85,8 +85,8 @@ Odporúčania sa týkajú len parametrov cieľa, nie produktov. Parametre a pred
 | Parameter | Zadáva | Predvolená hodnota | Odporúčaný rozsah | Poznámka pre používateľa |
 |---|---|---|---|---|
 | Ročné výdavky pri nezávislosti | používateľ | zadáva ručne ako odhad (D-013) | – | Základ cieľa. Aplikácia ukáže, koľko z výdavkov je pravidelných a koľko cielená spotreba (odložené do fázy 1b, D-038). |
-| Miera výberu | používateľ | 4 % (D-008) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. Predvolená 4 % ostáva; T je pred daňou a poplatkami (D-043). |
-| Výnos r (reálny, po inflácii, globálny) | používateľ | 4 % | 2 – 6 % | Jeden predpoklad pre celý kapitál (D-032). Rozsah ako opatrný / základný / optimistický; vždy s upozornením, že ide o odhad. Východiskové hodnoty sa overia zdrojom pred M3 (M6). |
+| Miera výberu | používateľ | 3,7 % (D-049) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. Predvolená 4 % ostáva; T je pred daňou a poplatkami (D-043). |
+| Výnos r (reálny, po inflácii, globálny) | používateľ | 3,5 % (D-050) | 2 – 6 % | Jeden predpoklad pre celý kapitál (D-032). Rozsah ako opatrný / základný / optimistický; vždy s upozornením, že ide o odhad. Východiskové hodnoty sa overia zdrojom pred M3 (M6). |
 | Mesačné sporenie (m) | používateľ (odvodené, možno prepísať) | priemer za 12 mesiacov do posledného vyhodnotenia, delený počtom mesiacov histórie (D-031) | – | Spolu s výnosom určuje odhadovaný dátum cieľa. |
 | Rezerva (núdzový fond) | používateľ | 3 mesiace výdavkov | 3 – 6 mesiacov | Odporúča sa mať ju mimo investícií; do cieľa sa nezapočítava. |
 
@@ -111,7 +111,7 @@ Používateľ už investíciu má; produkt s ňou počíta a uvažuje s globáln
 2. Monetizácia.
 3. Klasifikácia výdavkov na pravidelné a cielené (O-7, M7).
 4. Prah výdavkov: pevná predvolená hodnota 100 €, zmena používateľom (vyriešené D-048).
-5. Zdroj predvolených hodnôt r a miery výberu (O-9, M6).
+5. Zdroj predvolených hodnôt r a miery výberu: vyriešené D-049 a D-050 (podklady review/o9-podklady.md).
 
 ## Riziká a upozornenia (Claude) [predpoklad]
 - **Právo/regulácia**: rozhodnutie nevyberať produkty znižuje riziko investičného poradenstva. Pri „odporúčaniach“ pri nastavení cieľa však treba strážiť, aby nešlo o osobné odporúčanie typu „investuj X do Y“. Pred rozšírením do EÚ treba právne posúdenie (MiFID II, GDPR, spotrebiteľské právo, rozdiely medzi krajinami).
@@ -277,10 +277,10 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 | Pojem | Definícia |
 |---|---|
 | **Ročné výdavky (V)** | Odhad celkových ročných výdavkov pri nezávislosti, zadáva používateľ ručne (D-013). |
-| **Miera výberu (p)** | Predvolene 4 %, rozsah 3–4 % (D-011). |
-| **Cieľová suma (T)** | T = V / p. Pri 4 % je T = V × 25 (D-008). |
+| **Miera výberu (p)** | Predvolene 3,7 %, rozsah 3–4 % (D-011, D-049). |
+| **Cieľová suma (T)** | T = V / p. Pri 3,7 % je T = V × 27 (D-049); pri 4 % je T = V × 25 (D-008). |
 | **Kapitál (K)** | Hodnota investícií + nasporená suma (kumulatívny stav hotovosti, D-033), bez rezervy (D-011, D-017). |
-| **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 4 %, rozsah 2–6 % (D-011). Jeden globálny predpoklad pre celý kapitál vrátane hotovosti (D-025, D-032). Počíta sa so všetkými sumami v dnešných cenách. |
+| **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 3,5 %, rozsah 2–6 % (D-011, D-050). Jeden globálny predpoklad pre celý kapitál vrátane hotovosti (D-025, D-032). Počíta sa so všetkými sumami v dnešných cenách. |
 | **Mesačné sporenie (m)** | Súčet transakcií typu „sporenie“ a „investícia“ za 12 mesiacov, ktoré končia pri D_L, delený počtom mesiacov histórie (najviac 12) (D-031). Používateľ môže zadať vlastnú hodnotu (UR-02). |
 | **Rezerva** | Odporúčanie 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). Stav = vklady mínus výbery (D-047); je hranicou pre výdavok z hotovosti (D-045). |
 | **Vyhodnotenie (snapshot)** | Mesačný záznam s dátumom, hodnotou investícií a nasporenou sumou; zadáva sa na konci mesiaca (D-014). |
@@ -325,7 +325,7 @@ Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môž
 - Zostávajúci čas = počet mesiacov od dneška do dátumu cieľa; mení sa s časom, dátum nie. Ak dátum uplynul bez vyhodnotenia, zobrazí sa „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie“, nie záporný čas (FR-10).
 - **Dvojaký kapitál (D-036, D-039, D-041):** K_L = K_inv + K_cash. K_cash sa nezhodnocuje (0 % reálne). Investícia (m_inv) ide do K_inv a zhodnocuje sa; sporenie (m_cash) ide do K_cash bez zhodnotenia (D-041). Ak m_cash > 0, n sa počíta iteráciou po celých mesiacoch a zlomok interpoláciou (D-046). Cieľ je dosiahnutý, keď K_L ≥ T (teda K_inv ≥ T − K_cash). Vzorce vyššie platia s K := K_inv a T := T − K_cash. Ak K_cash ≥ T, cieľ je dosiahnutý. Hradenie výdavkov z K_inv alebo K_cash je otvorené (O-10).
 - **Presun do investícií (D-045):** investícia zadaná so zdrojom „z hotovosti“ presúva sumu z K_cash do K_inv. K sa nemení; mení sa len rozdelenie.
-- Výnos medzi vyhodnoteniami sa na K_L nepripisuje; dátum je tak konzervatívny (D-024). Výnos r je jeden globálny predpoklad 4 % pre celý kapitál vrátane hotovosti, nastavuje ho používateľ (D-025, D-032).
+- Výnos medzi vyhodnoteniami sa na K_L nepripisuje; dátum je tak konzervatívny (D-024). Výnos r je jeden globálny predpoklad (predvolene 3,5 %, D-050) pre celý kapitál vrátane hotovosti, nastavuje ho používateľ (D-025, D-032).
 - Zobrazený dátum cieľa platí k poslednému vyhodnoteniu (D_L): text „dátum platí k poslednému vyhodnoteniu“ (S6).
 - Hranica „viac ako 50 rokov“ sa meria od D_L (D-019 upresnené).
 
@@ -334,7 +334,7 @@ Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môž
 ### FR-03 – Rozsah dátumov (scenáre)
 Tri scenáre sa počítajú rovnakým vzorcom s výnosmi odvodenými od r (D-011, S1):
 - opatrný: r − 2 p. b. (dolná hranica 0 %),
-- základný: r (nastavené, predvolene 4 %),
+- základný: r (nastavené, predvolene 3,5 %, D-050),
 - optimistický: r + 2 p. b. (S1: scenáre sú relatívne k r, nie pevné).
 
 Zobrazí sa ako „od – do“ (UX D-016): najskorší (optimistický) až najneskorší (opatrný) dátum. Základný je vyznačený textom, nie samostatným číslom. Všetky tri dátumy sa počítajú od D_L (D-024).
@@ -466,7 +466,7 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 - **O-8 Rozsah prahu (M8): vyriešené D-048.**
 - **O-11 Výpočet n pri m_cash > 0: vyriešené D-046.**
 - **O-10 Zdroj úhrady výdavku z kapitálu: vyriešené D-045.**
-- **O-9 Zdroj predvolených hodnôt r a miery výberu (M6):** overiť zdrojom a zapísať do Decisions pred M3.
+- **O-9 Zdroj predvolených hodnôt r a miery výberu (M6): vyriešené D-049 a D-050.**
 
 ---
 
@@ -662,7 +662,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 |---|---|---|---|---|
 | **M1 Doménová vrstva** | cieľ, dátumy (scenáre), predbežný dopad, mesačné vyhodnotenie – čisté funkcie | M | všetky GC-01 až GC-14 prejdú (vrátane GC-13 a GC-14 pre stabilitu dátumu, D-024; GC-15 pre K_pred ≥ 0 a GC-16 pre m pri krátkej histórii, D-031; GC-17 až GC-21 pre rozdelený kapitál, rezervu a m_cash > 0, D-036, D-039, D-045, D-046); property testy zelené; overenie NPER | FR-01 až FR-05, FR-07, FR-08 |
 | **M2 Úložisko a záloha** | IndexedDB, CRUD, export a import s validáciou a atomicitou, schéma v1 | M | round trip test zelený; neplatný import nič nezmení | FR-16 až FR-19 |
-| **M3 Nastavenie a transakcie** | prvé nastavenie s odporúčaniami, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy; predvolené hodnoty r a miery výberu majú zdroj zapísaný v Decisions (M6) | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-06, FR-12, FR-13, FR-15 |
+| **M3 Nastavenie a transakcie** | prvé nastavenie s odporúčaniami, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy; predvolené hodnoty r a miery výberu majú zdroj zapísaný v Decisions (M6; D-049, D-050) | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-06, FR-12, FR-13, FR-15 |
 | **M4 Prehľad a vyhodnotenie** | domovská obrazovka s rozsahom dátumov, predbežný dopad, mesačné vyhodnotenie, pripomienka, upozornenie pri vynechaní | M | E2E tok „transakcia → vyhodnotenie → dátum“ prejde | UR-06, UR-11, FR-09, FR-10, FR-11, FR-14, UR-09 |
 | **M5 PWA a offline** | service worker, manifest, ikony, inštalácia na plochu | S | všetky toky offline; sieťový test súkromia zelený | FR-16 |
 | **M6 Dostupnosť a kvalita** | axe-core bez vážnych chýb, čítačky, tmavý režim, zoom 200 % | S | nulové vážne porušenia; checklist čítačiek vyplnený | UX, 07 oddiel 9 |
@@ -998,5 +998,7 @@ Otvorené:
 | D-046 | 2026-10-14 | Keď m_cash > 0, n sa počíta iteráciou po celých mesiacoch: najmenšie k, pre ktoré K_inv(k) + K_cash + m_cash·k ≥ T, kde K_inv(k) = K_inv·(1+i)^k + m_inv·((1+i)^k − 1)/i. Zlomok sa získa lineárnou interpoláciou medzi k−1 a k. Dopad pod mesiac sa zobrazuje v dňoch (interpoláciou), aj pri m_cash = 0. Uzatvára O-11. | Rozhodnutie zakladateľa (O-11: v dňoch, interpoláciou). Postup overený GC-20 a GC-21. |
 | D-047 | 2026-10-14 | Stav rezervy = vklady mínus výbery. Vklad je transakcia typu „rezerva“, výber je transakcia typu „výber z rezervy“. Rezerva nie je v K a nezhodnocuje sa. Hranica pre výdavok z hotovosti (D-045) je tento stav. Upresňuje D-037. | Rozhodnutie zakladateľa (N5). |
 | D-048 | 2026-10-14 | Prah výdavkov (zvýraznenie v prehľade) je pevná predvolená hodnota 100 €, ktorú používateľ zmení v rozsahu 100–500 €. Bez automatického pravidla podľa cieľa alebo V. Prah nevplýva na výpočet cieľa (D-030). Uzatvára O-8. | Rozhodnutie zakladateľa (O-8). |
+| D-049 | 2026-10-14 | Predvolená miera výberu je 3,7 % (rozsah 3–4 %), nie 4 %. Základ: Morningstar 2025, základný prípad USA (prognózy, 90 % pravdepodobnosť 30 rokov). Pri 3,7 % je T = V × 27; pravidlo 4 % (V × 25, D-008) ostáva ako historická referencia. Upresňuje D-008 a D-011. | Rozhodnutie zakladateľa (O-9). Podklady: review/o9-podklady.md. |
+| D-050 | 2026-10-14 | Predvolený reálny výnos r je 3,5 % pred daňou a poplatkami (rozsah 2–6 %). Scenáre: opatrný r − 2 p. b. (1,5 %), základný r (3,5 %), optimistický r + 2 p. b. (5,5 %). Upresňuje D-011 a D-025. | Rozhodnutie zakladateľa (O-9). Podklady: review/o9-podklady.md. |
 
 ---

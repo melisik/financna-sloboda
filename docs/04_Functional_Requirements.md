@@ -196,4 +196,4 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 - **O-8 Rozsah prahu (M8): vyriešené D-048.**
 - **O-11 Výpočet n pri m_cash > 0: vyriešené D-046.**
 - **O-10 Zdroj úhrady výdavku z kapitálu: vyriešené D-045.**
-- **O-9 Zdroj predvolených hodnôt r a miery výberu (M6):** overiť zdrojom a zapísať do Decisions pred M3.
+- **O-9 Zdroj predvolených hodnôt r a miery výberu (M6): vyriešené D-049 a D-050.**

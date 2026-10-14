@@ -79,7 +79,7 @@ Používateľ už investíciu má; produkt s ňou počíta a uvažuje s globáln
 2. Monetizácia.
 3. Klasifikácia výdavkov na pravidelné a cielené (O-7, M7).
 4. Prah výdavkov: pevná predvolená hodnota 100 €, zmena používateľom (vyriešené D-048).
-5. Zdroj predvolených hodnôt r a miery výberu (O-9, M6).
+5. Zdroj predvolených hodnôt r a miery výberu: vyriešené D-049 a D-050 (podklady review/o9-podklady.md).
 
 ## Riziká a upozornenia (Claude) [predpoklad]
 - **Právo/regulácia**: rozhodnutie nevyberať produkty znižuje riziko investičného poradenstva. Pri „odporúčaniach“ pri nastavení cieľa však treba strážiť, aby nešlo o osobné odporúčanie typu „investuj X do Y“. Pred rozšírením do EÚ treba právne posúdenie (MiFID II, GDPR, spotrebiteľské právo, rozdiely medzi krajinami).
