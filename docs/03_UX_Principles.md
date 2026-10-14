@@ -13,7 +13,7 @@
 ### 2. Informácia, nie tlak
 - Predbežný dopad transakcie sa ukáže ako krátky text, **bez farieb a upozornení** (D-014), napr. „predbežne +2 mesiace“.
 - Žiadne červené/zelené hodnotenie rozhodnutí ako „dobré“ alebo „zlé“. Aplikácia nehodnotí používateľa. [predpoklad]
-- Žiadne notifikácie okrem jednej jemnej pripomienky mesačného vyhodnotenia, ktorú používateľ môže vypnúť (D-016). [predpoklad]
+- Žiadne systémové notifikácie okrem jednej jemnej pripomienky mesačného vyhodnotenia, ktorú používateľ môže vypnúť (D-016, D-027). Upozornenia v aplikácii (banner po zálohe, FR-19; pri vynechanom vyhodnotení, FR-10) sú výnimka podľa D-027. [predpoklad]
 - Jazyk je pokojný a vecný; žiadne vyčítavé ani pretlačajúce formulácie („Mal si…“, „Už len X dní!“). [predpoklad]
 
 ### 3. Transparentnosť a poctivosť

@@ -47,7 +47,7 @@ Jeden spoločný „balík“ troch oblastí:
 3. cielená (vedomá) spotreba.
 
 Kľúčové vlastnosti:
-- **Dynamický cieľ**: cieľ dosiahnutia finančnej slobody (suma a/alebo dátum) sa prepočíta po každom čiastkovom rozhodnutí.
+- **Dynamický cieľ**: cieľ dosiahnutia finančnej slobody (suma a/alebo dátum) sa prepočíta pri každom mesačnom vyhodnotení (D-014). Po každom čiastkovom rozhodnutí sa ukáže len predbežný dopad (D-024, D-029).
 - **Záznam rozhodnutí**: každé čiastkové rozhodnutie (sporenie, investícia, výdavok) sa zaznamená.
 
 ## Hlavná myšlienka (zhrnutie) [predpoklad]
@@ -215,7 +215,7 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 ### 2. Informácia, nie tlak
 - Predbežný dopad transakcie sa ukáže ako krátky text, **bez farieb a upozornení** (D-014), napr. „predbežne +2 mesiace“.
 - Žiadne červené/zelené hodnotenie rozhodnutí ako „dobré“ alebo „zlé“. Aplikácia nehodnotí používateľa. [predpoklad]
-- Žiadne notifikácie okrem jednej jemnej pripomienky mesačného vyhodnotenia, ktorú používateľ môže vypnúť (D-016). [predpoklad]
+- Žiadne systémové notifikácie okrem jednej jemnej pripomienky mesačného vyhodnotenia, ktorú používateľ môže vypnúť (D-016, D-027). Upozornenia v aplikácii (banner po zálohe, FR-19; pri vynechanom vyhodnotení, FR-10) sú výnimka podľa D-027. [predpoklad]
 - Jazyk je pokojný a vecný; žiadne vyčítavé ani pretlačajúce formulácie („Mal si…“, „Už len X dní!“). [predpoklad]
 
 ### 3. Transparentnosť a poctivosť
@@ -596,7 +596,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 
 ## 11. Otvorené otázky
 1. **Hosting:** GitHub Pages stačí, alebo iný? (rozhodne sa pred prvým nasadením)
-2. **Šifrovanie dát v kľude:** odložiť na fázu 2 (navrhované), alebo doplniť heslo už v MVP?
+2. **Šifrovanie dát v kľude:** rozhodnuté (D-026): v MVP nie je, rieši sa pred Fázou 2.
 3. **Názov a doména:** pracovný názov sa zmení (D-002); nasadenie zatiaľ bez vlastnej domény.
 4. **Riziko iOS Safari:** dáta môžu byť po dlhšom nepoužívaní vymazané, ak appka nie je na ploche (07 oddiel 6). Potvrdiť odporúčanie pridať na plochu.
 
@@ -630,7 +630,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 
 **Čo ešte chýba:**
 - externá revízia dokumentov (Claude ako reviewer, podľa `CLAUDE.md`),
-- rozhodnutie o hostingu a šifrovaní v MVP. O-6 je uzavretý (D-021).
+- rozhodnutie o hostingu. Šifrovanie v MVP je rozhodnuté (D-026: nie). O-6 je uzavretý (D-021).
 
 **Výstupná brána:** pripomienky z revízie sú zapracované a rozhodnutia zapísané v `Decisions.md`.
 
@@ -650,6 +650,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 
 **Hlavné riziká fázy 1:**
 - **Dáta na iOS Safari** môžu byť vymazané po dlhšom nepoužívaní [predpoklad, overiť]. Mitigácia: odporúčanie pridať na plochu, pripomienka zálohy.
+- **Právne riziko rozsahov v MVP:** rozsahy výnosu (2–6 %) a výberu (3–4 %) sa zobrazujú už vo Fáze 1, kým právne posúdenie je brána pre Fázu 2 (D-028). Prijaté zakladateľom; mitigácia: viditeľné predpoklady a upozornenie, že ide o odhad, nie o radu.
 - **Chyba vo vzorci** by viedla k zlému rozhodnutiu. Mitigácia: GC testy, NPER overenie, property testy.
 - **Pretiahnutý rozsah** („všetko v jednom“, D-003). Mitigácia: MVP je presne to, čo je v milníkoch; čokoľvek navyše ide do backlogu.
 - **Motivácia a kapacita** pri osobnom projekte. Mitigácia: malé milníky s jasným koncom.
@@ -707,7 +708,6 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 
 | Kedy | Rozhodnutie | Kto |
 |---|---|---|
-| pred M2 | šifrovanie dát v MVP (áno/nie) | zakladateľ |
 | pred M5 | hosting (GitHub Pages, alebo iný) | zakladateľ |
 | pred M3 | odporúčanie pridať appku na plochu v prvom nastavení | zakladateľ |
 | pred fázou 2 | monetizácia, právne posúdenie, účty a šifrovanie | zakladateľ, právnik |
@@ -919,5 +919,9 @@ Otvorené:
 | D-023 | 2026-10-14 | Vetvenie: dokumenty a rozhodnutia ostávajú priamo na `main`; kód (M1 a ďalšie milníky) ide na samostatnú vetvu a na `main` sa zlúči až po zelených testoch. | Rozhodnutie zakladateľa. |
 | D-024 | 2026-10-14 | Referenčný dátum cieľa: dátum cieľa sa počíta od dátumu posledného vyhodnotenia (D_L), nie od dneška. Mení sa len pri novom vyhodnotení; zostávajúci čas sa počíta od dneška. Ak dátum uplynie bez vyhodnotenia, zobrazí sa „Dátum vypršal, urobte vyhodnotenie“ a dátum sa nepreposúva. Výnos medzi vyhodnoteniami sa na K_L nepripisuje (dátum je konzervatívny). | Potvrdené zakladateľom (revízia, nález 1). Upresňuje FR-02, FR-03, FR-04, FR-10, FR-12, FR-14 a D-014. |
 | D-025 | 2026-10-14 | Výnos r (predvolene 4 %) sa uplatňuje na celý kapitál K vrátane nasporenej sumy; sadzbu si nastavuje klient sám. Samostatná sadzba pre hotovosť v MVP nie je; zjednodušenie je viditeľné ako predpoklad (UR-09). | Potvrdené zakladateľom (revízia, nález 4): „pracujme so 4 %, toto si klient nastaví sám“. |
+| D-026 | 2026-10-14 | Šifrovanie dát v kľude v MVP nie je. Dáta sú chránené sandboxom prehliadača a zámkom zariadenia; export pripomína citlivosť údajov (FR-17). Šifrovanie sa rieši pred Fázou 2 (účty a synchronizácia). | Rozhodnutie zakladateľa (revízia, nález 4); uzatvára otvorenú otázku z 05 §11 a 06 §9. |
+| D-027 | 2026-10-14 | Notifikácie: systémová notifikácia je najviac jedna mesačná pripomienka (UX princíp 2). Upozornenia v aplikácii (banner po zálohe podľa FR-19 a pri vynechanom vyhodnotení podľa FR-10) nie sú systémové notifikácie a sú výnimkou z tohto pravidla. | Rozhodnutie zakladateľa (revízia, nález 9). |
+| D-028 | 2026-10-14 | Právne posúdenie zostáva bránou pre Fázu 2. Rozsahy výnosu (2–6 %) a výberu (3–4 %) sa zobrazujú už v MVP a riziko je zapísané v 06 §4. | Rozhodnutie zakladateľa (revízia, nález 13): riziko prijaté, posúdenie sa nepresúva. |
+| D-029 | 2026-10-14 | Vízia: dynamický cieľ sa prepočíta pri každom mesačnom vyhodnotení (D-014); po každom rozhodnutí sa ukazuje len predbežný dopad (D-024). Upresňuje D-004 a text vízie. | Rozhodnutie zakladateľa (revízia, nález 3). |
 
 ---

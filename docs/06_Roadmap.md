@@ -24,7 +24,7 @@
 
 **Čo ešte chýba:**
 - externá revízia dokumentov (Claude ako reviewer, podľa `CLAUDE.md`),
-- rozhodnutie o hostingu a šifrovaní v MVP. O-6 je uzavretý (D-021).
+- rozhodnutie o hostingu. Šifrovanie v MVP je rozhodnuté (D-026: nie). O-6 je uzavretý (D-021).
 
 **Výstupná brána:** pripomienky z revízie sú zapracované a rozhodnutia zapísané v `Decisions.md`.
 
@@ -44,6 +44,7 @@
 
 **Hlavné riziká fázy 1:**
 - **Dáta na iOS Safari** môžu byť vymazané po dlhšom nepoužívaní [predpoklad, overiť]. Mitigácia: odporúčanie pridať na plochu, pripomienka zálohy.
+- **Právne riziko rozsahov v MVP:** rozsahy výnosu (2–6 %) a výberu (3–4 %) sa zobrazujú už vo Fáze 1, kým právne posúdenie je brána pre Fázu 2 (D-028). Prijaté zakladateľom; mitigácia: viditeľné predpoklady a upozornenie, že ide o odhad, nie o radu.
 - **Chyba vo vzorci** by viedla k zlému rozhodnutiu. Mitigácia: GC testy, NPER overenie, property testy.
 - **Pretiahnutý rozsah** („všetko v jednom“, D-003). Mitigácia: MVP je presne to, čo je v milníkoch; čokoľvek navyše ide do backlogu.
 - **Motivácia a kapacita** pri osobnom projekte. Mitigácia: malé milníky s jasným koncom.
@@ -101,7 +102,6 @@
 
 | Kedy | Rozhodnutie | Kto |
 |---|---|---|
-| pred M2 | šifrovanie dát v MVP (áno/nie) | zakladateľ |
 | pred M5 | hosting (GitHub Pages, alebo iný) | zakladateľ |
 | pred M3 | odporúčanie pridať appku na plochu v prvom nastavení | zakladateľ |
 | pred fázou 2 | monetizácia, právne posúdenie, účty a šifrovanie | zakladateľ, právnik |

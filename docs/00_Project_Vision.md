@@ -15,7 +15,7 @@ Jeden spoločný „balík“ troch oblastí:
 3. cielená (vedomá) spotreba.
 
 Kľúčové vlastnosti:
-- **Dynamický cieľ**: cieľ dosiahnutia finančnej slobody (suma a/alebo dátum) sa prepočíta po každom čiastkovom rozhodnutí.
+- **Dynamický cieľ**: cieľ dosiahnutia finančnej slobody (suma a/alebo dátum) sa prepočíta pri každom mesačnom vyhodnotení (D-014). Po každom čiastkovom rozhodnutí sa ukáže len predbežný dopad (D-024, D-029).
 - **Záznam rozhodnutí**: každé čiastkové rozhodnutie (sporenie, investícia, výdavok) sa zaznamená.
 
 ## Hlavná myšlienka (zhrnutie) [predpoklad]
