@@ -32,7 +32,7 @@ Neprepisuj dokumenty celé. Uveď konkrétne miesta. Nerozhoduj za zakladateľa.
 
 # 00 – Vízia projektu
 
-> Stav: koncept, verzia 0.11 (2026-10-14).
+> Stav: koncept, verzia 0.12 (2026-10-14).
 
 ## Pracovný názov
 Finančná sloboda (pracovný, zmení sa)
@@ -85,7 +85,7 @@ Odporúčania sa týkajú len parametrov cieľa, nie produktov. Parametre a pred
 | Parameter | Zadáva | Predvolená hodnota | Odporúčaný rozsah | Poznámka pre používateľa |
 |---|---|---|---|---|
 | Ročné výdavky pri nezávislosti | používateľ | zadáva ručne ako odhad (D-013) | – | Základ cieľa. Aplikácia ukáže, koľko z výdavkov je pravidelných a koľko cielená spotreba (odložené do fázy 1b, D-038). |
-| Miera výberu | používateľ | 3,7 % (D-049) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. Predvolená 4 % ostáva; T je pred daňou a poplatkami (D-043). |
+| Miera výberu | používateľ | 3,7 % (D-049, D-051) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. Predvolená 3,7 % (D-051); T je pred daňou a poplatkami (D-043, D-049). |
 | Výnos r (reálny, po inflácii, globálny) | používateľ | 3,5 % (D-050) | 2 – 6 % | Jeden predpoklad pre celý kapitál (D-032). Rozsah ako opatrný / základný / optimistický; vždy s upozornením, že ide o odhad. Východiskové hodnoty sa overia zdrojom pred M3 (M6). |
 | Mesačné sporenie (m) | používateľ (odvodené, možno prepísať) | priemer za 12 mesiacov do posledného vyhodnotenia, delený počtom mesiacov histórie (D-031) | – | Spolu s výnosom určuje odhadovaný dátum cieľa. |
 | Rezerva (núdzový fond) | používateľ | 3 mesiace výdavkov | 3 – 6 mesiacov | Odporúča sa mať ju mimo investícií; do cieľa sa nezapočítava. |
@@ -146,7 +146,7 @@ Zatiaľ nedefinované. Definujeme po overení MVP na vlastnom použití. Treba p
 
 # 02 – Požiadavky používateľa
 
-> Stav: v0.7 (2026-10-14), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
+> Stav: v0.8 (2026-10-14), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
 
 ## Používateľské príbehy (MVP)
 
@@ -163,7 +163,7 @@ Zatiaľ nedefinované. Definujeme po overení MVP na vlastnom použití. Treba p
 | UR-12 | Ako používateľ pri zadaní výdavku zvolím zdroj úhrady (z príjmu – predvolené / z kapitálu). | D-014 |
 | UR-07 | Ako používateľ vidím históriu všetkých transakcií (záznam rozhodnutí). | D-004 |
 | UR-08 | Ako používateľ môžem dáta exportovať a importovať (záloha). | D-009 |
-| UR-09 | Ako používateľ vidím predpoklady a obmedzenia výpočtu (pravidlo 4 %, bez daní a poplatkov; hotovosť má 0 % reálne – predpoklad, D-036). | D-008 |
+| UR-09 | Ako používateľ vidím predpoklady a obmedzenia výpočtu (pravidlo 4 %, predvolene miera výberu 3,7 % (D-051), bez daní a poplatkov; hotovosť má 0 % reálne – predpoklad, D-036). | D-008 |
 
 ## Nefunkčné požiadavky (MVP) [predpoklad]
 - **Mobile-first:** plne použiteľné na telefóne.
@@ -474,7 +474,7 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 
 # 05 – Technická architektúra (MVP)
 
-> Stav: v0.5 (2026-10-14). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.6 (2026-10-14). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Prehľad
 Statická single-page aplikácia (PWA) bez servera. Všetky dáta a výpočty bežia v prehliadači na zariadení.
@@ -628,7 +628,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 
 # 06 – Roadmapa
 
-> Stav: v0.2 (2026-10-14). Veľkosti milníkov sú relatívne (S / M / L), nie dátumy. Kapacita: hodiny denne (potvrdené zakladateľom); presný odhad trvania doplníme po M1 podľa skutočného tempa. **[predpoklad]** = návrh Claude.
+> Stav: v0.3 (2026-10-14). Veľkosti milníkov sú relatívne (S / M / L), nie dátumy. Kapacita: hodiny denne (potvrdené zakladateľom); presný odhad trvania doplníme po M1 podľa skutočného tempa. **[predpoklad]** = návrh Claude.
 
 ## 1. Princípy plánovania
 - **Poradie fáz:** najprv hodnota pre zakladateľa, potom EÚ, potom mobil a integrácie (D-005, zadanie).
@@ -727,6 +727,12 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 - daňové výpočty (mimo MVP, D-008 a 04 oddiel 6);
 - odporúčanie konkrétnych produktov (vylúčené, D-007).
 
+**Odložené nápady (bez rozhodnutia, nie sú v rozsahu MVP; zapísané 2026-10-14):**
+- **Platba všetkých daní (napr. z príjmu, z predaja investícií):** mimo MVP (D-008, 04 oddiel 6). Platba dane je regulovaná; vyžaduje právne posúdenie pred fázou 2. Možný menší variant: len pripomienka termínu bez výpočtu dane.
+- **API do banky na pravidelné transakcie:** v rozpore s D-009 a FR-16 (žiadne volania na externé API v MVP). Patrí do fázy 3, viazané na PSD2 (oddiel 7). Prvý krok je import CSV výpisu (oddiel 7, bod 2).
+- **Pravidelné platby ako pripomienky:** nový typ údajov (plán opakovaných platieb) a zmena výpočtu dopadu (FR-04). Nie je to drobnosť; treba samostatný návrh a rozhodnutie.
+- **Automatický presun hotovosti pred platbou:** aplikácia nepresúva peniaze sama (presun ostáva manuálny, D-046). Možný variant je pripomienka „pred splatnosťou zváž presun X €“, ktorá kontroluje rezervu (D-052) a nie je odporúčaním na kúpu alebo predaj.
+
 ## 9. Rozhodnutia potrebné pred ďalšími krokmi
 
 | Kedy | Rozhodnutie | Kto |
@@ -752,7 +758,7 @@ Zodpovedané: kapacita (hodiny denne) a zariadenie (iPhone 16, iOS 26.6.2, viď 
 
 # 07 – Testovacia stratégia (MVP)
 
-> Stav: v0.6 (2026-10-14). Pokrýva `04_Functional_Requirements` (FR), `03_UX_Principles` (UX) a `05_Technical_Architecture`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.8 (2026-10-14). Oddiely 2–4 opisujú skutočné a cieľové pokrytie (R18).
 
 ## 1. Priority testovania
 Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu váhu než chyba v ostatných:
@@ -768,16 +774,23 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 
 ## 2. Úrovne testov
 1. **Jednotkové (Vitest)** – čisté funkcie v `domain/` (FR-01 až FR-05, FR-07, FR-08). Cieľ: všetky vetvy výpočtov pokryté [predpoklad].
-2. **Property-based (fast-check)** – invarianty z oddielu 4.
+2. **Property-based (fast-check)** – invarianty z oddielu 4. **Stav (2026-10-14): nie je zavedené** (fast-check nie je v závislostiach); invarianty sú zatiaľ len špecifikácia.
 3. **Porovnávacie** – uzavretý vzorec vs. mesačná simulácia (oddiel 3; simulácia zatiaľ nie je spustená, doplní sa v M1).
 4. **Úložisko (Vitest + fake-indexeddb)** – CRUD, migrácie, import/export, atomicita.
-5. **Komponentové (React Testing Library)** – formuláre, validácie, texty predbežného dopadu, pripomienky, prázdne stavy.
+5. **Komponentové (React Testing Library)** – **stav (2026-10-14): nie je zavedené**; formuláre a texty sa zatiaľ overujú len cez Playwright E2E.
 6. **End-to-end (Playwright)** – kľúčové toky z `03_UX` (prvé nastavenie, týždenné zadanie, mesačné vyhodnotenie, záloha), na mobilných viewportoch, aj offline.
-7. **Dostupnosť** – axe-core na každej obrazovke v komponentových aj E2E testoch; manuálne čítačky (oddiel 9).
+7. **Dostupnosť** – axe-core **stav (2026-10-14): nie je zavedené**; zatiaľ len atribúty aria-label pri poliach a manuálne čítačky (oddiel 9).
 8. **Súkromie a bezpečnosť** – sieťové testy, npm audit, CSP (oddiel 7).
 9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
 
-**Pokrytie požiadaviek bez výpočtovej GC (doplnené po revízii):**
+**Stav automatizovaných testov (2026-10-14, R18):** tabuľka nižšie je *cieľové* pokrytie. Dnes automatizované sú:
+- jednotkové testy (Vitest, 63 testov): GC-01, GC-02, GC-03, GC-04, GC-08, GC-11, GC-13, GC-15 až GC-21 (ID v názvoch testov); FR-01, FR-02, FR-04, FR-05, FR-13, FR-14, FR-15, FR-16 (manifest a offline cez E2E), FR-17, FR-18, FR-19, FR-09, FR-10 (pripomienky a história v čistých funkciách a v E2E);
+- úložisko (CRUD, validácia, atomicita importu, duplicitné id): FR-17, FR-18;
+- E2E (Playwright, desktop a mobil 390): záloha, úprava a vrátenie, offline režim.
+
+Neautomatizované (zatiaľ len cieľ): GC-05, GC-06, GC-07, GC-09, GC-10, GC-12, GC-14, GC-22; komponentové testy FR-06, FR-11, FR-12, FR-13 (vizuálne odlíšenie), FR-14 (rozsah), FR-07, D-030, M2 (dátum v budúcnosti v UI); axe-core a čítačky. Pri neautomatizovanej položke sa testovanie robí ručne.
+
+**Pokrytie požiadaviek bez výpočtovej GC (cieľ, doplnené po revízii):**
 
 | Požiadavka | Test | Typ |
 |---|---|---|
@@ -798,7 +811,7 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 | FR-12 prvé nastavenie | bez vyhodnotenia sa zobrazí výzva „urobte prvé vyhodnotenie“, nie dátum | komponentový, E2E |
 | Stav „Nezadané“ | chýbajúci údaj sa zobrazí ako „Nezadané“, nie ako nula | komponentový |
 | D-037 rezerva | sporenie do rezervy sa nezapočíta do m ani do K; zobrazí sa ako stav rezervy | jednotkový |
-| UR-09 Predpoklady | na obrazovke výpočtu sú viditeľné pravidlo 4 %, reálny výnos a upozornenie bez daní a poplatkov | komponentový |
+| UR-09 Predpoklady | na obrazovke výpočtu sú viditeľné pravidlo 4 % a predvolená miera 3,7 % (D-051), reálny výnos a upozornenie bez daní a poplatkov | komponentový |
 
 ## 3. Zlaté prípady (golden cases)
 Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overené tabuľkovou funkciou NPER (viď nižšie). Mesačná simulácia a overenie ostatných prípadov nie sú zatiaľ spustené; doplnia sa v M1. Prípady budú uložené v `tests/golden/goal-cases.json` a každý bude mať odkaz na požiadavku.
@@ -825,14 +838,18 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-18 | D_L = 2026-10-14, K_inv = 90 000, K_cash = 5 000, m = 500 (investícia, m_inv), r = 4 %, T = 100 000 | T′ = T − K_cash = 95 000; n ≈ 6,24 → **7 mesiacov** (dátum D_L + 7 mesiacov) | FR-02, D-036, D-039 |
 | GC-19 | V = 24 000 €, K_cash = 20 000 €, rezerva = 3 × 2 000 = 6 000 €, výdavok 15 000 € z hotovosti | zostatok 5 000 € < rezerva 6 000 € → upozornenie a ponuka „z investícií“; výdavok z investícií je povolený | FR-08, D-045 |
 | GC-20 | K_inv = 100 000, K_cash = 0, m_inv = 0, m_cash = 500, r = 4 %, T = 600 000 | n ≈ 417,42 → **418 mesiacov** (iterácia po celých mesiacoch, D-046); pri m_cash = 0 je uzavretý tvar 333,92 | D-046 |
-| GC-21 | ako GC-20, ale K_cash = 100 € navyše | dopad = 417,42 − 417,36 ≈ **0,06 mesiaca ≈ 1,7 dňa** (interpolácia); zobrazí sa v dňoch | FR-04, D-046 |
+| GC-21 | ako GC-20, ale K_cash = 100 € navyše | dopad = 417,42 − 417,36 ≈ **0,06 mesiaca ≈ 1,8 dňa** (interpolácia); zobrazí sa v dňoch | FR-04, D-046 |
 | GC-22 | vklad do rezervy 6 000 €, potom výber z rezervy 1 000 € | stav rezervy = 6 000 − 1 000 = **5 000 €** (vklady mínus výbery); K sa nemení | D-047 |
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
 
+**Stav:** GC-03, GC-04, GC-08, GC-11, GC-13, GC-15 až GC-21 sú označené v jednotkových testoch; GC-05, GC-06, GC-07, GC-09, GC-10, GC-12, GC-14 a GC-22 zatiaľ nemajú označený test. Súbor `tests/golden/goal-cases.json` zatiaľ neexistuje.
+
 **Tolerancia:** porovnávame celé mesiace po `ceil(n − 1e-6)`; interné hodnoty n sa porovnávajú s presnosťou 1e-6.
 
 ## 4. Invarianty (property-based testy)
+**Stav (2026-10-14): nie sú implementované** (pozri oddiel 2, bod 2). Nižšie je špecifikácia.
+
 Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10], T ∈ [1 000; 10 000 000]):
 - **Hraničná podmienka:** pre n = `monthsToTarget(...)` platí K_uzavretý(⌈n − 1e-6⌉ − 1) < T ≤ K_uzavretý(⌈n − 1e-6⌉), kde K_uzavretý(k) = K·(1+i)^k + m·((1+i)^k − 1)/i je kapitál po k mesiacoch (D-024) pre i > 0; pre i = 0 (r = 0) je K_uzavretý(k) = K + m·k. Property test pokrýva r = 0 samostatne (K2). Toto je presnejšie než porovnanie so simuláciou a zachytí chybu v zaokrúhľovaní.
 - **Nezápornosť:** K_pred ≥ 0 pre ľubovoľnú postupnosť výdavkov z kapitálu po D_L (H2).
@@ -992,7 +1009,7 @@ Otvorené:
 | D-040 | 2026-10-14 | História pre m sa počíta od prvej transakcie. Okno 12 mesiacov končí pri D_L (D-031). | Rozhodnutie zakladateľa (revízia, V7). |
 | D-041 | 2026-10-14 | Typ transakcie určuje kapitál: sporenie → K_cash (bez zhodnotenia), investícia → K_inv (zhodnocuje sa r). m_cash a m_inv sa počítajú osobitne. Upresňuje D-039. | Rozhodnutie zakladateľa (opätovná recenzia N2). |
 | D-042 | 2026-10-14 | Pridanie appky na plochu je na iPhone **povinné** (nie odporúčané). Ruší odporúčanie v D-034 a D-035 v časti o povinnosti. | Rozhodnutie zakladateľa (opätovná recenzia N3). |
-| D-043 | 2026-10-14 | Predvolená miera výberu zostáva 4 % aj pri skorom odchode, s upozornením, že pri dlhom horizonte je 3–3,5 % konzervatívnejšie. T je pred daňou a poplatkami. | Rozhodnutie zakladateľa (opätovná recenzia N8, V6). |
+| D-043 (nahradené D-051) | 2026-10-14 | Predvolená miera výberu zostáva 4 % aj pri skorom odchode, s upozornením, že pri dlhom horizonte je 3–3,5 % konzervatívnejšie. T je pred daňou a poplatkami. | Rozhodnutie zakladateľa (opätovná recenzia N8, V6). |
 | D-044 | 2026-10-14 | Referenčný dátum D_L je vyhodnotenie s najneskorším dátumom vyhodnotenia, nie čas zápisu. Spätné vyhodnotenie s dátumom pred D_L nezmení D_L. | Rozhodnutie zakladateľa (opätovná recenzia N9). |
 | D-045 | 2026-10-14 | Zdroj úhrady: výdavok z hotovosti (K_cash) sa smie znížiť najviac na rezervu (3 mesiace výdavkov, D-011); presah sa upozorní a ponúkne sa zdroj „z investícií“ (K_inv). Presun hotovosti do investícií (doinvestovanie) nie je výdavok: K sa nemení, K_cash klesne a K_inv vzrastie o rovnakú sumu, len ak hotovosť zostane nad rezervou. Uzatvára O-10. | Rozhodnutie zakladateľa (zadanie: reinvestovanie z K_inv, doinvestovanie z K_cash nad kritickú hranicu; hranica = rezerva). |
 | D-046 | 2026-10-14 | Keď m_cash > 0, n sa počíta iteráciou po celých mesiacoch: najmenšie k, pre ktoré K_inv(k) + K_cash + m_cash·k ≥ T, kde K_inv(k) = K_inv·(1+i)^k + m_inv·((1+i)^k − 1)/i. Zlomok sa získa lineárnou interpoláciou medzi k−1 a k. Dopad pod mesiac sa zobrazuje v dňoch (interpoláciou), aj pri m_cash = 0. Uzatvára O-11. | Rozhodnutie zakladateľa (O-11: v dňoch, interpoláciou). Postup overený GC-20 a GC-21. |
@@ -1000,5 +1017,12 @@ Otvorené:
 | D-048 | 2026-10-14 | Prah výdavkov (zvýraznenie v prehľade) je pevná predvolená hodnota 100 €, ktorú používateľ zmení v rozsahu 100–500 €. Bez automatického pravidla podľa cieľa alebo V. Prah nevplýva na výpočet cieľa (D-030). Uzatvára O-8. | Rozhodnutie zakladateľa (O-8). |
 | D-049 | 2026-10-14 | Predvolená miera výberu je 3,7 % (rozsah 3–4 %), nie 4 %. Základ: Morningstar 2025, základný prípad USA (prognózy, 90 % pravdepodobnosť 30 rokov). Pri 3,7 % je T = V × 27; pravidlo 4 % (V × 25, D-008) ostáva ako historická referencia. Upresňuje D-008 a D-011. | Rozhodnutie zakladateľa (O-9). Podklady: review/o9-podklady.md. |
 | D-050 | 2026-10-14 | Predvolený reálny výnos r je 3,5 % pred daňou a poplatkami (rozsah 2–6 %). Scenáre: opatrný r − 2 p. b. (1,5 %), základný r (3,5 %), optimistický r + 2 p. b. (5,5 %). Upresňuje D-011 a D-025. | Rozhodnutie zakladateľa (O-9). Podklady: review/o9-podklady.md. |
+| D-051 | 2026-10-14 | Predvolená miera výberu je 3,7 % (D-049). D-043 (4 %) je nahradené; dokumenty sa zjednotia. | Rozhodnutie zakladateľa (revízia R8). |
+| D-052 | 2026-10-14 | Limit výdavku z hotovosti je stav rezervy (vklady mínus výbery, D-047), nie cieľová rezerva z nastavení. | Rozhodnutie zakladateľa (revízia R6). |
+| D-053 | 2026-10-14 | Na iPhone je pridanie appky na plochu povinná výzva pri prvom otvorení v Safari (ruší odporúčanie v D-034 a D-042 ako nepovinné). | Rozhodnutie zakladateľa (revízia R9). |
+| D-054 | 2026-10-14 | Mazanie transakcie je okamžité; stačí vrátenie späť na 8 sekúnd, bez potvrdenia. | Rozhodnutie zakladateľa (revízia R19). |
+| D-055 | 2026-10-14 | Vyhodnotenie s dátumom, ktorý už existuje, sa prepíše len po potvrdení; história sa zachová (FR-05). | Rozhodnutie zakladateľa (revízia R9, FR-05). |
+| D-056 | 2026-10-14 | Na verejný Pages sa nasadzuje len vetva main. Vetvy na testovanie len spúšťajú testy vrátane E2E. | Rozhodnutie zakladateľa (revízia R10). |
+| D-057 | 2026-10-14 | Pri prvom spustení sú polia prázdne, odporúčané hodnoty sa zobrazia ako výzva pod poľom, nepredvyplnia sa. | Rozhodnutie zakladateľa (revízia R11). |
 
 ---
