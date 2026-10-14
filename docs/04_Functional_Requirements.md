@@ -50,7 +50,7 @@ Výpočet v reálnych hodnotách, mesačné sporenie na konci mesiaca, mesačná
 - Ak `K·i + m = 0` (teda K = 0 a m = 0, alebo r = 0 a m = 0): kapitál nerastie, cieľ nie je dosiahnuteľný; zobrazí sa text „Bez sporenia a výnosu sa cieľ nedosiahne“ (bez dátumu). Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môže byť veľmi vzdialený (viď O-5).
 - Dátum cieľa = D_L + `ceil(n − 1e-6)` mesiacov (ε chráni pred chybou pohyblivej desatinnej čiarky, GC-10) (orezané na posledný deň cieľového mesiaca), zobrazený ako mesiac a rok (D-024). Počíta sa z K = K_L a m, takže sa mení len pri novom vyhodnotení, nie s plynutím času.
 - Zostávajúci čas = počet mesiacov od dneška do dátumu cieľa; mení sa s časom, dátum nie. Ak dátum uplynul bez vyhodnotenia, zobrazí sa „Dátum vypršal, urobte vyhodnotenie“, nie záporný čas (FR-10).
-- Výnos medzi vyhodnoteniami sa na K_L nepripisuje. Dátum je tak konzervatívny; skutočné K môže byť medzitým vyššie. Pripisovanie by dátum posúvalo automaticky, čo je v rozpore s D-014 a FR-10. Výnos r je jeden predvolený predpoklad 4 % na celý kapitál vrátane hotovosti; klient si ho nastavuje sám (D-025).
+- Výnos medzi vyhodnoteniami sa na K_L nepripisuje. Dátum je tak konzervatívny; skutočné K môže byť medzitým vyššie. Pripisovanie by dátum posúvalo automaticky, čo je v rozpore s D-014 a FR-10. Výnos r je jeden predvolený predpoklad 4 % na celý kapitál vrátane hotovosti; používateľ si ho nastavuje sám (D-025).
 
 **Overený príklad [predpoklad, na kontrolu]:** V = 24 000 €, K = 100 000 €, m = 500 €, r = 4 %. Dostaneme T = 600 000 €, i ≈ 0,3274 %, n ≈ 334 mesiacov (≈ 27 rokov 10 mesiacov).
 

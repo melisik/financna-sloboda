@@ -25,6 +25,18 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 8. **Súkromie a bezpečnosť** – sieťové testy, npm audit, CSP (oddiel 7).
 9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
 
+**Pokrytie požiadaviek bez výpočtovej GC (doplnené po revízii):**
+
+| Požiadavka | Test | Typ |
+|---|---|---|
+| FR-06 Formát | zobrazenie sumy v celých eurách, mesiace celé čísla, dátum slovensky („marec 2038“) | jednotkový |
+| FR-11 Pripomienka | pripomienka na konci mesiaca bez vyhodnotenia; vypnutie v nastaveniach; systémová notifikácia len po povolení | komponentový |
+| FR-13 Odporúčania | odporúčanie je označené odlišne od vlastnej hodnoty; vrátenie odporúčanej hodnoty jedným úkonom | komponentový |
+| FR-14 Prehľad | cieľ, dátum ako rozsah od D_L, zostávajúci čas, predbežný dopad, dátum posledného vyhodnotenia | komponentový, E2E |
+| FR-15 História | zoradenie od najnovšej, filter podľa typu a obdobia, súčty za obdobie | komponentový |
+| FR-19 Pripomenutie zálohy | banner po 30 dňoch bez exportu alebo ak sa nikdy neexportovalo; zmizne po exporte | komponentový |
+| UR-09 Predpoklady | na obrazovke výpočtu sú viditeľné pravidlo 4 %, reálny výnos a upozornenie bez daní a poplatkov | komponentový |
+
 ## 3. Zlaté prípady (golden cases)
 Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overené tabuľkovou funkciou NPER (viď nižšie). Mesačná simulácia a overenie ostatných prípadov nie sú zatiaľ spustené; doplnia sa v M1. Prípady budú uložené v `tests/golden/goal-cases.json` a každý bude mať odkaz na požiadavku.
 

@@ -117,7 +117,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 
 ## 7. Bezpečnosť a súkromie
 - Žiadne dáta odchádzajú zo zariadenia; žiadne analytické ani chybové nástroje tretích strán v MVP [predpoklad].
-- **Šifrovanie v kľude:** v MVP nie je. Dáta sú v prehliadači chránené len sandboxom prehliadača a zámkom zariadenia. Riziko: iný človek s prístupom k odomknutému zariadeniu alebo k exportu. Pripomenie sa to v exporte (FR-17). Na zvážení pred fázou 2 [predpoklad].
+- **Šifrovanie v kľude:** v MVP nie je. Dáta sú v prehliadači chránené len sandboxom prehliadača a zámkom zariadenia. Riziko: iný človek s prístupom k odomknutému zariadeniu alebo k exportu. Pripomenie sa to v exporte (FR-17). Rozhodnuté v D-026: v MVP sa nerieši, rieši sa pred fázou 2.
 - Export obsahuje citlivé údaje: žiadne automatické odosielanie, žiadne ukladanie do verejných priečinkov.
 - Závislosti: minimum, pravidelný audit (npm audit) [predpoklad].
 - Content Security Policy bez inline skriptov (ochrana pred injekciou), ak to nasadenie podporuje.

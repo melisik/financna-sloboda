@@ -7,7 +7,7 @@ Dátum: 2026-10-14. Verzie dokumentov sú v hlavičkách jednotlivých častí. 
 Si nezávislý reviewer dokumentácie produktu. Nie si jej autor. Prečítaj všetky dokumenty nižšie a nájdi:
 
 1. **Nekonzistentnosti** medzi dokumentmi a voči záznamom v `Decisions.md` (iná hodnota, iný vzorec, odkaz na zrušené rozhodnutie, chýbajúci odkaz).
-2. **Chyby vo výpočtoch.** Over vzorec vo `04` (FR-02) a príklady v `04` a `07` (GC-01 až GC-12). Overiť možno tabuľkovou funkciou `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`.
+2. **Chyby vo výpočtoch.** Over vzorec vo `04` (FR-02) a príklady v `04` a `07` (GC-01 až GC-14). Overiť možno tabuľkovou funkciou `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`.
 3. **Medzery:** požiadavky bez testu, rozhodnutia bez milníka, chýbajúce stavy (prázdny stav, chyba, hranica).
 4. **Riziká:** právne a regulačné (investičné poradenstvo, GDPR, PSD2), bezpečnosť a súkromie, kognitívna záťaž a tón (UX princípy), technický dlh, škálovateľnosť.
 5. **Nejasné formulácie,** ktoré by mohli viesť k rôznej implementácii.
@@ -317,7 +317,7 @@ Výpočet v reálnych hodnotách, mesačné sporenie na konci mesiaca, mesačná
 - Ak `K·i + m = 0` (teda K = 0 a m = 0, alebo r = 0 a m = 0): kapitál nerastie, cieľ nie je dosiahnuteľný; zobrazí sa text „Bez sporenia a výnosu sa cieľ nedosiahne“ (bez dátumu). Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môže byť veľmi vzdialený (viď O-5).
 - Dátum cieľa = D_L + `ceil(n − 1e-6)` mesiacov (ε chráni pred chybou pohyblivej desatinnej čiarky, GC-10) (orezané na posledný deň cieľového mesiaca), zobrazený ako mesiac a rok (D-024). Počíta sa z K = K_L a m, takže sa mení len pri novom vyhodnotení, nie s plynutím času.
 - Zostávajúci čas = počet mesiacov od dneška do dátumu cieľa; mení sa s časom, dátum nie. Ak dátum uplynul bez vyhodnotenia, zobrazí sa „Dátum vypršal, urobte vyhodnotenie“, nie záporný čas (FR-10).
-- Výnos medzi vyhodnoteniami sa na K_L nepripisuje. Dátum je tak konzervatívny; skutočné K môže byť medzitým vyššie. Pripisovanie by dátum posúvalo automaticky, čo je v rozpore s D-014 a FR-10. Výnos r je jeden predvolený predpoklad 4 % na celý kapitál vrátane hotovosti; klient si ho nastavuje sám (D-025).
+- Výnos medzi vyhodnoteniami sa na K_L nepripisuje. Dátum je tak konzervatívny; skutočné K môže byť medzitým vyššie. Pripisovanie by dátum posúvalo automaticky, čo je v rozpore s D-014 a FR-10. Výnos r je jeden predvolený predpoklad 4 % na celý kapitál vrátane hotovosti; používateľ si ho nastavuje sám (D-025).
 
 **Overený príklad [predpoklad, na kontrolu]:** V = 24 000 €, K = 100 000 €, m = 500 €, r = 4 %. Dostaneme T = 600 000 €, i ≈ 0,3274 %, n ≈ 334 mesiacov (≈ 27 rokov 10 mesiacov).
 
@@ -569,7 +569,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 
 ## 7. Bezpečnosť a súkromie
 - Žiadne dáta odchádzajú zo zariadenia; žiadne analytické ani chybové nástroje tretích strán v MVP [predpoklad].
-- **Šifrovanie v kľude:** v MVP nie je. Dáta sú v prehliadači chránené len sandboxom prehliadača a zámkom zariadenia. Riziko: iný človek s prístupom k odomknutému zariadeniu alebo k exportu. Pripomenie sa to v exporte (FR-17). Na zvážení pred fázou 2 [predpoklad].
+- **Šifrovanie v kľude:** v MVP nie je. Dáta sú v prehliadači chránené len sandboxom prehliadača a zámkom zariadenia. Riziko: iný človek s prístupom k odomknutému zariadeniu alebo k exportu. Pripomenie sa to v exporte (FR-17). Rozhodnuté v D-026: v MVP sa nerieši, rieši sa pred fázou 2.
 - Export obsahuje citlivé údaje: žiadne automatické odosielanie, žiadne ukladanie do verejných priečinkov.
 - Závislosti: minimum, pravidelný audit (npm audit) [predpoklad].
 - Content Security Policy bez inline skriptov (ochrana pred injekciou), ak to nasadenie podporuje.
@@ -638,10 +638,10 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 
 | Milník | Obsah | Veľkosť | Výstupné kritérium | Požiadavky |
 |---|---|---|---|---|
-| **M1 Doménová vrstva** | cieľ, dátumy (scenáre), predbežný dopad, mesačné vyhodnotenie – čisté funkcie | M | všetky GC-01 až GC-12 prejdú; property testy zelené; overenie NPER | FR-01 až FR-05, FR-07, FR-08 |
+| **M1 Doménová vrstva** | cieľ, dátumy (scenáre), predbežný dopad, mesačné vyhodnotenie – čisté funkcie | M | všetky GC-01 až GC-14 prejdú (vrátane GC-13 a GC-14 pre stabilitu dátumu, D-024); property testy zelené; overenie NPER | FR-01 až FR-05, FR-07, FR-08 |
 | **M2 Úložisko a záloha** | IndexedDB, CRUD, export a import s validáciou a atomicitou, schéma v1 | M | round trip test zelený; neplatný import nič nezmení | FR-16 až FR-19 |
-| **M3 Nastavenie a transakcie** | prvé nastavenie s odporúčaniami, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-12, FR-13, FR-15 |
-| **M4 Prehľad a vyhodnotenie** | domovská obrazovka s rozsahom dátumov, predbežný dopad, mesačné vyhodnotenie, pripomienka, upozornenie pri vynechaní | M | E2E tok „transakcia → vyhodnotenie → dátum“ prejde | UR-06, UR-11, FR-09, FR-10, FR-11, FR-14 |
+| **M3 Nastavenie a transakcie** | prvé nastavenie s odporúčaniami, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-06, FR-12, FR-13, FR-15 |
+| **M4 Prehľad a vyhodnotenie** | domovská obrazovka s rozsahom dátumov, predbežný dopad, mesačné vyhodnotenie, pripomienka, upozornenie pri vynechaní | M | E2E tok „transakcia → vyhodnotenie → dátum“ prejde | UR-06, UR-11, FR-09, FR-10, FR-11, FR-14, UR-09 |
 | **M5 PWA a offline** | service worker, manifest, ikony, inštalácia na plochu | S | všetky toky offline; sieťový test súkromia zelený | FR-16, UX princíp 6 |
 | **M6 Dostupnosť a kvalita** | axe-core bez vážnych chýb, čítačky, tmavý režim, zoom 200 % | S | nulové vážne porušenia; checklist čítačiek vyplnený | UX, 07 oddiel 9 |
 | **M7 Vydanie 0.1 pre seba** | nasadenie na HTTPS, návod v appke, prvá ručná záloha | S | nasadené; export a import fungujú na reálnom telefóne | Definícia hotového (07 oddiel 13) |
@@ -753,6 +753,18 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 7. **Dostupnosť** – axe-core na každej obrazovke v komponentových aj E2E testoch; manuálne čítačky (oddiel 9).
 8. **Súkromie a bezpečnosť** – sieťové testy, npm audit, CSP (oddiel 7).
 9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
+
+**Pokrytie požiadaviek bez výpočtovej GC (doplnené po revízii):**
+
+| Požiadavka | Test | Typ |
+|---|---|---|
+| FR-06 Formát | zobrazenie sumy v celých eurách, mesiace celé čísla, dátum slovensky („marec 2038“) | jednotkový |
+| FR-11 Pripomienka | pripomienka na konci mesiaca bez vyhodnotenia; vypnutie v nastaveniach; systémová notifikácia len po povolení | komponentový |
+| FR-13 Odporúčania | odporúčanie je označené odlišne od vlastnej hodnoty; vrátenie odporúčanej hodnoty jedným úkonom | komponentový |
+| FR-14 Prehľad | cieľ, dátum ako rozsah od D_L, zostávajúci čas, predbežný dopad, dátum posledného vyhodnotenia | komponentový, E2E |
+| FR-15 História | zoradenie od najnovšej, filter podľa typu a obdobia, súčty za obdobie | komponentový |
+| FR-19 Pripomenutie zálohy | banner po 30 dňoch bez exportu alebo ak sa nikdy neexportovalo; zmizne po exporte | komponentový |
+| UR-09 Predpoklady | na obrazovke výpočtu sú viditeľné pravidlo 4 %, reálny výnos a upozornenie bez daní a poplatkov | komponentový |
 
 ## 3. Zlaté prípady (golden cases)
 Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overené tabuľkovou funkciou NPER (viď nižšie). Mesačná simulácia a overenie ostatných prípadov nie sú zatiaľ spustené; doplnia sa v M1. Prípady budú uložené v `tests/golden/goal-cases.json` a každý bude mať odkaz na požiadavku.
@@ -918,7 +930,7 @@ Otvorené:
 | D-022 | 2026-10-14 | Poradie: najprv externá revízia dokumentov (balík `review/review-package-2026-10-14.md`), až potom M1 (doménová vrstva). | Rozhodnutie zakladateľa; revízia môže zmeniť vzorce alebo GC prípady, ktoré by M1 inak natvrdo zakódoval. |
 | D-023 | 2026-10-14 | Vetvenie: dokumenty a rozhodnutia ostávajú priamo na `main`; kód (M1 a ďalšie milníky) ide na samostatnú vetvu a na `main` sa zlúči až po zelených testoch. | Rozhodnutie zakladateľa. |
 | D-024 | 2026-10-14 | Referenčný dátum cieľa: dátum cieľa sa počíta od dátumu posledného vyhodnotenia (D_L), nie od dneška. Mení sa len pri novom vyhodnotení; zostávajúci čas sa počíta od dneška. Ak dátum uplynie bez vyhodnotenia, zobrazí sa „Dátum vypršal, urobte vyhodnotenie“ a dátum sa nepreposúva. Výnos medzi vyhodnoteniami sa na K_L nepripisuje (dátum je konzervatívny). | Potvrdené zakladateľom (revízia, nález 1). Upresňuje FR-02, FR-03, FR-04, FR-10, FR-12, FR-14 a D-014. |
-| D-025 | 2026-10-14 | Výnos r (predvolene 4 %) sa uplatňuje na celý kapitál K vrátane nasporenej sumy; sadzbu si nastavuje klient sám. Samostatná sadzba pre hotovosť v MVP nie je; zjednodušenie je viditeľné ako predpoklad (UR-09). | Potvrdené zakladateľom (revízia, nález 4): „pracujme so 4 %, toto si klient nastaví sám“. |
+| D-025 | 2026-10-14 | Výnos r (predvolene 4 %) sa uplatňuje na celý kapitál K vrátane nasporenej sumy; sadzbu si nastavuje používateľ sám. Samostatná sadzba pre hotovosť v MVP nie je; zjednodušenie je viditeľné ako predpoklad (UR-09). | Potvrdené zakladateľom (revízia, nález 4): „pracujme so 4 %, toto si používateľ nastaví sám“. |
 | D-026 | 2026-10-14 | Šifrovanie dát v kľude v MVP nie je. Dáta sú chránené sandboxom prehliadača a zámkom zariadenia; export pripomína citlivosť údajov (FR-17). Šifrovanie sa rieši pred Fázou 2 (účty a synchronizácia). | Rozhodnutie zakladateľa (revízia, nález 4); uzatvára otvorenú otázku z 05 §11 a 06 §9. |
 | D-027 | 2026-10-14 | Notifikácie: systémová notifikácia je najviac jedna mesačná pripomienka (UX princíp 2). Upozornenia v aplikácii (banner po zálohe podľa FR-19 a pri vynechanom vyhodnotení podľa FR-10) nie sú systémové notifikácie a sú výnimkou z tohto pravidla. | Rozhodnutie zakladateľa (revízia, nález 9). |
 | D-028 | 2026-10-14 | Právne posúdenie zostáva bránou pre Fázu 2. Rozsahy výnosu (2–6 %) a výberu (3–4 %) sa zobrazujú už v MVP a riziko je zapísané v 06 §4. | Rozhodnutie zakladateľa (revízia, nález 13): riziko prijaté, posúdenie sa nepresúva. |

@@ -32,10 +32,10 @@
 
 | Milník | Obsah | Veľkosť | Výstupné kritérium | Požiadavky |
 |---|---|---|---|---|
-| **M1 Doménová vrstva** | cieľ, dátumy (scenáre), predbežný dopad, mesačné vyhodnotenie – čisté funkcie | M | všetky GC-01 až GC-12 prejdú; property testy zelené; overenie NPER | FR-01 až FR-05, FR-07, FR-08 |
+| **M1 Doménová vrstva** | cieľ, dátumy (scenáre), predbežný dopad, mesačné vyhodnotenie – čisté funkcie | M | všetky GC-01 až GC-14 prejdú (vrátane GC-13 a GC-14 pre stabilitu dátumu, D-024); property testy zelené; overenie NPER | FR-01 až FR-05, FR-07, FR-08 |
 | **M2 Úložisko a záloha** | IndexedDB, CRUD, export a import s validáciou a atomicitou, schéma v1 | M | round trip test zelený; neplatný import nič nezmení | FR-16 až FR-19 |
-| **M3 Nastavenie a transakcie** | prvé nastavenie s odporúčaniami, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-12, FR-13, FR-15 |
-| **M4 Prehľad a vyhodnotenie** | domovská obrazovka s rozsahom dátumov, predbežný dopad, mesačné vyhodnotenie, pripomienka, upozornenie pri vynechaní | M | E2E tok „transakcia → vyhodnotenie → dátum“ prejde | UR-06, UR-11, FR-09, FR-10, FR-11, FR-14 |
+| **M3 Nastavenie a transakcie** | prvé nastavenie s odporúčaniami, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-06, FR-12, FR-13, FR-15 |
+| **M4 Prehľad a vyhodnotenie** | domovská obrazovka s rozsahom dátumov, predbežný dopad, mesačné vyhodnotenie, pripomienka, upozornenie pri vynechaní | M | E2E tok „transakcia → vyhodnotenie → dátum“ prejde | UR-06, UR-11, FR-09, FR-10, FR-11, FR-14, UR-09 |
 | **M5 PWA a offline** | service worker, manifest, ikony, inštalácia na plochu | S | všetky toky offline; sieťový test súkromia zelený | FR-16, UX princíp 6 |
 | **M6 Dostupnosť a kvalita** | axe-core bez vážnych chýb, čítačky, tmavý režim, zoom 200 % | S | nulové vážne porušenia; checklist čítačiek vyplnený | UX, 07 oddiel 9 |
 | **M7 Vydanie 0.1 pre seba** | nasadenie na HTTPS, návod v appke, prvá ručná záloha | S | nasadené; export a import fungujú na reálnom telefóne | Definícia hotového (07 oddiel 13) |
