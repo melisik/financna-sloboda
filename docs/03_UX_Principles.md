@@ -42,7 +42,7 @@
 - Cielená spotreba je legitímna súčasť plánu, nie „chyba“ (D-004, D-014). [predpoklad]
 
 ## Kľúčové toky (náčrt, bez návrhu obrazoviek)
-1. **Prvé nastavenie:** cieľ (UR-01, UR-10) → investícia (UR-03) → prah (UR-05). Odporúčania a predvolené hodnoty pri každom kroku.
+1. **Prvé nastavenie:** cieľ (UR-01, UR-10) → investícia (UR-03) → prah (UR-05) → prvé vyhodnotenie. Odporúčania a predvolené hodnoty pri každom kroku. Odporúčaný krok: pridať appku na plochu (D-034). Kým nie je prvé vyhodnotenie, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6).
 2. **Týždenné zadanie:** otvoriť → pridať transakciu → vidieť predbežný dopad → hotovo.
 3. **Mesačné vyhodnotenie (koniec mesiaca):** zadať hodnotu investícií a sporenie → vidieť prepočítaný cieľ a dátum ako rozsah.
 4. **Prehľad:** história transakcií (UR-07) a aktuálny stav cieľa.

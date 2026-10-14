@@ -62,9 +62,9 @@ tests/             jednotkové testy domain/ a storage/
 ### Úložisko (IndexedDB, databáza `financna-sloboda`, verzia 1)
 | Store | Kľúč | Indexy | Obsah |
 |---|---|---|---|
-| `transactions` | `id` (UUID) | `date`, `type` | dátum, typ (sporenie / investícia / výdavok), suma (cent), zdroj úhrady, poznámka, `createdAt`, `updatedAt` |
-| `snapshots` | `id` (UUID) | `date` | dátum vyhodnotenia, hodnota investícií (cent), nasporená suma (cent), `createdAt` |
-| `settings` | `key` (jediný záznam `"current"`) | – | V, p, r, rezerva (mesiace), prah výdavkov, a pre každý parameter príznak „zmenený používateľom“ (UR-02) |
+| `transactions` | `id` (UUID) | `date`, `type` | dátum, typ (sporenie / investícia / výdavok), suma (cent), zdroj úhrady, príznak pod prahom (D-030), poznámka, `createdAt`, `updatedAt` |
+| `snapshots` | `id` (UUID) | `date` | dátum vyhodnotenia (nesmie byť v budúcnosti, M2), hodnota investícií (cent), nasporená suma = kumulatívny stav hotovosti (cent, D-033), `createdAt` |
+| `settings` | `key` (jediný záznam `"current"`) | – | V, p, r, rezerva (mesiace), prah výdavkov, m (odvodené; voliteľné prepísanie), a pre každý parameter príznak „zmenený používateľom“ (UR-02) |
 | `meta` | `key` | – | `schemaVersion`, `lastExportAt` (FR-19) |
 
 - **Sumy ukladáme ako celé centy** (integer), nie ako float. Zamedzí chybám zaokrúhľovania.
@@ -91,10 +91,10 @@ Import: validácia schémy (typy, rozsahy, povinné polia) → náhľad → nahr
 - `targetAmount(V, p) → T` (FR-01).
 - `monthsToTarget(K, m, r, T) → n | null` podľa vzorca z FR-02 (`null` = nedosiahnuteľné, viď D-019).
 - `dateEstimates(K, m, T, {r_optimistic, r_base, r_cautious}) → {from, base, to}` (FR-03).
-- `pendingImpact(snapshot, transactionsAfter, settings) → {K_pred, deltaMonths}` (FR-04, FR-08).
-- `monthlySaving(transactions, today) → m` (súčet sporenia a investícií za 12 mesiacov ÷ 12, D-017).
+- `pendingImpact(snapshot, transactionsAfter, settings) → {K_pred, deltaMonths | deltaDays}` (K_pred = max(0, …) podľa FR-04, H2; dopad v dňoch pod 1 mesiac podľa FR-04).
+- `monthlySaving(transactions, D_L) → m` (sporenie + investície za 12 mesiacov do D_L, delené počtom mesiacov histórie, najviac 12; D-031).
 - `lastReviewDate(snapshots) → D_L` (dátum najnovšieho snapshotu; bez snapshotu `null`, D-024).
-- `targetDate(D_L, n) → date` (D_L + ceil(n) mesiacov, orezané na posledný deň mesiaca; D-024). Počíta sa z K_L, takže sa mení len pri novom vyhodnotení.
+- `targetDate(D_L, n) → date` (D_L + ceil(n − 1e-6) mesiacov, orezané na posledný deň mesiaca; D-024). Počíta sa z K_L, takže sa mení len pri novom vyhodnotení.
 - `monthsLeft(today, targetDate) → mesiace | null` (zostávajúci čas od dneška; záporná hodnota = dátum uplynul, zobrazí sa „Dátum vypršal, urobte vyhodnotenie“; D-024).
 
 Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6)` mesiacov od D_L (D-024), nie od dnešného dňa.
@@ -146,4 +146,4 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 1. **Hosting:** GitHub Pages stačí, alebo iný? (rozhodne sa pred prvým nasadením)
 2. **Šifrovanie dát v kľude:** rozhodnuté (D-026): v MVP nie je, rieši sa pred Fázou 2.
 3. **Názov a doména:** pracovný názov sa zmení (D-002); nasadenie zatiaľ bez vlastnej domény.
-4. **Riziko iOS Safari:** dáta môžu byť po dlhšom nepoužívaní vymazané, ak appka nie je na ploche (07 oddiel 6). Potvrdiť odporúčanie pridať na plochu.
+4. **Riziko iOS Safari:** dáta môžu byť vymazané po neaktivite, ak appka nie je na ploche. Rozhodnuté (D-034): plocha je odporúčaná, nie povinná. Overenie na reálnom iPhone pred M2 (07 §6).

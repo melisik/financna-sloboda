@@ -8,7 +8,7 @@
 |----|--------|-------|
 | UR-01 | Ako používateľ si nastavím cieľ (ročné výdavky, miera výberu, výnos, mesačné sporenie, rezerva) s odporúčanými predvolenými hodnotami. | D-008, D-011 |
 | UR-02 | Ako používateľ vidím, ktorá hodnota je odporúčanie a ktorá moja vlastná, a môžem ju zmeniť. | D-011 |
-| UR-03 | Ako používateľ zadám existujúcu investíciu: aktuálnu hodnotu a predpokladaný ročný výnos. | D-010 |
+| UR-03 | Ako používateľ zadám existujúcu investíciu: aktuálnu hodnotu. Výnos je jeden globálny predpoklad pre celý kapitál, ktorý si nastavím. | D-010, D-032 |
 | UR-04 | Ako používateľ zadám transakciu (sporenie, investícia, výdavok) – rýchlo, na telefóne. | D-006, persona 1 |
 | UR-10 | Ako používateľ zadám ročné výdavky v dôchodku ručne ako odhad. | D-013 |
 | UR-05 | Ako používateľ nastavím prahovú sumu pre evidenciu výdavkov (predvolene 100 €). | [user], D-013 |
@@ -43,7 +43,7 @@ Potvrdené zakladateľom:
 1. Pri zadaní výdavku používateľ zvolí **zdroj úhrady**: „z príjmu“ (predvolené, kapitál sa nemení) alebo „z kapitálu“ (znižuje kapitál).
 2. Kapitál sa **oficiálne prepočítava raz mesačne** pri „mesačnom vyhodnotení“: používateľ zadá aktuálnu hodnotu investícií a nasporenú sumu. Tým sa kapitál zosúladí so skutočnosťou (opraví aj chyby a rozdiely z trhu) a odhadovaný dátum cieľa sa potom bere z tohto stavu.
 3. Medzi mesačnými vyhodnoteniami aplikácia po každej transakcii ukáže len **predbežný dopad** (napr. „predbežne +2 mesiace“) ako krátky text bez farieb a upozornení; pri vyhodnotení sa nahradí skutočným stavom.
-4. Mesačné vyhodnotenie sa robí na **konci mesiaca**. Kapitál = aktuálna hodnota investícií + nasporená suma, zadáva používateľ.
+4. Mesačné vyhodnotenie sa robí na **konci mesiaca**. Kapitál = aktuálna hodnota investícií + nasporená suma, zadáva používateľ. „Nasporená suma“ je kumulatívny stav hotovosti, nie prírastok (D-033).
 
 Dôsledok pre D-004: oficiálny prepočet cieľa je mesačný, po transakcii je viditeľný len predbežný dopad (D-014 upresňuje D-004).
 

@@ -17,7 +17,7 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 ## 2. Úrovne testov
 1. **Jednotkové (Vitest)** – čisté funkcie v `domain/` (FR-01 až FR-05, FR-07, FR-08). Cieľ: všetky vetvy výpočtov pokryté [predpoklad].
 2. **Property-based (fast-check)** – invarianty z oddielu 4.
-3. **Porovnávacie** – uzavretý vzorec vs. mesačná simulácia (oddiel 3).
+3. **Porovnávacie** – uzavretý vzorec vs. mesačná simulácia (oddiel 3; simulácia zatiaľ nie je spustená, doplní sa v M1).
 4. **Úložisko (Vitest + fake-indexeddb)** – CRUD, migrácie, import/export, atomicita.
 5. **Komponentové (React Testing Library)** – formuláre, validácie, texty predbežného dopadu, pripomienky, prázdne stavy.
 6. **End-to-end (Playwright)** – kľúčové toky z `03_UX` (prvé nastavenie, týždenné zadanie, mesačné vyhodnotenie, záloha), na mobilných viewportoch, aj offline.
@@ -34,7 +34,10 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 | FR-13 Odporúčania | odporúčanie je označené odlišne od vlastnej hodnoty; vrátenie odporúčanej hodnoty jedným úkonom | komponentový |
 | FR-14 Prehľad | cieľ, dátum ako rozsah od D_L, zostávajúci čas, predbežný dopad, dátum posledného vyhodnotenia | komponentový, E2E |
 | FR-15 História | zoradenie od najnovšej, filter podľa typu a obdobia, súčty za obdobie | komponentový |
-| FR-19 Pripomenutie zálohy | banner po 30 dňoch bez exportu alebo ak sa nikdy neexportovalo; zmizne po exporte | komponentový |
+| FR-19 Pripomenutie zálohy | banner po 14 dňoch bez exportu alebo ak sa nikdy neexportovalo; zmizne po exporte | komponentový |
+| D-030 výdavok pod prahom | uložený s príznakom, zahrnutý do predbežného dopadu a prehľadu spotreby | jednotkový, komponentový |
+| FR-04 zobrazenie pod 1 mesiac | dopad 100 € (≈ 0,12 mesiaca) sa zobrazí v dňoch, nie ako „bez zmeny“ | jednotkový |
+| M2 dátum vyhodnotenia | dátum v budúcnosti sa odmietne; predvolená hodnota je min(koniec mesiaca; dnes) | jednotkový, komponentový |
 | UR-09 Predpoklady | na obrazovke výpočtu sú viditeľné pravidlo 4 %, reálny výnos a upozornenie bez daní a poplatkov | komponentový |
 
 ## 3. Zlaté prípady (golden cases)
@@ -54,8 +57,10 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-10 | K = 100 000, T = 600 000, m = 500, r = 0 % | n = (T − K) / m = **1 000** (presne celé číslo; `ceil(n − 1e-6)` musí dať 1 000, nie 1 001) | FR-02 |
 | GC-11 | K_L ≥ T | cieľ dosiahnutý, dátum = D_L (dátum posledného vyhodnotenia) | FR-02, D-024 |
 | GC-12 | K = 100 000, m = 500, r = 4 %, T = 2 000 000 | n ≈ 655,4 → **656 mesiacov** (≈ 54,6 roka); zobrazí sa „viac ako 50 rokov“ | FR-02, D-019 |
-| GC-13 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2026-12-14 (bez nového vyhodnotenia) | dátum cieľa **nezmenený** = 2054-08-14 (n = 334 od D_L); zostávajúci čas = **332 mesiacov** | FR-02, D-024 |
+| GC-13 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2026-12-14 (bez nového vyhodnotenia) | dátum cieľa **nezmenený**: august 2054 (interne 2054-08-14 = D_L + 334 mesiacov); zostávajúci čas = **332 mesiacov** | D-024, FR-02 |
 | GC-14 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2055-01-01 (po dátume cieľa) | „Dátum vypršal, urobte vyhodnotenie“; žiadny záporný čas; dátum sa nemení | FR-10, D-024 |
+| GC-15 | K_L = 100 000, m = 500, r = 4 %, T = 600 000; po D_L dva výdavky z kapitálu po 60 000 € | K_pred = max(0; −20 000) = **0**; dopad = n(K_L) − n(0) = 334 − 488 = **−154 mesiacov**; text „kapitál by bol vyčerpaný“, žiadny záporný kapitál | FR-04, FR-08, H2 |
+| GC-16 | sporenie 500 € v každom z troch mesiacov pred D_L, žiadne staršie transakcie | m = 1 500 / 3 = **500** (nie 125; D-031) | D-031 |
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
 
@@ -63,7 +68,8 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 
 ## 4. Invarianty (property-based testy)
 Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10], T ∈ [1 000; 10 000 000]):
-- **Hraničná podmienka:** pre n = `monthsToTarget(...)` platí K_uzavretý(⌊n⌋) < T ≤ K_uzavretý(⌈n⌉). Toto je presnejšie než porovnanie so simuláciou a zachytí chybu v zaokrúhľovaní.
+- **Hraničná podmienka:** pre n = `monthsToTarget(...)` platí K_uzavretý(⌈n − 1e-6⌉ − 1) < T ≤ K_uzavretý(⌈n − 1e-6⌉), kde K_uzavretý(k) = K·(1+i)^k + m·((1+i)^k − 1)/i je kapitál po k mesiacoch (D-024). Toto je presnejšie než porovnanie so simuláciou a zachytí chybu v zaokrúhľovaní.
+- **Nezápornosť:** K_pred ≥ 0 pre ľubovoľnú postupnosť výdavkov z kapitálu po D_L (H2).
 - **Monotónnosť:** n nerastie so zvyšovaním K, m alebo r; n nerastie s klesaním T.
 - **Predbežný dopad:**
   - bez transakcií po poslednom vyhodnotení je dopad 0;
@@ -107,7 +113,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 |---|---|---|
 | Android Chrome, emulácia viewportu 412 × 915 | automatizované E2E | každý PR |
 | iOS Safari, emulácia viewportu 390 × 844 | automatizované E2E (WebKit) | každý PR |
-| Reálny iPhone 16 (iOS 26.6.2) | manuálny checklist: dotyky, inštalácia na plochu, offline, Safari úložisko | pred každým vydaním |
+| Reálny iPhone 16 (iOS 26.6.2) | manuálny checklist: plocha a neaktivita (IndexedDB po 14 dňoch bez použitia), dotyky, offline, Safari úložisko | pred M2 a pred každým vydaním |
 | Reálny Android (zariadenie k dispozícii; model a verzia systému sa doplnia) | manuálny checklist: dotyky, inštalácia na plochu, offline | pred každým vydaním |
 | Desktop Chrome, Firefox, Safari | základné toky | pred vydaním |
 | Viewporty 360, 390, 768, 1280 px | bez horizontálneho scrollu, čitateľnosť | každý PR |
@@ -167,4 +173,4 @@ Zodpovedané:
 - **O-6 (D-021):** výdavok z kapitálu väčší než kapitál sa rieši upozornením a ponukou zmeny na „z príjmu“.
 
 Otvorené:
-- **Riziko iOS Safari:** potvrdiť, či má byť v prvom nastavení odporúčanie pridať na plochu (predpokladám áno). Overenie možno urobiť na tvojom iPhone 16 po M2.
+- **Riziko iOS Safari:** rozhodnuté (D-034): plocha je odporúčaná, nie povinná. Overenie na reálnom iPhone pred M2 (nie po M2).
