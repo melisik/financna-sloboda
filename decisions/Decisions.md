@@ -23,3 +23,5 @@
 | D-019 | 2026-10-13 | Dátum cieľa sa zobrazuje do 50 rokov; ďalej „viac ako 50 rokov“. Bez kapitálu a sporenia: „Bez sporenia a výnosu sa cieľ nedosiahne“. | Potvrdené zakladateľom (O-5). |
 | D-020 | 2026-10-13 | Technológia MVP: statická PWA (TypeScript, React, Vite), IndexedDB, bez servera; výpočty v čistej doménovej vrstve oddelenej od UI a úložiska. | Potvrdené zakladateľom; lokálne dáta (D-009), offline a neskorší prechod na mobil. |
 | D-021 | 2026-10-14 | Výdavok z kapitálu väčší než nasporený kapitál: pri zadaní upozornenie a ponuka zmeny na „z príjmu“; ak používateľ potvrdí „z kapitálu“, kapitál sa počíta ako 0 a zobrazí sa „kapitál by bol vyčerpaný“. | Potvrdené zakladateľom (O-6). |
+| D-022 | 2026-10-14 | Poradie: najprv externá revízia dokumentov (balík `review/review-package-2026-10-14.md`), až potom M1 (doménová vrstva). | Rozhodnutie zakladateľa; revízia môže zmeniť vzorce alebo GC prípady, ktoré by M1 inak natvrdo zakódoval. |
+| D-023 | 2026-10-14 | Vetvenie: dokumenty a rozhodnutia ostávajú priamo na `main`; kód (M1 a ďalšie milníky) ide na samostatnú vetvu a na `main` sa zlúči až po zelených testoch. | Rozhodnutie zakladateľa. |
