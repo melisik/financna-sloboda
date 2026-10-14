@@ -86,7 +86,7 @@ Východiskové predpoklady sa týkajú len parametrov cieľa, nie produktov. Par
 |---|---|---|---|---|
 | Ročné výdavky pri nezávislosti | používateľ | zadáva ručne ako odhad (D-013) | – | Základ cieľa. Aplikácia ukáže, koľko z výdavkov je pravidelných a koľko cielená spotreba (odložené do fázy 1b, D-038). |
 | Miera výberu | používateľ | 3,7 % (D-049, D-051) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. Predvolená 3,7 % (D-051); T je pred daňou a poplatkami (D-043, D-049). |
-| Výnos r (reálny, po inflácii, globálny) | používateľ | 3,5 % (D-050) | 2 – 6 % | Jeden predpoklad pre investovaný kapitál K_inv (D-032, D-036). Rozsah ako opatrný / základný / optimistický; vždy s upozornením, že ide o odhad. Východiskové hodnoty sa overia zdrojom pred M3 (M6). |
+| Výnos r (reálny, po inflácii, globálny) | používateľ | 3,5 % (D-050) | 2 – 6 % | Jeden predpoklad pre investovaný kapitál K_inv (D-032, D-036). Rozsah ako opatrný / základný / optimistický; vždy s upozornením, že ide o odhad. Východiskové hodnoty sa overia zdrojom pred M3 (kód M6 v review/revizne-zaznamy.md). |
 | Mesačné sporenie (m) | používateľ (odvodené, možno prepísať) | priemer za 12 mesiacov do posledného vyhodnotenia, delený počtom mesiacov histórie (D-031) | – | Spolu s výnosom určuje odhadovaný dátum cieľa. |
 | Rezerva (núdzový fond) | používateľ | 3 mesiace výdavkov | 3 – 6 mesiacov | Predpoklad: mať ju mimo investícií; do cieľa sa nezapočítava. |
 
@@ -440,7 +440,7 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 | Chýbajúce údaje (napr. žiadne vyhodnotenie) | „Nezadané“, nie nula; výpočet pracuje s dostupnými údajmi a uvedie, čo chýba. |
 | Záporná hodnota vstupu | Zablokovanie s vecnou správou. |
 | Zmena po vyhodnotení | Viď FR-09. |
-| Vyčerpaný kapitál (K_pred = 0) | „Hotovosť nestačila; kapitál je 0 €“. Ak je zároveň m = 0, dopad sa nezobrazuje (H2, L4). |
+| Vyčerpaný kapitál (K_pred = 0) | „Hotovosť nestačila; kapitál je 0 €“. Ak je zároveň m = 0, dopad sa nezobrazuje (H2, L11). |
 | Úložisko prehliadača plné alebo nedostupné | Jasná správa, dáta sa neprepíšu; ponuka exportu. |
 | Prehliadač vymazal dáta | Prázdny stav s výzvou na import zálohy; žiadne tiché obnovy. |
 
@@ -564,7 +564,7 @@ Import: validácia schémy (typy, rozsahy, povinné polia, neznáme polia sa odm
 - `targetAmount(V, p) → T` (FR-01).
 - `monthsToTargetSplit(K_inv, K_cash, m_inv, m_cash, r, T) → n | null` podľa vzorca z FR-02 a D-046 (m_cash = 0 dá uzavretý tvar; r sa uplatní len na K_inv, D-036) (`null` = nedosiahnuteľné, viď D-019).
 - `dateEstimates(K, m, T, {r_optimistic, r_base, r_cautious}) → {from, base, to}` (FR-03).
-- `pendingImpact(snapshot, transactionsAfter, settings)` (K_inv a K_cash sa počítajú zvlášť podľa D-041 a D-058; m sa delí na m_inv a m_cash podľa typu transakcie) → {K_pred, deltaMonths | deltaDays}` (K_pred = max(0, …) podľa FR-04, H2; dopad v dňoch pod 1 mesiac podľa FR-04).
+- `pendingImpact(snapshot, transactionsAfter, settings)` (K_inv a K_cash sa počítajú zvlášť podľa D-041 a D-058; m sa delí na m_inv a m_cash podľa typu transakcie) → {K_pred, deltaMonths | deltaDays} (K_pred = max(0, …) podľa FR-04, H2; dopad v dňoch pod 1 mesiac podľa FR-04).
 - `monthlySaving(transactions, D_L) → m` (sporenie + investície za 12 mesiacov do D_L, delené počtom mesiacov histórie, najviac 12; D-031).
 - `lastReviewDate(snapshots) → D_L` (dátum najnovšieho snapshotu; bez snapshotu `null`, D-024).
 - `targetDate(D_L, n) → date` (D_L + ceil(n − 1e-6) mesiacov, orezané na posledný deň mesiaca; D-024). Počíta sa z K_L, takže sa mení len pri novom vyhodnotení.
@@ -661,7 +661,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 |---|---|---|---|---|
 | **M1 Doménová vrstva** | cieľ, dátumy (scenáre), predbežný dopad, mesačné vyhodnotenie – čisté funkcie | M | všetky GC-01 až GC-14 prejdú (vrátane GC-13 a GC-14 pre stabilitu dátumu, D-024; GC-15 pre K_pred ≥ 0 a GC-16 pre m pri krátkej histórii, D-031; GC-17 až GC-21 pre rozdelený kapitál, rezervu a m_cash > 0, D-036, D-039, D-045, D-046); property testy zelené; overenie NPER | FR-01 až FR-05, FR-07, FR-08 |
 | **M2 Úložisko a záloha** | IndexedDB, CRUD, export a import s validáciou a atomicitou, schéma v1 | M | round trip test zelený; neplatný import nič nezmení | FR-16 až FR-19 |
-| **M3 Nastavenie a transakcie** | prvé nastavenie s východiskovými predpokladmi, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy; predvolené hodnoty r a miery výberu majú zdroj zapísaný v Decisions (M6; D-049, D-050) | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-06, FR-12, FR-13, FR-15 |
+| **M3 Nastavenie a transakcie** | prvé nastavenie s východiskovými predpokladmi, investícia, prah, zadanie transakcie so zdrojom úhrady, história | L | zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové testy; predvolené hodnoty r a miery výberu majú zdroj zapísaný v Decisions (kód M6; D-049, D-050) | UR-01 až UR-05, UR-07, UR-10, UR-12, FR-06, FR-12, FR-13, FR-15 |
 | **M4 Prehľad a vyhodnotenie** | domovská obrazovka s rozsahom dátumov, predbežný dopad, mesačné vyhodnotenie, pripomienka, upozornenie pri vynechaní | M | E2E tok „transakcia → vyhodnotenie → dátum“ prejde | UR-06, UR-11, FR-09, FR-10, FR-11, FR-14, UR-09 |
 | **M5 PWA a offline** | service worker, manifest, ikony, inštalácia na plochu | S | všetky toky offline; sieťový test súkromia zelený | FR-16 |
 | **M6 Dostupnosť a kvalita** | axe-core bez vážnych chýb, čítačky, tmavý režim, zoom 200 % | S | nulové vážne porušenia; checklist čítačiek vyplnený | UX, 07 oddiel 9 |
@@ -730,7 +730,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 - **Platba všetkých daní (napr. z príjmu, z predaja investícií):** mimo MVP (D-008, 04 oddiel 6). Platba dane je regulovaná; vyžaduje právne posúdenie pred fázou 2. Možný menší variant: len pripomienka termínu bez výpočtu dane.
 - **API do banky na pravidelné transakcie:** v rozpore s D-009 a FR-16 (žiadne volania na externé API v MVP). Patrí do fázy 3, viazané na PSD2 (oddiel 7). Prvý krok je import CSV výpisu (oddiel 7, bod 2).
 - **Pravidelné platby ako pripomienky:** nový typ údajov (plán opakovaných platieb) a zmena výpočtu dopadu (FR-04). Nie je to drobnosť; treba samostatný návrh a rozhodnutie.
-- **Automatický presun hotovosti pred platbou:** aplikácia nepresúva peniaze sama (presun ostáva manuálny, D-046). Možný variant je pripomienka „pred splatnosťou zváž presun X €“, ktorá kontroluje, či hotovosť stačí (K_cash, D-058) a nie je východiskovýchm na kúpu alebo predaj.
+- **Automatický presun hotovosti pred platbou:** aplikácia nepresúva peniaze sama (presun ostáva manuálny, D-046). Možný variant je pripomienka „pred splatnosťou zváž presun X €“, ktorá kontroluje, či hotovosť stačí (K_cash, D-058) a nie je odporúčaním na kúpu alebo predaj.
 
 ## 9. Rozhodnutia potrebné pred ďalšími krokmi
 
@@ -1070,7 +1070,7 @@ src/ui/                       zobrazenie: hodnota, zdroj, dátum overenia, „vl
 | D-022 | 2026-10-14 | Poradie: najprv externá revízia dokumentov (balík `review/review-package-2026-10-14.md`), až potom M1 (doménová vrstva). | Rozhodnutie zakladateľa; revízia môže zmeniť vzorce alebo GC prípady, ktoré by M1 inak natvrdo zakódoval. |
 | D-023 | 2026-10-14 | Vetvenie: dokumenty a rozhodnutia ostávajú priamo na `main`; kód (M1 a ďalšie milníky) ide na samostatnú vetvu a na `main` sa zlúči až po zelených testoch. | Rozhodnutie zakladateľa. |
 | D-024 | 2026-10-14 | Referenčný dátum cieľa: dátum cieľa sa počíta od dátumu posledného vyhodnotenia (D_L), nie od dneška. Mení sa len pri novom vyhodnotení; zostávajúci čas sa počíta od dneška. Ak dátum uplynie bez vyhodnotenia, zobrazí sa „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie“ a dátum sa nepreposúva (text zjednotený podľa FR-10, revízia nález 4). Výnos medzi vyhodnoteniami sa na K_L nepripisuje (dátum je konzervatívny). | Potvrdené zakladateľom (revízia, nález 1). Upresňuje FR-02, FR-03, FR-04, FR-10, FR-12, FR-14 a D-014. |
-| D-025 | 2026-10-14 | Výnos r (predvolene 4 %) sa uplatňuje na celý kapitál K vrátane nasporenej sumy; sadzbu si nastavuje používateľ sám. Samostatná sadzba pre hotovosť v MVP nie je; zjednodušenie je viditeľné ako predpoklad (UR-09). | Potvrdené zakladateľom (revízia, nález 4): „pracujme so 4 %, toto si používateľ nastaví sám“. |
+| D-025 | 2026-10-14 | Výnos r (predvolene 4 %) sa uplatňuje na celý kapitál K vrátane nasporenej sumy; sadzbu si nastavuje používateľ sám. Samostatná sadzba pre hotovosť v MVP nie je; zjednodušenie je viditeľné ako predpoklad (UR-09). (Nahradené D-036 a D-070 pre hotovosť; predvolená hodnota r je 3,5 % podľa D-050.) | Potvrdené zakladateľom (revízia, nález 4): „pracujme so 4 %, toto si používateľ nastaví sám“. |
 | D-026 | 2026-10-14 | Šifrovanie dát v kľude v MVP nie je. Dáta sú chránené sandboxom prehliadača a zámkom zariadenia; export pripomína citlivosť údajov (FR-17). Šifrovanie sa rieši pred Fázou 2 (účty a synchronizácia). | Rozhodnutie zakladateľa (revízia, nález 4); uzatvára otvorenú otázku z 05 §11 a 06 §9. |
 | D-027 | 2026-10-14 | Notifikácie: systémová notifikácia je najviac jedna mesačná pripomienka (UX princíp 2). Upozornenia v aplikácii (banner po zálohe podľa FR-19 a pri vynechanom vyhodnotení podľa FR-10) nie sú systémové notifikácie a sú výnimkou z tohto pravidla. | Rozhodnutie zakladateľa (revízia, nález 9). |
 | D-028 | 2026-10-14 | Právne posúdenie zostáva bránou pre Fázu 2. Rozsahy výnosu (2–6 %) a výberu (3–4 %) sa zobrazujú už v MVP a riziko je zapísané v 06 §4. | Rozhodnutie zakladateľa (revízia, nález 13): riziko prijaté, posúdenie sa nepresúva. |
@@ -1081,7 +1081,7 @@ src/ui/                       zobrazenie: hodnota, zdroj, dátum overenia, „vl
 | D-033 | 2026-10-14 | Nasporená suma pri vyhodnotení je kumulatívny stav hotovosti (nie prírastok). Transakcie s dátumom pred D_L sa do K nepripočítavajú (FR-05). | Rozhodnutie zakladateľa (revízia, M5). |
 | D-034 | 2026-10-14 | Inštalácia na plochu (iPhone) je odporúčaný krok prvého nastavenia, nie povinný (od D-042 povinný na iPhone). Riziko vymazania dát v IndexedDB zostáva zapísané a overí sa na reálnom iPhone pred M2. | Rozhodnutie zakladateľa (revízia, H4). |
 | D-035 | 2026-10-14 | Pripomienka zálohy a banner po **7 dňoch** bez exportu (nie 14). Pri prvom nastavení sa silne odporúča pridať appku na plochu; nie je povinné (pre iPhone upravené D-042, D-053: plocha je povinná výzva). Dôvod: WebKit obmedzuje skriptovateľné úložisko v Safari na 7 dní bez interakcie; aplikácie na ploche majú vlastné počítadlo. Upresňuje D-034. | Rozhodnutie zakladateľa (revízia, V2). |
-| D-036 | 2026-10-14 | Hotovosť má vlastnú sadzbu, predvolene 0 % reálne; investovaný kapitál má r (predvolene 4 %). Upresňuje D-025 a D-032. Zapracované do FR-02 (odsek Dvojaký kapitál); smer m je rozhodnutý v D-039. | Rozhodnutie zakladateľa (revízia, V1). |
+| D-036 | 2026-10-14 | Hotovosť má vlastnú sadzbu, predvolene 0 % reálne; investovaný kapitál má r (predvolene 3,5 %, D-050; pôvodne 4 %). Upresňuje D-025 a D-032. Zapracované do FR-02 (odsek Dvojaký kapitál); smer m je rozhodnutý v D-039. | Rozhodnutie zakladateľa (revízia, V1). |
 | D-037 | 2026-10-14 | Sporenie do rezervy je samostatný typ transakcie „rezerva“. Nezapočítava sa do m ani do K, zobrazuje sa ako stav rezervy v mesiacoch výdavkov (V/12 × mesiace). | Rozhodnutie zakladateľa (revízia, V5). |
 | D-038 | 2026-10-14 | Prehľad spotreby (pravidelná vs. cielená, O-7) je odložený do fázy 1b. V MVP nie je vo FR ani v milníku M3/M4. | Rozhodnutie zakladateľa (revízia, V4). |
 | D-039 | 2026-10-14 | Mesačné sporenie m smeruje do investovaného kapitálu K_inv (zhodnocuje sa r). Hotovosť K_cash je pevná (upravené D-041: sporenie ide do K_cash) (0 % reálne, D-036). | Rozhodnutie zakladateľa (revízia, V1). |
@@ -1132,7 +1132,7 @@ src/ui/                       zobrazenie: hodnota, zdroj, dátum overenia, „vl
 | Kód | Téma | Stav | Kde |
 |---|---|---|---|
 | H1 | Výdavky pod prahom sa ukladajú | rozhodnuté | D-030; 04 FR-07 |
-| H2 | Záporný K_pred | uzavreté | 04 FR-04; GC-15 (−155) |
+| H2 | Záporný K_pred | uzavreté | 04 FR-04; GC-15 (−154) |
 | H3 | Okno m do D_L | rozhodnuté | D-031, D-040 |
 | H4 | Riziko iOS, plocha | rozhodnuté | D-034, D-035 |
 | M1 | Dopad pod 1 mesiac v dňoch | uzavreté | 04 FR-04, FR-06 |
@@ -1168,10 +1168,10 @@ src/ui/                       zobrazenie: hodnota, zdroj, dátum overenia, „vl
 | S7 | Predvyplnenie sumy | odložené | backlog N-04 |
 | S8 | Chýbajúce testy | uzavreté | 07 §2 pokrytie |
 | S9 | Terminológia „v dôchodku“ | uzavreté | 00, 02, 04 (D-013 ponechané ako história) |
-| L1 | Verzia 00, výnos | uzavreté | 00 hlavička; 00 investícia |
-| L2 | Tón hlásení | uzavreté | 02, 04, 05, 07 (D-019, D-021 ponechané) |
-| L3 | Nedefinované kódy | uzavreté | tento súbor |
-| L4 | Vyčerpaný kapitál v tabuľke | uzavreté | 04 §5 |
+| L8 | Verzia 00, výnos | uzavreté | 00 hlavička; 00 investícia |
+| L9 | Tón hlásení | uzavreté | 02, 04, 05, 07 (D-019, D-021 ponechané) |
+| L10 | Nedefinované kódy | uzavreté | tento súbor |
+| L11 | Vyčerpaný kapitál v tabuľke | uzavreté | 04 §5 |
 | RR1 | Výnos na hotovosť (read-only) | uzavreté | D-036; 04 pojmy a FR-02 |
 | RR2 | Rezerva dvakrát (ledger vs. kontrola) | rozhodnuté | D-058 (voľba A); GC-19 |
 | RR3 | T = V × 27 pri 3,7 % | uzavreté | 00, 04, D-049 (T = V / p) |
