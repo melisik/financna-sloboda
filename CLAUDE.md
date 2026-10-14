@@ -21,6 +21,11 @@ Upozorniť, ak návrh vytvára právne, regulačné, bezpečnostné alebo privac
 ## Zdroj pravdy
 Dokumenty v tomto repozitári. História chatu nie je dokumentácia.
 
+## Práca na repozitári
+- Zdroj pravdy je GitHub repozitár `melisik/financna-sloboda`. Pred každou úpravou `git pull`, po každej zmene commit a `git push`.
+- Osobné finančné údaje (skutočné transakcie, zostatky, účty) do repozitára **nepatria**, ani lokálne commity. Testy používajú len syntetické alebo anonymizované dáta.
+- Externú revíziu robí samostatná konverzácia, nie ten istý chat, v ktorom sa dokument písal.
+
 ## Jazyk
 Slovenčina.
 
