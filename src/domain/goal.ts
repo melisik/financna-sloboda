@@ -8,3 +8,47 @@ export function targetAmountCents(annualExpensesCents: number, withdrawalRate: n
   }
   return Math.round(annualExpensesCents / withdrawalRate);
 }
+
+/** Mesačná sadzba z ročnej reálnej: i = (1 + r)^(1/12) − 1 (FR-02). */
+export function monthlyRate(annualRate: number): number {
+  return Math.pow(1 + annualRate, 1 / 12) - 1;
+}
+
+/**
+ * Počet mesiacov do cieľa (FR-02). Sumy v centoch.
+ * Poradie vetiev je záväzné (04 FR-02):
+ *  1) K ≥ T → 0 (cieľ dosiahnutý),
+ *  2) K·i + m = 0 → null (nedosiahnuteľné, delenie nulou by inak nastalo),
+ *  3) r = 0 → (T − K) / m,
+ *  4) inak n = ln((T·i + m) / (K·i + m)) / ln(1 + i).
+ */
+export function monthsToTarget(
+  capitalCents: number,
+  monthlySavingCents: number,
+  annualRate: number,
+  targetCents: number,
+): number | null {
+  if (capitalCents >= targetCents) return 0;
+  const i = monthlyRate(annualRate);
+  if (capitalCents * i + monthlySavingCents === 0) return null;
+  if (annualRate === 0) return (targetCents - capitalCents) / monthlySavingCents;
+  return (
+    Math.log((targetCents * i + monthlySavingCents) / (capitalCents * i + monthlySavingCents)) /
+    Math.log(1 + i)
+  );
+}
+
+/**
+ * Dátum cieľa = D_L + ceil(n − 1e-6) mesiacov, orezané na posledný deň cieľového mesiaca (D-024, 07 §5).
+ * D_L je ISO dátum "YYYY-MM-DD" bez časovej zóny (05 §4).
+ */
+export function targetDate(lastReviewIso: string, months: number): string {
+  const [y, m, d] = lastReviewIso.split("-").map(Number);
+  const addMonths = Math.ceil(months - 1e-6);
+  const total = (m - 1) + addMonths;
+  const year = y + Math.floor(total / 12);
+  const month = (total % 12) + 1;
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const day = Math.min(d, lastDay);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
