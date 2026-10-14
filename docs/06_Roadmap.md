@@ -1,6 +1,6 @@
 # 06 – Roadmapa
 
-> Stav: v0.1 (2026-10-13). Veľkosti milníkov sú relatívne (S / M / L), nie dátumy. Trvanie závisí od kapacity, ktorú ešte treba potvrdiť. **[predpoklad]** = návrh Claude.
+> Stav: v0.2 (2026-10-14). Veľkosti milníkov sú relatívne (S / M / L), nie dátumy. Kapacita: hodiny denne (potvrdené zakladateľom); presný odhad trvania doplníme po M1 podľa skutočného tempa. **[predpoklad]** = návrh Claude.
 
 ## 1. Princípy plánovania
 - **Poradie fáz:** najprv hodnota pre zakladateľa, potom EÚ, potom mobil a integrácie (D-005, zadanie).
@@ -24,7 +24,7 @@
 
 **Čo ešte chýba:**
 - externá revízia dokumentov (Claude ako reviewer, podľa `CLAUDE.md`),
-- rozhodnutie o hostingu, šifrovaní v MVP a O-6 (prebytok výdavku nad kapitál).
+- rozhodnutie o hostingu a šifrovaní v MVP. O-6 je uzavretý (D-021).
 
 **Výstupná brána:** pripomienky z revízie sú zapracované a rozhodnutia zapísané v `Decisions.md`.
 
@@ -101,12 +101,11 @@
 
 | Kedy | Rozhodnutie | Kto |
 |---|---|---|
-| pred M1 | O-6: prebytok výdavku nad kapitál | zakladateľ |
 | pred M2 | šifrovanie dát v MVP (áno/nie) | zakladateľ |
 | pred M5 | hosting (GitHub Pages, alebo iný) | zakladateľ |
 | pred M3 | odporúčanie pridať appku na plochu v prvom nastavení | zakladateľ |
 | pred fázou 2 | monetizácia, právne posúdenie, účty a šifrovanie | zakladateľ, právnik |
-| kedykoľvek | kapacita (hodiny týždenne) | zakladateľ |
+| po M1 | presnejší odhad trvania milníkov podľa tempa | zakladateľ |
 
 ## 10. Metriky úspechu [predpoklad]
 - **Fáza 1:** tri po sebe idúce mesačné vyhodnotenia; nula strát dát; transakcia do 20 sekúnd.
@@ -114,6 +113,6 @@
 - **Fáza 2:** aktívni používatelia po 30 dňoch, miera návratov, nula incidentov s ochranou údajov.
 
 ## 11. Otvorené otázky
-1. **Kapacita:** koľko hodín týždenne vieš venovať projektu? Podľa toho spravíme odhad trvania milníkov.
-2. **Zariadenia:** aký model Androidu a iPhonu používaš? Potrebné na manuálne testy (07 oddiel 15).
-3. **Fáza 3:** chceš ju plánovať podrobnejšie už teraz, alebo až po pilote?
+Zodpovedané: kapacita (hodiny denne) a zariadenie (iPhone 16, iOS 26.6.2, viď 07 oddiel 8).
+
+1. **Fáza 3:** chceš ju plánovať podrobnejšie už teraz, alebo až po pilote?

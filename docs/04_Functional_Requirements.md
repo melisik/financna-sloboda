@@ -1,6 +1,6 @@
 # 04 – Funkčné požiadavky (MVP)
 
-> Stav: v0.4 (2026-10-13). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.5 (2026-10-14). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Pojmy a model dát
 
@@ -91,7 +91,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 ### FR-08 – Zdroj úhrady výdavku (D-014)
 - „Z príjmu“: K sa nemení.
 - „Z kapitálu“: K_pred sa znižuje o sumu. Po vyhodnotení sa zohľadní v zadanej nasporenej sume.
-- Ak je výdavok z kapitálu väčší než K_L, navrhuje sa upozornenie a ponuka zmeny na „z príjmu“; ak používateľ potvrdí, K_pred = 0 a zobrazí sa „kapitál by bol vyčerpaný“ (O-6, navrhnuté).
+- Ak je výdavok z kapitálu väčší než K_L, navrhuje sa upozornenie a ponuka zmeny na „z príjmu“; ak používateľ potvrdí, K_pred = 0 a zobrazí sa „kapitál by bol vyčerpaný“ (D-021).
 
 ### FR-09 – Úprava a mazanie transakcie
 - Úprava a mazanie sú možné vždy.
@@ -169,6 +169,6 @@ Ak neboli exportované dáta viac ako 30 dní (alebo nikdy), zobrazí sa jemná 
 - **O-3 Import zálohy:** nahradí aktuálne dáta po potvrdení (D-018).
 - **O-4 Priemer sporenia:** za posledných 12 mesiacov, delený 12 (D-017).
 - **O-5 Veľmi vzdialený dátum:** do 50 rokov, ďalej „viac ako 50 rokov“; bez kapitálu a sporenia text bez dátumu (D-019).
+- **O-6 Výdavok z kapitálu väčší než kapitál:** upozornenie a ponuka zmeny na „z príjmu“; pri potvrdení K_pred = 0 a text „kapitál by bol vyčerpaný“ (D-021).
 
-**Otvorené:**
-- **O-6 Výdavok z kapitálu väčší než kapitál:** navrhnuté riešenie je vo FR-08 (upozornenie, ponuka zmeny na „z príjmu“, pri potvrdení K_pred = 0). Čaká na potvrdenie zakladateľom.
+**Otvorené:** žiadne.

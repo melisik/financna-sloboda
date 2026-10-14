@@ -1,6 +1,6 @@
 # 07 – Testovacia stratégia (MVP)
 
-> Stav: v0.1 (2026-10-13). Pokrýva `04_Functional_Requirements` (FR), `03_UX_Principles` (UX) a `05_Technical_Architecture`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.2 (2026-10-14). Pokrýva `04_Functional_Requirements` (FR), `03_UX_Principles` (UX) a `05_Technical_Architecture`. **[predpoklad]** = návrh Claude, treba potvrdiť.
 
 ## 1. Priority testovania
 Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu váhu než chyba v ostatných:
@@ -93,7 +93,8 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 |---|---|---|
 | Android Chrome, emulácia viewportu 412 × 915 | automatizované E2E | každý PR |
 | iOS Safari, emulácia viewportu 390 × 844 | automatizované E2E (WebKit) | každý PR |
-| Reálny Android a reálny iPhone | manuálny checklist: dotyky, inštalácia na plochu, offline, Safari úložisko | pred každým vydaním |
+| Reálny iPhone 16 (iOS 26.6.2) | manuálny checklist: dotyky, inštalácia na plochu, offline, Safari úložisko | pred každým vydaním |
+| Reálny Android | manuálny checklist – **nie je k dispozícii**; do získania zariadenia len emulácia | pred vydaním, keď bude zariadenie |
 | Desktop Chrome, Firefox, Safari | základné toky | pred vydaním |
 | Viewporty 360, 390, 768, 1280 px | bez horizontálneho scrollu, čitateľnosť | každý PR |
 | Zoom 200 % a najväčšie systémové písmo | žiadna stratená informácia | pred vydaním |
@@ -138,7 +139,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 
 **Vydanie je hotové, keď:**
 - všetky automatizované kontroly sú zelené;
-- manuálny checklist na reálnom Androide a iPhone je podpísaný v dokumente vydania;
+- manuálny checklist na reálnom iPhone 16 je podpísaný v dokumente vydania (Android, keď bude k dispozícii);
 - prebehol round trip export → import na reálnych dátach (anonymizovaných);
 - offline tok a inštalácia na plochu fungujú;
 - self-test za posledný týždeň neobsahuje blokujúcu chybu.
@@ -147,6 +148,9 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 Bankové a investičné integrácie, viacužívateľské scenáre, daňové výpočty, graf projekcie (odložený, D-008), právne texty a ich overenie.
 
 ## 15. Otvorené otázky
-- **O-6 Výdavok z kapitálu väčší než kapitál:** navrhujem pri zadaní upozorniť a ponúknuť zmenu zdroja na „z príjmu“. Ak používateľ potvrdí „z kapitálu“, počíta sa K_pred = 0 a zobrazí sa text „kapitál by bol vyčerpaný“. Potvrdiť? (pridané aj do `04_Functional_Requirements`)
-- **Zariadenia na manuálne testy:** aký model Androidu a iPhonu používaš a aká je verzia systému?
-- **Riziko iOS Safari:** potvrdiť, či má byť v prvom nastavení odporúčanie pridať na plochu (predpokladám áno).
+Zodpovedané:
+- **Zariadenia:** iPhone 16, iOS 26.6.2. Android nemáme, takže Android sa testuje len emuláciou. Pri manuálnych testoch to znamená, že Android nie je overený na reálnom zariadení.
+- **O-6 (D-021):** výdavok z kapitálu väčší než kapitál sa rieši upozornením a ponukou zmeny na „z príjmu“.
+
+Otvorené:
+- **Riziko iOS Safari:** potvrdiť, či má byť v prvom nastavení odporúčanie pridať na plochu (predpokladám áno). Overenie možno urobiť na tvojom iPhone 16 po M2.
