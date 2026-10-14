@@ -5,7 +5,7 @@ Pre reviewera v **novej, samostatnej konverzácii** (CLAUDE.md: revízia nesmie 
 ## Stav
 - Repozitár: `melisik/financna-sloboda`, vetva `main`, commit `b77cd05` (alebo novší; over `git log -1`).
 - Dokumenty a rozhodnutia: `docs/00`–`08`, `decisions/Decisions.md` (D-001 až D-050), `review/`.
-- Kód: `src/` (doména, úložisko, UI), testy: `tests/` (50 jednotkových, 6 E2E).
+- Kód: `src/` (doména, úložisko, UI), testy: `tests/` (63 jednotkových, 6 E2E).
 - Nasadenie: https://melisik.github.io/financna-sloboda-app/ (verejné repo s buildom).
 - Overenie na zariadení: iPhone 16, iOS 26.6.2, `review/ios-overenie.md`.
 
@@ -37,7 +37,7 @@ Pre reviewera v **novej, samostatnej konverzácii** (CLAUDE.md: revízia nesmie 
 ## Ako overiť lokálne
 ```
 npm ci
-npm test            # 50 jednotkových testov
+npm test            # 63 jednotkových testov
 npx tsc -p tsconfig.json
 npx playwright install --with-deps chromium   # alebo použi preinštalovaný prehliadač
 npx playwright test # 6 E2E testov
