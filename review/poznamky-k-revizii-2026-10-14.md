@@ -20,7 +20,7 @@ Testy po zmene: `tsc` bez chýb, 63 jednotkových testov prechádza. E2E po zmen
 
 **R26 – uzavreté (schválené zakladateľom).** Presne nulový dopad je „bez zmeny“; nenulový pod pol dňa je „predbežne +menej ako 1 deň“ (resp. „−“). Test v `tests/impact.test.ts`, FR-04 v `04`.
 
-**Null v dopade.** `impactMonths` vráti null, ak niektorý stav cieľ nedosiahne. UI v tom prípade ukáže „Bez sporenia a výnosu sa cieľ nedosiahne“. Ide o správny záver, ale treba overiť, že text nevznikne len preto, že pred transakciou bol cieľ dosiahnuteľný a po nej nie (napr. výdavok z K_inv pri m = 0). Navrhujem text „Po tejto transakcii sa cieľ bez sporenia nedosiahne“. **Návrh, bez rozhodnutia.**
+**Null v dopade – uzavreté (schválené zakladateľom).** Namiesto krátkeho textu sa zobrazí `UNREACHABLE_IMPACT_TEXT`: po transakcii sa cieľ pri súčasnom sporení a výnose nedosiahne, a uvedené sú možnosti, ako cieľ dosiahnuť (zvýšiť sporenie, znížiť výdavky, zvoliť zdroj „z príjmu“, zvážiť mieru výberu v rozsahu 3–4 % s upozornením na riziko). Text je bez finančného poradenstva a s upozornením na odhad pred daňou a poplatkami.
 
 **Otvorené položky z predchádzajúcej evidencie** (`review/revizne-zaznamy.md`):
 - S3 – predvolený zdroj úhrady výdavku (otvorené).

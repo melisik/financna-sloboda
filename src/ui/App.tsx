@@ -8,7 +8,7 @@ import { capitalWithFlags, reserveBalance } from "../app/ledger";
 import { filterHistory, totalsByType } from "../app/history";
 import { backupOverdue, reviewOverdue } from "../app/reminders";
 import { targetAmountCents, targetDate } from "../domain/goal";
-import { formatImpact } from "../domain/impact";
+import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
 import { recommendedSettings } from "../domain/recommendations";
 import {
@@ -195,7 +195,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
           <p>Posledné vyhodnotenie: <strong>{ctx.latest.date}</strong>. Dátum platí k tomuto dňu.</p>
           <p>
             Predbežný dopad posledných transakcií:{" "}
-            <strong>{pending === null ? "Bez sporenia a výnosu sa cieľ nedosiahne" : formatImpact(pending)}</strong>
+            <strong>{pending === null ? UNREACHABLE_IMPACT_TEXT : formatImpact(pending)}</strong>
           </p>
         </>
       ) : (
@@ -517,7 +517,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
         <p>
           {preview.blocked
             ? preview.message
-            : <>Predbežný dopad: <strong>{preview.impact === null ? "Bez sporenia a výnosu sa cieľ nedosiahne" : formatImpact(preview.impact)}</strong></>}
+            : <>Predbežný dopad: <strong>{preview.impact === null ? UNREACHABLE_IMPACT_TEXT : formatImpact(preview.impact)}</strong></>}
         </p>
       )}
       {inEdit && date <= (ctx.latest?.date ?? "") && (

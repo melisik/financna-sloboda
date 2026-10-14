@@ -80,7 +80,7 @@ Dopad = n(K_L) − n(K_pred) (surový rozdiel, nie rozdiel zaokrúhlených dátu
 - Výsledok sa zobrazí ako krátky text (D-014), napr. „predbežne +2 mesiace“.
 - Ak je dopad presne 0, zobrazí sa „bez zmeny“. Nenulový dopad pod pol dňa sa zobrazí ako „predbežne +menej ako 1 deň“ (resp. „−“), nie ako „bez zmeny“ (R26).
 - Pracovný kapitál sa **nepremieta do oficiálneho cieľa**, kým sa neurobí vyhodnotenie.
-- Ak K_pred = 0 a m = 0, dopad sa nezobrazuje; zobrazí sa „Hotovosť nestačila; kapitál je 0 €“ a „bez sporenia a výnosu sa cieľ nedosiahne“ (H2).
+- Ak K_pred = 0 a m = 0, dopad sa nezobrazuje; zobrazí sa „Hotovosť nestačila; kapitál je 0 €“ a text pre nedosiahnuteľný cieľ (`UNREACHABLE_IMPACT_TEXT`, R26b): po transakcii sa cieľ pri súčasnom sporení a výnose nedosiahne a uvedené sú možnosti, ako ho dosiahnuť (H2).
 - Ak K_L ≥ T, dopad sa nezobrazuje; zobrazí sa „cieľ je dosiahnutý“. Ak K_pred ≥ T a K_L < T, zobrazí sa „cieľ je dosiahnutý o X mesiacov skôr“ (S2).
 
 **Príklad:** K_L = 100 000 €, m = 500 €, nová investícia 5 000 € po poslednom vyhodnotení. K_pred = 105 000 €, n klesne z ≈ 334 na ≈ 328 mesiacov → „predbežne 6 mesiacov skôr“.

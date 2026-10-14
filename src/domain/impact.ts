@@ -1,5 +1,17 @@
 import { monthsToTarget } from "./goal";
 
+/**
+ * Text, ak dopad nemožno vyčísliť, lebo niektorý stav cieľ nedosiahne (R26b, schválené zakladateľom).
+ * Uvádza aj možnosti, ako cieľ dosiahnuť. Nie je to finančné poradenstvo; odhad je pred daňou a poplatkami.
+ */
+export const UNREACHABLE_IMPACT_TEXT =
+  "Po tejto transakcii sa cieľ pri súčasnom sporení a výnose nedosiahne. Ako sa k nemu dostať: " +
+  "(1) zvýšiť mesačné sporenie do investícií alebo hotovosti; " +
+  "(2) znížiť ročné výdavky, čím klesne cieľ T = V / p; " +
+  "(3) pri výdavku zvoliť zdroj „z príjmu“, ak to ide, aby kapitál zostal; " +
+  "(4) zvážiť vyššiu mieru výberu p v rozsahu 3–4 %, čo cieľ zníži, ale zvyšuje riziko, že peniaze vydržia kratšie. " +
+  "Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.";
+
 /** Priemerný počet dní v mesiaci (FR-04, N1: 1 mesiac = 30,44 dňa). */
 const DAYS_PER_MONTH = 30.44;
 
