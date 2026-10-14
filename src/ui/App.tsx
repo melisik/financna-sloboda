@@ -475,6 +475,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     if (c.after === null) return setErr(c.message ?? "Transakciu nie je možné uložiť.");
     if (c.needsConfirm && !confirmExhausted) return setErr("Potvrď, že investície sa vyčerpajú (D-059).");
     const existing = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
+    const excess = type === "vydavok" && source === "z_investicii" && c.needsConfirm ? cents(a) - base.capital.inv : 0;
+    const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad K_inv (D-059, D-066)` : ""].filter(Boolean).join("; ");
     const t: Transaction = {
       id: existing?.id ?? uid(),
       date,
@@ -482,7 +484,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       amountCents: cents(a),
       ...(needsSource ? { source } : {}),
       ...(type === "vydavok" ? { belowThreshold: cents(a) < (ctx.settings?.thresholdCents ?? 0) } : {}),
-      ...(note ? { note: note.slice(0, 200) } : {}),
+      ...(noteText ? { note: noteText.slice(0, 200) } : {}),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

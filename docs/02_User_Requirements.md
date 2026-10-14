@@ -8,7 +8,7 @@
 |----|--------|-------|
 | UR-01 | Ako používateľ si nastavím cieľ (ročné výdavky, miera výberu, výnos, mesačné sporenie, rezerva) s východiskovými hodnotami, ktoré sa zobrazia ako výzva; polia sú pri prvom spustení prázdne (D-057). | D-008, D-011 |
 | UR-02 | Ako používateľ vidím, ktorá hodnota je východisková hodnota a ktorá moja vlastná, a môžem ju zmeniť. | D-011 |
-| UR-03 | Ako používateľ zadám existujúcu investíciu: aktuálnu hodnotu. Výnos je jeden globálny predpoklad pre celý kapitál, ktorý si nastavím. | D-010, D-032 |
+| UR-03 | Ako používateľ zadám existujúcu investíciu: aktuálnu hodnotu. Výnos je jeden globálny predpoklad pre investovaný kapitál K_inv, ktorý si nastavím; hotovosť je bez výnosu (D-036). | D-010, D-032 |
 | UR-04 | Ako používateľ zadám transakciu (sporenie, investícia, výdavok) – rýchlo, na telefóne. | D-006, persona 1 |
 | UR-10 | Ako používateľ zadám ročné výdavky pri nezávislosti ručne ako odhad. | D-013 |
 | UR-05 | Ako používateľ nastavím prahovú sumu, od ktorej sa výdavok zvýrazní v prehľade; všetky výdavky sa ukladajú s príznakom (predvolene 100 €). | [user], D-013, D-030 |

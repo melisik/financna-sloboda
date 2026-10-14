@@ -78,3 +78,9 @@
 | RR29 | Zdroj 3,5 % a 3,7 % (Morningstar 2025) mimo balíka (N6) | otvorené | podklad je v review/o9-podklady.md (príloha balíka); overenie zdroja nie je v repozitári |
 | RR30 | Chýba SW cache a interpolácia (R24, R21 z predchádzajúcej evidencie) | otvorené (poznámka) | – |
 | RR31 | Vklad do rezervy znižuje cieľový kapitál (V1, S6) | rozhodnuté | D-060; náhľad ukáže vplyv na cieľ |
+| RR32 | r pre celý kapitál vs. K_inv (00, UR-03) | rozhodnuté | D-070; 00, 02 |
+| RR33 | Signatúry v 05 §5 bez K_inv/K_cash, m_inv/m_cash | uzavreté | 05 §5 |
+| RR34 | Tri pravidlá pri prečerpaní; suma nad kapitál bez záznamu | rozhodnuté | D-059, D-066 (poznámka transakcie) |
+| RR35 | Predvolená 3,7 % kalibrovaná na 30 rokov | rozhodnuté | D-069; 04 p |
+| RR37 | Poplatky vs. MVP | rozhodnuté | D-067; 00, 04 §6 |
+| RR38 | Plocha povinná vs. preskočiteľné kroky | rozhodnuté | D-068; 04 FR-12 |

@@ -77,7 +77,7 @@ Dôsledok [predpoklad]: v prvej fáze netreba viacužívateľskú architektúru 
 - Dôsledky pre dizajn [predpoklad]: oddeliť dátovú vrstvu od UI, aby sa úložisko dalo neskôr vymeniť (backend, synchronizácia) a aby sa dali pridať importy z banky a od brokerov. Integrácie na bankové účty v EÚ typicky podliehajú PSD2 a vyžadujú licencovaného poskytovateľa; treba posúdiť neskôr.
 
 ## Existujúca investícia v MVP [user]
-Používateľ zadáva ručne **aktuálnu hodnotu** investícií. Výnos sa nezadáva za jednotlivú investíciu: je to jeden globálny predpoklad r pre celý kapitál, ktorý nastavuje používateľ (D-032). Bez napojenia na trhové dáta; hodnotu aktualizuje používateľ.
+Používateľ zadáva ručne **aktuálnu hodnotu** investícií. Výnos sa nezadáva za jednotlivú investíciu: je to jeden globálny predpoklad r pre investovaný kapitál K_inv, ktorý nastavuje používateľ (D-032, D-036); hotovosť je bez výnosu (0 % reálne). Bez napojenia na trhové dáta; hodnotu aktualizuje používateľ.
 
 ## Východiskové predpoklady pri nastavení cieľa [user potvrdil parametre a predvolené hodnoty; MVP ukazuje aj dátum cieľa]
 Východiskové predpoklady sa týkajú len parametrov cieľa, nie produktov. Parametre a predvolené hodnoty potvrdil zakladateľ, no samotné čísla sú **východiskové predpoklady, ktoré treba pred implementáciou overiť** v zdrojoch.
@@ -86,7 +86,7 @@ Východiskové predpoklady sa týkajú len parametrov cieľa, nie produktov. Par
 |---|---|---|---|---|
 | Ročné výdavky pri nezávislosti | používateľ | zadáva ručne ako odhad (D-013) | – | Základ cieľa. Aplikácia ukáže, koľko z výdavkov je pravidelných a koľko cielená spotreba (odložené do fázy 1b, D-038). |
 | Miera výberu | používateľ | 3,7 % (D-049, D-051) | 3 – 4 % | Pri dlhom horizonte (skorý odchod) býva opatrnejšia 3 – 3,5 %. Predvolená 3,7 % (D-051); T je pred daňou a poplatkami (D-043, D-049). |
-| Výnos r (reálny, po inflácii, globálny) | používateľ | 3,5 % (D-050) | 2 – 6 % | Jeden predpoklad pre celý kapitál (D-032). Rozsah ako opatrný / základný / optimistický; vždy s upozornením, že ide o odhad. Východiskové hodnoty sa overia zdrojom pred M3 (M6). |
+| Výnos r (reálny, po inflácii, globálny) | používateľ | 3,5 % (D-050) | 2 – 6 % | Jeden predpoklad pre investovaný kapitál K_inv (D-032, D-036). Rozsah ako opatrný / základný / optimistický; vždy s upozornením, že ide o odhad. Východiskové hodnoty sa overia zdrojom pred M3 (M6). |
 | Mesačné sporenie (m) | používateľ (odvodené, možno prepísať) | priemer za 12 mesiacov do posledného vyhodnotenia, delený počtom mesiacov histórie (D-031) | – | Spolu s výnosom určuje odhadovaný dátum cieľa. |
 | Rezerva (núdzový fond) | používateľ | 3 mesiace výdavkov | 3 – 6 mesiacov | Predpoklad: mať ju mimo investícií; do cieľa sa nezapočítava. |
 
@@ -94,7 +94,7 @@ Pravidlá východiskových:
 - Používateľ vždy vidí **čo je východisková hodnota a čo jeho vlastná hodnota**, a môže ju zmeniť.
 - Dátum cieľa sa ukazuje ako **rozsah** (opatrný – základný – optimistický), nie jedno presné číslo.
 - Používame reálny výnos (po inflácii), takže výdavky sú v dnešných cenách; netreba zadávať infláciu zvlášť.
-- Dane a poplatky sa v MVP neriešia (uvedie sa v upozornení).
+- Dane sa v MVP neriešia (uvedie sa v upozornení). Poplatky sú voliteľný vstup v nastaveniach, predvolene 0 % (D-064).
 
 ## Čo je „rozhodnutie“ [user]
 Rozhodnutie = **transakcia** (sporenie, investícia alebo výdavok). Plánovanie „čo ak“ scenárov nie je súčasťou definície rozhodnutia.
@@ -154,7 +154,7 @@ Zatiaľ nedefinované. Definujeme po overení MVP na vlastnom použití. Treba p
 |----|--------|-------|
 | UR-01 | Ako používateľ si nastavím cieľ (ročné výdavky, miera výberu, výnos, mesačné sporenie, rezerva) s východiskovými hodnotami, ktoré sa zobrazia ako výzva; polia sú pri prvom spustení prázdne (D-057). | D-008, D-011 |
 | UR-02 | Ako používateľ vidím, ktorá hodnota je východisková hodnota a ktorá moja vlastná, a môžem ju zmeniť. | D-011 |
-| UR-03 | Ako používateľ zadám existujúcu investíciu: aktuálnu hodnotu. Výnos je jeden globálny predpoklad pre celý kapitál, ktorý si nastavím. | D-010, D-032 |
+| UR-03 | Ako používateľ zadám existujúcu investíciu: aktuálnu hodnotu. Výnos je jeden globálny predpoklad pre investovaný kapitál K_inv, ktorý si nastavím; hotovosť je bez výnosu (D-036). | D-010, D-032 |
 | UR-04 | Ako používateľ zadám transakciu (sporenie, investícia, výdavok) – rýchlo, na telefóne. | D-006, persona 1 |
 | UR-10 | Ako používateľ zadám ročné výdavky pri nezávislosti ručne ako odhad. | D-013 |
 | UR-05 | Ako používateľ nastavím prahovú sumu, od ktorej sa výdavok zvýrazní v prehľade; všetky výdavky sa ukladajú s príznakom (predvolene 100 €). | [user], D-013, D-030 |
@@ -277,7 +277,7 @@ Riziko [predpoklad]: ak používateľ mesačné vyhodnotenie vynechá, kapitál 
 | Pojem | Definícia |
 |---|---|
 | **Ročné výdavky (V)** | Odhad celkových ročných výdavkov pri nezávislosti, zadáva používateľ ručne (D-013). |
-| **Miera výberu (p)** | Predvolene 3,7 %, rozsah 3–4 % (D-011, D-049). |
+| **Miera výberu (p)** | Predvolene 3,7 %, rozsah 3–4 % (D-011, D-049). Hodnota je kalibrovaná na 30-ročný horizont; pri dlhšom horizonte je menej istá (D-065). |
 | **Cieľová suma (T)** | T = V / p. Pri 3,7 % je T ≈ V × 27,03 (D-049), napr. pre V = 24 000 € je T = 648 649 €; pri 4 % je T = V × 25 (D-008). |
 | **Kapitál (K)** | Hodnota investícií + nasporená suma (kumulatívny stav hotovosti, D-033), bez rezervy (D-011, D-017). |
 | **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 3,5 %, rozsah 2–6 % (D-011, D-050). Jeden predpoklad pre investovaný kapitál K_inv; hotovosť K_cash sa nezhodnocuje, 0 % reálne (D-036, upresňuje D-025 a D-032). Počíta sa so všetkými sumami v dnešných cenách. Zobrazuje sa aj nominálne (D-063, π = 2 % [predpoklad]); poplatky sa odpočítavajú od r (D-064); pri horizonte nad 20 rokov poznámka (D-065). |
@@ -394,7 +394,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 - Vypnuteľná v nastaveniach.
 
 ### FR-12 – Prvé nastavenie
-Postupnosť: cieľ (V, p, r, rezerva) s východiskovými hodnotami ako výzvou (D-057) → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Každý krok sa dá preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
+Postupnosť: cieľ (V, p, r, rezerva) s východiskovými hodnotami ako výzvou (D-057) → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Pridanie na plochu (iPhone) je povinná výzva (D-042, D-053); ostatné kroky sa dajú preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
 
 ### FR-13 – Východiskové predpoklady
 - Východisková hodnota je viditeľne označené a odlíšené od hodnoty používateľa (UR-02).
@@ -448,7 +448,7 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 - Viacužívateľský režim, účty, synchronizácia na server.
 - Integrácie na bankový účet alebo brokera (neskôr, mobilná aplikácia).
 - Projekcia podľa výnosu a inflácie v grafe (odložená, D-008).
-- Daně, poplatky, viac mien, viac krajín (fáza 2).
+- Daně, viac mien, viac krajín (fáza 2). Poplatky sú v MVP voliteľný vstup (D-064).
 - Automatické oceňovanie investícií z trhových dát.
 
 ## 7. Rozhodnuté a otvorené otázky
@@ -562,9 +562,9 @@ Import: validácia schémy (typy, rozsahy, povinné polia, neznáme polia sa odm
 Čisté funkcie, bez vedľajších účinkov. Vstupy: hodnoty v centoch a dátumy, výstup: sumy a počet mesiacov.
 
 - `targetAmount(V, p) → T` (FR-01).
-- `monthsToTarget(K, m, r, T) → n | null` podľa vzorca z FR-02 (`null` = nedosiahnuteľné, viď D-019).
+- `monthsToTargetSplit(K_inv, K_cash, m_inv, m_cash, r, T) → n | null` podľa vzorca z FR-02 a D-046 (m_cash = 0 dá uzavretý tvar; r sa uplatní len na K_inv, D-036) (`null` = nedosiahnuteľné, viď D-019).
 - `dateEstimates(K, m, T, {r_optimistic, r_base, r_cautious}) → {from, base, to}` (FR-03).
-- `pendingImpact(snapshot, transactionsAfter, settings) → {K_pred, deltaMonths | deltaDays}` (K_pred = max(0, …) podľa FR-04, H2; dopad v dňoch pod 1 mesiac podľa FR-04).
+- `pendingImpact(snapshot, transactionsAfter, settings)` (K_inv a K_cash sa počítajú zvlášť podľa D-041 a D-058; m sa delí na m_inv a m_cash podľa typu transakcie) → {K_pred, deltaMonths | deltaDays}` (K_pred = max(0, …) podľa FR-04, H2; dopad v dňoch pod 1 mesiac podľa FR-04).
 - `monthlySaving(transactions, D_L) → m` (sporenie + investície za 12 mesiacov do D_L, delené počtom mesiacov histórie, najviac 12; D-031).
 - `lastReviewDate(snapshots) → D_L` (dátum najnovšieho snapshotu; bez snapshotu `null`, D-024).
 - `targetDate(D_L, n) → date` (D_L + ceil(n − 1e-6) mesiacov, orezané na posledný deň mesiaca; D-024). Počíta sa z K_L, takže sa mení len pri novom vyhodnotení.
@@ -1111,7 +1111,11 @@ src/ui/                       zobrazenie: hodnota, zdroj, dátum overenia, „vl
 | D-063 | 2026-10-14 | Výpočet používa reálny výnos r (cieľ je v dnešných eurách). Aplikácia zobrazí aj nominálny ekvivalent (1 + r)(1 + π) − 1 s predpokladom inflácie π = 2 % [predpoklad, treba overiť zdroj]. Nominálne číslo je hlavné zobrazenie pre pochopenie; reálne sa uplatňuje najmä pri dlhom horizonte. | Rozhodnutie zakladateľa (odpoveď 4: obe hodnoty). |
 | D-064 | 2026-10-14 | Poplatky sú samostatný vstup v % ročne, predvolene 0 %, a odpočítavajú sa od r (r_čisté = max(0; r − poplatky)). Hodnoty sa postupne doplnia z oficiálnej dokumentácie poskytovateľov, každá s odkazom a dátumom overenia. Dovtedy aplikácia hovorí „pred poplatkami“. | Rozhodnutie zakladateľa (odpoveď 3). |
 | D-065 | 2026-10-14 | Pri dlhom horizonte (viac ako 20 rokov, n > 240 mesiacov) sa v prehľade zobrazí poznámka, že predpoklad výnosu je menej istý a výsledok je v dnešných eurách. Text bez poradenstva. | Rozhodnutie zakladateľa (odpoveď 5: áno). |
-
+| D-066 | 2026-10-14 | Pri potvrdenom prečerpaní investícií (D-059) sa nezaplatená suma nad K_inv zapíše do poznámky transakcie („prečerpanie X € nad K_inv“), aby zostala v histórii. | Rozhodnutie zakladateľa (RR34, odporúčanie potvrdené). |
+| D-067 | 2026-10-14 | Poplatky sú v MVP voliteľný vstup v nastaveniach (D-064, predvolene 0 %). Dane zostávajú mimo MVP. Dokumenty 00 a 04 §6 sa zosúladia. | Rozhodnutie zakladateľa (RR37, potvrdené). |
+| D-068 | 2026-10-14 | Pridanie na plochu na iPhone je povinná výzva (D-042, D-053); FR-12 ju vyníma z krokov, ktoré sa dajú preskočiť. | Rozhodnutie zakladateľa (RR38, potvrdené). |
+| D-069 | 2026-10-14 | Predvolená miera výberu 3,7 % sa neupravuje. Dokumenty uvádzajú, že je kalibrovaná na 30-ročný horizont a pri dlhšom horizonte je menej istá (D-065). | Rozhodnutie zakladateľa (RR35, potvrdené: uviesť, neupravovať). |
+| D-070 | 2026-10-14 | Výnos r sa uplatňuje len na investovaný kapitál K_inv; hotovosť K_cash je bez výnosu (D-036). Dokumenty 00, 02 (UR-03) a 05 §5 sa zosúladia. | Rozhodnutie zakladateľa (RR32, RR33, potvrdené). |
 ---
 
 # Prílohy: kódy nálezov, poznámky k revízii, podklady k miere výberu
@@ -1198,7 +1202,12 @@ src/ui/                       zobrazenie: hodnota, zdroj, dátum overenia, „vl
 | RR29 | Zdroj 3,5 % a 3,7 % (Morningstar 2025) mimo balíka (N6) | otvorené | podklad je v review/o9-podklady.md (príloha balíka); overenie zdroja nie je v repozitári |
 | RR30 | Chýba SW cache a interpolácia (R24, R21 z predchádzajúcej evidencie) | otvorené (poznámka) | – |
 | RR31 | Vklad do rezervy znižuje cieľový kapitál (V1, S6) | rozhodnuté | D-060; náhľad ukáže vplyv na cieľ |
-
+| RR32 | r pre celý kapitál vs. K_inv (00, UR-03) | rozhodnuté | D-070; 00, 02 |
+| RR33 | Signatúry v 05 §5 bez K_inv/K_cash, m_inv/m_cash | uzavreté | 05 §5 |
+| RR34 | Tri pravidlá pri prečerpaní; suma nad kapitál bez záznamu | rozhodnuté | D-059, D-066 (poznámka transakcie) |
+| RR35 | Predvolená 3,7 % kalibrovaná na 30 rokov | rozhodnuté | D-069; 04 p |
+| RR37 | Poplatky vs. MVP | rozhodnuté | D-067; 00, 04 §6 |
+| RR38 | Plocha povinná vs. preskočiteľné kroky | rozhodnuté | D-068; 04 FR-12 |
 
 <!-- ===== review/poznamky-k-revizii-2026-10-14.md ===== -->
 

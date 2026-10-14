@@ -7,7 +7,7 @@
 | Pojem | Definícia |
 |---|---|
 | **Ročné výdavky (V)** | Odhad celkových ročných výdavkov pri nezávislosti, zadáva používateľ ručne (D-013). |
-| **Miera výberu (p)** | Predvolene 3,7 %, rozsah 3–4 % (D-011, D-049). |
+| **Miera výberu (p)** | Predvolene 3,7 %, rozsah 3–4 % (D-011, D-049). Hodnota je kalibrovaná na 30-ročný horizont; pri dlhšom horizonte je menej istá (D-065). |
 | **Cieľová suma (T)** | T = V / p. Pri 3,7 % je T ≈ V × 27,03 (D-049), napr. pre V = 24 000 € je T = 648 649 €; pri 4 % je T = V × 25 (D-008). |
 | **Kapitál (K)** | Hodnota investícií + nasporená suma (kumulatívny stav hotovosti, D-033), bez rezervy (D-011, D-017). |
 | **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 3,5 %, rozsah 2–6 % (D-011, D-050). Jeden predpoklad pre investovaný kapitál K_inv; hotovosť K_cash sa nezhodnocuje, 0 % reálne (D-036, upresňuje D-025 a D-032). Počíta sa so všetkými sumami v dnešných cenách. Zobrazuje sa aj nominálne (D-063, π = 2 % [predpoklad]); poplatky sa odpočítavajú od r (D-064); pri horizonte nad 20 rokov poznámka (D-065). |
@@ -124,7 +124,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 - Vypnuteľná v nastaveniach.
 
 ### FR-12 – Prvé nastavenie
-Postupnosť: cieľ (V, p, r, rezerva) s východiskovými hodnotami ako výzvou (D-057) → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Každý krok sa dá preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
+Postupnosť: cieľ (V, p, r, rezerva) s východiskovými hodnotami ako výzvou (D-057) → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Pridanie na plochu (iPhone) je povinná výzva (D-042, D-053); ostatné kroky sa dajú preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
 
 ### FR-13 – Východiskové predpoklady
 - Východisková hodnota je viditeľne označené a odlíšené od hodnoty používateľa (UR-02).
@@ -178,7 +178,7 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 - Viacužívateľský režim, účty, synchronizácia na server.
 - Integrácie na bankový účet alebo brokera (neskôr, mobilná aplikácia).
 - Projekcia podľa výnosu a inflácie v grafe (odložená, D-008).
-- Daně, poplatky, viac mien, viac krajín (fáza 2).
+- Daně, viac mien, viac krajín (fáza 2). Poplatky sú v MVP voliteľný vstup (D-064).
 - Automatické oceňovanie investícií z trhových dát.
 
 ## 7. Rozhodnuté a otvorené otázky
