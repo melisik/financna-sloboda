@@ -95,7 +95,7 @@ Import: validácia schémy (typy, rozsahy, povinné polia) → náhľad → nahr
 - `monthlySaving(transactions, D_L) → m` (sporenie + investície za 12 mesiacov do D_L, delené počtom mesiacov histórie, najviac 12; D-031).
 - `lastReviewDate(snapshots) → D_L` (dátum najnovšieho snapshotu; bez snapshotu `null`, D-024).
 - `targetDate(D_L, n) → date` (D_L + ceil(n − 1e-6) mesiacov, orezané na posledný deň mesiaca; D-024). Počíta sa z K_L, takže sa mení len pri novom vyhodnotení.
-- `monthsLeft(today, targetDate) → mesiace | null` (zostávajúci čas od dneška; záporná hodnota = dátum uplynul, zobrazí sa „Dátum vypršal, urobte vyhodnotenie“; D-024).
+- `monthsLeft(today, targetDate) → mesiace | null` (zostávajúci čas od dneška; záporná hodnota = dátum uplynul, zobrazí sa „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie“; D-024).
 
 Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6)` mesiacov od D_L (D-024), nie od dnešného dňa.
 
@@ -106,7 +106,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 | K = 100 000, m = 500, r = 4 %, T = 600 000 | n ≈ 333,9 → 334 mesiacov (FR-02) |
 | to isté, K_pred = 105 000 | n ≈ 327,9 → dopad 6 mesiacov skôr (FR-04) |
 | K = 100 000, m = 0, r = 4 %, T = 600 000 | n ≈ 548,2 → 549 mesiacov ≈ 45,7 roka → do 50 rokov, zobrazí sa dátum |
-| K = 0, m = 0 | „Bez sporenia a výnosu sa cieľ nedosiahne“ (D-019) |
+| K = 0, m = 0 | „Pri súčasnom sporení a výnose sa cieľ nedosiahne“ (D-019) |
 | K ≥ T | cieľ dosiahnutý |
 | r = 0, m = 500 | n = (T − K) / m |
 
@@ -120,7 +120,7 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 - **Šifrovanie v kľude:** v MVP nie je. Dáta sú v prehliadači chránené len sandboxom prehliadača a zámkom zariadenia. Riziko: iný človek s prístupom k odomknutému zariadeniu alebo k exportu. Pripomenie sa to v exporte (FR-17). Rozhodnuté v D-026: v MVP sa nerieši, rieši sa pred fázou 2.
 - Export obsahuje citlivé údaje: žiadne automatické odosielanie, žiadne ukladanie do verejných priečinkov.
 - Závislosti: minimum, pravidelný audit (npm audit) [predpoklad].
-- Content Security Policy bez inline skriptov (ochrana pred injekciou), ak to nasadenie podporuje.
+- Content Security Policy v meta tagu bez inline skriptov (ochrana pred injekciou). GitHub Pages nevie nastaviť HTTP hlavičky, takže CSP je len meta tag; direktívy `frame-ancestors`, `report-uri` a `sandbox` v meta tagu nefungujú a nepoužijú sa (S4).
 
 ## 8. Nasadenie
 - Statický build (`dist/`) na ľubovoľný statický hosting (napr. GitHub Pages) [predpoklad]. Hosting nepozná dáta používateľa.

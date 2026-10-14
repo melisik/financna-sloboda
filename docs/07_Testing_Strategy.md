@@ -38,6 +38,14 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 | D-030 výdavok pod prahom | uložený s príznakom, zahrnutý do predbežného dopadu a prehľadu spotreby | jednotkový, komponentový |
 | FR-04 zobrazenie pod 1 mesiac | dopad 100 € (≈ 0,12 mesiaca) sa zobrazí v dňoch, nie ako „bez zmeny“ | jednotkový |
 | M2 dátum vyhodnotenia | dátum v budúcnosti sa odmietne; predvolená hodnota je min(koniec mesiaca; dnes) | jednotkový, komponentový |
+| FR-01 neplatný vstup | V ≤ 0 alebo p ≤ 0: výpočet sa nespustí, zobrazí sa výzva na opravu | jednotkový |
+| FR-05 transakcia s dátumom ≤ D_L | nepridá sa znovu do K_L | jednotkový |
+| FR-07 prah ako filter | výdavok pod prahom sa uloží s príznakom a zobrazí sa podľa filtra | komponentový |
+| FR-09 úprava a mazanie | prepočíta sa len predbežný dopad; mazanie ponúka vrátenie späť | komponentový |
+| FR-10 pripomienka | pripomienka sa zobrazí po konci mesiaca bez vyhodnotenia, nie len text o dátume | komponentový |
+| FR-12 prvé nastavenie | bez vyhodnotenia sa zobrazí výzva „urobte prvé vyhodnotenie“, nie dátum | komponentový, E2E |
+| Stav „Nezadané“ | chýbajúci údaj sa zobrazí ako „Nezadané“, nie ako nula | komponentový |
+| D-037 rezerva | sporenie do rezervy sa nezapočíta do m ani do K; zobrazí sa ako stav rezervy | jednotkový |
 | UR-09 Predpoklady | na obrazovke výpočtu sú viditeľné pravidlo 4 %, reálny výnos a upozornenie bez daní a poplatkov | komponentový |
 
 ## 3. Zlaté prípady (golden cases)
@@ -52,14 +60,14 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-05 | K = 100 000, m = 500, r = 6 % (optimistický) | n = 256,01 → **257** | FR-03 |
 | GC-06 | K = 100 000, m = 500, r = 2 % (opatrný) | n = 489,11 → **490** | FR-03 |
 | GC-07 | K = 100 000, m = 0, r = 4 % | n = 548,21 → **549** (≈ 45,7 roka, dátum sa zobrazí, pretože je do 50 rokov) | FR-02, D-019 |
-| GC-08 | K = 0, m = 0, r = 4 % | bez dátumu: „Bez sporenia a výnosu sa cieľ nedosiahne“ | D-019 |
+| GC-08 | K = 0, m = 0, r = 4 % | bez dátumu: „Pri súčasnom sporení a výnose sa cieľ nedosiahne“ | D-019 |
 | GC-09 | K = 0, m = 500, r = 4 % | n = 488,02 → **489** | FR-02 |
 | GC-10 | K = 100 000, T = 600 000, m = 500, r = 0 % | n = (T − K) / m = **1 000** (presne celé číslo; `ceil(n − 1e-6)` musí dať 1 000, nie 1 001) | FR-02 |
 | GC-11 | K_L ≥ T | cieľ dosiahnutý, dátum = D_L (dátum posledného vyhodnotenia) | FR-02, D-024 |
 | GC-12 | K = 100 000, m = 500, r = 4 %, T = 2 000 000 | n ≈ 655,4 → **656 mesiacov** (≈ 54,6 roka); zobrazí sa „viac ako 50 rokov“ | FR-02, D-019 |
 | GC-13 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2026-12-14 (bez nového vyhodnotenia) | dátum cieľa **nezmenený**: august 2054 (interne 2054-08-14 = D_L + 334 mesiacov); zostávajúci čas = **332 mesiacov** | D-024, FR-02 |
-| GC-14 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2055-01-01 (po dátume cieľa) | „Dátum vypršal, urobte vyhodnotenie“; žiadny záporný čas; dátum sa nemení | FR-10, D-024 |
-| GC-15 | K_L = 100 000, m = 500, r = 4 %, T = 600 000; po D_L dva výdavky z kapitálu po 60 000 € | K_pred = max(0; −20 000) = **0**; dopad = ceil(n(K_L)) − ceil(n(0)) = 334 − 489 = **−155 mesiacov** (K1: rovnaké ceil ako v FR-04); text „kapitál by bol vyčerpaný“, žiadny záporný kapitál | FR-04, FR-08, H2 |
+| GC-14 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2055-01-01 (po dátume cieľa) | „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie“; žiadny záporný čas; dátum sa nemení | FR-10, D-024 |
+| GC-15 | K_L = 100 000, m = 500, r = 4 %, T = 600 000; po D_L dva výdavky z kapitálu po 60 000 € | K_pred = max(0; −20 000) = **0**; dopad = ceil(n(K_L)) − ceil(n(0)) = 334 − 489 = **−155 mesiacov** (K1: rovnaké ceil ako v FR-04); text „Hotovosť nestačila; kapitál je 0 €“, žiadny záporný kapitál | FR-04, FR-08, H2 |
 | GC-16 | sporenie 500 € v každom z troch mesiacov pred D_L, žiadne staršie transakcie | m = 1 500 / 3 = **500** (nie 125; D-031) | D-031 |
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
@@ -106,7 +114,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 - **Logy:** v produkcii sa nelogujú sumy ani transakcie. Test: lint pravidlo alebo kontrola kódu proti `console.log` nad doménovými dátami.
 - **Export:** obsahuje varovanie o citlivých údajoch (FR-17); test prítomnosti textu.
 - **Závislosti:** `npm audit` v CI; kontrola licencií.
-- **CSP:** test hlavičky alebo meta tagu bez `unsafe-inline` pre skripty.
+- **CSP:** test meta tagu bez `unsafe-inline` pre skripty; hlavičky sa netestujú, lebo GitHub Pages ich nenastavuje (S4).
 
 ## 8. Zariadenia a prehliadače
 | Prostredie | Typ testu | Kedy |
