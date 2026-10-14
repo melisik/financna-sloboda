@@ -323,7 +323,7 @@ Výpočet v reálnych hodnotách, mesačné sporenie na konci mesiaca, mesačná
 Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môže byť veľmi vzdialený (viď O-5).
 - Dátum cieľa = D_L + `ceil(n − 1e-6)` mesiacov, orezané na posledný deň cieľového mesiaca (interný výpočet; zobrazuje sa mesiac a rok, FR-06). ε chráni pred chybou pohyblivej desatinnej čiarky (GC-10). Počíta sa z K = K_L a m (D-024).
 - Zostávajúci čas = počet mesiacov od dneška do dátumu cieľa; mení sa s časom, dátum nie. Ak dátum uplynul bez vyhodnotenia, zobrazí sa „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie“, nie záporný čas (FR-10).
-- **Dvojaký kapitál (D-036, D-039):** K_L = K_inv + K_cash. K_cash sa nezhodnocuje (0 % reálne); m sa pripisuje do K_inv. Cieľ je dosiahnutý, keď K_L ≥ T (teda K_inv ≥ T − K_cash). Vzorce vyššie platia s K := K_inv a T := T − K_cash. Ak K_cash ≥ T, cieľ je dosiahnutý. Hradenie výdavkov z K_inv alebo K_cash je otvorené (O-10).
+- **Dvojaký kapitál (D-036, D-039, D-041):** K_L = K_inv + K_cash. K_cash sa nezhodnocuje (0 % reálne). Investícia (m_inv) ide do K_inv a zhodnocuje sa; sporenie (m_cash) ide do K_cash bez zhodnotenia (D-041). Ak m_cash > 0, uzavretý tvar nestačí; viď O-11. Cieľ je dosiahnutý, keď K_L ≥ T (teda K_inv ≥ T − K_cash). Vzorce vyššie platia s K := K_inv a T := T − K_cash. Ak K_cash ≥ T, cieľ je dosiahnutý. Hradenie výdavkov z K_inv alebo K_cash je otvorené (O-10).
 - Výnos medzi vyhodnoteniami sa na K_L nepripisuje; dátum je tak konzervatívny (D-024). Výnos r je jeden globálny predpoklad 4 % pre celý kapitál vrátane hotovosti, nastavuje ho používateľ (D-025, D-032).
 - Zobrazený dátum cieľa platí k poslednému vyhodnoteniu (D_L): text „dátum platí k poslednému vyhodnoteniu“ (S6).
 - Hranica „viac ako 50 rokov“ sa meria od D_L (D-019 upresnené).
@@ -976,12 +976,16 @@ Otvorené:
 | D-031 | 2026-10-14 | Mesačné sporenie m = súčet sporenia a investícií za 12 mesiacov, ktoré končia pri D_L (posledné vyhodnotenie), delený počtom mesiacov histórie, ak je menej ako 12 mesiacov. Upresňuje D-017 O-4 (okno aj delenie). | Rozhodnutie zakladateľa (revízia, H3). |
 | D-032 | 2026-10-14 | Výnos r je jeden globálny predpoklad pre celý kapitál (potvrdzuje D-025). Investícia sa zadáva len hodnotou; výnos sa neviaže na jednotlivé investície. Upresňuje UR-03 a D-010. | Rozhodnutie zakladateľa (revízia, M3). |
 | D-033 | 2026-10-14 | Nasporená suma pri vyhodnotení je kumulatívny stav hotovosti (nie prírastok). Transakcie s dátumom pred D_L sa do K nepripočítavajú (FR-05). | Rozhodnutie zakladateľa (revízia, M5). |
-| D-034 | 2026-10-14 | Inštalácia na plochu (iPhone) je odporúčaný krok prvého nastavenia, nie povinný. Riziko vymazania dát v IndexedDB zostáva zapísané a overí sa na reálnom iPhone pred M2. | Rozhodnutie zakladateľa (revízia, H4). |
+| D-034 | 2026-10-14 | Inštalácia na plochu (iPhone) je odporúčaný krok prvého nastavenia, nie povinný (od D-042 povinný na iPhone). Riziko vymazania dát v IndexedDB zostáva zapísané a overí sa na reálnom iPhone pred M2. | Rozhodnutie zakladateľa (revízia, H4). |
 | D-035 | 2026-10-14 | Pripomienka zálohy a banner po **7 dňoch** bez exportu (nie 14). Pri prvom nastavení sa silne odporúča pridať appku na plochu; nie je povinné. Dôvod: WebKit obmedzuje skriptovateľné úložisko v Safari na 7 dní bez interakcie; aplikácie na ploche majú vlastné počítadlo. Upresňuje D-034. | Rozhodnutie zakladateľa (revízia, V2). |
 | D-036 | 2026-10-14 | Hotovosť má vlastnú sadzbu, predvolene 0 % reálne; investovaný kapitál má r (predvolene 4 %). Upresňuje D-025 a D-032. Zapracované do FR-02 (odsek Dvojaký kapitál); smer m je rozhodnutý v D-039. | Rozhodnutie zakladateľa (revízia, V1). |
 | D-037 | 2026-10-14 | Sporenie do rezervy je samostatný typ transakcie „rezerva“. Nezapočítava sa do m ani do K, zobrazuje sa ako stav rezervy v mesiacoch výdavkov (V/12 × mesiace). | Rozhodnutie zakladateľa (revízia, V5). |
 | D-038 | 2026-10-14 | Prehľad spotreby (pravidelná vs. cielená, O-7) je odložený do fázy 1b. V MVP nie je vo FR ani v milníku M3/M4. | Rozhodnutie zakladateľa (revízia, V4). |
 | D-039 | 2026-10-14 | Mesačné sporenie m smeruje do investovaného kapitálu K_inv (zhodnocuje sa r). Hotovosť K_cash je pevná (0 % reálne, D-036). | Rozhodnutie zakladateľa (revízia, V1). |
 | D-040 | 2026-10-14 | História pre m sa počíta od prvej transakcie. Okno 12 mesiacov končí pri D_L (D-031). | Rozhodnutie zakladateľa (revízia, V7). |
+| D-041 | 2026-10-14 | Typ transakcie určuje kapitál: sporenie → K_cash (bez zhodnotenia), investícia → K_inv (zhodnocuje sa r). m_cash a m_inv sa počítajú osobitne. Upresňuje D-039. | Rozhodnutie zakladateľa (opätovná recenzia N2). |
+| D-042 | 2026-10-14 | Pridanie appky na plochu je na iPhone **povinné** (nie odporúčané). Ruší odporúčanie v D-034 a D-035 v časti o povinnosti. | Rozhodnutie zakladateľa (opätovná recenzia N3). |
+| D-043 | 2026-10-14 | Predvolená miera výberu zostáva 4 % aj pri skorom odchode, s upozornením, že pri dlhom horizonte je 3–3,5 % konzervatívnejšie. T je pred daňou a poplatkami. | Rozhodnutie zakladateľa (opätovná recenzia N8, V6). |
+| D-044 | 2026-10-14 | Referenčný dátum D_L je vyhodnotenie s najneskorším dátumom vyhodnotenia, nie čas zápisu. Spätné vyhodnotenie s dátumom pred D_L nezmení D_L. | Rozhodnutie zakladateľa (opätovná recenzia N9). |
 
 ---
