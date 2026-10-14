@@ -40,7 +40,7 @@ V, p, r, rezerva (mesiace), prah výdavkov, m (odvodené z transakcií, D-031; p
 ## 2. Výpočty
 
 ### FR-01 – Cieľová suma
-T = V / p. Ak V ≤ 0 alebo p ≤ 0, výpočet sa nespustí a zobrazí sa výzva na opravu vstupu.
+T = V / p. Ak V ≤ 0 alebo p ≤ 0, výpočet sa nespustí a zobrazí sa výzva na opravu vstupu. Ak V, p alebo r chýba (prvé spustenie, prázdne polia, D-057), cieľ sa nepočíta a Prehľad vyzve na nastavenie. Ak r nie je zadané, výpočet sa nespustí. Bez histórie transakcií pre m je m = 0 (D-031, V2).
 
 ### FR-02 – Dátum cieľa (počet mesiacov do cieľa)
 Výpočet v reálnych hodnotách, mesačné sporenie na konci mesiaca, mesačná sadzba `i = (1 + r)^(1/12) − 1`. Poradie vetiev je záväzné:
