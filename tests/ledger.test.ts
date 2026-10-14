@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentCapital, reserveBalance } from "../src/app/ledger";
+import { capitalWithFlags, currentCapital, reserveBalance } from "../src/app/ledger";
 import type { Snapshot, Transaction } from "../src/storage/types";
 
 const eur = (x: number) => x * 100;
@@ -52,5 +52,14 @@ describe("reserveBalance (D-047)", () => {
   it("vklady mínus výbery", () => {
     const txs = [tx({ type: "rezerva", amountCents: eur(6_000) }), tx({ type: "vyber_rezervy", amountCents: eur(1_000) })];
     expect(reserveBalance(txs)).toBe(eur(5_000));
+  });
+});
+
+describe("capitalWithFlags (R2)", () => {
+  it("záporný stav sa hlási, nie je skrytý", () => {
+    const snap = { id: "s", date: "2026-10-01", investmentsCents: 100_00, cashCents: 0, createdAt: "2026-10-01T00:00:00Z" };
+    const r = capitalWithFlags(snap, [tx({ type: "vydavok", source: "z_hotovosti", amountCents: 500_00 })]);
+    expect(r.capital.cash).toBe(0);
+    expect(r.negative).toEqual({ inv: false, cash: true });
   });
 });

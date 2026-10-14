@@ -1,6 +1,6 @@
 # 07 – Testovacia stratégia (MVP)
 
-> Stav: v0.7 (2026-10-14). Pokrýva `04_Functional_Requirements` (FR), `03_UX_Principles` (UX) a `05_Technical_Architecture`. **[predpoklad]** = návrh Claude, treba potvrdiť.
+> Stav: v0.8 (2026-10-14). Oddiely 2–4 opisujú skutočné a cieľové pokrytie (R18).
 
 ## 1. Priority testovania
 Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu váhu než chyba v ostatných:
@@ -16,16 +16,23 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 
 ## 2. Úrovne testov
 1. **Jednotkové (Vitest)** – čisté funkcie v `domain/` (FR-01 až FR-05, FR-07, FR-08). Cieľ: všetky vetvy výpočtov pokryté [predpoklad].
-2. **Property-based (fast-check)** – invarianty z oddielu 4.
+2. **Property-based (fast-check)** – invarianty z oddielu 4. **Stav (2026-10-14): nie je zavedené** (fast-check nie je v závislostiach); invarianty sú zatiaľ len špecifikácia.
 3. **Porovnávacie** – uzavretý vzorec vs. mesačná simulácia (oddiel 3; simulácia zatiaľ nie je spustená, doplní sa v M1).
 4. **Úložisko (Vitest + fake-indexeddb)** – CRUD, migrácie, import/export, atomicita.
-5. **Komponentové (React Testing Library)** – formuláre, validácie, texty predbežného dopadu, pripomienky, prázdne stavy.
+5. **Komponentové (React Testing Library)** – **stav (2026-10-14): nie je zavedené**; formuláre a texty sa zatiaľ overujú len cez Playwright E2E.
 6. **End-to-end (Playwright)** – kľúčové toky z `03_UX` (prvé nastavenie, týždenné zadanie, mesačné vyhodnotenie, záloha), na mobilných viewportoch, aj offline.
-7. **Dostupnosť** – axe-core na každej obrazovke v komponentových aj E2E testoch; manuálne čítačky (oddiel 9).
+7. **Dostupnosť** – axe-core **stav (2026-10-14): nie je zavedené**; zatiaľ len atribúty aria-label pri poliach a manuálne čítačky (oddiel 9).
 8. **Súkromie a bezpečnosť** – sieťové testy, npm audit, CSP (oddiel 7).
 9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
 
-**Pokrytie požiadaviek bez výpočtovej GC (doplnené po revízii):**
+**Stav automatizovaných testov (2026-10-14, R18):** tabuľka nižšie je *cieľové* pokrytie. Dnes automatizované sú:
+- jednotkové testy (Vitest, 63 testov): GC-01, GC-02, GC-03, GC-04, GC-08, GC-11, GC-13, GC-15 až GC-21 (ID v názvoch testov); FR-01, FR-02, FR-04, FR-05, FR-13, FR-14, FR-15, FR-16 (manifest a offline cez E2E), FR-17, FR-18, FR-19, FR-09, FR-10 (pripomienky a história v čistých funkciách a v E2E);
+- úložisko (CRUD, validácia, atomicita importu, duplicitné id): FR-17, FR-18;
+- E2E (Playwright, desktop a mobil 390): záloha, úprava a vrátenie, offline režim.
+
+Neautomatizované (zatiaľ len cieľ): GC-05, GC-06, GC-07, GC-09, GC-10, GC-12, GC-14, GC-22; komponentové testy FR-06, FR-11, FR-12, FR-13 (vizuálne odlíšenie), FR-14 (rozsah), FR-07, D-030, M2 (dátum v budúcnosti v UI); axe-core a čítačky. Pri neautomatizovanej položke sa testovanie robí ručne.
+
+**Pokrytie požiadaviek bez výpočtovej GC (cieľ, doplnené po revízii):**
 
 | Požiadavka | Test | Typ |
 |---|---|---|
@@ -78,9 +85,13 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
 
+**Stav:** GC-03, GC-04, GC-08, GC-11, GC-13, GC-15 až GC-21 sú označené v jednotkových testoch; GC-05, GC-06, GC-07, GC-09, GC-10, GC-12, GC-14 a GC-22 zatiaľ nemajú označený test. Súbor `tests/golden/goal-cases.json` zatiaľ neexistuje.
+
 **Tolerancia:** porovnávame celé mesiace po `ceil(n − 1e-6)`; interné hodnoty n sa porovnávajú s presnosťou 1e-6.
 
 ## 4. Invarianty (property-based testy)
+**Stav (2026-10-14): nie sú implementované** (pozri oddiel 2, bod 2). Nižšie je špecifikácia.
+
 Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10], T ∈ [1 000; 10 000 000]):
 - **Hraničná podmienka:** pre n = `monthsToTarget(...)` platí K_uzavretý(⌈n − 1e-6⌉ − 1) < T ≤ K_uzavretý(⌈n − 1e-6⌉), kde K_uzavretý(k) = K·(1+i)^k + m·((1+i)^k − 1)/i je kapitál po k mesiacoch (D-024) pre i > 0; pre i = 0 (r = 0) je K_uzavretý(k) = K + m·k. Property test pokrýva r = 0 samostatne (K2). Toto je presnejšie než porovnanie so simuláciou a zachytí chybu v zaokrúhľovaní.
 - **Nezápornosť:** K_pred ≥ 0 pre ľubovoľnú postupnosť výdavkov z kapitálu po D_L (H2).

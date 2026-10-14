@@ -10,10 +10,18 @@ import type { Snapshot, Transaction } from "../storage/types";
  * - investícia z príjmu → K_inv; investícia z hotovosti (presun) → K_cash −, K_inv +
  * - výdavok z hotovosti → K_cash −; výdavok z investícií → K_inv −; z príjmu → bez zmeny
  * - rezerva (vklad) → K_cash − (peniaze odchádzajú z K); výber z rezervy → K_cash +
- * Výsledky sa zarážajú na 0 (H2).
+ * Výsledky sa zarážajú na 0 (H2); pôvodný záporný stav sa hlási cez capitalWithFlags.
  */
 export function currentCapital(snapshot: Snapshot | null, transactions: Transaction[]): Capital {
-  if (!snapshot) return { inv: 0, cash: 0 };
+  return capitalWithFlags(snapshot, transactions).capital;
+}
+
+/**
+ * Ako currentCapital, ale hlási, či sa niektorá zložka dostala pod 0 (R2).
+ * Záporný stav znamená nekonzistentné zadanie (napr. výdavok nad stav); UI ho musí ukázať, nie skryť.
+ */
+export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transaction[]): { capital: Capital; negative: { inv: boolean; cash: boolean } } {
+  if (!snapshot) return { capital: { inv: 0, cash: 0 }, negative: { inv: false, cash: false } };
   let inv = snapshot.investmentsCents;
   let cash = snapshot.cashCents;
   const after = transactions
@@ -43,7 +51,10 @@ export function currentCapital(snapshot: Snapshot | null, transactions: Transact
         break;
     }
   }
-  return { inv: Math.max(0, inv), cash: Math.max(0, cash) };
+  return {
+    capital: { inv: Math.max(0, inv), cash: Math.max(0, cash) },
+    negative: { inv: inv < 0, cash: cash < 0 },
+  };
 }
 
 /** Stav rezervy = vklady mínus výbery (D-047). Nie je súčasťou K. */

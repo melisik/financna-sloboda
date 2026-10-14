@@ -4,7 +4,7 @@ import type { Repository } from "../storage/repository";
 import { SOURCES, type AppData, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { buildBackup, parseBackup } from "../storage/backup";
-import { currentCapital, reserveBalance } from "../app/ledger";
+import { capitalWithFlags, reserveBalance } from "../app/ledger";
 import { filterHistory, totalsByType } from "../app/history";
 import { backupOverdue, reviewOverdue } from "../app/reminders";
 import { targetAmountCents, targetDate } from "../domain/goal";
@@ -54,6 +54,8 @@ interface Ctx {
   settings: Settings | null;
   latest: Snapshot | null;
   capital: Capital;
+  negative: { inv: boolean; cash: boolean };
+  derived: { inv: number; cash: number };
   reserve: number;
   mInv: number;
   mCash: number;
@@ -65,10 +67,13 @@ function makeCtx(data: AppData): Ctx {
   const latest = [...data.snapshots].sort((a, b) => a.date.localeCompare(b.date)).at(-1) ?? null;
   const s = data.settings;
   const derived = latest ? monthlySaving(data.transactions, latest.date) : { inv: 0, cash: 0 };
+  const flags = capitalWithFlags(latest, data.transactions);
   return {
     settings: s,
     latest,
-    capital: currentCapital(latest, data.transactions),
+    capital: flags.capital,
+    negative: flags.negative,
+    derived,
     reserve: reserveBalance(data.transactions),
     mInv: s?.savingInvCents ?? derived.inv,
     mCash: s?.savingCashCents ?? derived.cash,
@@ -120,7 +125,7 @@ export function App() {
   return (
     <Shell>
       <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
-      <SettingsSection repo={repo} settings={data.settings} onSaved={reload} />
+      <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
       <SnapshotSection repo={repo} latest={ctx.latest} snapshots={data.snapshots} onSaved={reload} />
       <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} />
       <BackupSection repo={repo} data={data} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
@@ -176,6 +181,11 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
         </p>
       )}
       {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Najprv zadaj nastavenia (ročné výdavky, miera výberu).</p>}
+      {(ctx.negative.cash || ctx.negative.inv) && (
+        <p style={{ background: "#fbe3e3", padding: 8, borderRadius: 6 }}>
+          Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení (R2).
+        </p>
+      )}
       {ctx.latest && ctx.target !== null ? (
         <>
           <p>Dátum cieľa: <strong>{scenarioText(ctx, ctx.realReturn)}</strong></p>
@@ -199,8 +209,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
   );
 }
 
-function SettingsSection({ repo, settings, onSaved }: { repo: Repository; settings: Settings | null; onSaved: () => void }) {
-  const rec = recommendedSettings(settings?.expensesCents ?? 2_400_000);
+function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repository; settings: Settings | null; derived: { inv: number; cash: number }; onSaved: () => void }) {
   const [v, setV] = useState({
     expenses: settings ? settings.expensesCents / 100 : "" as NumIn,
     withdrawalPct: settings ? settings.withdrawalRate * 100 : "" as NumIn,
@@ -213,6 +222,9 @@ function SettingsSection({ repo, settings, onSaved }: { repo: Repository; settin
   const [err, setErr] = useState<string | null>(null);
   const pct = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
   const eurs = (c: number) => `${(c / 100).toLocaleString("sk-SK")} €`;
+  // Odporúčania sa počítajú z práve zadaných výdavkov (R21/R22: jeden zdroj, bez natvrdo zadanej sumy).
+  const expCents = typeof v.expenses === "number" ? cents(v.expenses) : 0;
+  const rec = recommendedSettings(expCents);
 
   const save = async () => {
     const vals = [v.expenses, v.withdrawalPct, v.returnPct, v.reserve, v.threshold].map(asNum);
@@ -257,9 +269,9 @@ function SettingsSection({ repo, settings, onSaved }: { repo: Repository; settin
       <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })}
         hint={`odporúčané ${eurs(rec.thresholdCents)}`} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
       <Field label="Mesačné sporenie do investícií (€), prázdne = odvodené" value={v.savingInv} onChange={(x) => setV({ ...v, savingInv: x })}
-        hint="prázdne = odvodené z transakcií (D-031)" onReset={() => setV({ ...v, savingInv: "" })} />
+        hint={`prázdne = odvodené z transakcií: ${eurs(derived.inv)} mesačne (D-031)`} onReset={() => setV({ ...v, savingInv: "" })} />
       <Field label="Mesačné sporenie do hotovosti (€), prázdne = odvodené" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}
-        hint="prázdne = odvodené z transakcií (D-031)" onReset={() => setV({ ...v, savingCash: "" })} />
+        hint={`prázdne = odvodené z transakcií: ${eurs(derived.cash)} mesačne (D-031)`} onReset={() => setV({ ...v, savingCash: "" })} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť nastavenia</button>
     </section>
@@ -361,7 +373,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   // Pri úprave sa pôvodná transakcia z výpočtu vyradí (R12).
   const base = useMemo(() => {
     const others = data.transactions.filter((t) => t.id !== editingId);
-    const capital = currentCapital(ctx.latest, others);
+    const capital = capitalWithFlags(ctx.latest, others).capital;
     return { capital, reserve: reserveBalance(others) };
   }, [data.transactions, editingId, ctx.latest]);
 
