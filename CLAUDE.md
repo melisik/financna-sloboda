@@ -1,7 +1,13 @@
 # Finančná sloboda (pracovný názov) – projektový kontext
 
 ## Stav projektu
-Fáza: objavovanie. Cieľ, cieľová skupina, typ produktu (aplikácia / nástroj / obsah / iné) a rozsah **zatiaľ nie sú určené**. Všetko, čo nie je v `docs/` alebo `decisions/`, je predpoklad a treba to ako predpoklad označiť.
+Fáza: MVP je zadefinovaný rozhodnutiami (`decisions/Decisions.md`, D-001 až D-072) a čiastočne implementovaný. Cieľ, cieľová skupina a rozsah MVP vyplývajú z týchto rozhodnutí; nie sú to predpoklady. Kód je v `src/` (doménová vrstva, úložisko, UI), testy v `tests/` a `tests/e2e/`.
+
+Stav overený 2026-10-15: build prechádza, 76 jednotkových testov a 3 E2E testy prechádzajú v profiloch desktop aj mobile-390. Úplnosť milníkov a otvorené nálezy revízie sú v `review/revizia-revizny-balik-2026-10-15.md`; brána M1 nie je potvrdená.
+
+Všetko, čo nie je v `docs/` alebo `decisions/`, je predpoklad a treba ho ako predpoklad označiť.
+
+Projekt je len o osobnej finančnej slobode. Nesúvisí s projektom `spolu-na-ceste` (podpora navigácie pre rodiny).
 
 ## Úloha AI
 Claude pracuje ako člen produktového tímu: píše dokumentáciu, rozpracúva koncepty, navrhuje riešenia a vedie iterácie dokumentov.
