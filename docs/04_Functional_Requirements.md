@@ -12,7 +12,7 @@
 | **Kapitál (K)** | Hodnota investícií + nasporená suma (kumulatívny stav hotovosti, D-033), bez rezervy (D-011, D-017). |
 | **Reálny výnos (r)** | Ročný výnos po inflácii, predvolene 3,5 %, rozsah 2–6 % (D-011, D-050). Jeden predpoklad pre investovaný kapitál K_inv; hotovosť K_cash sa nezhodnocuje, 0 % reálne (D-036, upresňuje D-025 a D-032). Počíta sa so všetkými sumami v dnešných cenách. Zobrazuje sa aj nominálne (D-063, π = 2 % [predpoklad]); poplatky sa odpočítavajú od r (D-064); pri horizonte nad 20 rokov poznámka (D-065). |
 | **Mesačné sporenie (m)** | Súčet transakcií typu „sporenie“ a „investícia“ za 12 mesiacov, ktoré končia pri D_L, delený počtom mesiacov histórie (najviac 12) (D-031). Používateľ môže zadať vlastnú hodnotu (UR-02). |
-| **Rezerva** | Východisková hodnota 3 mesiace výdavkov (rozsah 3–6), mimo cieľa (D-011). Stav = vklady mínus výbery (D-047). Rezerva nie je v K ani hranicou výdavkov: vklad berie z K_cash, výber ju dopĺňa (D-058; upravuje D-045, D-047, D-052). |
+| **Rezerva** | Východisková hodnota 3 mesiace výdavkov (rozsah 3–6), mimo K (D-011). Vklad do rezervy znižuje kapitál pre cieľ a výber ho zvyšuje (D-060). Stav = vklady mínus výbery (D-047). Rezerva nie je v K ani hranicou výdavkov: vklad berie z K_cash, výber ju dopĺňa (D-058; upravuje D-045, D-047, D-052). |
 | **Vyhodnotenie (snapshot)** | Mesačný záznam s dátumom, hodnotou investícií a nasporenou sumou; zadáva sa na konci mesiaca (D-014). |
 | **Referenčný dátum (D_L)** | Dátum posledného vyhodnotenia podľa dátumu vyhodnotenia, nie času zápisu (D-044). K_L a m sa vzťahujú k tomuto dňu. Dátum cieľa sa počíta od D_L a mení sa len pri novom vyhodnotení (D-024). |
 | **Posledný stav (K_L)** | K zo snapshotu, ktorý je najnovší. Oficiálny cieľ sa počíta z neho, od D_L. |
@@ -105,8 +105,8 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 ### FR-08 – Zdroj úhrady výdavku (D-014)
 - „Z príjmu“: K sa nemení.
 - „Z hotovosti“ (K_cash): K_pred sa znižuje o sumu, ale K_cash nesmie klesnúť pod 0 (D-058; rezerva je mimo K_cash a do kontroly nevstupuje). Ak by nestačil, výdavok sa nevykoná, zobrazí sa upozornenie a ponuka zdroja „z investícií“. Po vyhodnotení sa zohľadní v nasporenej sume.
-- „Z investícií“ (K_inv): K_pred sa znižuje o sumu; K_cash sa nemení (D-045). Ak suma presiahne K_inv, upozorní sa „Investície nestačia“, navrhne sa zdroj „z príjmu“ a uloží sa až po potvrdení; K_inv = 0 € (D-059).
-- Ak je výdavok z kapitálu väčší než K_L, alebo ak súčet výdavkov z kapitálu po D_L presiahne K_L, navrhuje sa upozornenie a ponuka zmeny na „z príjmu“; ak používateľ potvrdí, K_pred = 0 a zobrazí sa „Hotovosť nestačila; kapitál je 0 €“ (D-021 rozšírené na kumulatívny prípad, H2).
+- „Z investícií“ (K_inv): K_pred sa znižuje o sumu; K_cash sa nemení (D-045). Ak suma presiahne K_inv, výdavok sa neuloží, zobrazí sa „Investície nestačia“ a navrhne sa zdroj „z príjmu“ (D-074; mení D-059).
+- Ak je výdavok z kapitálu väčší než dostupný kapitál, alebo ak súčet výdavkov z kapitálu po D_L presiahne K_L, výdavok sa neuloží a navrhne sa zdroj „z príjmu“ (D-021 v časti upozornenia; potvrdenie prečerpania nahrádza D-074, H2).
 
 ### FR-09 – Úprava a mazanie transakcie
 - Úprava a mazanie sú možné vždy.
@@ -124,7 +124,7 @@ Sumy: EUR na celé eurá v zobrazení, 2 desatinné miesta vo vstupe a v uložen
 - Vypnuteľná v nastaveniach.
 
 ### FR-12 – Prvé nastavenie
-Postupnosť: cieľ (V, p, r, rezerva) s východiskovými hodnotami ako výzvou (D-057) → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Pridanie na plochu (iPhone) je povinná výzva (D-042, D-053); ostatné kroky sa dajú preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
+Postupnosť: cieľ (V, p, r, rezerva) s východiskovými hodnotami ako výzvou (D-057) → investícia (aktuálna hodnota, UR-03) → prah → prvé vyhodnotenie. Pridanie na plochu (iPhone) je blokujúci krok, ktorý sa nedá preskočiť (D-042, D-053, D-075); ostatné kroky sa dajú preskočiť a doplniť neskôr; chýbajúce údaje sa zobrazia ako „nezadané“, nie ako nula. Prvé vyhodnotenie nastavuje D_L; kým neexistuje, namiesto dátumu sa zobrazí výzva „urobte prvé vyhodnotenie“ (L6). Pridanie appky na plochu je na iPhone povinné (D-042; pozri D-034, D-035).
 
 ### FR-13 – Východiskové predpoklady
 - Východisková hodnota je viditeľne označené a odlíšené od hodnoty používateľa (UR-02).
@@ -151,7 +151,7 @@ Zoznam transakcií od najnovšej, filter podľa typu a obdobia, súčty za obdob
 
 ### FR-18 – Import
 - Import načíta súbor, overí verziu schémy a zobrazí náhľad (počet transakcií, vyhodnotení, dátum exportu).
-- Import **nahradí** aktuálne dáta až po potvrdení (D-018). Pred nahradením sa automaticky stiahne záloha aktuálnych dát (D-071).
+- Import **nahradí** aktuálne dáta až po potvrdení (D-018). Pred nahradením sa ponúkne stiahnutie zálohy aktuálnych dát; uloží sa len po potvrdení používateľa (D-078; mení D-071).
 - Texty z poznámky a z importovaného súboru sa zobrazujú len ako text (bez vkladania HTML) a nikdy sa nevykonávajú (S10).
 - Neplatný súbor sa neimportuje a nič sa nezmení.
 - Neznáme polia sa odmietnu (nie ticho ignorujú), overia sa typy, rozsahy a maximálna veľkosť súboru (návrh: 5 MB; N11, S5).
@@ -188,7 +188,7 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 - **O-3 Import zálohy:** nahradí aktuálne dáta po potvrdení (D-018).
 - **O-4 Priemer sporenia:** za 12 mesiacov do D_L, delené počtom mesiacov histórie, najviac 12 (D-031; upresňuje D-017).
 - **O-5 Veľmi vzdialený dátum:** do 50 rokov, ďalej „viac ako 50 rokov“; bez kapitálu a sporenia text bez dátumu (D-019).
-- **O-6 Výdavok z kapitálu väčší než kapitál:** upozornenie a ponuka zmeny na „z príjmu“; pri potvrdení K_pred = 0 a text „Hotovosť nestačila; kapitál je 0 €“ (D-021; pre investície D-059).
+- **O-6 Výdavok z kapitálu väčší než kapitál:** výdavok sa neuloží; upozornenie a ponuka zmeny na „z príjmu“ (D-021, D-074; pre investície nahrádza D-059).
 
 - **Rozhodnuté ďalej (D-030 až D-034):** prah a príznak pod prahom, m = za 12 mesiacov do D_L delené počtom mesiacov, globálne r, nasporená suma je stav. Plocha (iPhone): pôvodne východisková (D-034), upravené na povinnú výzvu (D-042, D-053).
 - **Vyriešené (O-8 až O-11):** rozsah prahu D-048, zdroj predvolených r a výberu D-049 a D-050, zdroj úhrady výdavku z kapitálu D-045, výpočet n pri m_cash > 0 D-046.

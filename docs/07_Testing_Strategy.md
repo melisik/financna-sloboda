@@ -199,7 +199,7 @@ Bankové a investičné integrácie, viacužívateľské scenáre, daňové výp
 ## 15. Otvorené otázky
 Zodpovedané:
 - **Zariadenia:** iPhone 16 (iOS 26.6.2) a Android zariadenie (model a verzia systému sa doplnia).
-- **O-6 (D-021):** výdavok z kapitálu väčší než kapitál sa rieši upozornením a ponukou zmeny na „z príjmu“.
+- **O-6 (D-021, D-074):** výdavok z kapitálu väčší než dostupný kapitál sa neuloží; zobrazí sa upozornenie a ponuka zmeny na „z príjmu“. Kód to zatiaľ nerobí (orez podľa D-059); test treba doplniť po zmene kódu.
 
 Otvorené:
 - **Riziko iOS Safari:** rozhodnuté (D-042): plocha je na iPhone povinná. Overenie na reálnom iPhone pred M2 (nie po M2).

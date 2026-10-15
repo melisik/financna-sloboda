@@ -24,7 +24,7 @@
 
 **Čo ešte chýba:**
 - externá revízia dokumentov (Claude ako reviewer, podľa `CLAUDE.md`),
-- hosting je uzavretý: GitHub Pages (D-056). Šifrovanie v MVP je rozhodnuté (D-026: nie). O-6 je uzavretý (D-021).
+- hosting je uzavretý: GitHub Pages (D-056). Šifrovanie v MVP je rozhodnuté (D-026: nie). O-6 je uzavretý (D-021; pravidlo prečerpania upravuje D-074).
 
 **Výstupná brána:** pripomienky z revízie sú zapracované a rozhodnutia zapísané v `Decisions.md`.
 
@@ -103,7 +103,7 @@
 - **Platba všetkých daní (napr. z príjmu, z predaja investícií):** mimo MVP (D-008, 04 oddiel 6). Platba dane je regulovaná; vyžaduje právne posúdenie pred fázou 2. Možný menší variant: len pripomienka termínu bez výpočtu dane.
 - **API do banky na pravidelné transakcie:** v rozpore s D-009 a FR-16 (žiadne volania na externé API v MVP). Patrí do fázy 3, viazané na PSD2 (oddiel 7). Prvý krok je import CSV výpisu (oddiel 7, bod 2).
 - **Pravidelné platby ako pripomienky:** nový typ údajov (plán opakovaných platieb) a zmena výpočtu dopadu (FR-04). Nie je to drobnosť; treba samostatný návrh a rozhodnutie.
-- **Automatický presun hotovosti pred platbou:** aplikácia nepresúva peniaze sama (presun ostáva manuálny, D-046). Možný variant je pripomienka „pred splatnosťou zváž presun X €“, ktorá kontroluje, či hotovosť stačí (K_cash, D-058) a nie je odporúčaním na kúpu alebo predaj.
+- **Automatický presun hotovosti pred platbou:** aplikácia nepresúva peniaze sama (presun ostáva manuálny, D-045). Možný variant je pripomienka „pred splatnosťou zváž presun X €“, ktorá kontroluje, či hotovosť stačí (K_cash, D-058) a nie je odporúčaním na kúpu alebo predaj.
 
 ## 9. Rozhodnutia potrebné pred ďalšími krokmi
 

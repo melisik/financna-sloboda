@@ -1,6 +1,6 @@
 # 08 – Návrh: určenie výnosovej sadzby r (architektúra)
 
-> Stav: **schválený návrh** (2026-10-14): model A, rozhodnutia D-062 až D-065. Implementované (2026-10-14): `src/domain/assumptions.ts`, poplatky v nastaveniach, nominálne zobrazenie, poznámka pri dlhom horizonte. Nič z tohto dokumentu nie je v kóde. Rozhodnutia sa zapíšu do `decisions/Decisions.md` až po schválení. [predpoklad] = návrh Claude, treba potvrdiť.
+> Stav: **schválený návrh** (2026-10-14): model A, rozhodnutia D-062 až D-065. Stav kódu (overené 2026-10-15): existuje `src/domain/assumptions.ts`. Poplatky v nastaveniach, nominálne zobrazenie a poznámka pri dlhom horizonte sa v kóde overia pred označením ako implementované. Rozhodnutia sa zapíšu do `decisions/Decisions.md` až po schválení. [predpoklad] = návrh Claude, treba potvrdiť.
 
 ## 1. Čo treba vyriešiť
 Výpočet (FR-02, FR-03, FR-04) pracuje s **jedným číslom r** pre investovaný kapitál K_inv (D-032). Otázka je, odkiaľ r pochádza, kto ho určí, ako sa zdôvodní a ako sa zobrazí.
