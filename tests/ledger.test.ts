@@ -73,3 +73,16 @@ describe("GC-24 (D-058): rezerva v K_pred", () => {
     expect(wd).toEqual({ inv: eur(100_000), cash: eur(15_000) });
   });
 });
+
+describe("reserveBalance – GC-22 (D-047)", () => {
+  // GC-22: vklad do rezervy 6 000 €, potom výber z rezervy 1 000 € → rezerva 5 000 €.
+  // Vklad berie z K_cash, výber ju dopĺňa (D-058, D-060): K_cash = 20 000 − 6 000 + 1 000 = 15 000.
+  it("GC-22: vklady mínus výbery = 5 000 €; K_cash 15 000 €", () => {
+    const txs = [
+      tx({ type: "rezerva", amountCents: eur(6_000), date: "2026-10-05" }),
+      tx({ type: "vyber_rezervy", amountCents: eur(1_000), date: "2026-10-06" }),
+    ];
+    expect(reserveBalance(txs)).toBe(eur(5_000));
+    expect(currentCapital(snap, txs)).toEqual({ inv: eur(100_000), cash: eur(15_000) });
+  });
+});
