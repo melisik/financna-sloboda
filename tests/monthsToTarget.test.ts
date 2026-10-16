@@ -39,3 +39,26 @@ describe("targetDate (FR-02, D-024)", () => {
     expect(targetDate("2028-01-31", 1)).toBe("2028-02-29");
   });
 });
+
+describe("monthsToTarget – doplnené golden cases M1", () => {
+  // GC-07: K = 100 000, m = 0, r = 4 % → n = 548,21 → 549 mesiacov
+  it("GC-07: m = 0 dá n ≈ 548,21 a po ceil 549 mesiacov", () => {
+    const n = monthsToTarget(eur(100_000), 0, 0.04, eur(600_000));
+    expect(n!).toBeCloseTo(548.21, 2);
+    expect(Math.ceil(n! - 1e-6)).toBe(549);
+  });
+
+  // GC-09: K = 0, m = 500, r = 4 % → n = 488,02 → 489 mesiacov
+  it("GC-09: K = 0 a m > 0 dá n ≈ 488,02 a po ceil 489 mesiacov", () => {
+    const n = monthsToTarget(0, eur(500), 0.04, eur(600_000));
+    expect(n!).toBeCloseTo(488.02, 2);
+    expect(Math.ceil(n! - 1e-6)).toBe(489);
+  });
+
+  // GC-10: r = 0 → n = (T − K)/m = 1 000 presne; ceil nesmie dať 1 001
+  it("GC-10: r = 0 dá presne 1 000 mesiacov", () => {
+    const n = monthsToTarget(eur(100_000), eur(500), 0, eur(600_000));
+    expect(n).toBe(1000);
+    expect(Math.ceil(n! - 1e-6)).toBe(1000);
+  });
+});
