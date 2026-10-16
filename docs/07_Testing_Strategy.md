@@ -86,7 +86,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-23 | K = 100 000, m = 500, r = 3,5 % (základ, D-050), T = 600 000 | n = 362,10 → **363** | FR-02, D-050 |
 | GC-24 | K_inv = 100 000, K_cash = 20 000, vklad do rezervy 6 000 € | K_pred: K_cash = 14 000 €, K_inv nezmenené; výber z rezervy 1 000 € → K_cash = 15 000 € | FR-04, D-058 |
 | GC-P2-01 (Fáza 2) | K_inv = 100 000, K_cash = 0, m = 0, r = 3,5 %, T = 600 000, V = 300 000, Z0 = 200 000, nominálna hypotéka 3 %, π = 2 %, P = 1 000, N = 1 200 | n ≈ 257,2 → **258 mesiacov** od D_L (≈ 21 rokov a 5 mesiacov) | FR-02a; kandidát, overiť predpoklady A1–A3 |
-| GC-P2-02 (Fáza 2, blokovaný) | ako GC-P2-01, ale K_cash = 10 000, N = 600 | K_cash klesne pod 0 v **mesiaci 25**; výpočet sa zastaví, bez dátumu, hlásenie „nedostatok hotovosti v mesiaci 25“ | FR-02a, D-058, D-074 |
+| GC-P2-02 (Fáza 2, blokovaný) | ako GC-P2-01, ale K_cash = 10 000, N = 600 | K_cash = 0 v **mesiaci 25**; v **mesiaci 26** by bolo záporné, výpočet sa zastaví, bez dátumu, hlásenie „nedostatok hotovosti v mesiaci 26“ | FR-02a, D-058, D-074 |
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
 

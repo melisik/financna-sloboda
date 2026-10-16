@@ -88,7 +88,7 @@ Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnos
 
 **Golden cases (kandidáti, neimplementované):**
 - **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 2 %`, `P = 1 000`, `N = 1 200`. Očakávané `n ≈ 257,2` mesiaca (≈ 21 rokov a 5 mesiacov), dátum = D_L + 258 mesiacov.
-- **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. Hotovosť klesne pod 0 v mesiaci 25 a výpočet sa zastaví s hlásením „nedostatok hotovosti v mesiaci 25“.
+- **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. Hotovosť dosiahne 0 v mesiaci 25; v mesiaci 26 by klesla pod 0, preto sa výpočet zastaví s hlásením „nedostatok hotovosti v mesiaci 26“.
 
 **Rozhodnuté (D-093):** vlastné bývanie sa do K nepočíta a zobrazí sa zvlášť. Hodnota bytu, v ktorom používateľ býva, nezvyšuje K_nem.
 
