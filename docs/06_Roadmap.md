@@ -16,7 +16,7 @@
 | 0 – Discovery a dokumentácia | vízia, požiadavky, architektúra, testy | takmer hotová; revízia prebieha | externá revízia dokumentov |
 | 1 – MVP (osobné použitie) | webová PWA pre zakladateľa | prebieha: kód M2–M4 je v `main` ako výnimka z D-022 (D-072) | rozhodnutia z oddielu 9 |
 | 1b – Pilot | 3 mesiace reálneho používania | plán | dokončené M1–M7 |
-| 2 – EÚ webový produkt | viac používateľov, účty, GDPR, jazyky | plán | právne posúdenie, monetizácia, rozhodnutie o účtoch a šifrovaní |
+| 2 – EÚ webový produkt | viac používateľov, účty, GDPR, jazyky | plán; vývoj môže začať po MVP (D-094) | pred spustením pre používateľov: právne posúdenie, monetizácia, účty a šifrovanie, bezpečnostný audit |
 | 3 – Mobil a integrácie | natívna appka, banka a investičné appky | plán | licencie a zmluvy, bezpečnostný audit |
 
 ## 3. Fáza 0 – Discovery (takmer hotová)
@@ -110,8 +110,8 @@
 | Kedy | Rozhodnutie | Kto |
 |---|---|---|
 | – | hosting: uzavreté, GitHub Pages (D-056) | – |
-| pred M2 | overenie uchovania dát na reálnom iPhone (plocha, neaktivita); plocha na iPhone povinná (D-042) | zakladateľ |
-| pred fázou 2 | monetizácia, právne posúdenie, účty a šifrovanie | zakladateľ, právnik |
+| plánované 2026-10-23 (cca týždeň) | overenie uchovania dát na reálnom iPhone (plocha, neaktivita); plocha na iPhone povinná (D-042). Pôvodne „pred M2“; M2 je v `main` ako výnimka (D-079). | zakladateľ |
+| pred spustením Fázy 2 pre používateľov (nie pred jej začiatkom, D-094) | monetizácia, právne posúdenie, účty a šifrovanie, bezpečnostný audit | zakladateľ, právnik |
 | po M1 | presnejší odhad trvania milníkov podľa tempa | zakladateľ |
 
 ## 10. Metriky úspechu [predpoklad]
