@@ -61,6 +61,37 @@ Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môž
 
 **Overený príklad [predpoklad, na kontrolu]:** V = 24 000 €, K = 100 000 €, m = 500 €, r = 4 %. Dostaneme T = 600 000 €, i ≈ 0,3274 %, n ≈ 334 mesiacov (≈ 27 rokov 10 mesiacov).
 
+### FR-02a – Nehnuteľnosť v K (Fáza 2, D-080, D-091, D-092)
+
+> Platí len po zavedení Fázy 2 (D-086). MVP nepoužíva tento odsek. Pre MVP zostáva FR-02 podľa vyššie uvedených vetiev.
+
+Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnosti. Výpočet sa robí po mesiacoch od D_L (k = 0, 1, 2, …):
+
+- `K_inv(k) = K_inv·(1+i)^k + m_inv·((1+i)^k − 1)/i`, kde `i = (1+r)^(1/12) − 1` (ako vyššie).
+- `K_cash(k) = K_cash + (m_cash + N − P)·k`, kde `N` je čistý nájom po nákladoch a `P` je aktuálna splátka hypotéky podľa zmluvy (D-084).
+- `K_nem(k) = V − Z(k)`, kde `V` je odhad hodnoty nehnuteľnosti (D-089) a `Z(k)` je zostatok hypotéky:
+  `Z(k) = Z0·(1+i_h)^k − P·((1+i_h)^k − 1)/i_h`, `i_h` je reálna mesačná úroková sadzba. Pri `i_h = 0` platí `Z(k) = Z0 − P·k`.
+- `K_L(k) = K_inv(k) + K_cash(k) + K_nem(k)`.
+
+**Dátum cieľa:** najmenšie celé `k`, pri ktorom `K_L(k) ≥ T`; zlomok sa získa lineárnou interpoláciou medzi `k−1` a `k` (ako D-046). Ak `K_L(k) < T` ani pri `k = 600` (50 rokov), cieľ je nedosiahnuteľný (O-5).
+
+**Uzavretý tvar neexistuje:** kombinácia exponenciálnych a lineárnych členov nedáva jednoduchý vzorec, preto sa `n` počíta iteráciou aj pri nehnuteľnosti.
+
+**Obmedzenie hotovosti (D-058, D-074):** pre všetky `k ≤ n` musí platiť `K_cash(k) ≥ 0`. Ak doplácanie vyčerpá hotovosť skôr, výpočet sa zastaví, nezobrazí sa dátum a zobrazí sa mesiac vyčerpania hotovosti.
+
+**Regresia:** pre `V = 0`, `Z0 = 0`, `N = P = 0` sa výsledok rovná pôvodnému FR-02 (overené: 362,10 mesiaca pre `K = 100 000`, `m = 500`, `T = 600 000`, `r = 3,5 %`).
+
+**Predpoklady [predpoklad, overiť]:**
+- A1: všetky sumy sú v dnešných cenách (D-063). `V`, `N` a `P` sú počas roka konštantné; `V` sa mení len pri ročnej aktualizácii (D-089).
+- A2: `i_h` sa odvodí z nominálnej sadzby hypotéky a inflácie `π = 2 %` (D-063, zdroj treba overiť).
+- A3: úrok je súčasťou `P`; delenie na úrok a istinu je v `Z(k)` cez `i_h` (D-085).
+
+**Golden cases (kandidáti, neimplementované):**
+- **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 2 %`, `P = 1 000`, `N = 1 200`. Očakávané `n ≈ 257,2` mesiaca (≈ 21 rokov a 5 mesiacov), dátum = D_L + 258 mesiacov.
+- **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. Hotovosť klesne pod 0 v mesiaci 25 a výpočet sa zastaví s hlásením „nedostatok hotovosti v mesiaci 25“.
+
+**Otvorené pre zakladateľa:** vlastné bývanie. Ak sa do K počíta aj byt, v ktorom používateľ býva, dátum cieľa sa skráti o hodnotu, ktorú nemôže spotrebovať bez zmeny bývania. Treba rozhodnúť, či sa to počíta do K, alebo zobrazí zvlášť.
+
 ### FR-03 – Rozsah dátumov (scenáre)
 Tri scenáre sa počítajú rovnakým vzorcom s výnosmi odvodenými od r (D-011, S1):
 - opatrný: r − 2 p. b. (dolná hranica 0 %),
