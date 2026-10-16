@@ -31,7 +31,7 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 - úložisko (CRUD, validácia, atomicita importu, duplicitné id): FR-17, FR-18;
 - E2E (desktop a mobil 390): úprava a vrátenie transakcie (FR-09), prehľad (FR-14), záloha (FR-17, FR-18), offline a manifest (FR-16).
 
-Neautomatizované (zatiaľ len cieľ): GC-07, GC-09, GC-10, GC-12, GC-14, GC-22 (bez označeného testu); FR-03 (okrem GC-05 a GC-06), FR-06, FR-07, FR-08, FR-11, FR-12; komponentové testy formulárov a zobrazenia; axe-core a čítačky. Pri neautomatizovanej položke sa testovanie robí ručne.
+Neautomatizované (zatiaľ len cieľ): FR-03 (okrem GC-05 a GC-06), FR-06, FR-07, FR-08, FR-11, FR-12; komponentové testy formulárov a zobrazenia; axe-core a čítačky. Pri neautomatizovanej položke sa testovanie robí ručne.
 
 **Pokrytie požiadaviek bez výpočtovej GC (cieľ, doplnené po revízii):**
 
@@ -82,7 +82,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-19 | V = 24 000 €, K_cash = 20 000 €, rezerva = 3 × 2 000 = 6 000 € (mimo K_cash), výdavok 15 000 € z hotovosti | prejde; K_cash = 5 000 €, rezerva zostáva 6 000 € (nezasahuje); výdavok 25 000 € > K_cash je zamietnutý s ponukou „z investícií“ | FR-08, D-045, D-058 |
 | GC-20 | K_inv = 100 000, K_cash = 0, m_inv = 0, m_cash = 500, r = 4 %, T = 600 000 | n ≈ 417,42 → **418 mesiacov** (iterácia po celých mesiacoch, D-046); pri m_cash = 0 je uzavretý tvar 333,92 | D-046 |
 | GC-21 | ako GC-20, ale K_cash = 100 € navyše | dopad = 417,417 − 417,360 = **0,056 mesiaca ≈ 1,7 dňa** (interpolácia; prepočítané cez `monthsToTargetSplit`); zobrazí sa v dňoch | FR-04, D-046 |
-| GC-22 | vklad do rezervy 6 000 €, potom výber z rezervy 1 000 € | stav rezervy = 6 000 − 1 000 = **5 000 €** (vklady mínus výbery); K sa nemení | D-047 |
+| GC-22 | vklad do rezervy 6 000 €, potom výber z rezervy 1 000 € (K_cash 20 000 €) | stav rezervy = 6 000 − 1 000 = **5 000 €** (vklady mínus výbery); K_cash = 20 000 − 6 000 + 1 000 = **15 000 €** (vklad berie z K_cash, výber ju dopĺňa; D-058, D-060) | D-047, D-058, D-060 |
 | GC-23 | K = 100 000, m = 500, r = 3,5 % (základ, D-050), T = 600 000 | n = 362,10 → **363** | FR-02, D-050 |
 | GC-24 | K_inv = 100 000, K_cash = 20 000, vklad do rezervy 6 000 € | K_pred: K_cash = 14 000 €, K_inv nezmenené; výber z rezervy 1 000 € → K_cash = 15 000 € | FR-04, D-058 |
 | GC-P2-01 (Fáza 2) | K_inv = 100 000, K_cash = 0, m = 0, r = 3,5 %, T = 600 000, V = 300 000, Z0 = 200 000, nominálna hypotéka 3 %, π = 2 %, P = 1 000, N = 1 200 | n ≈ 257,2 → **258 mesiacov** od D_L (≈ 21 rokov a 5 mesiacov) | FR-02a; kandidát, overiť predpoklady A1–A3 |
@@ -90,7 +90,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 
 **Overenie tabuľkou (NPER):** `NPER(i; −m; −K; T; 0)`, kde `i = (1 + r)^(1/12) − 1`. Výsledok musí zodpovedať n z FR-02. Hodnoty GC-03 a GC-07 sú overené touto metódou. Pri GC-08 funkcia nevráti číslo, čo je očakávané.
 
-**Stav:** GC-01 až GC-06, GC-08, GC-11, GC-13, GC-15 až GC-21, GC-23 a GC-24 sú označené v testoch; GC-07, GC-09, GC-10, GC-12, GC-14 a GC-22 zatiaľ nemajú označený test. Súbor `tests/golden/goal-cases.json` zatiaľ neexistuje.
+**Stav:** GC-01 až GC-06, GC-08, GC-11, GC-13, GC-15 až GC-21, GC-23 a GC-24 sú označené v testoch; GC-07, GC-09, GC-10, GC-12, GC-14 a GC-22 sú označené v testoch (vetva `claude/m1-golden-gaps`, zlúčenie čaká na schválenie). Súbor `tests/golden/goal-cases.json` zatiaľ neexistuje.
 
 **Tolerancia:** porovnávame celé mesiace po `ceil(n − 1e-6)`; interné hodnoty n sa porovnávajú s presnosťou 1e-6.
 
