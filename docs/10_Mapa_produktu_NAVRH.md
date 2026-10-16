@@ -70,8 +70,10 @@ Každý riadok je **predpoklad**, kým ho nepotvrdí používanie alebo zdroj. A
 - Automatické rozhodnutia za používateľa.
 - Údaje, ktoré by odhaľovali konkrétnu osobu (osobné údaje v dokumentoch).
 
-## 6. Otvorené otázky na diskusiu
+## 6. Odpovede vlastníka (2026-10-16)
 
-1. Má aplikácia zostať jednoosobová, alebo má byť aj zdieľaná (M-05)?
-2. Je dôležitejší dátum cieľa, alebo kvalita rutiny (mesačné vyhodnotenie)? Mapa predpokladá, že rutina.
-3. Kedy by mal pilot (Fáza 1b) zbierať spätnú väzbu – po M7, alebo už pri M4?
+1. **Jednoosobovosť:** v MVP je aplikácia jednoosobová. Neskôr bude mať charakter samostatnej aplikácie s niektorými zdieľanými časťami (M-05 je preto odložený na neskôr, nie do MVP).
+2. **Rutina vs. dátum cieľa:** rutina je dôležitejšia. Dátum cieľa môže motivovať, ale podľa vlastníka menej.
+3. **Pilot (Fáza 1b):** čo najskôr. Záleží na tom, či bude k dispozícii niekto, kto aplikáciu použije.
+
+Tieto odpovede sú smer vlastníka, nie rozhodnutia. Ak sa majú stať záväznými, zapíšu sa do `Decisions.md` po potvrdení zakladateľa.
