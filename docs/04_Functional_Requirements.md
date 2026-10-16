@@ -90,7 +90,7 @@ Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnos
 - **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 2 %`, `P = 1 000`, `N = 1 200`. Očakávané `n ≈ 257,2` mesiaca (≈ 21 rokov a 5 mesiacov), dátum = D_L + 258 mesiacov.
 - **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. Hotovosť klesne pod 0 v mesiaci 25 a výpočet sa zastaví s hlásením „nedostatok hotovosti v mesiaci 25“.
 
-**Otvorené pre zakladateľa:** vlastné bývanie. Ak sa do K počíta aj byt, v ktorom používateľ býva, dátum cieľa sa skráti o hodnotu, ktorú nemôže spotrebovať bez zmeny bývania. Treba rozhodnúť, či sa to počíta do K, alebo zobrazí zvlášť.
+**Rozhodnuté (D-093):** vlastné bývanie sa do K nepočíta a zobrazí sa zvlášť. Hodnota bytu, v ktorom používateľ býva, nezvyšuje K_nem.
 
 ### FR-03 – Rozsah dátumov (scenáre)
 Tri scenáre sa počítajú rovnakým vzorcom s výnosmi odvodenými od r (D-011, S1):
