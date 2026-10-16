@@ -190,7 +190,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
           Záloha ešte nebola exportovaná alebo je staršia ako 7 dní (FR-19). Dáta sú len v tomto zariadení.
         </p>
       )}
-      {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Najprv zadaj nastavenia (ročné výdavky, miera výberu).</p>}
+      {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadané</strong> (zadaj ročné výdavky a mieru výberu).</p>}
       {(ctx.negative.cash || ctx.negative.inv) && (
         <p style={{ background: "#fbe3e3", padding: 8, borderRadius: 6 }}>
           Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení (R2).
@@ -217,7 +217,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
           </p>
         </>
       ) : (
-        <p>{ctx.latest ? "" : "Zatiaľ nie je vyhodnotenie. Dátum cieľa sa zobrazí po prvom vyhodnotení (L6)."}</p>
+        <p>{ctx.latest ? "" : "Urobte prvé vyhodnotenie. Dátum cieľa sa zobrazí po ňom."}</p>
       )}
       <p style={{ fontSize: "0.85rem", color: "#555" }}>Transakcií: {data.transactions.length}</p>
       <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid #888", borderRadius: 4 }}>
