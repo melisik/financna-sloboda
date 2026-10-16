@@ -167,10 +167,10 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
   - `splitPayment(payment, rate, balance)` → úrok, istina (D-085);
   - `rentalFlow(rent, payment)` → zmena K_cash, alebo doplatok z K_cash (D-081, D-058);
   - `taxScenario(state, regimes)` → samostatný výstup (D-083).
-- **Otvorené:** vzorec FR-02 (`monthsToTargetSplit`) s tretím typom kapitálu (nehnuteľnosť). Zmena sa spraví až po schválení a s novými golden cases. Teraz sa vzorec nemení.
+- **Schválené (D-092):** nehnuteľnosť je tretí typ kapitálu v K. Vzorec FR-02 (`monthsToTargetSplit`) sa upraví v dokumente a overí golden cases pred kódom.
 
 ### 12.3 Zdroj štatistiky (ročný odhad)
-- Adaptér `ValuationSource` s rozhraním `getIndex(series, period)`. Konkrétny dataset ŠÚ SR sa určí a overí pred implementáciou (predpoklad; nenašiel sa priamy endpoint, Eurostat je možnou alternatívou).
+- Adaptér `ValuationSource` s rozhraním `getIndex(series, period)`. Zdroj: Eurostat, indexy cien nehnuteľností (D-091). Konkrétny dataset a metóda sa overia pred implementáciou.
 - Dáta sa stiahnu raz ročne a uložia lokálne. Aplikácia funguje offline s poslednou uloženou hodnotou.
 - **Súkromie:** požiadavka obsahuje len názov série a obdobie, nikdy údaje používateľa. Žiadny účet ani identifikátor.
 
