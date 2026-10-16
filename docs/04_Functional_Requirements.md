@@ -195,3 +195,49 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 
 **Otvorené:**
 - **O-7 Klasifikácia spotreby (M7), odložené do fázy 1b (D-038):** pravidelná vs. cielená spotreba; pravidlo a kategórie treba zadať pred implementáciou prehľadu.
+
+
+## 8. Fáza 2 – funkčné požiadavky (návrh, neimplementované)
+
+> Stav: návrh podľa D-080 až D-090 a D-086. Fáza 2 sa spustí až po splnení brány v `06_Roadmap.md` (právne posúdenie, bezpečnostný audit). MVP tieto požiadavky nezahŕňa. Čísla FR-20 a ďalej sú rezervované pre Fázu 2.
+
+### FR-20 – Aktíva
+- Typ: investícia, alebo nehnuteľnosť. Pri každom aktíve sa eviduje hodnota a dátum odhadu.
+- Investícia má daňový režim z katalógu (FR-24), predvolene „nezadané“.
+- Nehnuteľnosť má režim: vlastníctvo, prenájom, alebo „nezadané“ (D-080, D-086).
+
+### FR-21 – Nehnuteľnosť v kapitáli K
+- Nehnuteľnosť sa počíta do K ako **čistá hodnota**: odhad hodnoty mínus zostatok hypotéky (D-080).
+- Odhad hodnoty zadáva používateľ alebo ho načíta zo štátnej štatistiky (neskôr cez API). Aktualizuje sa **ročne** (D-089). Zdroj a metóda sa overia pred použitím.
+- Odhad je vždy zobrazený ako odhad, nie ako trhová cena.
+
+### FR-22 – Záväzok (hypotéka)
+- Evidujú sa: zostatok, úroková sadzba, aktuálna splátka podľa zmluvy, dátum splatenia (D-084).
+- Splátka sa delí na úrok a istinu. Istina znižuje zostatok, úrok je výdavok z toku (D-085).
+
+### FR-23 – Nájom a tok
+- Nájom sa eviduje ako mesačný príjem.
+- Ak nájom nepokrýva splátku, rozdiel sa hradí z K_cash. K_cash nesmie klesnúť pod 0 (D-058, D-074). Ak nestačí, výdavok sa zablokuje a ponúkne sa iný zdroj.
+- Ak nájom splátku prevyšuje, rozdiel zvyšuje K_cash (D-081).
+- Po splatení hypotéky ide čistý nájom do m, teda do mesačného sporenia (D-087).
+
+### FR-24 – Daňový režim investície
+- Katalóg režimov je verzovaný. Každý parameter má zdroj, dátum platnosti a stav „overené“ alebo „neoverené“ (princíp D-076).
+- Investícia sa priradí k režimu. Výnos r sa nemení bez rozhodnutia (D-070, D-073).
+
+### FR-25 – Daňový scenár
+- Daňový scenár je **samostatný výstup** vedľa hlavného nominálneho výpočtu (D-077). Nenahrádza ho.
+- Pri parametroch s stavom „neoverené“ sa scenár zobrazí len ako odhad.
+- Scenár zobrazuje aktuálny stav po dani pre investície s režimom a pre nehnuteľnosť v režime prenájmu (D-083).
+
+### FR-26 – Režim a nárok na podporu
+- Aplikácia eviduje režim vlastníctva alebo nájmu, ale v Fáze 2 **nevyhodnocuje nárok na podporu** (C4 odložené, D-088).
+- Integrácia s `spolu-na-ceste` nie je súčasťou tejto fázy.
+
+### FR-27 – Ochrana dát
+- Údaje zostávajú lokálne (FR-16). Ukladanie a export citlivých údajov (záväzky, nehnuteľnosť, daňové údaje) musia spĺňať zákonné kritériá pred spustením (D-090).
+- Konkrétny rozsah (napr. GDPR a slovenská úprava) overí právnik. Šifrovanie exportu je otvorené a rozhodne sa pred spustením (D-026).
+- Záloha pri importe sa stiahne len po potvrdení (D-078).
+
+### FR-28 – Verzia schémy a import
+- Schéma sa zvýši. Import zo staršej verzie (v1) musí načítať dáta bez straty (FR-18).

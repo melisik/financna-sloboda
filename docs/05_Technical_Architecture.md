@@ -148,3 +148,42 @@ Zaokrúhľovanie až pri zobrazení (FR-06). Dátum z mesiacov: `ceil(n − 1e-6
 2. **Šifrovanie dát v kľude:** rozhodnuté (D-026): v MVP nie je, rieši sa pred Fázou 2.
 3. **Názov a doména:** pracovný názov sa zmení (D-002); nasadenie zatiaľ bez vlastnej domény.
 4. **Riziko iOS Safari:** dáta môžu byť vymazané po neaktivite, ak appka nie je na ploche. Rozhodnuté (D-042, D-053): na iPhone je plocha povinná výzva; kým appka nie je na ploche, zobrazí sa len návod (pôvodne východiskové, D-034). Overenie na reálnom iPhone pred M2 (07 §6).
+
+
+## 12. Fáza 2 – technický návrh (neimplementované)
+
+> Stav: návrh. Nič z tejto sekcie nie je v kóde. Brána: právne posúdenie a bezpečnostný audit (`06_Roadmap.md`).
+
+### 12.1 Dátový model (koncept)
+- `asset`: `id`, `typ` (investícia | nehnuteľnosť), `režim` (podľa typu), `hodnota`, `dátumOdhadu`, `zdrojOdhadu`, `poznámka`.
+- `liability`: `id`, `assetId`, `zostatok`, `úrokováSadzba`, `splátka`, `dátumSplatenia`, `zdroj` (zmluva).
+- `taxRegime`: `id`, `názov`, `parametre` (verzované), `zdroj`, `platnosťOd`, `stav` (overené | neoverené).
+- `statSource`: `id`, `dataset`, `metóda`, `platnosťOd`, `stav`, `poslednáAktualizácia`.
+- `schemaVersion` sa zvýši. Migrácia z v1 pridá prázdne polia (nezadané), nič sa nezmaže.
+
+### 12.2 Výpočtová vrstva
+- Čisté funkcie v `domain/`, bez UI, ako v M1:
+  - `netPropertyValue(asset, liability)` = odhad − zostatok (D-080);
+  - `splitPayment(payment, rate, balance)` → úrok, istina (D-085);
+  - `rentalFlow(rent, payment)` → zmena K_cash, alebo doplatok z K_cash (D-081, D-058);
+  - `taxScenario(state, regimes)` → samostatný výstup (D-083).
+- **Otvorené:** vzorec FR-02 (`monthsToTargetSplit`) s tretím typom kapitálu (nehnuteľnosť). Zmena sa spraví až po schválení a s novými golden cases. Teraz sa vzorec nemení.
+
+### 12.3 Zdroj štatistiky (ročný odhad)
+- Adaptér `ValuationSource` s rozhraním `getIndex(series, period)`. Konkrétny dataset ŠÚ SR sa určí a overí pred implementáciou (predpoklad; nenašiel sa priamy endpoint, Eurostat je možnou alternatívou).
+- Dáta sa stiahnu raz ročne a uložia lokálne. Aplikácia funguje offline s poslednou uloženou hodnotou.
+- **Súkromie:** požiadavka obsahuje len názov série a obdobie, nikdy údaje používateľa. Žiadny účet ani identifikátor.
+
+### 12.4 Testy
+- Golden cases pre nehnuteľnosť s hypotékou a pre tok nájmu (doplatok, plus, po splatení).
+- Golden cases pre daňový scenár: stav „neoverené“ sa zobrazí len ako odhad.
+- Migračný test: import z v1 bez straty.
+- Test, že daňový scenár nemení hlavný výstup.
+
+### 12.5 Riziká a brány
+| Riziko | Opatrenie |
+|---|---|
+| Chybný daňový parameter | stav „neoverené“, zdroj a dátum, právne posúdenie pred spustením |
+| Zmena vzorca FR-02 | najprv rozhodnutie a golden cases, potom kód |
+| Výpadok štatistického zdroja | lokálna posledná hodnota, zobrazenie dátumu odhadu |
+| Únik citlivých údajov | lokálne uloženie, zákonné kritériá (D-090), bezpečnostný audit |
