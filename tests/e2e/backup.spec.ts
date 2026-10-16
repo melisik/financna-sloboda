@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { openApp } from "./helpers";
 
 test.describe("záloha v UI (FR-17, FR-18)", () => {
   test("export stiahne súbor; neplatný import nič nezmení; platný import čaká na potvrdenie", async ({ page }) => {
-    await page.goto("/");
+    await openApp(page);
     await page.getByLabel("Hodnota investícií (€)").fill("100000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();

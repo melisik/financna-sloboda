@@ -101,11 +101,29 @@ function scenarioText(ctx: Ctx, rate: number, capital: Capital = ctx.capital): s
   return monthYear(targetDate(ctx.latest.date, n));
 }
 
+const SKIP_FIRST_SETUP_KEY = "fs-skip-first-setup";
+
 export function App() {
   const [repo, setRepo] = useState<Repository | null>(null);
   const [data, setData] = useState<AppData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastExport, setLastExport] = useState<string | null>(null);
+  // Voľba „preskočiť“ sa pamätá v tomto zariadení (per-zariadenie predvoľba); bez úložiska ostáva v pamäti.
+  const [skipFirstSetup, setSkipFirstSetup] = useState(() => {
+    try {
+      return localStorage.getItem(SKIP_FIRST_SETUP_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const skipFirstSetupAndRemember = () => {
+    try {
+      localStorage.setItem(SKIP_FIRST_SETUP_KEY, "1");
+    } catch {
+      // bez úložiska sa voľba udrží len do obnovenia stránky
+    }
+    setSkipFirstSetup(true);
+  };
 
   useEffect(() => {
     let alive = true;
@@ -132,6 +150,14 @@ export function App() {
   if (!repo || !data) return <Shell><p>Načítavam údaje…</p></Shell>;
 
   const ctx = makeCtx(data);
+  // FR-12: prvé spustenie (prázdne nastavenia a žiadne vyhodnotenie) ide cez sprievodcu, kým ho používateľ nepreskočí.
+  if (!data.settings && data.snapshots.length === 0 && !skipFirstSetup) {
+    return (
+      <Shell>
+        <FirstSetup repo={repo} data={data} ctx={ctx} onChanged={reload} onSkip={skipFirstSetupAndRemember} />
+      </Shell>
+    );
+  }
   return (
     <Shell>
       <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
@@ -158,6 +184,35 @@ function IosInstallGate() {
       <p>Údaje sa v Safari ukladajú slabšie. Na plochu sa appka pridá takto: klikni <strong>Zdieľať</strong> (štvorček so šípkou), vyber <strong>Pridať na plochu</strong> a potom otvor appku z ikony.</p>
       <p style={{ color: "#555" }}>Potom už budeš pracovať len z ikony na ploche (D-053).</p>
     </div>
+  );
+}
+
+/**
+ * Sprievodca prvým nastavením (FR-12): dva kroky, každý sa dá preskočiť.
+ * Krok 1: cieľ a prah (SettingsSection). Krok 2: investície a prvé vyhodnotenie (SnapshotSection);
+ * uložením vyhodnotenia sa nastaví D_L a sprievodca zmizne.
+ */
+function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void; onSkip: () => void }) {
+  const [step, setStep] = useState(0);
+  const steps = [
+    { title: "Krok 1 z 2: cieľ a prah", note: "Polia sú prázdne. Pod každým je východisková hodnota; ročné výdavky zadaj sám." },
+    { title: "Krok 2 z 2: investície a prvé vyhodnotenie", note: "Zadaj aktuálnu hodnotu investícií a hotovosť. Týmto krokom sa nastaví dátum cieľa." },
+  ];
+  return (
+    <section aria-label="Prvé nastavenie">
+      <h2 style={{ fontSize: "1.1rem" }}>{steps[step].title}</h2>
+      <p style={{ color: "#555" }}>{steps[step].note}</p>
+      {step === 0 ? (
+        <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={onChanged} />
+      ) : (
+        <SnapshotSection repo={repo} latest={ctx.latest} snapshots={data.snapshots} onSaved={onChanged} />
+      )}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+        {step > 0 && <button onClick={() => setStep(step - 1)} style={btn}>Späť</button>}
+        {step < steps.length - 1 && <button onClick={() => setStep(step + 1)} style={btn}>Ďalej</button>}
+        <button onClick={onSkip} style={btn}>Preskočiť na hlavnú stránku</button>
+      </div>
+    </section>
   );
 }
 
