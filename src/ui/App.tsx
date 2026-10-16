@@ -163,8 +163,8 @@ function IosInstallGate() {
 
 const NAV: { id: string; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
-  { id: "vyhodnotenie", label: "Vyhodnotenie" },
   { id: "nova-transakcia", label: "Transakcie" },
+  { id: "vyhodnotenie", label: "Vyhodnotenie" },
   { id: "nastavenia", label: "Nastavenia" },
   { id: "zaloha", label: "Záloha" },
 ];
