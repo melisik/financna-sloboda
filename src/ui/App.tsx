@@ -93,7 +93,12 @@ function makeCtx(data: AppData): Ctx {
 const pctText = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
 
 /** Dátum cieľa pre danú mieru výnosu (FR-02, FR-03). */
-function scenarioText(ctx: Ctx, rate: number, capital: Capital = ctx.capital): string {
+/** Kapitál z posledného vyhodnotenia (K_L, FR-02, D-024): transakcie po D_L sa sem nepočítajú. */
+function snapshotCapital(ctx: Ctx): Capital {
+  return ctx.latest ? { inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents } : { inv: 0, cash: 0 };
+}
+
+function scenarioText(ctx: Ctx, rate: number, capital: Capital = snapshotCapital(ctx)): string {
   if (!ctx.latest || ctx.target === null) return "—";
   const n = monthsToTargetSplit(capital, ctx.mInv, ctx.mCash, rate, ctx.target);
   if (n === null) return "Pri súčasnom sporení a výnose sa cieľ nedosiahne";
