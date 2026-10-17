@@ -159,10 +159,10 @@ export function App() {
     );
   }
   return (
-    <Shell>
+    <Shell nav>
       <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
       <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
-      <SnapshotSection repo={repo} latest={ctx.latest} snapshots={data.snapshots} onSaved={reload} />
+      <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}`} repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={reload} />
       <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} />
       <BackupSection repo={repo} data={data} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
     </Shell>
@@ -205,7 +205,7 @@ function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; 
       {step === 0 ? (
         <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={onChanged} />
       ) : (
-        <SnapshotSection repo={repo} latest={ctx.latest} snapshots={data.snapshots} onSaved={onChanged} />
+        <SnapshotSection repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={onChanged} />
       )}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
         {step > 0 && <button onClick={() => setStep(step - 1)} style={btn}>Späť</button>}
@@ -216,11 +216,34 @@ function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; 
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+
+const NAV: { id: string; label: string }[] = [
+  { id: "prehlad", label: "Prehľad" },
+  { id: "nova-transakcia", label: "Transakcie" },
+  { id: "vyhodnotenie", label: "Vyhodnotenie" },
+  { id: "nastavenia", label: "Nastavenia" },
+  { id: "zaloha", label: "Záloha" },
+];
+
+/** Horný panel s kotvami na sekcie (D-095). Dotyková plocha aspoň 44 px. */
+function Nav() {
+  return (
+    <nav aria-label="Hlavná navigácia" style={{ position: "sticky", top: 0, background: "#fff", display: "flex", flexWrap: "wrap", gap: 4, padding: "6px 0", borderBottom: "1px solid #ddd", zIndex: 1 }}>
+      {NAV.map((n) => (
+        <a key={n.id} href={`#${n.id}`} style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 10px", color: "inherit" }}>
+          {n.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function Shell({ children, nav = false }: { children: React.ReactNode; nav?: boolean }) {
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
       <h1 style={{ fontSize: "1.5rem" }}>Finančná sloboda (prototyp)</h1>
       <p style={{ color: "#555" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš (D-064).</p>
+      {nav && <Nav />}
       {children}
     </main>
   );
@@ -233,7 +256,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       ? impactMonthsSplit({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target)
       : null;
   return (
-    <section style={{ background: "#f7f5f0", padding: 12, borderRadius: 8, marginBottom: 8 }}>
+    <section id="prehlad" style={{ background: "#f7f5f0", padding: 12, borderRadius: 8, marginBottom: 8 }}>
       <h2 style={{ fontSize: "1.1rem", marginTop: 0 }}>Prehľad</h2>
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
         <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
@@ -245,7 +268,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
           Záloha ešte nebola exportovaná alebo je staršia ako 7 dní (FR-19). Dáta sú len v tomto zariadení.
         </p>
       )}
-      {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Najprv zadaj nastavenia (ročné výdavky, miera výberu).</p>}
+      {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadané</strong> (zadaj ročné výdavky a mieru výberu).</p>}
       {(ctx.negative.cash || ctx.negative.inv) && (
         <p style={{ background: "#fbe3e3", padding: 8, borderRadius: 6 }}>
           Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení (R2).
@@ -272,7 +295,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
           </p>
         </>
       ) : (
-        <p>{ctx.latest ? "" : "Zatiaľ nie je vyhodnotenie. Dátum cieľa sa zobrazí po prvom vyhodnotení (L6)."}</p>
+        <p>{ctx.latest ? "" : "Urobte prvé vyhodnotenie. Dátum cieľa sa zobrazí po ňom."}</p>
       )}
       <p style={{ fontSize: "0.85rem", color: "#555" }}>Transakcií: {data.transactions.length}</p>
       <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid #888", borderRadius: 4 }}>
@@ -330,7 +353,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   };
 
   return (
-    <section>
+    <section id="nastavenia">
       <h2 style={{ fontSize: "1.1rem" }}>Nastavenia</h2>
       {!settings && (
         <p style={{ background: "#eef5f1", padding: 8, borderRadius: 6 }}>
@@ -358,10 +381,11 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   );
 }
 
-function SnapshotSection({ repo, latest, snapshots, onSaved }: { repo: Repository; latest: Snapshot | null; snapshots: Snapshot[]; onSaved: () => void }) {
+function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: Repository; latest: Snapshot | null; capital: Capital; snapshots: Snapshot[]; onSaved: () => void }) {
   const [date, setDate] = useState(todayIso());
-  const [inv, setInv] = useState<NumIn>(latest ? latest.investmentsCents / 100 : "");
-  const [cash, setCash] = useState<NumIn>(latest ? latest.cashCents / 100 : "");
+  // N-04 (D-096): predvyplní K z posledného stavu plus sporenie a investície od D_L.
+  const [inv, setInv] = useState<NumIn>(latest ? capital.inv / 100 : "");
+  const [cash, setCash] = useState<NumIn>(latest ? capital.cash / 100 : "");
   const [err, setErr] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
@@ -393,7 +417,7 @@ function SnapshotSection({ repo, latest, snapshots, onSaved }: { repo: Repositor
   };
 
   return (
-    <section>
+    <section id="vyhodnotenie">
       <h2 style={{ fontSize: "1.1rem" }}>Vyhodnotenie (D_L)</h2>
       <p style={{ color: "#555" }}>
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom (L6)."}
@@ -719,7 +743,7 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
   };
 
   return (
-    <section>
+    <section id="zaloha">
       <h2 style={{ fontSize: "1.1rem" }}>Záloha</h2>
       <p style={{ color: "#555" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu (FR-17, FR-19).</p>
       <button onClick={exportBackup} style={btn}>Exportovať zálohu</button>
