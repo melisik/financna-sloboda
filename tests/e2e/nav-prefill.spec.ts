@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { openApp } from "./helpers";
 
 // D-095: navigácia medzi sekciami; D-096 (N-04): vyhodnotenie sa predvyplní z aktuálneho kapitálu.
 test.describe("navigácia a predvyplnenie vyhodnotenia", () => {
   test("horný panel obsahuje sekcie a odkazy menia kotvu", async ({ page }) => {
-    await page.goto("/");
+    await openApp(page);
     const nav = page.getByRole("navigation", { name: "Hlavná navigácia" });
     for (const label of ["Prehľad", "Vyhodnotenie", "Transakcie", "Nastavenia", "Záloha"]) {
       await expect(nav.getByRole("link", { name: label })).toBeVisible();
@@ -15,7 +16,7 @@ test.describe("navigácia a predvyplnenie vyhodnotenia", () => {
   });
 
   test("vyhodnotenie predvyplní K z posledného stavu plus sporenie od D_L", async ({ page }) => {
-    await page.goto("/");
+    await openApp(page);
     // Vyhodnotenie k D_L: investície 100 000 €, hotovosť 20 000 €
     await page.getByLabel("Dátum vyhodnotenia (RRRR-MM-DD)").fill("2026-10-01");
     await page.getByLabel("Hodnota investícií (€)").fill("100000");

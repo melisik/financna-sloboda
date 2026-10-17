@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { openApp } from "./helpers";
 
 // D-078: záloha pri importe sa stiahne len na výslovné zaškrtnutie používateľom; inak sa nesťahuje.
 test.describe("import zálohy – D-078", () => {
   async function prepareBackup(page: import("@playwright/test").Page) {
-    await page.goto("/");
+    await openApp(page);
     await page.getByLabel("Hodnota investícií (€)").fill("100000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();

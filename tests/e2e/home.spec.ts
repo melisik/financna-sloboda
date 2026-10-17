@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { openApp } from "./helpers";
 
 test.describe("domovská obrazovka a úprava (M4, FR-09, FR-14)", () => {
   test("úprava, zmazanie s vrátením späť a prehľad", async ({ page }) => {
-    await page.goto("/");
+    await openApp(page);
     await expect(page.getByRole("heading", { name: "Prehľad" })).toBeVisible();
 
     await page.getByLabel("Hodnota investícií (€)").fill("100000");

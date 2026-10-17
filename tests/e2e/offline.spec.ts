@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openApp } from "./helpers";
 
 test.describe("PWA a offline režim (M5)", () => {
   test("service worker sa zaregistruje a aplikácia funguje offline po prvom načítaní", async ({ page, context }) => {
@@ -9,7 +10,7 @@ test.describe("PWA a offline režim (M5)", () => {
       if (u.origin !== "http://localhost:4173") foreign.push(req.url());
     });
 
-    await page.goto("/");
+    await openApp(page);
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload(); // po registrácii načítať cez SW
     await page.waitForFunction(() => !!navigator.serviceWorker.controller);
