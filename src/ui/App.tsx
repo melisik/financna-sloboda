@@ -165,6 +165,20 @@ export function App() {
       <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}`} repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={reload} />
       <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} />
       <BackupSection repo={repo} data={data} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
+      <details id="navod" style={{ marginTop: 16, background: "#f7f5f0", padding: 12, borderRadius: 8 }}>
+        <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
+        <ol style={{ paddingLeft: 20 }}>
+          <li><strong>Prvé nastavenie:</strong> v sprievodcovi zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
+          <li><strong>Vyhodnotenie:</strong> na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa mení len po vyhodnotení.</li>
+          <li><strong>Transakcie:</strong> zapisuj sporenie, investície a výdavky. Výdavok nad prah sa zvýrazní.</li>
+          <li><strong>Záloha:</strong> pravidelne exportuj zálohu. Dáta sú len v tomto zariadení; neukladaj ju do verejných priečinkov.</li>
+          <li><strong>Obnova:</strong> import nahradí všetky dáta a vyžaduje potvrdenie.</li>
+        </ol>
+        <p style={{ fontSize: "0.9rem", color: "#555" }}>
+          Výpočty sú odhady podľa zadaných predpokladov, nie finančné poradenstvo.
+          Testovacie dáta (syntetické): <a href="./testovacia-zaloha.json" download>stiahnuť testovaciu zálohu</a>, potom ju importuj v sekcii Záloha.
+        </p>
+      </details>
     </Shell>
   );
 }
