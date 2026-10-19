@@ -1,7 +1,7 @@
 {
   "app": "financna-sloboda",
   "schemaVersion": 1,
-  "exportedAt": "2026-10-18T08:00:00.000Z",
+  "exportedAt": "2026-09-30T20:00:00.000Z",
   "settings": {
     "expensesCents": 2400000,
     "withdrawalRate": 0.04,
