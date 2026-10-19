@@ -17,4 +17,14 @@ test.describe("texty z revízie", () => {
     await expect(page.getByLabel("Od dátumu")).toBeVisible();
     await expect(page.getByText("Súčet zobrazených transakcií: žiadne transakcie")).toBeVisible();
   });
+
+  test("dátumy sú natívny výber dátumu a PIN je skrytý s číselnou klávesnicou", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "vyhodnotenie");
+    await expect(page.getByLabel("Dátum vyhodnotenia", { exact: true })).toHaveAttribute("type", "date");
+    await goTo(page, "nastavenia");
+    const pin = page.getByLabel("Nový PIN (4 až 6 číslic)");
+    await expect(pin).toHaveAttribute("type", "password");
+    await expect(pin).toHaveAttribute("inputmode", "numeric");
+  });
 });

@@ -13,7 +13,7 @@ test.describe("dátum cieľa pri nulovom sporení (oprava)", () => {
     await page.getByLabel("Prah výdavkov (€)").fill("100");
     await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
     await goTo(page, "vyhodnotenie");
-    await page.getByLabel("Dátum vyhodnotenia (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByLabel("Dátum vyhodnotenia", { exact: true }).fill("2026-10-01");
     await page.getByLabel("Hodnota investícií (€)").fill("100000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();

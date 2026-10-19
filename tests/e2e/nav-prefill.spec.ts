@@ -22,14 +22,14 @@ test.describe("navigácia a predvyplnenie vyhodnotenia", () => {
     await openApp(page);
     // Vyhodnotenie k D_L: investície 100 000 €, hotovosť 20 000 €
     await goTo(page, "vyhodnotenie");
-    await page.getByLabel("Dátum vyhodnotenia (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByLabel("Dátum vyhodnotenia", { exact: true }).fill("2026-10-01");
     await page.getByLabel("Hodnota investícií (€)").fill("100000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
     // Sporenie 250 € po D_L
     await goTo(page, "nova-transakcia");
-    await page.getByLabel("Dátum (RRRR-MM-DD)").fill("2026-10-05");
+    await page.getByLabel("Dátum", { exact: true }).fill("2026-10-05");
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
     await page.getByLabel("Suma (€)").fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();

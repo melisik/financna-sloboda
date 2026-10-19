@@ -416,8 +416,8 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Chceš PIN?</h2>
           <p style={{ color: "#555" }}>PIN je nepovinný. Ak ho nastavíš, appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne, údaje nie sú zašifrované.</p>
-          <Field label="Nový PIN (4 až 6 číslic)" value={pinNew} type="text" onChange={setPinNew} />
-          <Field label="Zopakuj PIN" value={pinRepeat} type="text" onChange={setPinRepeat} />
+          <Field label="Nový PIN (4 až 6 číslic)" value={pinNew} type="password" inputMode="numeric" onChange={setPinNew} />
+          <Field label="Zopakuj PIN" value={pinRepeat} type="password" inputMode="numeric" onChange={setPinRepeat} />
           {err && <p style={{ color: "#8a0000" }}>{err}</p>}
           <button
             onClick={async () => {
@@ -653,14 +653,14 @@ function PinSection({ repo, pinSet, onChanged, onLock }: { repo: Repository; pin
         <>
           <p style={{ color: "#555" }}>PIN je zapnutý. Appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne; údaje nie sú zašifrované.</p>
           <button onClick={onLock} style={btn}>Zamknúť teraz</button>
-          <Field label="Aktuálny PIN (na vypnutie)" value={current} type="text" onChange={setCurrent} />
+          <Field label="Aktuálny PIN (na vypnutie)" value={current} type="password" inputMode="numeric" onChange={setCurrent} />
           <button onClick={disable} style={btn}>Vypnúť PIN</button>
         </>
       ) : (
         <>
           <p style={{ color: "#555" }}>PIN je nepovinný. Údaje nie sú zašifrované; PIN bráni len otvoreniu appky.</p>
-          <Field label="Nový PIN (4 až 6 číslic)" value={newPin} type="text" onChange={setNewPin} />
-          <Field label="Zopakuj PIN" value={repeat} type="text" onChange={setRepeat} />
+          <Field label="Nový PIN (4 až 6 číslic)" value={newPin} type="password" inputMode="numeric" onChange={setNewPin} />
+          <Field label="Zopakuj PIN" value={repeat} type="password" inputMode="numeric" onChange={setRepeat} />
           <button onClick={enable} style={btn}>Zapnúť PIN</button>
         </>
       )}
@@ -792,7 +792,7 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
       <p style={{ color: "#555" }}>Na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa zmení až po tomto kroku.</p>
-      <Field label="Dátum vyhodnotenia (RRRR-MM-DD)" value={date} type="text" onChange={setDate} />
+      <Field label="Dátum vyhodnotenia" value={date} type="date" max={todayIso()} onChange={setDate} />
       <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} />
       <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
@@ -975,7 +975,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
         </label>
       )}
       <Field label="Suma (€)" value={amount} onChange={setAmount} />
-      <Field label="Dátum (RRRR-MM-DD)" value={date} type="text" onChange={setDate} />
+      <Field label="Dátum" value={date} type="date" max={todayIso()} onChange={setDate} />
       <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} />
       {preview && (
         <p>
@@ -1005,8 +1005,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
           <option value="all">všetky typy</option>
           {(Object.keys(TYPE_LABEL) as TransactionType[]).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
         </select>
-        <input aria-label="Od dátumu" type="text" placeholder="od dátumu" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
-        <input aria-label="Do dátumu" type="text" placeholder="do dátumu" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
+        <input aria-label="Od dátumu" type="date" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
+        <input aria-label="Do dátumu" type="date" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
       </div>
       <p style={{ fontSize: "0.9rem", color: "#555" }}>
         Súčet zobrazených transakcií: {(Object.keys(totals) as TransactionType[]).length === 0
@@ -1156,16 +1156,19 @@ function differs(value: NumIn | string, defaultValue: number | null): boolean {
   return Math.abs(Number(value) - defaultValue) > 1e-9;
 }
 
-function Field(props: { label: string; value: NumIn | string; onChange: (v: any) => void; step?: number; type?: string; hint?: string; onReset?: () => void; changed?: boolean }) {
+function Field(props: { label: string; value: NumIn | string; onChange: (v: any) => void; step?: number; type?: string; inputMode?: "numeric" | "text"; max?: string; hint?: string; onReset?: () => void; changed?: boolean }) {
+  const textual = props.type === "text" || props.type === "date" || props.type === "password";
   return (
     <label style={{ display: "block", margin: "8px 0" }}>
       <span style={{ display: "block", fontSize: "0.9rem" }}>{props.label}</span>
       <input
         type={props.type ?? "number"}
+        inputMode={props.inputMode}
+        max={props.max}
         step={props.step ?? 1}
         value={props.value}
         onChange={(e) => {
-          if (props.type === "text") return props.onChange(e.target.value);
+          if (textual) return props.onChange(e.target.value);
           props.onChange(e.target.value === "" ? "" : Number(e.target.value));
         }}
         style={inp}
