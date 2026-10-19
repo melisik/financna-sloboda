@@ -30,13 +30,14 @@ describe("záloha verzie 2 a import verzie 1 (FR-28)", () => {
     expect(parsed.data?.investments).toEqual([]);
     expect(parsed.data?.liabilities).toEqual([]);
     expect(parsed.data?.incomes).toEqual([]);
+    expect(parsed.data?.budgets).toEqual([]);
     expect(parsed.data?.transactions.length).toBe(3);
     expect(parsed.data?.snapshots.length).toBe(1);
   });
 
   it("export a import verzie 2 zachová nehnuteľnosť", () => {
     const asset: Asset = { id: "a1", kind: "automobil", name: "auto – syntetické", valueCents: 1_200_000, valueDate: "2026-10-01", createdAt: "2026-10-19T10:00:00Z", updatedAt: "2026-10-19T10:00:00Z" };
-    const data: AppData = { settings: null, transactions: [], snapshots: [], properties: [property], assets: [asset], investments: [], liabilities: [], incomes: [] };
+    const data: AppData = { settings: null, transactions: [], snapshots: [], properties: [property], assets: [asset], investments: [], liabilities: [], incomes: [], budgets: [] };
     const backup = JSON.parse(JSON.stringify(buildBackup(data, "2026-10-19T10:00:00Z")));
     expect(backup.schemaVersion).toBe(2);
     const parsed = parseBackup(backup, TODAY);

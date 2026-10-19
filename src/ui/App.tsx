@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
@@ -14,6 +14,7 @@ import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment
 import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { isIncomeActive, monthlyIncomeCents } from "../domain/income";
+import { budgetStatus, spentInMonthCents } from "../domain/budget";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
 import {
@@ -199,6 +200,11 @@ export function App() {
           <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} />
         </Section>
       )}
+      {section === "rozpocet" && (
+        <Section id="rozpocet" title="Rozpočet">
+          <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} today={todayIso()} onSaved={reload} />
+        </Section>
+      )}
       {section === "prijmy" && (
         <Section id="prijmy" title="Príjmy">
           <IncomeSection repo={repo} incomes={data.incomes} today={todayIso()} onSaved={reload} />
@@ -276,12 +282,13 @@ function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; 
 }
 
 
-type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "nastavenia" | "zaloha";
+type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "nastavenia" | "zaloha";
 
 const NAV: { id: SectionId; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
   { id: "nova-transakcia", label: "Transakcie" },
   { id: "prijmy", label: "Príjmy" },
+  { id: "rozpocet", label: "Rozpočet" },
   { id: "vyhodnotenie", label: "Vyhodnotenie" },
   { id: "majetok", label: "Majetok" },
   { id: "zavazky", label: "Záväzky" },
@@ -704,7 +711,12 @@ const INVESTMENT_KIND_LABEL: Record<InvestmentKind, string> = {
   akcie: "Akcie",
   etf: "ETF",
   fond: "Podielový fond",
+  dlhopisy: "Dlhopisy",
+  krypto: "Kryptomeny",
+  zlato_komodity: "Zlato a komodity",
+  sporiaci_ucet: "Sporiaci účet alebo termínovaný vklad",
   treti_pilier: "Tretí pilier",
+  dochodkove_sporenie: "Dôchodkové sporenie (2. pilier)",
   ine: "Iné",
 };
 
@@ -740,7 +752,7 @@ function InvestmentSection({ repo, positions, today, onSaved }: { repo: Reposito
       {positions.map((p) => (
         <div key={p.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
           <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}</p>
-          {p.kind === "treti_pilier" ? (
+          {(BALANCE_INVESTMENT_KINDS as readonly string[]).includes(p.kind) ? (
             <p style={{ margin: "4px 0" }}>
               Stav účtu: {eur(p.unitPrice * 100)}
               {p.monthlyContributionCents ? `, vklad ${eur(p.monthlyContributionCents)} mesačne` : ""}
@@ -793,23 +805,23 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
   const [contribution, setContribution] = useState<NumIn>(initial?.monthlyContributionCents !== undefined ? initial.monthlyContributionCents / 100 : "");
   const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
   const [err, setErr] = useState<string | null>(null);
-  const pillar = kind === "treti_pilier";
-  const code = pillar ? "EUR" : currency.trim().toUpperCase();
+  const balance = (BALANCE_INVESTMENT_KINDS as readonly string[]).includes(kind);
+  const code = balance ? "EUR" : currency.trim().toUpperCase();
   const isEur = code === "EUR";
 
   const save = async () => {
     const trimmed = name.trim();
     if (trimmed.length === 0) return setErr("Vyplň názov.");
     if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
-    // Tretí pilier je jeden účet: počet kusov je 1 a cena je stav účtu.
-    const q = pillar ? 1 : asNum(quantity);
+    // Účet (stav účtu): počet kusov je 1 a cena je stav účtu.
+    const q = balance ? 1 : asNum(quantity);
     if (Number.isNaN(q) || !(q > 0)) return setErr("Vyplň počet kusov (väčší ako 0).");
     const price = asNum(unitPrice);
-    if (Number.isNaN(price) || price < 0) return setErr(pillar ? "Vyplň aktuálny stav účtu (0 alebo viac)." : "Vyplň cenu za kus (0 alebo viac).");
+    if (Number.isNaN(price) || price < 0) return setErr(balance ? "Vyplň aktuálny stav účtu (0 alebo viac)." : "Vyplň cenu za kus (0 alebo viac).");
     if (!/^[A-Z]{3}$/.test(code)) return setErr("Mena musí byť trojpísmenový kód, napr. EUR alebo USD.");
     const rate = isEur ? 1 : asNum(fx);
     if (Number.isNaN(rate) || !(rate > 0)) return setErr("Vyplň kurz k euru (väčší ako 0).");
-    const vklad = pillar && contribution !== "" ? asNum(contribution) : 0;
+    const vklad = balance && contribution !== "" ? asNum(contribution) : 0;
     if (Number.isNaN(vklad) || vklad < 0) return setErr("Mesačný vklad musí byť číslo 0 alebo viac.");
     const dateErr = checkDate(valueDate, today, "dátum ocenenia");
     if (dateErr.length) return setErr(dateErr[0]);
@@ -825,7 +837,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
       valueDate,
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
-      ...(pillar && vklad > 0 ? { monthlyContributionCents: cents(vklad) } : {}),
+      ...(balance && vklad > 0 ? { monthlyContributionCents: cents(vklad) } : {}),
     };
     try {
       await repo.savePosition(position);
@@ -838,7 +850,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
   return (
     <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku" : "Nová položka"}</h4>
-      <Field label={pillar ? "Názov (napr. účet tretieho piliera)" : "Názov alebo ticker"} value={name} type="text" onChange={setName} />
+      <Field label={balance ? "Názov účtu" : "Názov alebo ticker"} value={name} type="text" onChange={setName} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Druh
         <select value={kind} onChange={(e) => setKind(e.target.value as InvestmentKind)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
@@ -847,7 +859,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
           ))}
         </select>
       </label>
-      {pillar ? (
+      {balance ? (
         <>
           <Field label="Aktuálny stav účtu (€)" value={unitPrice} onChange={setUnitPrice} />
           <Field label="Mesačný vklad (€, nepovinné)" value={contribution} onChange={setContribution} hint="len na zobrazenie; sporenie sa mení pri vyhodnotení" />
@@ -1138,6 +1150,66 @@ function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Reposito
   );
 }
 
+/** Rozpočet kategórií (D-106): mesačný limit a čo sa za aktuálny mesiac minulo. Prázdny limit = bez rozpočtu. */
+function BudgetSection({ repo, budgets, transactions, today, onSaved }: { repo: Repository; budgets: Budget[]; transactions: Transaction[]; today: string; onSaved: () => void }) {
+  const [limits, setLimits] = useState<Record<string, NumIn>>(() =>
+    Object.fromEntries(BUDGET_CATEGORIES.map((c) => {
+      const b = budgets.find((x) => x.category === c);
+      return [c, b ? b.limitCents / 100 : ""];
+    })),
+  );
+  const [err, setErr] = useState<string | null>(null);
+  const unassigned = spentInMonthCents(transactions, null, today);
+
+  const save = async () => {
+    try {
+      for (const c of BUDGET_CATEGORIES) {
+        const v = limits[c];
+        const existing = budgets.find((b) => b.category === c);
+        if (v === "" || v === undefined) {
+          if (existing) await repo.deleteBudget(c);
+          continue;
+        }
+        const n = asNum(v);
+        if (Number.isNaN(n) || n <= 0) return setErr(`Limit pre kategóriu „${c}“ musí byť kladný, alebo prázdny.`);
+        await repo.saveBudget({ id: c, category: c, limitCents: cents(n), updatedAt: new Date().toISOString() });
+      }
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <section>
+      <p style={{ color: "#555" }}>
+        Mesačný limit pre kategóriu. Čo je v kategórii zaradené, vidíš v zázname výdavku. Prázdny limit znamená bez rozpočtu. Zoznam kategórií je návrh.
+      </p>
+      {BUDGET_CATEGORIES.map((c) => {
+        const b = budgets.find((x) => x.category === c);
+        const spent = spentInMonthCents(transactions, c, today);
+        const st = budgetStatus(b, spent);
+        const hint = st
+          ? `minuté tento mesiac ${eur(spent)}; ${st.over ? `prekročené o ${eur(st.remainingCents)}` : `zostáva ${eur(st.remainingCents)}`}`
+          : `minuté tento mesiac ${eur(spent)}`;
+        return (
+          <Field
+            key={c}
+            label={`${c}: limit (€)`}
+            value={limits[c] ?? ""}
+            onChange={(v) => setLimits({ ...limits, [c]: v })}
+            hint={hint}
+          />
+        );
+      })}
+      <p style={{ color: "#555" }}>Výdavky bez kategórie tento mesiac: {eur(unassigned)}</p>
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť rozpočet</button>
+    </section>
+  );
+}
+
 function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repository; settings: Settings | null; derived: { inv: number; cash: number }; onSaved: () => void }) {
   const [v, setV] = useState({
     expenses: settings ? settings.expensesCents / 100 : "" as NumIn,
@@ -1285,6 +1357,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   const [amount, setAmount] = useState<NumIn>("");
   const [date, setDate] = useState(todayIso());
   const [source, setSource] = useState<Source>("z_hotovosti");
+  const [category, setCategory] = useState<BudgetCategory | "">("");
   const [note, setNote] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -1355,6 +1428,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     setConfirmExhausted(false);
     setEditingId(null);
     setNote("");
+    setCategory("");
     setAmount("");
     setDate(todayIso());
     setErr(null);
@@ -1366,6 +1440,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     setAmount(t.amountCents / 100);
     setDate(t.date);
     setSource(t.source ?? "z_hotovosti");
+    setCategory(t.category ?? "");
     setNote(t.note ?? "");
     setErr(null);
   };
@@ -1389,6 +1464,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       amountCents: cents(a),
       ...(needsSource ? { source } : {}),
       ...(type === "vydavok" ? { belowThreshold: cents(a) < (ctx.settings?.thresholdCents ?? 0) } : {}),
+      ...(type === "vydavok" && category !== "" ? { category } : {}),
       ...(noteText ? { note: noteText.slice(0, 200) } : {}),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -1443,6 +1519,15 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
           <span style={{ display: "block", fontSize: "0.9rem" }}>Zdroj</span>
           <select aria-label="Zdroj úhrady" value={source} onChange={(e) => setSource(e.target.value as Source)} style={inp}>
             {SOURCES.map((x) => <option key={x} value={x}>{SOURCE_LABEL[x]}</option>)}
+          </select>
+        </label>
+      )}
+      {type === "vydavok" && (
+        <label style={{ display: "block", margin: "8px 0" }}>
+          <span style={{ display: "block", fontSize: "0.9rem" }}>Kategória (nepovinná)</span>
+          <select aria-label="Kategória" value={category} onChange={(e) => setCategory(e.target.value as BudgetCategory | "")} style={inp}>
+            <option value="">bez kategórie</option>
+            {BUDGET_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </label>
       )}

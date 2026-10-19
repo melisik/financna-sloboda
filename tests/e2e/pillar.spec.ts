@@ -8,7 +8,7 @@ test.describe("tretí pilier v Investíciách (D-105)", () => {
     await goTo(page, "investicie");
     await page.getByRole("button", { name: "Pridať položku" }).click();
     await page.getByLabel("Druh").selectOption("treti_pilier");
-    await page.getByLabel("Názov (napr. účet tretieho piliera)").fill("účet syntetický");
+    await page.getByLabel("Názov účtu").fill("účet syntetický");
     await page.getByLabel("Aktuálny stav účtu (€)").fill("5000");
     await page.getByLabel("Mesačný vklad (€, nepovinné)").fill("100");
     await page.getByRole("button", { name: "Uložiť položku" }).click();

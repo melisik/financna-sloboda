@@ -116,7 +116,7 @@ describe("sekcia Investície (D-101)", () => {
   it("platná položka nemá chyby; kurz pri EUR musí byť 1; druh mimo katalógu je odmietnutý", () => {
     expect(validatePosition(pos, TODAY)).toEqual([]);
     expect(validatePosition({ ...pos, fxToEur: 0.9 }, TODAY).join(" ")).toMatch(/pri EUR musí byť kurz 1/);
-    expect(validatePosition({ ...pos, kind: "krypto" }, TODAY).join(" ")).toMatch(/druh musí byť/);
+    expect(validatePosition({ ...pos, kind: "neznamy" }, TODAY).join(" ")).toMatch(/druh musí byť/);
     expect(validatePosition({ ...pos, quantity: 0 }, TODAY).join(" ")).toMatch(/počet kusov/);
   });
 });

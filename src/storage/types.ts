@@ -6,6 +6,17 @@ export type TransactionType = (typeof TRANSACTION_TYPES)[number];
 export const SOURCES = ["z_prijmu", "z_hotovosti", "z_investicii"] as const;
 export type Source = (typeof SOURCES)[number];
 
+/** Kategórie výdavkov pre rozpočet (D-106). Zoznam je návrh a overí sa pred spustením pre používateľov. */
+export const BUDGET_CATEGORIES = ["bývanie", "jedlo", "doprava", "zdravie", "deti a vzdelávanie", "oblečenie", "zábava", "predplatné a služby", "iné"] as const;
+export type BudgetCategory = (typeof BUDGET_CATEGORIES)[number];
+
+export interface Budget {
+  id: string; // rovnaké ako kategória
+  category: BudgetCategory;
+  limitCents: number; // mesačný limit, kladné celé číslo v centoch
+  updatedAt: string; // ISO
+}
+
 export interface Transaction {
   id: string;
   date: string; // YYYY-MM-DD, bez časovej zóny (05 §4)
@@ -13,6 +24,7 @@ export interface Transaction {
   amountCents: number; // kladné celé centy
   source?: Source; // povinné pri výdavku
   belowThreshold?: boolean; // D-030
+  category?: BudgetCategory; // len pri výdavku; bez hodnoty = nezaradené (D-106)
   note?: string; // max 200 znakov
   createdAt: string; // ISO
   updatedAt: string; // ISO
@@ -73,7 +85,9 @@ export interface Asset {
 }
 
 /** Druh investície v sekcii Investície (D-101, docs/12). */
-export const INVESTMENT_KINDS = ["akcie", "etf", "fond", "treti_pilier", "ine"] as const;
+export const INVESTMENT_KINDS = ["akcie", "etf", "fond", "dlhopisy", "krypto", "zlato_komodity", "sporiaci_ucet", "treti_pilier", "dochodkove_sporenie", "ine"] as const;
+/** Druhy, pri ktorých sa zadáva stav účtu namiesto počtu kusov a ceny (D-105). */
+export const BALANCE_INVESTMENT_KINDS = ["sporiaci_ucet", "treti_pilier", "dochodkove_sporenie"] as const;
 export type InvestmentKind = (typeof INVESTMENT_KINDS)[number];
 
 /** Položka investície zadaná ručne (D-101, možnosť A). Hodnota v eurách = počet × cena × kurz. */
@@ -128,6 +142,7 @@ export interface AppData {
   investments: Position[];
   liabilities: Liability[];
   incomes: RegularIncome[];
+  budgets: Budget[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */
