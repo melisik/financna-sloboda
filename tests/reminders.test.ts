@@ -52,3 +52,11 @@ describe("pripomienka blížiaceho sa konca mesiaca (D-107)", () => {
   });
 });
 
+describe("nastaviteľná pripomienka vyhodnotenia (D-107)", () => {
+  it("0 dní vypne pripomienku; zadaný počet dní určuje začiatok", () => {
+    expect(reviewDueSoon("2026-09-30", "2026-10-31", 0)).toBe(false);
+    expect(reviewDueSoon("2026-09-30", "2026-10-26", 5)).toBe(false);
+    expect(reviewDueSoon("2026-09-30", "2026-10-27", 5)).toBe(true);
+  });
+});
+

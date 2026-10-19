@@ -152,7 +152,8 @@ export function validateBudget(b: unknown, label = "rozpočet"): string[] {
 export function validateSettings(s: unknown, today: string): string[] {
   if (typeof s !== "object" || s === null || Array.isArray(s)) return ["nastavenia: musia byť objekt"];
   const o = s as Record<string, unknown>;
-  const errors = unknownKeys(o, ["expensesCents", "withdrawalRate", "realReturn", "reserveCents", "thresholdCents", "savingInvCents", "savingCashCents", "feesRate", "lastReviewDate"], "nastavenia");
+  const errors = unknownKeys(o, ["expensesCents", "withdrawalRate", "realReturn", "reserveCents", "thresholdCents", "savingInvCents", "savingCashCents", "feesRate", "lastReviewDate", "reviewReminderDays"], "nastavenia");
+  if (o.reviewReminderDays !== undefined && !(Number.isInteger(o.reviewReminderDays) && (o.reviewReminderDays as number) >= 0 && (o.reviewReminderDays as number) <= 28)) errors.push("nastavenia: pripomienka musí byť celé číslo 0 až 28");
   if (typeof o.expensesCents !== "number" || !Number.isInteger(o.expensesCents) || o.expensesCents <= 0) errors.push("nastavenia: výdavky musia byť kladné celé číslo v centoch");
   if (typeof o.withdrawalRate !== "number" || !(o.withdrawalRate > 0 && o.withdrawalRate <= 1)) errors.push("nastavenia: miera výberu musí byť v (0, 1]");
   if (typeof o.realReturn !== "number" || !(o.realReturn >= 0 && o.realReturn <= 1)) errors.push("nastavenia: výnos r musí byť v [0, 1]");

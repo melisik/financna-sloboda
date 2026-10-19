@@ -368,7 +368,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       : null;
   return (
     <div>
-      {reviewDueSoon(ctx.latest?.date ?? null, today) && (
+      {reviewDueSoon(ctx.latest?.date ?? null, today, ctx.settings?.reviewReminderDays ?? 3) && (
         <p style={{ background: "#eef5f1", padding: 8, borderRadius: 6 }}>
           Blíži sa koniec mesiaca. Zadaj vyhodnotenie, aby dátum cieľa zodpovedal stavu.
         </p>
@@ -1305,6 +1305,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
     threshold: settings ? settings.thresholdCents / 100 : "" as NumIn,
     savingInv: settings?.savingInvCents !== undefined ? settings.savingInvCents / 100 : "" as NumIn,
     savingCash: settings?.savingCashCents !== undefined ? settings.savingCashCents / 100 : "" as NumIn,
+    reminder: settings?.reviewReminderDays ?? 3 as NumIn,
   });
   const [err, setErr] = useState<string | null>(null);
   const pct = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
@@ -1317,6 +1318,8 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   const save = async () => {
     const vals = [v.expenses, v.withdrawalPct, v.returnPct, v.reserve, v.threshold].map(asNum);
     const fee = v.fees === "" ? 0 : v.fees;
+    const reminder = v.reminder === "" ? 3 : asNum(v.reminder);
+    if (!(Number.isInteger(reminder) && reminder >= 0 && reminder <= 28)) return setErr("Pripomienka musí byť celé číslo od 0 do 28.");
     if (!(fee >= 0 && fee < 100)) return setErr("Poplatky musia byť od 0 do menej ako 100 % ročne.");
     const labels = ["ročné výdavky", "mieru výberu", "výnos", "rezervu", "prah"];
     const missing = labels.filter((_, i) => Number.isNaN(vals[i]));
@@ -1337,6 +1340,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
         thresholdCents: cents(thr),
         ...(v.savingInv === "" ? {} : { savingInvCents: cents(v.savingInv) }),
         ...(v.savingCash === "" ? {} : { savingCashCents: cents(v.savingCash) }),
+        reviewReminderDays: reminder,
       });
       onSaved();
     } catch {
@@ -1366,6 +1370,8 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
         hint={`prázdne = počíta sa zo zapísaných transakcií: ${eurs(derived.inv)} mesačne`} changed={differs(v.savingInv, null)} onReset={() => setV({ ...v, savingInv: "" })} />
       <Field label="Mesačné sporenie do hotovosti (€), prázdne = odvodené" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}
         hint={`prázdne = počíta sa zo zapísaných transakcií: ${eurs(derived.cash)} mesačne`} changed={differs(v.savingCash, null)} onReset={() => setV({ ...v, savingCash: "" })} />
+      <Field label="Pripomienka vyhodnotenia (dní pred koncom mesiaca)" value={v.reminder} onChange={(x) => setV({ ...v, reminder: x })}
+        hint="0 = vypnutá; predvolene 3 dni" changed={differs(v.reminder, 3)} onReset={() => setV({ ...v, reminder: 3 })} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť nastavenia</button>
     </section>
