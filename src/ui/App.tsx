@@ -7,7 +7,9 @@ import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
 import { filterHistory, totalsByType } from "../app/history";
 import { backupOverdue, reviewOverdue } from "../app/reminders";
-import { targetAmountCents, targetDate } from "../domain/goal";
+import { targetAmountCents } from "../domain/goal";
+import { goalDisplay } from "../domain/goalDisplay";
+import { goalDateText } from "../domain/goalText";
 import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
 import { recommendedSettings } from "../domain/recommendations";
@@ -96,9 +98,8 @@ const pctText = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
 function scenarioText(ctx: Ctx, rate: number, capital: Capital = ctx.capital): string {
   if (!ctx.latest || ctx.target === null) return "—";
   const n = monthsToTargetSplit(capital, ctx.mInv, ctx.mCash, rate, ctx.target);
-  if (n === null) return "Pri súčasnom sporení a výnose sa cieľ nedosiahne";
-  if (n === 0) return "Cieľ je dosiahnutý";
-  return monthYear(targetDate(ctx.latest.date, n));
+  const display = goalDisplay(n, ctx.latest.date, todayIso());
+  return goalDateText(display, ctx.mInv + ctx.mCash === 0, monthYear);
 }
 
 const SKIP_FIRST_SETUP_KEY = "fs-skip-first-setup";
