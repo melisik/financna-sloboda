@@ -1,4 +1,4 @@
-import { PROPERTY_MODES, SOURCES, TRANSACTION_TYPES, type AppData, type Property, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, PROPERTY_MODES, SOURCES, TRANSACTION_TYPES, type AppData, type Asset, type Property, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -72,6 +72,19 @@ export function validateProperty(p: unknown, today: string, label = "nehnuteľno
   return errors;
 }
 
+export function validateAsset(a: unknown, today: string, label = "aktívum"): string[] {
+  if (typeof a !== "object" || a === null || Array.isArray(a)) return [`${label}: musí byť objekt`];
+  const o = a as Record<string, unknown>;
+  const errors = unknownKeys(o, ["id", "kind", "name", "valueCents", "valueDate", "createdAt", "updatedAt"], label);
+  if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
+  if (!(ASSET_KINDS as readonly unknown[]).includes(o.kind)) errors.push(`${label}: typ musí byť automobil alebo ocenitelné právo`);
+  if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
+  if (!isCents(o.valueCents)) errors.push(`${label}: odhad hodnoty musí byť celé číslo ≥ 0`);
+  errors.push(...checkDate(o.valueDate, today, `${label}: dátum odhadu`));
+  if (typeof o.createdAt !== "string" || typeof o.updatedAt !== "string") errors.push(`${label}: chýba čas vytvorenia alebo úpravy`);
+  return errors;
+}
+
 export function validateSettings(s: unknown, today: string): string[] {
   if (typeof s !== "object" || s === null || Array.isArray(s)) return ["nastavenia: musia byť objekt"];
   const o = s as Record<string, unknown>;
@@ -94,7 +107,7 @@ export function validateSettings(s: unknown, today: string): string[] {
 export function validateAppData(d: unknown, today: string): Check & { data?: AppData } {
   if (typeof d !== "object" || d === null || Array.isArray(d)) return { ok: false, errors: ["záloha musí byť objekt"] };
   const o = d as Record<string, unknown>;
-  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties"], "záloha");
+  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets"], "záloha");
   if (o.settings !== null && o.settings !== undefined) errors.push(...validateSettings(o.settings, today));
   if (!Array.isArray(o.transactions)) errors.push("záloha: transactions musí byť pole");
   else o.transactions.forEach((t, i) => errors.push(...validateTransaction(t, today, `transakcia ${i + 1}`)));
@@ -103,8 +116,11 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
   if (!Array.isArray(o.properties)) errors.push("záloha: properties musí byť pole");
   else o.properties.forEach((p, i) => errors.push(...validateProperty(p, today, `nehnuteľnosť ${i + 1}`)));
   const ids = (arr: unknown[]) => arr.map((x) => (x as { id?: unknown })?.id);
+  if (!Array.isArray(o.assets)) errors.push("záloha: assets musí byť pole");
+  else o.assets.forEach((a, i) => errors.push(...validateAsset(a, today, `aktívum ${i + 1}`)));
   const propertyList = Array.isArray(o.properties) ? (o.properties as unknown[]) : [];
-  for (const [name, list] of [["transakcie", ids(o.transactions as unknown[])], ["vyhodnotenia", ids(o.snapshots as unknown[])], ["majetok", ids(propertyList)]] as const) {
+  const assetList = Array.isArray(o.assets) ? (o.assets as unknown[]) : [];
+  for (const [name, list] of [["transakcie", ids(o.transactions as unknown[])], ["vyhodnotenia", ids(o.snapshots as unknown[])], ["majetok", ids(propertyList)], ["aktíva", ids(assetList)]] as const) {
     if (new Set(list).size !== list.length) errors.push(`záloha: duplicitné id v ${name}`);
   }
   if (errors.length) return { ok: false, errors };
@@ -115,6 +131,7 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
       transactions: o.transactions as Transaction[],
       snapshots: o.snapshots as Snapshot[],
       properties: o.properties as Property[],
+      assets: o.assets as Asset[],
     },
   };
 }

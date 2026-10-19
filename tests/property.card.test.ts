@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../src/domain/property";
 import { validateProperty } from "../src/storage/validate";
 import type { Property } from "../src/storage/types";
+import { validateAsset } from "../src/storage/validate";
 
 // Syntetické hodnoty; karta majetku (docs/11_Karta_majetku.md).
 const TODAY = "2026-10-19";
@@ -82,3 +83,19 @@ describe("karta majetku – validácia (FR-20 až FR-23)", () => {
     expect(validateProperty({ ...base, iban: "x" }, TODAY).join(" ")).toMatch(/neznáme pole/);
   });
 });
+
+describe("ďalšie aktíva: automobil a ocenitelné právo (docs/11, bod 10)", () => {
+  const asset = { id: "a1", kind: "automobil", name: "auto – syntetické", valueCents: 1_200_000, valueDate: "2026-10-01", createdAt: "2026-10-19T10:00:00Z", updatedAt: "2026-10-19T10:00:00Z" };
+
+  it("platný automobil a právo nemajú chyby", () => {
+    expect(validateAsset(asset, TODAY)).toEqual([]);
+    expect(validateAsset({ ...asset, id: "a2", kind: "pravo", name: "podiel – syntetický" }, TODAY)).toEqual([]);
+  });
+
+  it("aktívum bez názvu, s iným typom alebo záporným odhadom je odmietnuté", () => {
+    expect(validateAsset({ ...asset, name: "" }, TODAY).join(" ")).toMatch(/názov je povinný/);
+    expect(validateAsset({ ...asset, kind: "chata" }, TODAY).join(" ")).toMatch(/typ musí byť/);
+    expect(validateAsset({ ...asset, valueCents: -5 }, TODAY).join(" ")).toMatch(/odhad hodnoty/);
+  });
+});
+

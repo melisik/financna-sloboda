@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { PROPERTY_MODES, SOURCES, type AppData, type Property, type PropertyMode, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Property, type PropertyMode, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
@@ -193,7 +193,7 @@ export function App() {
       )}
       {section === "majetok" && (
         <Section id="majetok" title="Majetok">
-          <PropertySection repo={repo} properties={data.properties} today={todayIso()} onSaved={reload} />
+          <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} />
         </Section>
       )}
       {section === "nastavenia" && (
@@ -399,7 +399,7 @@ const PROPERTY_MODE_LABEL: Record<PropertyMode, string> = {
 };
 
 /** Karta majetku (Fáza 2, návrh docs/11_Karta_majetku.md): nehnuteľnosť a jej čistá hodnota. */
-function PropertySection({ repo, properties, today, onSaved }: { repo: Repository; properties: Property[]; today: string; onSaved: () => void }) {
+function PropertySection({ repo, properties, assets, today, onSaved }: { repo: Repository; properties: Property[]; assets: Asset[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<Property | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -477,7 +477,122 @@ function PropertySection({ repo, properties, today, onSaved }: { repo: Repositor
         <button onClick={() => setEditing("new")} style={btn}>Pridať nehnuteľnosť</button>
       )}
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <AssetSection repo={repo} assets={assets} today={today} onSaved={onSaved} />
     </section>
+  );
+}
+
+const ASSET_KIND_LABEL: Record<AssetKind, string> = {
+  automobil: "Automobil",
+  pravo: "Ocenitelné právo",
+};
+
+/** Automobil a ocenitelné právo (docs/11, bod 10): názov, odhad a dátum; do K sa zatiaľ nepočítajú. */
+function AssetSection({ repo, assets, today, onSaved }: { repo: Repository; assets: Asset[]; today: string; onSaved: () => void }) {
+  const [editing, setEditing] = useState<Asset | AssetKind | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deleteAsset(id);
+      setConfirmId(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: 16 }}>
+      <h3 style={{ fontSize: "1rem" }}>Automobily a ocenitelné práva</h3>
+      <p style={{ color: "#555" }}>Odhad je tvoj, nie trhová cena. Zatiaľ sa do K nepočítajú (predpoklad).</p>
+      {assets.length === 0 && editing === null && <p>Zatiaľ nie je zapísané žiadne aktívum.</p>}
+      {assets.map((a) => (
+        <div key={a.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <p style={{ margin: 0 }}><strong>{a.name}</strong> · {ASSET_KIND_LABEL[a.kind]}</p>
+          <p style={{ margin: "4px 0" }}>Odhad: {eur(a.valueCents)} (k {a.valueDate})</p>
+          {valueIsStale(a.valueDate, today) && <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
+          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>Do K sa zatiaľ nepočíta.</p>
+          {confirmId === a.id ? (
+            <div>
+              <p>Naozaj zmazať toto aktívum?</p>
+              <button onClick={() => remove(a.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+              <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+            </div>
+          ) : (
+            <div>
+              <button onClick={() => { setEditing(a); setErr(null); }} style={btn}>Upraviť</button>{" "}
+              <button onClick={() => setConfirmId(a.id)} style={btn}>Zmazať</button>
+            </div>
+          )}
+        </div>
+      ))}
+      {editing !== null ? (
+        <AssetForm
+          key={typeof editing === "string" ? `new-${editing}` : editing.id}
+          repo={repo}
+          kind={typeof editing === "string" ? editing : editing.kind}
+          initial={typeof editing === "string" ? null : editing}
+          today={today}
+          onDone={() => { setEditing(null); onSaved(); }}
+          onCancel={() => setEditing(null)}
+        />
+      ) : (
+        <div>
+          {ASSET_KINDS.map((k) => (
+            <button key={k} onClick={() => setEditing(k)} style={{ ...btn, marginRight: 8 }}>Pridať: {ASSET_KIND_LABEL[k].toLowerCase()}</button>
+          ))}
+        </div>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+    </div>
+  );
+}
+
+function AssetForm({ repo, kind, initial, today, onDone, onCancel }: { repo: Repository; kind: AssetKind; initial: Asset | null; today: string; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [value, setValue] = useState<NumIn>(initial ? initial.valueCents / 100 : "");
+  const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
+  const [err, setErr] = useState<string | null>(null);
+
+  const save = async () => {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return setErr("Vyplň názov.");
+    if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
+    if (Number.isNaN(asNum(value))) return setErr("Vyplň odhad hodnoty.");
+    if (asNum(value) < 0) return setErr("Odhad hodnoty nesmie byť záporný.");
+    const dateErr = checkDate(valueDate, today, "dátum odhadu");
+    if (dateErr.length) return setErr(dateErr[0]);
+    const now = new Date().toISOString();
+    const asset: Asset = {
+      id: initial?.id ?? uid(),
+      kind,
+      name: trimmed,
+      valueCents: cents(asNum(value)),
+      valueDate,
+      createdAt: initial?.createdAt ?? now,
+      updatedAt: now,
+    };
+    try {
+      await repo.saveAsset(asset);
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť" : "Nové"}: {ASSET_KIND_LABEL[kind].toLowerCase()}</h4>
+      <Field label="Názov (napr. značka a rok, alebo podiel)" value={name} type="text" onChange={setName} />
+      <Field label="Odhad hodnoty (€)" value={value} onChange={setValue} />
+      <Field label="Dátum odhadu (RRRR-MM-DD)" value={valueDate} type="text" onChange={setValueDate} />
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť</button>{" "}
+      <button onClick={onCancel} style={btn}>Zrušiť</button>
+    </div>
   );
 }
 

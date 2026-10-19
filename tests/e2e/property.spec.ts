@@ -20,7 +20,7 @@ test.describe("karta majetku (Fáza 2)", () => {
     await page.getByLabel("Ostatné mesačné náklady (€)").fill("150");
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
 
-    const card = page.locator("#majetok div", { hasText: "byt – syntetický" }).first();
+    const card = page.locator("#majetok div", { hasText: "byt – syntetický" }).last();
     await expect(card).toContainText(/Čistá hodnota:\s*150\D?000 €/);
     await expect(card).toContainText("Do K sa počíta ako čistá hodnota.");
     await expect(card.locator("dl")).toContainText(/Nájom\D*900/);
@@ -32,13 +32,13 @@ test.describe("karta majetku (Fáza 2)", () => {
     // Pretrvanie po obnovení stránky (IndexedDB, schéma v2).
     await page.reload();
     await expect(page.locator("section#majetok")).toBeVisible();
-    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).first()).toContainText("Do K sa počíta ako čistá hodnota.");
+    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Do K sa počíta ako čistá hodnota.");
 
     // Zmena režimu na vlastné bývanie: mimo K, zobrazí sa zvlášť.
     await page.getByRole("button", { name: "Upraviť" }).click();
     await page.getByLabel("Režim").selectOption("vlastne_byvanie");
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
-    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).first()).toContainText("Do K sa nepočíta; zobrazí sa zvlášť.");
+    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Do K sa nepočíta; zobrazí sa zvlášť.");
 
     // Zmazanie s potvrdením.
     await page.getByRole("button", { name: "Zmazať" }).click();
@@ -53,5 +53,33 @@ test.describe("karta majetku (Fáza 2)", () => {
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
     await expect(page.getByText("Vyplň odhad hodnoty.")).toBeVisible();
     await expect(page.getByText("Zatiaľ nie je zapísaná žiadna nehnuteľnosť.")).toHaveCount(0);
+  });
+
+  test("automobil a ocenitelné právo: pridanie, pretrvanie po reloade a zmazanie", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "majetok");
+    await page.getByRole("button", { name: "Pridať: automobil" }).click();
+    await page.getByLabel("Názov (napr. značka a rok, alebo podiel)").fill("auto – syntetické 2019");
+    await page.getByLabel("Odhad hodnoty (€)").fill("12000");
+    await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByRole("button", { name: "Uložiť", exact: true }).click();
+    const car = page.locator("#majetok div", { hasText: "auto – syntetické 2019" }).last();
+    await expect(car).toContainText("Odhad: 12 000 €");
+    await expect(car).toContainText("Do K sa zatiaľ nepočíta.");
+
+    await page.getByRole("button", { name: "Pridať: ocenitelné právo" }).click();
+    await page.getByLabel("Názov (napr. značka a rok, alebo podiel)").fill("podiel – syntetický");
+    await page.getByLabel("Odhad hodnoty (€)").fill("5000");
+    await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByRole("button", { name: "Uložiť", exact: true }).click();
+    await expect(page.locator("#majetok div", { hasText: "podiel – syntetický" }).last()).toContainText("Ocenitelné právo");
+
+    await page.reload();
+    await expect(page.locator("section#majetok")).toBeVisible();
+    await expect(page.locator("#majetok div", { hasText: "auto – syntetické 2019" }).last()).toBeVisible();
+
+    await page.locator("#majetok div", { hasText: "auto – syntetické 2019" }).last().getByRole("button", { name: "Zmazať" }).click();
+    await page.getByRole("button", { name: "Potvrdiť zmazanie" }).click();
+    await expect(page.getByText("auto – syntetické 2019")).toHaveCount(0);
   });
 });

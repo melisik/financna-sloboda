@@ -58,11 +58,26 @@ export interface Property {
   updatedAt: string; // ISO
 }
 
+/** Ďalšie ocenitelné aktíva (návrh docs/11, bod 10). Do K sa zatiaľ nepočítajú (predpoklad). */
+export const ASSET_KINDS = ["automobil", "pravo"] as const;
+export type AssetKind = (typeof ASSET_KINDS)[number];
+
+export interface Asset {
+  id: string;
+  kind: AssetKind;
+  name: string; // max 80 znakov; pri automobile napr. značka a rok, pri práve napr. podiel
+  valueCents: number; // odhad hodnoty, nie trhová cena
+  valueDate: string; // YYYY-MM-DD
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+}
+
 export interface AppData {
   settings: Settings | null;
   transactions: Transaction[];
   snapshots: Snapshot[];
   properties: Property[];
+  assets: Asset[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */
