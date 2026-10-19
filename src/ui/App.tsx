@@ -252,13 +252,16 @@ const NAV: { id: string; label: string }[] = [
 /** Horný panel s kotvami na sekcie (D-095). Dotyková plocha aspoň 44 px. */
 function Nav() {
   return (
-    <nav aria-label="Hlavná navigácia" style={{ position: "sticky", top: 0, background: "#fff", display: "flex", flexWrap: "nowrap", overflowX: "auto", gap: 2, padding: "6px 0", borderBottom: "1px solid #ddd", zIndex: 1 }}>
+    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 1, borderBottom: "1px solid #ddd" }}>
+    <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexWrap: "nowrap", overflowX: "auto", gap: 0, padding: "4px 0" }}>
       {NAV.map((n) => (
-        <a key={n.id} href={`#${n.id}`} style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 8px", color: "inherit", whiteSpace: "nowrap", flex: "0 0 auto" }}>
+        <a key={n.id} href={`#${n.id}`} style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 6px", color: "inherit", whiteSpace: "nowrap", flex: "0 0 auto", fontSize: "0.9rem" }}>
           {n.label}
         </a>
       ))}
     </nav>
+    <div aria-hidden="true" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 28, pointerEvents: "none", background: "linear-gradient(to right, rgba(255,255,255,0), #fff)" }} />
+    </div>
   );
 }
 
@@ -303,7 +306,6 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       : null;
   return (
     <section style={{ background: "#f7f5f0", padding: 12, borderRadius: 8, marginBottom: 8 }}>
-      <h2 style={{ fontSize: "1.1rem", marginTop: 0 }}>Prehľad</h2>
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
         <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
           Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.
@@ -400,7 +402,6 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
 
   return (
     <section>
-      <h2 style={{ fontSize: "1.1rem" }}>Nastavenia</h2>
       {!settings && (
         <p style={{ background: "#eef5f1", padding: 8, borderRadius: 6 }}>
           Prvé nastavenie: polia sú prázdne. Pod každým je východisková hodnota; ročné výdavky zadaj sám.
@@ -464,7 +465,6 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
 
   return (
     <section>
-      <h2 style={{ fontSize: "1.1rem" }}>Vyhodnotenie (D_L)</h2>
       <p style={{ color: "#555" }}>
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
@@ -651,7 +651,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
 
   return (
     <section>
-      <h2 style={{ fontSize: "1.1rem" }}>{inEdit ? "Úprava transakcie" : "Transakcie"}</h2>
+      {inEdit && <h2 style={{ fontSize: "1.1rem" }}>Úprava transakcie</h2>}
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Typ</span>
         <select aria-label="Typ transakcie" value={type} onChange={(e) => setType(e.target.value as TransactionType)} style={inp}>
@@ -790,7 +790,6 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
 
   return (
     <section>
-      <h2 style={{ fontSize: "1.1rem" }}>Záloha</h2>
       <p style={{ color: "#555" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu.</p>
       <button onClick={exportBackup} style={btn}>Exportovať zálohu</button>
       <label style={{ display: "block", margin: "16px 0 8px" }}>
