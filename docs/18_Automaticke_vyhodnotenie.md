@@ -1,6 +1,6 @@
 # 18 – Automatické vyhodnotenie (návrh)
 
-> Stav: **rozhodnuté (D-116): vyhodnotenie je automatické.** Spôsob ocenenia investícií medzi vyhodnoteniami je otvorený a je potrebný pred implementáciou.
+> Stav: **rozhodnuté (D-116), implementované na vetve `claude/phase2-property-card`: možnosť A (odhad výnosu), ak nie sú položky investícií.** Otvorené: dvierka pre externé zdroje (sekcia 5).
 
 ## 1. Čo sa mení
 
@@ -31,3 +31,13 @@ Možnosti:
 
 1. Ktorú možnosť pre investície zvoliť: A (odhad výnosu), B (posledná zadaná hodnota), alebo C (mesačný import)?
 2. Má mať automatické vyhodnotenie viditeľný riadok v Prehľade („vyhodnotené automaticky k …“)?
+
+## 5. Dvierka pre externé zdroje
+
+Vyhodnotenie je automatické, ale ocenenie investícií sa môže neskôr spresniť údajmi z externej aplikácie. Aplikácia nič nevolá zo siete. Dvierka sú tieto:
+
+- **Rovnaký formát súboru** ako pri integračnej službe (docs/15, formát v1): ktorákoľvek externá aplikácia môže vytvoriť súbor a Finančná sloboda ho len prevezme.
+- **Položky investícií** (D-101) sú hlavné miesto, kam môže súbor doplniť aktuálne hodnoty. Keď sú položky, automatické vyhodnotenie berie ich súčet a odhad výnosu sa nepoužije.
+- Rozšírenie o nový typ údajov (napr. ceny) je samostatný krok a vyžaduje novú verziu formátu.
+
+Pravidlo zostáva: aplikácia nevolá externé služby (D-112); údaj prichádza len súborom, ktorý používateľ potvrdí.
