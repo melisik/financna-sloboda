@@ -196,7 +196,7 @@ function IosInstallGate() {
     <div style={{ background: "#eef5f1", padding: 16, borderRadius: 8 }}>
       <h2 style={{ fontSize: "1.1rem", marginTop: 0 }}>Najprv pridaj appku na plochu</h2>
       <p>Údaje sa v Safari ukladajú slabšie. Na plochu sa appka pridá takto: klikni <strong>Zdieľať</strong> (štvorček so šípkou), vyber <strong>Pridať na plochu</strong> a potom otvor appku z ikony.</p>
-      <p style={{ color: "#555" }}>Potom už budeš pracovať len z ikony na ploche (D-053).</p>
+      <p style={{ color: "#555" }}>Potom už budeš pracovať len z ikony na ploche.</p>
     </div>
   );
 }
@@ -256,7 +256,7 @@ function Shell({ children, nav = false }: { children: React.ReactNode; nav?: boo
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
       <h1 style={{ fontSize: "1.5rem" }}>Finančná sloboda (prototyp)</h1>
-      <p style={{ color: "#555" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš (D-064).</p>
+      <p style={{ color: "#555" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
       {nav && <Nav />}
       {children}
     </main>
@@ -279,24 +279,24 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       )}
       {(data.snapshots.length > 0 || data.transactions.length > 0 || data.settings !== null) && backupOverdue(lastExport, today) && (
         <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
-          Záloha ešte nebola exportovaná alebo je staršia ako 7 dní (FR-19). Dáta sú len v tomto zariadení.
+          Záloha ešte nebola exportovaná alebo je staršia ako 7 dní. Dáta sú len v tomto zariadení.
         </p>
       )}
       {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadané</strong> (zadaj ročné výdavky a mieru výberu).</p>}
       {(ctx.negative.cash || ctx.negative.inv) && (
         <p style={{ background: "#fbe3e3", padding: 8, borderRadius: 6 }}>
-          Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení (R2).
+          Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení.
         </p>
       )}
       {ctx.latest && ctx.target !== null ? (
         <>
           <p>Dátum cieľa: <strong>{scenarioText(ctx, ctx.realReturn)}</strong></p>
           <p style={{ fontSize: "0.9rem" }}>
-            Výnos: {pctText(ctx.realReturn)} reálne po poplatkoch, nominálne ≈ {pctText(nominalFromReal(ctx.realReturn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 % (predpoklad, D-063).
+            Výnos: {pctText(ctx.realReturn)} reálne po poplatkoch, nominálne ≈ {pctText(nominalFromReal(ctx.realReturn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 % (predpoklad).
           </p>
           {ctx.longHorizon && (
             <p style={{ fontSize: "0.9rem", background: "#fff4e0", padding: 8, borderRadius: 6 }}>
-              Pri dlhom horizonte (viac ako 20 rokov) je predpoklad výnosu menej istý; výsledok je v dnešných eurách (D-065).
+              Pri dlhom horizonte (viac ako 20 rokov) je predpoklad výnosu menej istý; výsledok je v dnešných eurách.
             </p>
           )}
           <p style={{ fontSize: "0.9rem" }}>
@@ -371,24 +371,24 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
       <h2 style={{ fontSize: "1.1rem" }}>Nastavenia</h2>
       {!settings && (
         <p style={{ background: "#eef5f1", padding: 8, borderRadius: 6 }}>
-          Prvé nastavenie: polia sú prázdne. Pod každým je východisková hodnota; ročné výdavky zadaj sám (UR-10, D-057).
+          Prvé nastavenie: polia sú prázdne. Pod každým je východisková hodnota; ročné výdavky zadaj sám.
         </p>
       )}
       <Field label="Ročné výdavky pri nezávislosti (€)" value={v.expenses} onChange={(x) => setV({ ...v, expenses: x })} />
       <Field label="Miera výberu (%)" value={v.withdrawalPct} step={0.1} onChange={(x) => setV({ ...v, withdrawalPct: x })}
         hint={`východisková hodnota ${pct(rec.withdrawalRate)}`} onReset={() => setV({ ...v, withdrawalPct: rec.withdrawalRate * 100 })} />
       <Field label="Reálny výnos r (%)" value={v.returnPct} step={0.1} onChange={(x) => setV({ ...v, returnPct: x })}
-        hint={`východisková hodnota ${pct(rec.realReturn)}; nominálne ≈ ${pct(nominalFromReal(realIn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 % (D-063)`} onReset={() => setV({ ...v, returnPct: rec.realReturn * 100 })} />
+        hint={`východisková hodnota ${pct(rec.realReturn)}; nominálne ≈ ${pct(nominalFromReal(realIn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 %`} onReset={() => setV({ ...v, returnPct: rec.realReturn * 100 })} />
       <Field label="Rezerva, cieľová hodnota (€)" value={v.reserve} onChange={(x) => setV({ ...v, reserve: x })}
         hint={`východisková hodnota ${eurs(rec.reserveCents)} (3 mesiace výdavkov)`} onReset={() => setV({ ...v, reserve: rec.reserveCents / 100 })} />
       <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })}
         hint={`východisková hodnota ${eurs(rec.thresholdCents)}`} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
       <Field label="Poplatky p. a. (%)" value={v.fees} step={0.01} onChange={(x) => setV({ ...v, fees: x })}
-        hint="predvolene 0 %, zatiaľ bez overeného údaja; doplň z dokumentácie poskytovateľa (D-064)" onReset={() => setV({ ...v, fees: 0 })} />
+        hint="predvolene 0 %, zatiaľ bez overeného údaja; doplň z dokumentácie poskytovateľa" onReset={() => setV({ ...v, fees: 0 })} />
       <Field label="Mesačné sporenie do investícií (€), prázdne = odvodené" value={v.savingInv} onChange={(x) => setV({ ...v, savingInv: x })}
-        hint={`prázdne = odvodené z transakcií: ${eurs(derived.inv)} mesačne (D-031)`} onReset={() => setV({ ...v, savingInv: "" })} />
+        hint={`prázdne = odvodené z transakcií: ${eurs(derived.inv)} mesačne`} onReset={() => setV({ ...v, savingInv: "" })} />
       <Field label="Mesačné sporenie do hotovosti (€), prázdne = odvodené" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}
-        hint={`prázdne = odvodené z transakcií: ${eurs(derived.cash)} mesačne (D-031)`} onReset={() => setV({ ...v, savingCash: "" })} />
+        hint={`prázdne = odvodené z transakcií: ${eurs(derived.cash)} mesačne`} onReset={() => setV({ ...v, savingCash: "" })} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť nastavenia</button>
     </section>
@@ -434,7 +434,7 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
     <section id="vyhodnotenie">
       <h2 style={{ fontSize: "1.1rem" }}>Vyhodnotenie (D_L)</h2>
       <p style={{ color: "#555" }}>
-        {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom (L6)."}
+        {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
       <Field label="Dátum vyhodnotenia (RRRR-MM-DD)" value={date} type="text" onChange={setDate} />
       <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} />
@@ -510,7 +510,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       }
       if (source === "z_investicii") {
         const r = payFromInvestments(cap, ca);
-        if (r.ok && r.warning === "exhausted") return { after: r.capital, needsConfirm: true, message: "Investície nestačia. Po uložení bude K_inv 0 € (D-059). Ak výdavok platíš z príjmu, zvoľ zdroj „z príjmu“." };
+        if (r.ok && r.warning === "exhausted") return { after: r.capital, needsConfirm: true, message: "Investície nestačia. Po uložení bude K_inv 0 €. Ak výdavok platíš z príjmu, zvoľ zdroj „z príjmu“." };
         return { after: r.ok ? r.capital : cap };
       }
       return { after: cap }; // z príjmu
@@ -525,7 +525,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     if (type === "sporenie") return { after: { inv: cap.inv, cash: cap.cash + ca } };
     if (type === "rezerva") {
       if (cap.cash - ca < 0) return { after: null, message: "Hotovosť nestačí na vklad do rezervy." };
-      return { after: { inv: cap.inv, cash: cap.cash - ca }, message: `Vklad do rezervy zníži kapitál pre cieľ o ${eur(ca)}; peniaze zostávajú v rezerve (D-060).` };
+      return { after: { inv: cap.inv, cash: cap.cash - ca }, message: `Vklad do rezervy zníži kapitál pre cieľ o ${eur(ca)}; peniaze zostávajú v rezerve.` };
     }
     if (ca > base.reserve) return { after: null, message: "Výber je väčší než stav rezervy." };
     return { after: { inv: cap.inv, cash: cap.cash + ca } }; // výber z rezervy
@@ -566,10 +566,10 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     if (dateErr.length) return setErr(dateErr[0]);
     const c = check();
     if (c.after === null) return setErr(c.message ?? "Transakciu nie je možné uložiť.");
-    if (c.needsConfirm && !confirmExhausted) return setErr("Potvrď, že investície sa vyčerpajú (D-059).");
+    if (c.needsConfirm && !confirmExhausted) return setErr("Potvrď, že investície sa vyčerpajú.");
     const existing = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
     const excess = type === "vydavok" && source === "z_investicii" && c.needsConfirm ? cents(a) - base.capital.inv : 0;
-    const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad K_inv (D-059, D-066)` : ""].filter(Boolean).join("; ");
+    const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad K_inv` : ""].filter(Boolean).join("; ");
     const t: Transaction = {
       id: existing?.id ?? uid(),
       date,
@@ -649,7 +649,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       )}
       {preview && !preview.blocked && preview.needsConfirm && (
         <label style={{ display: "block", margin: "8px 0" }}>
-          <input type="checkbox" checked={confirmExhausted} onChange={(e) => setConfirmExhausted(e.target.checked)} /> Rozumiem, investície sa vyčerpajú a K_inv bude 0 € (D-059).
+          <input type="checkbox" checked={confirmExhausted} onChange={(e) => setConfirmExhausted(e.target.checked)} /> Rozumiem, investície sa vyčerpajú a K_inv bude 0 €.
         </label>
       )}
       {inEdit && date <= (ctx.latest?.date ?? "") && (
@@ -719,7 +719,7 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setStatus("Záloha sa stiahla. Obsahuje citlivé finančné údaje: neukladaj ju do verejných priečinkov (FR-17).");
+    setStatus("Záloha sa stiahla. Obsahuje citlivé finančné údaje: neukladaj ju do verejných priečinkov.");
   };
 
   const onFile = async (file: File) => {
@@ -759,7 +759,7 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
   return (
     <section id="zaloha">
       <h2 style={{ fontSize: "1.1rem" }}>Záloha</h2>
-      <p style={{ color: "#555" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu (FR-17, FR-19).</p>
+      <p style={{ color: "#555" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu.</p>
       <button onClick={exportBackup} style={btn}>Exportovať zálohu</button>
       <label style={{ display: "block", margin: "16px 0 8px" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Import zálohy (JSON)</span>
@@ -783,7 +783,7 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
           <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong></p>
           <label style={{ display: "block", margin: "8px 0" }}>
             <input type="checkbox" checked={backupFirst} onChange={(e) => setBackupFirst(e.target.checked)} />{" "}
-            Pred importom stiahnuť zálohu aktuálnych dát (D-078)
+            Pred importom stiahnuť zálohu aktuálnych dát
           </label>
           <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}
           <button onClick={() => setPreview(null)} style={btn}>Zrušiť</button>

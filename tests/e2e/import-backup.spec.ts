@@ -19,7 +19,7 @@ test.describe("import zálohy – D-078", () => {
     const backupPath = await prepareBackup(page);
     await page.getByLabel("Súbor zálohy").setInputFiles(backupPath);
     await expect(page.getByText("Import nahradí všetky aktuálne dáta")).toBeVisible();
-    await expect(page.getByLabel("Pred importom stiahnuť zálohu aktuálnych dát (D-078)")).not.toBeChecked();
+    await expect(page.getByLabel("Pred importom stiahnuť zálohu aktuálnych dát")).not.toBeChecked();
 
     let downloads = 0;
     page.on("download", () => {
@@ -34,7 +34,7 @@ test.describe("import zálohy – D-078", () => {
   test("so zaškrtnutím sa záloha stiahne pred nahradením", async ({ page }) => {
     const backupPath = await prepareBackup(page);
     await page.getByLabel("Súbor zálohy").setInputFiles(backupPath);
-    await page.getByLabel("Pred importom stiahnuť zálohu aktuálnych dát (D-078)").check();
+    await page.getByLabel("Pred importom stiahnuť zálohu aktuálnych dát").check();
 
     const [download] = await Promise.all([
       page.waitForEvent("download"),
