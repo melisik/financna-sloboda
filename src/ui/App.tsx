@@ -156,7 +156,7 @@ export function App() {
   if (!data.settings && data.snapshots.length === 0 && !skipFirstSetup) {
     return (
       <Shell>
-        <FirstSetup repo={repo} data={data} ctx={ctx} onChanged={reload} onSkip={skipFirstSetupAndRemember} />
+        <FirstSetup repo={repo} onChanged={reload} onSkip={skipFirstSetupAndRemember} />
       </Shell>
     );
   }
@@ -228,26 +228,164 @@ function IosInstallGate() {
  * Krok 1: cieľ a prah (SettingsSection). Krok 2: investície a prvé vyhodnotenie (SnapshotSection);
  * uložením vyhodnotenia sa nastaví D_L a sprievodca zmizne.
  */
-function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void; onSkip: () => void }) {
-  const [step, setStep] = useState(0);
-  const steps = [
-    { title: "Krok 1 z 2: cieľ a prah", note: "" },
-    { title: "Krok 2 z 2: investície a prvé vyhodnotenie", note: "Zadaj aktuálnu hodnotu investícií a hotovosť. Týmto krokom sa nastaví dátum cieľa." },
-  ];
+/** Sprievodca prvým nastavením (FR-12, D-117, docs/20): jedna otázka na obrazovke, krok so zálohou, výsledok. */
+const ONBOARD_STEP_KEY = "fs-onboarding-step";
+const ONBOARD_STEPS = 6; // 0 úvod, 1 výdavky, 2 miera výberu, 3 dnešný stav, 4 záloha, 5 výsledok
+
+function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: () => void; onSkip: () => void }) {
+  const [step, setStep] = useState<number>(() => {
+    try {
+      const n = Number(localStorage.getItem(ONBOARD_STEP_KEY));
+      return Number.isInteger(n) && n >= 0 && n < ONBOARD_STEPS ? n : 0;
+    } catch {
+      return 0;
+    }
+  });
+  const [expenses, setExpenses] = useState<NumIn>("");
+  const [withdrawal, setWithdrawal] = useState<NumIn>("");
+  const [inv, setInv] = useState<NumIn>("");
+  const [cash, setCash] = useState<NumIn>("");
+  const [result, setResult] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const go = (n: number) => {
+    setErr(null);
+    setStep(n);
+    try {
+      localStorage.setItem(ONBOARD_STEP_KEY, String(n));
+    } catch {
+      // bez úložiska sa priebeh udrží len do obnovenia stránky
+    }
+  };
+  const rec = recommendedSettings(Number.isNaN(asNum(expenses)) ? 0 : cents(asNum(expenses)));
+
+  const saveAll = async () => {
+    const invVal = asNum(inv);
+    const cashVal = asNum(cash);
+    if (Number.isNaN(invVal) || Number.isNaN(cashVal)) return setErr("Vyplň hodnotu investícií aj hotovosti. Ak nemáš, zadaj 0.");
+    if (invVal < 0 || cashVal < 0) return setErr("Hodnoty nesmú byť záporné.");
+    setBusy(true);
+    try {
+      const wr = Number.isNaN(asNum(withdrawal)) ? rec.withdrawalRate : asNum(withdrawal) / 100;
+      await repo.saveSettings({
+        expensesCents: cents(asNum(expenses)),
+        withdrawalRate: wr,
+        realReturn: rec.realReturn,
+        feesRate: 0,
+        reserveCents: rec.reserveCents,
+        thresholdCents: rec.thresholdCents,
+      });
+      await repo.addSnapshot({ id: uid(), date: todayIso(), investmentsCents: cents(invVal), cashCents: cents(cashVal), createdAt: new Date().toISOString() });
+      const fresh = await repo.getData();
+      const c = makeCtx(fresh);
+      setResult(scenarioText(c, c.realReturn));
+      go(4);
+    } catch {
+      setErr(STORAGE_ERROR);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const nextFromExpenses = () => {
+    const e = asNum(expenses);
+    if (Number.isNaN(e)) return setErr("Vyplň ročné výdavky. Napríklad 24 000 € ročne.");
+    if (!(e > 0)) return setErr("Ročné výdavky musia byť väčšie ako 0.");
+    go(2);
+  };
+
+  const backupNow = async () => {
+    try {
+      const d = await repo.getData();
+      const iso = downloadBackup(d);
+      await repo.setMeta("lastExportAt", iso);
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  const finish = () => {
+    try {
+      localStorage.removeItem(ONBOARD_STEP_KEY);
+    } catch {
+      // nič
+    }
+    onChanged();
+  };
+
+  const nav = (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+      {step > 0 && step < 5 && <button onClick={() => go(step - 1)} style={btn}>Späť</button>}
+      <button onClick={onSkip} style={btn}>Preskočiť na hlavnú stránku</button>
+    </div>
+  );
+
   return (
     <section aria-label="Prvé nastavenie">
-      <h2 style={{ fontSize: "1.1rem" }}>{steps[step].title}</h2>
-      {steps[step].note && <p style={{ color: "#555" }}>{steps[step].note}</p>}
-      {step === 0 ? (
-        <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={onChanged} />
-      ) : (
-        <SnapshotSection repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={onChanged} />
+      <p style={{ color: "#555", fontSize: "0.9rem" }}>Krok {step + 1} z {ONBOARD_STEPS}</p>
+      {step === 0 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Vitaj</h2>
+          <p>Appka ukáže, kedy by si mohol dosiahnuť finančnú slobodu, ak budeš pokračovať v sporení. Údaje zostávajú len v tomto telefóne.</p>
+          <p style={{ color: "#555" }}>Výsledky sú odhady podľa tvojich predpokladov, nie finančné poradenstvo.</p>
+          <button onClick={() => go(1)} style={btn}>Pokračovať</button>
+          {nav}
+        </>
       )}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-        {step > 0 && <button onClick={() => setStep(step - 1)} style={btn}>Späť</button>}
-        {step < steps.length - 1 && <button onClick={() => setStep(step + 1)} style={btn}>Ďalej</button>}
-        <button onClick={onSkip} style={btn}>Preskočiť na hlavnú stránku</button>
-      </div>
+      {step === 1 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Koľko by si ročne potreboval na život?</h2>
+          <p style={{ color: "#555" }}>Suma, ktorú by si ročne minul bez práce. Napríklad 24 000 € ročne.</p>
+          <Field label="Ročné výdavky pri nezávislosti (€)" value={expenses} onChange={setExpenses} />
+          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+          <button onClick={nextFromExpenses} style={btn}>Pokračovať</button>
+          {nav}
+        </>
+      )}
+      {step === 2 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Koľko z kapitálu ročne vyberieš?</h2>
+          <p style={{ color: "#555" }}>Ak nevieš, nechaj prázdne. Použije sa východisková hodnota {(rec.withdrawalRate * 100).toFixed(1).replace(".", ",")} %.</p>
+          <Field label="Miera výberu (%)" value={withdrawal} step={0.1} onChange={setWithdrawal} />
+          <button onClick={() => go(3)} style={btn}>Pokračovať</button>
+          {nav}
+        </>
+      )}
+      {step === 3 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Koľko máš dnes?</h2>
+          <p style={{ color: "#555" }}>Investície sú súčet účtov a cenných papierov. Hotovosť je suma, ktorú máš na účte. Môžeš to neskôr zmeniť.</p>
+          <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} hint="0, ak nemáš" />
+          <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} hint="0, ak nemáš" />
+          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+          <button onClick={saveAll} disabled={busy} style={btn}>Uložiť a pokračovať</button>
+          {nav}
+        </>
+      )}
+      {step === 4 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Ulož si zálohu</h2>
+          <p>Údaje sú len v tomto telefóne. Ak telefón stratíš alebo vymažeš prehliadač, údaje budú preč.</p>
+          <p style={{ color: "#555" }}>Stiahni si zálohu a ulož ju mimo telefónu. Zálohu môžeš urobiť aj neskôr v sekcii Záloha.</p>
+          <button onClick={backupNow} style={btn}>Stiahnuť zálohu</button>{" "}
+          <button onClick={() => go(5)} style={btn}>Pokračovať</button>
+          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+        </>
+      )}
+      {step === 5 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Hotovo</h2>
+          {result && <p>Dátum cieľa: <strong>{result}</strong></p>}
+          <p style={{ color: "#555" }}>Ďalšie kroky:</p>
+          <ol style={{ paddingLeft: 20 }}>
+            <li>Zapíš transakcie, keď niečo sporíš alebo minieš (sekcia Transakcie).</li>
+            <li>Na konci mesiaca zapíš stav investícií a hotovosti (sekcia Vyhodnotenie).</li>
+            <li>Občas si ulož zálohu (sekcia Záloha).</li>
+          </ol>
+          <button onClick={finish} style={btn}>Otvoriť prehľad</button>
+        </>
+      )}
     </section>
   );
 }
@@ -406,14 +544,17 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   const realIn = typeof v.returnPct === "number" ? v.returnPct / 100 : rec.realReturn;
 
   const save = async () => {
-    const vals = [v.expenses, v.withdrawalPct, v.returnPct, v.reserve, v.threshold].map(asNum);
+    // D-118: ročné výdavky sú povinné; prázdne ostatné polia použijú východiskovú hodnotu.
     const fee = v.fees === "" ? 0 : v.fees;
     if (!(fee >= 0 && fee < 100)) return setErr("Poplatky musia byť od 0 do menej ako 100 % ročne.");
-    const labels = ["ročné výdavky", "mieru výberu", "výnos", "rezervu", "prah"];
-    const missing = labels.filter((_, i) => Number.isNaN(vals[i]));
-    if (missing.length) return setErr(`Vyplň ${missing.join(", ")}.`);
-    const [exp, wr, rr, res, thr] = vals;
+    const exp = asNum(v.expenses);
+    if (Number.isNaN(exp)) return setErr("Vyplň ročné výdavky.");
     if (!(exp > 0)) return setErr("Ročné výdavky musia byť väčšie ako 0.");
+    const pick = (x: NumIn, fallback: number) => (Number.isNaN(asNum(x)) ? fallback : asNum(x));
+    const wr = pick(v.withdrawalPct, rec.withdrawalRate * 100);
+    const rr = pick(v.returnPct, rec.realReturn * 100);
+    const res = pick(v.reserve, rec.reserveCents / 100);
+    const thr = pick(v.threshold, rec.thresholdCents / 100);
     if (!(wr > 0 && wr <= 100)) return setErr("Miera výberu musí byť väčšia ako 0 % a najviac 100 %.");
     if (!(rr >= 0 && rr <= 100)) return setErr("Výnos r musí byť v rozsahu 0 až 100 %.");
     if (res < 0 || thr < 0) return setErr("Rezerva a prah nesmú byť záporné.");
@@ -753,6 +894,22 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   );
 }
 
+/** Stiahne zálohu aktuálnych dát a vráti čas exportu (FR-17). */
+function downloadBackup(data: AppData): string {
+  const nowIso = new Date().toISOString();
+  const obj = buildBackup(data, nowIso);
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `financna-sloboda-zaloha-${todayIso()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return nowIso;
+}
+
 function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository; data: AppData; onChanged: () => void; onExported: (iso: string) => void }) {
   const [preview, setPreview] = useState<{ data: AppData; counts: { transactions: number; snapshots: number }; exportedAt: string } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -760,18 +917,7 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
   const [backupFirst, setBackupFirst] = useState(false);
 
   const exportBackup = () => {
-    const nowIso = new Date().toISOString();
-    const obj = buildBackup(data, nowIso);
-    onExported(nowIso);
-    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `financna-sloboda-zaloha-${todayIso()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    onExported(downloadBackup(data));
     setStatus("Záloha sa stiahla. Obsahuje citlivé finančné údaje: neukladaj ju do verejných priečinkov.");
   };
 
