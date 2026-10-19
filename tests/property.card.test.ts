@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countsInCapital, monthlyCostsCents, netPropertyValueCents, valueIsStale } from "../src/domain/property";
+import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../src/domain/property";
 import { validateProperty } from "../src/storage/validate";
 import type { Property } from "../src/storage/types";
 
@@ -31,6 +31,17 @@ describe("karta majetku – výpočet (D-080, D-093)", () => {
     expect(monthlyCostsCents(base)).toBe(0);
   });
 
+  it("splátka sa delí na úrok z aktuálneho zostatku a istinu (D-085)", () => {
+    // zostatok 150 000 €, sadzba 3,6 % p. a. → úrok 450 € za mesiac; splátka 800 € → istina 350 €
+    const r = splitPayment({ ...base, mortgageBalanceCents: 15_000_000, mortgageRate: 0.036, monthlyPaymentCents: 80_000 });
+    expect(r).toEqual({ interestCents: 45_000, principalCents: 35_000 });
+  });
+
+  it("splátka nižšia ako úrok dá zápornú istinu (zostatok rastie)", () => {
+    const r = splitPayment({ ...base, mortgageBalanceCents: 15_000_000, mortgageRate: 0.036, monthlyPaymentCents: 30_000 });
+    expect(r.principalCents).toBeLessThan(0);
+  });
+
   it("do K sa počíta len prenájom; vlastné bývanie a nezadané nie", () => {
     expect(countsInCapital(base)).toBe(true);
     expect(countsInCapital({ ...base, mode: "vlastne_byvanie" })).toBe(false);
@@ -57,6 +68,10 @@ describe("karta majetku – validácia (FR-20 až FR-23)", () => {
 
   it("dátum odhadu v budúcnosti je odmietnutý", () => {
     expect(validateProperty({ ...base, valueDate: "2026-12-01" }, TODAY).join(" ")).toMatch(/budúcnosti/);
+  });
+
+  it("úroková sadzba mimo [0, 1) je odmietnutá", () => {
+    expect(validateProperty({ ...base, mortgageRate: 3.6 }, TODAY).join(" ")).toMatch(/úroková sadzba/);
   });
 
   it("záporná splátka je odmietnutá", () => {

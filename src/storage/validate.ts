@@ -57,7 +57,7 @@ export function validateSnapshot(s: unknown, today: string, label = "vyhodnoteni
 export function validateProperty(p: unknown, today: string, label = "nehnuteľnosť"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "createdAt", "updatedAt"], label);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (o.name !== undefined && (typeof o.name !== "string" || o.name.length > 80)) errors.push(`${label}: názov max 80 znakov`);
   if (!(PROPERTY_MODES as readonly unknown[]).includes(o.mode)) errors.push(`${label}: režim musí byť z katalógu`);
@@ -67,6 +67,7 @@ export function validateProperty(p: unknown, today: string, label = "nehnuteľno
   if (o.monthlyRentCents !== undefined && !isCents(o.monthlyRentCents)) errors.push(`${label}: nájom musí byť celé číslo ≥ 0`);
   if (o.monthlyPaymentCents !== undefined && !isCents(o.monthlyPaymentCents)) errors.push(`${label}: splátka musí byť celé číslo ≥ 0`);
   if (o.monthlyOtherCostsCents !== undefined && !isCents(o.monthlyOtherCostsCents)) errors.push(`${label}: ostatné náklady musia byť celé číslo ≥ 0`);
+  if (o.mortgageRate !== undefined && !(typeof o.mortgageRate === "number" && o.mortgageRate >= 0 && o.mortgageRate < 1)) errors.push(`${label}: úroková sadzba musí byť v [0, 1)`);
   if (typeof o.createdAt !== "string" || typeof o.updatedAt !== "string") errors.push(`${label}: chýba čas vytvorenia alebo úpravy`);
   return errors;
 }

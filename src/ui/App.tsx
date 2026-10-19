@@ -10,7 +10,7 @@ import { backupOverdue, reviewOverdue } from "../app/reminders";
 import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
-import { countsInCapital, monthlyCostsCents, netPropertyValueCents, valueIsStale } from "../domain/property";
+import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
 import {
@@ -433,6 +433,12 @@ function PropertySection({ repo, properties, today, onSaved }: { repo: Repositor
             <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
               {p.mode === "prenajom" && <><dt>Nájom</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(p.monthlyRentCents ?? 0)}</dd></>}
               <dt>Splátka hypotéky</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(p.monthlyPaymentCents ?? 0)}</dd>
+              {(p.monthlyPaymentCents ?? 0) > 0 && p.mortgageBalanceCents > 0 && (
+                <>
+                  <dt style={{ paddingLeft: 12, color: "#555" }}>z toho úrok</dt><dd style={{ margin: 0, textAlign: "right", color: "#555" }}>{eur(splitPayment(p).interestCents)}</dd>
+                  <dt style={{ paddingLeft: 12, color: "#555" }}>z toho istina</dt><dd style={{ margin: 0, textAlign: "right", color: "#555" }}>{eur(splitPayment(p).principalCents)}</dd>
+                </>
+              )}
               <dt>Ostatné náklady</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(p.monthlyOtherCostsCents ?? 0)}</dd>
               <dt><strong>Mesačné náklady spolu</strong></dt><dd style={{ margin: 0, textAlign: "right" }}><strong>{eur(monthlyCostsCents(p))}</strong></dd>
             </dl>
@@ -482,6 +488,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
   const [mortgage, setMortgage] = useState<NumIn>(initial ? initial.mortgageBalanceCents / 100 : 0);
   const [rent, setRent] = useState<NumIn>(initial?.monthlyRentCents !== undefined ? initial.monthlyRentCents / 100 : "");
+  const [rate, setRate] = useState<NumIn>(initial?.mortgageRate !== undefined ? Number((initial.mortgageRate * 100).toFixed(6)) : "");
   const [payment, setPayment] = useState<NumIn>(initial?.monthlyPaymentCents !== undefined ? initial.monthlyPaymentCents / 100 : "");
   const [otherCosts, setOtherCosts] = useState<NumIn>(initial?.monthlyOtherCostsCents !== undefined ? initial.monthlyOtherCostsCents / 100 : "");
   const [err, setErr] = useState<string | null>(null);
@@ -496,6 +503,8 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
     if (Number.isNaN(m) || m < 0) return setErr("Zostatok hypotéky musí byť číslo 0 alebo viac.");
     const r = mode === "prenajom" && rent !== "" ? asNum(rent) : undefined;
     if (r !== undefined && (Number.isNaN(r) || r < 0)) return setErr("Nájom musí byť číslo 0 alebo viac.");
+    const rt = rate === "" ? 0 : asNum(rate);
+    if (Number.isNaN(rt) || rt < 0 || rt >= 100) return setErr("Úroková sadzba musí byť od 0 do menej ako 100 %.");
     const pay = payment === "" ? 0 : asNum(payment);
     if (Number.isNaN(pay) || pay < 0) return setErr("Splátka hypotéky musí byť číslo 0 alebo viac.");
     const other = otherCosts === "" ? 0 : asNum(otherCosts);
@@ -513,6 +522,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       ...(trimmed ? { name: trimmed } : {}),
       ...(r !== undefined ? { monthlyRentCents: cents(r) } : {}),
       ...(pay > 0 ? { monthlyPaymentCents: cents(pay) } : {}),
+      ...(rt > 0 ? { mortgageRate: rt / 100 } : {}),
       ...(other > 0 ? { monthlyOtherCostsCents: cents(other) } : {}),
     };
     try {
@@ -538,6 +548,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <Field label="Odhad hodnoty (€)" value={value} onChange={setValue} />
       <Field label="Dátum odhadu (RRRR-MM-DD)" value={valueDate} type="text" onChange={setValueDate} />
       <Field label="Zostatok hypotéky (€)" value={mortgage} onChange={setMortgage} hint="0, ak hypotéku nemáš" />
+      <Field label="Úroková sadzba hypotéky (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak hypotéku nemáš" />
       <Field label="Mesačná splátka hypotéky (€)" value={payment} onChange={setPayment} hint="0, ak hypotéku nemáš" />
       <Field label="Ostatné mesačné náklady (€)" value={otherCosts} onChange={setOtherCosts} hint="údržba, poistenie, poplatky; 0, ak nie sú" />
       {mode === "prenajom" && <Field label="Mesačný nájom (€, nepovinné)" value={rent} onChange={setRent} />}

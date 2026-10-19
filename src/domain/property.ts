@@ -11,6 +11,17 @@ export function monthlyCostsCents(p: Property): number {
 }
 
 /**
+ * Rozdelenie splátky na úrok a istinu (FR-22, D-085). Úrok je z aktuálneho zostatku za mesiac.
+ * Istina môže byť záporná, ak splátka nepokrýva úrok; vtedy zostatok rastie (zobrazí sa upozornenie).
+ */
+export function splitPayment(p: Property): { interestCents: number; principalCents: number } {
+  const rate = p.mortgageRate ?? 0;
+  const interestCents = Math.round((p.mortgageBalanceCents * rate) / 12);
+  const payment = p.monthlyPaymentCents ?? 0;
+  return { interestCents, principalCents: payment - interestCents };
+}
+
+/**
  * Počíta sa do K len pri prenájme (D-093: vlastné bývanie sa do K nepočíta).
  * Režim „nezadane“ sa do K nepočíta, kým ho používateľ nevyberie (predpoklad, návrh docs/11 bod 3).
  */
