@@ -57,6 +57,8 @@ test.describe("M3 – zadanie transakcií", () => {
     await setupGoalAndEvaluation(page);
     await page.getByLabel("Suma (€)").fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
+    // Počkaj, kým sa prvá transakcia uloží; inak jej dokončenie vymaže sumu druhej.
+    await expect(page.getByText("výdavok · 150 €").first()).toBeVisible();
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
     await page.getByLabel("Suma (€)").fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
