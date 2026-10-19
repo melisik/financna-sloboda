@@ -15,12 +15,16 @@ test.describe("karta majetku (Fáza 2)", () => {
     await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
     await page.getByLabel("Zostatok hypotéky (€)").fill("150000");
     await page.getByLabel("Mesačný nájom (€, nepovinné)").fill("900");
+    await page.getByLabel("Mesačná splátka hypotéky (€)").fill("800");
+    await page.getByLabel("Ostatné mesačné náklady (€)").fill("150");
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
 
     const card = page.locator("#majetok div", { hasText: "byt – syntetický" }).first();
     await expect(card).toContainText(/Čistá hodnota:\s*150\D?000 €/);
     await expect(card).toContainText("Do K sa počíta ako čistá hodnota.");
-    await expect(card).toContainText("Nájom: 900 € mesačne");
+    await expect(card.locator("dl")).toContainText(/Nájom\D*900/);
+    await expect(card.locator("dl")).toContainText(/Splátka hypotéky\D*800/);
+    await expect(card.locator("dl")).toContainText(/Mesačné náklady spolu\D*950/);
 
     // Pretrvanie po obnovení stránky (IndexedDB, schéma v2).
     await page.reload();

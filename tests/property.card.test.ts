@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countsInCapital, netPropertyValueCents, valueIsStale } from "../src/domain/property";
+import { countsInCapital, monthlyCostsCents, netPropertyValueCents, valueIsStale } from "../src/domain/property";
 import { validateProperty } from "../src/storage/validate";
 import type { Property } from "../src/storage/types";
 
@@ -23,6 +23,12 @@ describe("karta majetku – výpočet (D-080, D-093)", () => {
 
   it("čistá hodnota môže byť záporná, ak hypotéka presahuje odhad", () => {
     expect(netPropertyValueCents({ ...base, mortgageBalanceCents: 35_000_000 })).toBe(-5_000_000);
+  });
+
+  it("mesačné náklady sú splátka plus ostatné; nevyplnené položky sa rátajú ako 0", () => {
+    expect(monthlyCostsCents({ ...base, monthlyPaymentCents: 80_000, monthlyOtherCostsCents: 15_000 })).toBe(95_000);
+    expect(monthlyCostsCents({ ...base, monthlyOtherCostsCents: 15_000 })).toBe(15_000);
+    expect(monthlyCostsCents(base)).toBe(0);
   });
 
   it("do K sa počíta len prenájom; vlastné bývanie a nezadané nie", () => {
@@ -51,6 +57,10 @@ describe("karta majetku – validácia (FR-20 až FR-23)", () => {
 
   it("dátum odhadu v budúcnosti je odmietnutý", () => {
     expect(validateProperty({ ...base, valueDate: "2026-12-01" }, TODAY).join(" ")).toMatch(/budúcnosti/);
+  });
+
+  it("záporná splátka je odmietnutá", () => {
+    expect(validateProperty({ ...base, monthlyPaymentCents: -1 }, TODAY).join(" ")).toMatch(/splátka musí byť/);
   });
 
   it("neznáme pole je odmietnuté", () => {

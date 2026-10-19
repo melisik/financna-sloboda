@@ -51,6 +51,8 @@ export interface Property {
   valueDate: string; // dátum odhadu, YYYY-MM-DD (D-089)
   mortgageBalanceCents: number; // zostatok hypotéky; 0 ak nie je
   monthlyRentCents?: number; // mesačný nájom (FR-23), len pri režime prenájom
+  monthlyPaymentCents?: number; // mesačná splátka hypotéky podľa zmluvy (FR-22, D-084)
+  monthlyOtherCostsCents?: number; // ostatné mesačné náklady: údržba, poistenie, poplatky
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
