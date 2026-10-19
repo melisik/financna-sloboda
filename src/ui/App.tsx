@@ -1026,6 +1026,8 @@ const INCOME_KIND_LABEL: Record<IncomeKind, string> = {
   socialna_davka: "Sociálna dávka",
   invalidny_dochodok: "Invalidný dôchodok",
   starobny_dochodok: "Starobný dôchodok",
+  osetrovne: "Ošetrovné",
+  nemocenska_davka: "Nemocenská dávka (PN)",
   ine: "Iné",
 };
 const INCOME_FREQUENCY_LABEL: Record<IncomeFrequency, string> = {

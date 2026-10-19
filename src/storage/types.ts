@@ -122,7 +122,7 @@ export interface Liability {
 }
 
 /** Druh príjmu (D-109). Nájom z nehnuteľnosti patrí do Majetku. */
-export const INCOME_KINDS = ["mzda", "socialna_davka", "invalidny_dochodok", "starobny_dochodok", "ine"] as const;
+export const INCOME_KINDS = ["mzda", "socialna_davka", "invalidny_dochodok", "starobny_dochodok", "osetrovne", "nemocenska_davka", "ine"] as const;
 export type IncomeKind = (typeof INCOME_KINDS)[number];
 /** Pravidelný príjem sa počíta do mesačného súčtu; nepravidelný sa zobrazí zvlášť (D-109). */
 export const INCOME_FREQUENCIES = ["mesacne", "nepravidelne"] as const;
