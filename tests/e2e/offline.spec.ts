@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { expandAll, openApp } from "./helpers";
+import { goTo, openApp } from "./helpers";
 
 test.describe("PWA a offline režim (M5)", () => {
   test("service worker sa zaregistruje a aplikácia funguje offline po prvom načítaní", async ({ page, context }) => {
@@ -14,7 +14,7 @@ test.describe("PWA a offline režim (M5)", () => {
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload(); // po registrácii načítať cez SW
     await page.waitForFunction(() => !!navigator.serviceWorker.controller);
-    await expandAll(page);
+    await goTo(page, "vyhodnotenie");
 
     // Zadaj vyhodnotenie a transakciu online (dáta majú prežiť offline režim).
     await page.getByLabel("Hodnota investícií (€)").fill("100000");
@@ -22,6 +22,7 @@ test.describe("PWA a offline režim (M5)", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
     await expect(page.getByText("Posledné vyhodnotenie:").first()).toBeVisible();
 
+    await goTo(page, "nova-transakcia");
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
     await page.getByLabel("Suma (€)").fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
@@ -31,7 +32,7 @@ test.describe("PWA a offline režim (M5)", () => {
     await context.setOffline(true);
     await page.reload();
     await expect(page.getByRole("heading", { name: "Finančná sloboda" })).toBeVisible();
-    await expandAll(page);
+    await goTo(page, "nova-transakcia");
     await expect(page.getByText("sporenie (do hotovosti) · 250 €")).toBeVisible();
 
     // Offline zápis: nová transakcia sa uloží a zobrazí.

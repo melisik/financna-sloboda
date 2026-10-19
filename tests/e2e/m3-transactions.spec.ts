@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { openApp } from "./helpers";
+import { goTo, openApp } from "./helpers";
 
 // M3 (roadmapa): zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové správanie formulárov.
 // Testy bežia nad skutočným UI (projekt nemá jsdom ani testing-library).
@@ -7,6 +7,7 @@ import { openApp } from "./helpers";
 async function setupGoalAndEvaluation(page: Page) {
   await openApp(page);
   // Nastavenia (cieľ a prah)
+  await goTo(page, "nastavenia");
   await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
   await page.getByLabel("Miera výberu (%)").fill("4");
   await page.getByLabel("Reálny výnos r (%)").fill("3.5");
@@ -14,11 +15,13 @@ async function setupGoalAndEvaluation(page: Page) {
   await page.getByLabel("Prah výdavkov (€)").fill("100");
   await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
   // Vyhodnotenie k D_L (dátum v minulosti, aby transakcie po ňom boli započítané)
+  await goTo(page, "vyhodnotenie");
   await page.getByLabel("Dátum vyhodnotenia (RRRR-MM-DD)").fill("2026-10-01");
   await page.getByLabel("Hodnota investícií (€)").fill("100000");
   await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
   await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
   await expect(page.getByText("Posledné vyhodnotenie:").first()).toBeVisible();
+  await goTo(page, "nova-transakcia");
 }
 
 test.describe("M3 – zadanie transakcií", () => {

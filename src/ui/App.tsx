@@ -108,6 +108,7 @@ export function App() {
   const [data, setData] = useState<AppData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastExport, setLastExport] = useState<string | null>(null);
+  const section = useSection();
   // Voľba „preskočiť“ sa pamätá v tomto zariadení (per-zariadenie predvoľba); bez úložiska ostáva v pamäti.
   const [skipFirstSetup, setSkipFirstSetup] = useState(() => {
     try {
@@ -159,36 +160,46 @@ export function App() {
     );
   }
   return (
-    <Shell nav>
-      <Collapsible id="prehlad" title="Prehľad" defaultOpen>
-        <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
-      </Collapsible>
-      <Collapsible id="nova-transakcia" title="Transakcie">
-        <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} />
-      </Collapsible>
-      <Collapsible id="vyhodnotenie" title="Vyhodnotenie">
-        <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}`} repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={reload} />
-      </Collapsible>
-      <Collapsible id="nastavenia" title="Nastavenia">
-        <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
-      </Collapsible>
-      <Collapsible id="zaloha" title="Záloha">
-        <BackupSection repo={repo} data={data} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
-      </Collapsible>
-      <details id="navod" style={{ marginTop: 16, background: "#f7f5f0", padding: 12, borderRadius: 8 }}>
-        <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
-        <ol style={{ paddingLeft: 20 }}>
-          <li><strong>Prvé nastavenie:</strong> pri prvom spustení zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
-          <li><strong>Vyhodnotenie:</strong> na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa mení len po vyhodnotení.</li>
-          <li><strong>Transakcie:</strong> zapisuj sporenie, investície a výdavky. Výdavok nad prah sa zvýrazní.</li>
-          <li><strong>Záloha:</strong> pravidelne exportuj zálohu. Dáta sú len v tomto zariadení; neukladaj ju do verejných priečinkov.</li>
-          <li><strong>Obnova:</strong> import nahradí všetky dáta a vyžaduje potvrdenie.</li>
-        </ol>
-        <p style={{ fontSize: "0.9rem", color: "#555" }}>
-          Výpočty sú odhady podľa zadaných predpokladov, nie finančné poradenstvo.
-          Testovacie dáta (syntetické): <a href="./testovacia-zaloha.json" download>stiahnuť testovaciu zálohu</a>, potom ju importuj v sekcii Záloha.
-        </p>
-      </details>
+    <Shell nav={section}>
+      {section === "prehlad" && (
+        <Section id="prehlad" title="Prehľad">
+          <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
+          <details id="navod" style={{ marginTop: 16, background: "#fff", padding: 12, borderRadius: 8 }}>
+            <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
+            <ol style={{ paddingLeft: 20 }}>
+              <li><strong>Prvé nastavenie:</strong> pri prvom spustení zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
+              <li><strong>Vyhodnotenie:</strong> na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa mení len po vyhodnotení.</li>
+              <li><strong>Transakcie:</strong> zapisuj sporenie, investície a výdavky. Výdavok nad prah sa zvýrazní.</li>
+              <li><strong>Záloha:</strong> pravidelne exportuj zálohu. Dáta sú len v tomto zariadení; neukladaj ju do verejných priečinkov.</li>
+              <li><strong>Obnova:</strong> import nahradí všetky dáta a vyžaduje potvrdenie.</li>
+            </ol>
+            <p style={{ fontSize: "0.9rem", color: "#555" }}>
+              Výpočty sú odhady podľa zadaných predpokladov, nie finančné poradenstvo.
+              Testovacie dáta (syntetické): <a href="./testovacia-zaloha.json" download>stiahnuť testovaciu zálohu</a>, potom ju importuj v sekcii Záloha.
+            </p>
+          </details>
+        </Section>
+      )}
+      {section === "nova-transakcia" && (
+        <Section id="nova-transakcia" title="Transakcie">
+          <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} />
+        </Section>
+      )}
+      {section === "vyhodnotenie" && (
+        <Section id="vyhodnotenie" title="Vyhodnotenie">
+          <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}`} repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={reload} />
+        </Section>
+      )}
+      {section === "nastavenia" && (
+        <Section id="nastavenia" title="Nastavenia">
+          <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
+        </Section>
+      )}
+      {section === "zaloha" && (
+        <Section id="zaloha" title="Záloha">
+          <BackupSection repo={repo} data={data} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
+        </Section>
+      )}
     </Shell>
   );
 }
@@ -241,7 +252,9 @@ function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; 
 }
 
 
-const NAV: { id: string; label: string }[] = [
+type SectionId = "prehlad" | "nova-transakcia" | "vyhodnotenie" | "nastavenia" | "zaloha";
+
+const NAV: { id: SectionId; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
   { id: "nova-transakcia", label: "Transakcie" },
   { id: "vyhodnotenie", label: "Vyhodnotenie" },
@@ -249,13 +262,38 @@ const NAV: { id: string; label: string }[] = [
   { id: "zaloha", label: "Záloha" },
 ];
 
-/** Horný panel s kotvami na sekcie (D-095). Dotyková plocha aspoň 44 px. */
-function Nav() {
+/** Sekcia z kotvy v adrese; bez platnej kotvy ide na Prehľad. */
+function sectionFromHash(): SectionId {
+  const id = window.location.hash.slice(1);
+  return NAV.some((n) => n.id === id) ? (id as SectionId) : "prehlad";
+}
+
+/** Zobrazí sa len jedna sekcia; zmena kotvy (odkaz v paneli) ju prepne. */
+function useSection(): SectionId {
+  const [section, setSection] = useState<SectionId>(sectionFromHash);
+  useEffect(() => {
+    const onChange = () => {
+      setSection(sectionFromHash());
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener("hashchange", onChange);
+    return () => window.removeEventListener("hashchange", onChange);
+  }, []);
+  return section;
+}
+
+/** Horný panel s odkazmi na sekcie (D-095, D-099). Dotyková plocha aspoň 44 px. */
+function Nav({ active }: { active: SectionId }) {
   return (
     <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 1, borderBottom: "1px solid #ddd" }}>
     <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexWrap: "nowrap", overflowX: "auto", gap: 0, padding: "4px 0" }}>
       {NAV.map((n) => (
-        <a key={n.id} href={`#${n.id}`} style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 6px", color: "inherit", whiteSpace: "nowrap", flex: "0 0 auto", fontSize: "0.9rem" }}>
+        <a
+          key={n.id}
+          href={`#${n.id}`}
+          aria-current={n.id === active ? "page" : undefined}
+          style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 6px", color: "inherit", whiteSpace: "nowrap", flex: "0 0 auto", fontSize: "0.9rem", fontWeight: n.id === active ? 700 : 400, textDecoration: n.id === active ? "underline" : "none" }}
+        >
           {n.label}
         </a>
       ))}
@@ -265,34 +303,22 @@ function Nav() {
   );
 }
 
-/**
- * Zbalená sekcia (menšia obrazovka na telefóne). Otvorí sa, keď sa použije jej kotva
- * (odkaz v paneli alebo „Pridať transakciu“); nadpis ostáva vidno vždy.
- */
-function Collapsible({ id, title, defaultOpen = false, children }: { id: string; title: string; defaultOpen?: boolean; children: React.ReactNode }) {
-  const [open, setOpen] = useState(defaultOpen);
-  useEffect(() => {
-    const openIfTargeted = () => {
-      if (window.location.hash === `#${id}`) setOpen(true);
-    };
-    openIfTargeted();
-    window.addEventListener("hashchange", openIfTargeted);
-    return () => window.removeEventListener("hashchange", openIfTargeted);
-  }, [id]);
+/** Nadpis a obsah jednej sekcie (zobrazuje sa samostatne). */
+function Section({ id, title, children }: { id: SectionId; title: string; children: React.ReactNode }) {
   return (
-    <details id={id} open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)} style={{ marginBottom: 8, background: "#f7f5f0", padding: "0 12px", borderRadius: 8 }}>
-      <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center", fontSize: "1.1rem" }}>{title}</summary>
-      <div style={{ paddingBottom: 12 }}>{children}</div>
-    </details>
+    <section id={id} style={{ background: "#f7f5f0", padding: 12, borderRadius: 8, marginBottom: 8 }}>
+      <h2 style={{ fontSize: "1.2rem", marginTop: 0 }}>{title}</h2>
+      {children}
+    </section>
   );
 }
 
-function Shell({ children, nav = false }: { children: React.ReactNode; nav?: boolean }) {
+function Shell({ children, nav }: { children: React.ReactNode; nav?: SectionId }) {
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
       <h1 style={{ fontSize: "1.5rem" }}>Finančná sloboda</h1>
       <p style={{ color: "#555" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
-      {nav && <Nav />}
+      {nav && <Nav active={nav} />}
       {children}
     </main>
   );
@@ -305,7 +331,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       ? impactMonthsSplit({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target)
       : null;
   return (
-    <section style={{ background: "#f7f5f0", padding: 12, borderRadius: 8, marginBottom: 8 }}>
+    <div>
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
         <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
           Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.
@@ -355,7 +381,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid #888", borderRadius: 4 }}>
         Pridať transakciu
       </a>
-    </section>
+    </div>
   );
 }
 

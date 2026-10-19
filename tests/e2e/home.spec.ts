@@ -1,16 +1,18 @@
 import { expect, test } from "@playwright/test";
-import { openApp } from "./helpers";
+import { goTo, openApp } from "./helpers";
 
 test.describe("domovská obrazovka a úprava (M4, FR-09, FR-14)", () => {
   test("úprava, zmazanie s vrátením späť a prehľad", async ({ page }) => {
     await openApp(page);
-    await expect(page.locator("details#prehlad > summary")).toBeVisible();
+    await expect(page.locator("section#prehlad")).toBeVisible();
 
+    await goTo(page, "vyhodnotenie");
     await page.getByLabel("Hodnota investícií (€)").fill("100000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
     await expect(page.getByText("Posledné vyhodnotenie:").first()).toBeVisible();
 
+    await goTo(page, "nova-transakcia");
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
     await page.getByLabel("Suma (€)").fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
