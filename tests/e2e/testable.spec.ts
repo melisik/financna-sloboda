@@ -52,4 +52,12 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await expect(page.locator("details#vyhodnotenie")).toHaveJSProperty("open", true);
     await expect(page.getByLabel("Hodnota investícií (€)")).toBeVisible();
   });
+
+  test("vyhodnotenie: vysvetlenie účelu a chyba, ktorá pomenuje chýbajúce pole", async ({ page }) => {
+    await openApp(page);
+    await expect(page.getByText("Na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa zmení až po tomto kroku.", { exact: true })).toBeVisible();
+    await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
+    await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
+    await expect(page.getByText("Vyplň hodnotu investícií.")).toBeVisible();
+  });
 });

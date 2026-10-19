@@ -457,7 +457,9 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
   const save = async () => {
     const dateErr = checkDate(date, todayIso(), "dátum vyhodnotenia");
     if (dateErr.length) return setErr(dateErr[0]);
-    if (Number.isNaN(asNum(inv)) || Number.isNaN(asNum(cash))) return setErr("Vyplň investície aj hotovosť.");
+    if (Number.isNaN(asNum(inv)) && Number.isNaN(asNum(cash))) return setErr("Vyplň hodnotu investícií aj nasporenú sumu v hotovosti.");
+    if (Number.isNaN(asNum(inv))) return setErr("Vyplň hodnotu investícií.");
+    if (Number.isNaN(asNum(cash))) return setErr("Vyplň nasporenú sumu v hotovosti.");
     if (asNum(inv) < 0 || asNum(cash) < 0) return setErr("Hodnoty nesmú byť záporné.");
     const same = snapshots.find((s) => s.date === date);
     if (same) return setConfirmId(same.id); // D-055: prepis len po potvrdení
@@ -469,6 +471,7 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
       <p style={{ color: "#555" }}>
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
+      <p style={{ color: "#555" }}>Na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa zmení až po tomto kroku.</p>
       <Field label="Dátum vyhodnotenia (RRRR-MM-DD)" value={date} type="text" onChange={setDate} />
       <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} />
       <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} />
