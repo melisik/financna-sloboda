@@ -90,6 +90,22 @@ export interface Position {
   updatedAt: string; // ISO
 }
 
+/** Záväzky okrem hypotéky (D-103). Hypotéka je v Majetku (FR-22). */
+export const LIABILITY_KINDS = ["uver", "kreditka", "leasing", "ine"] as const;
+export type LiabilityKind = (typeof LIABILITY_KINDS)[number];
+
+export interface Liability {
+  id: string;
+  name: string; // max 80 znakov
+  kind: LiabilityKind;
+  balanceCents: number; // zostatok dlhu
+  rate: number; // úroková sadzba p. a., napr. 0.089; 0 ak nie je
+  monthlyPaymentCents: number; // mesačná splátka podľa zmluvy
+  endDate?: string; // predpokladaný koniec, YYYY-MM-DD; môže byť v budúcnosti
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+}
+
 export interface AppData {
   settings: Settings | null;
   transactions: Transaction[];
@@ -97,6 +113,7 @@ export interface AppData {
   properties: Property[];
   assets: Asset[];
   investments: Position[];
+  liabilities: Liability[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */

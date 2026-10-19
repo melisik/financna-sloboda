@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, INVESTMENT_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type InvestmentKind, type Position, type Property, type PropertyMode, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
@@ -12,6 +12,7 @@ import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
 import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
 import { investmentsTotalCents, positionValueCents } from "../domain/investments";
+import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
 import {
@@ -197,6 +198,11 @@ export function App() {
           <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} />
         </Section>
       )}
+      {section === "zavazky" && (
+        <Section id="zavazky" title="Záväzky">
+          <LiabilitySection repo={repo} liabilities={data.liabilities} today={todayIso()} onSaved={reload} />
+        </Section>
+      )}
       {section === "investicie" && (
         <Section id="investicie" title="Investície">
           <InvestmentSection repo={repo} positions={data.investments} today={todayIso()} onSaved={reload} />
@@ -264,13 +270,14 @@ function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; 
 }
 
 
-type SectionId = "prehlad" | "nova-transakcia" | "vyhodnotenie" | "majetok" | "investicie" | "nastavenia" | "zaloha";
+type SectionId = "prehlad" | "nova-transakcia" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "nastavenia" | "zaloha";
 
 const NAV: { id: SectionId; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
   { id: "nova-transakcia", label: "Transakcie" },
   { id: "vyhodnotenie", label: "Vyhodnotenie" },
   { id: "majetok", label: "Majetok" },
+  { id: "zavazky", label: "Záväzky" },
   { id: "investicie", label: "Investície" },
   { id: "nastavenia", label: "Nastavenia" },
   { id: "zaloha", label: "Záloha" },
@@ -823,6 +830,148 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
       <Field label="Dátum ocenenia (RRRR-MM-DD)" value={valueDate} type="text" onChange={setValueDate} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť položku</button>{" "}
+      <button onClick={onCancel} style={btn}>Zrušiť</button>
+    </div>
+  );
+}
+
+const LIABILITY_KIND_LABEL: Record<LiabilityKind, string> = {
+  uver: "Úver",
+  kreditka: "Kreditná karta",
+  leasing: "Leasing",
+  ine: "Iné",
+};
+
+/** Záväzky okrem hypotéky (D-103). Hypotéka je v Majetku. */
+function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: Repository; liabilities: Liability[]; today: string; onSaved: () => void }) {
+  const [editing, setEditing] = useState<Liability | "new" | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const totals = liabilitiesTotals(liabilities);
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deleteLiability(id);
+      setConfirmId(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <section>
+      <p style={{ color: "#555" }}>Hypotéku evidujte v sekcii Majetok. Tu sú ostatné dlhy: úver, kreditná karta, leasing.</p>
+      {liabilities.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny záväzok.</p>}
+      {liabilities.length > 0 && (
+        <p style={{ fontSize: "1.05rem" }}>
+          Dlh spolu: <strong>{eur(totals.debtCents)}</strong>. Mesačne odchádza: <strong>{eur(totals.monthlyPaymentCents)}</strong>, z toho úrok {eur(totals.monthlyInterestCents)}.
+        </p>
+      )}
+      {liabilities.map((l) => (
+        <div key={l.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <p style={{ margin: 0 }}><strong>{l.name}</strong> · {LIABILITY_KIND_LABEL[l.kind]}</p>
+          <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
+            <dt>Zostatok</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(l.balanceCents)}</dd>
+            <dt>Úroková sadzba</dt><dd style={{ margin: 0, textAlign: "right" }}>{String(Number((l.rate * 100).toFixed(4)))} % p. a.</dd>
+            <dt>Splátka mesačne</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(l.monthlyPaymentCents)}</dd>
+            <dt>Úrok za mesiac</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(liabilityInterestCents(l))}</dd>
+          </dl>
+          {l.endDate && <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>Koniec: {l.endDate}</p>}
+          {confirmId === l.id ? (
+            <div>
+              <p>Naozaj zmazať tento záväzok?</p>
+              <button onClick={() => remove(l.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+              <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+            </div>
+          ) : (
+            <div>
+              <button onClick={() => { setEditing(l); setErr(null); }} style={btn}>Upraviť</button>{" "}
+              <button onClick={() => setConfirmId(l.id)} style={btn}>Zmazať</button>
+            </div>
+          )}
+        </div>
+      ))}
+      {editing !== null ? (
+        <LiabilityForm
+          key={editing === "new" ? "new" : editing.id}
+          repo={repo}
+          initial={editing === "new" ? null : editing}
+          today={today}
+          onDone={() => { setEditing(null); onSaved(); }}
+          onCancel={() => setEditing(null)}
+        />
+      ) : (
+        <button onClick={() => setEditing("new")} style={btn}>Pridať záväzok</button>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+    </section>
+  );
+}
+
+function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: Liability | null; today: string; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [kind, setKind] = useState<LiabilityKind>(initial?.kind ?? "uver");
+  const [balance, setBalance] = useState<NumIn>(initial ? initial.balanceCents / 100 : "");
+  const [rate, setRate] = useState<NumIn>(initial ? Number((initial.rate * 100).toFixed(6)) : "");
+  const [payment, setPayment] = useState<NumIn>(initial ? initial.monthlyPaymentCents / 100 : "");
+  const [endDate, setEndDate] = useState(initial?.endDate ?? "");
+  const [err, setErr] = useState<string | null>(null);
+
+  const save = async () => {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return setErr("Vyplň názov.");
+    if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
+    const b = asNum(balance);
+    if (Number.isNaN(b) || b < 0) return setErr("Vyplň zostatok dlhu (0 alebo viac).");
+    const r = rate === "" ? 0 : asNum(rate);
+    if (Number.isNaN(r) || r < 0 || r >= 100) return setErr("Úroková sadzba musí byť od 0 do menej ako 100 %.");
+    const pay = payment === "" ? 0 : asNum(payment);
+    if (Number.isNaN(pay) || pay < 0) return setErr("Splátka musí byť číslo 0 alebo viac.");
+    if (endDate.trim() !== "") {
+      // Koniec môže byť v budúcnosti, preto sa overuje len platnosť dátumu.
+      const endErr = checkDate(endDate.trim(), "9999-12-31", "koniec");
+      if (endErr.length) return setErr(endErr[0]);
+    }
+    const now = new Date().toISOString();
+    const liability: Liability = {
+      id: initial?.id ?? uid(),
+      name: trimmed,
+      kind,
+      balanceCents: cents(b),
+      rate: r / 100,
+      monthlyPaymentCents: cents(pay),
+      createdAt: initial?.createdAt ?? now,
+      updatedAt: now,
+      ...(endDate.trim() !== "" ? { endDate: endDate.trim() } : {}),
+    };
+    try {
+      await repo.saveLiability(liability);
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť záväzok" : "Nový záväzok"}</h4>
+      <Field label="Názov" value={name} type="text" onChange={setName} />
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Druh
+        <select value={kind} onChange={(e) => setKind(e.target.value as LiabilityKind)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {LIABILITY_KINDS.map((k) => (
+            <option key={k} value={k}>{LIABILITY_KIND_LABEL[k]}</option>
+          ))}
+        </select>
+      </label>
+      <Field label="Zostatok dlhu (€)" value={balance} onChange={setBalance} />
+      <Field label="Úroková sadzba (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak úrok nie je" />
+      <Field label="Splátka mesačne (€)" value={payment} onChange={setPayment} hint="0, ak splátku nemáš" />
+      <Field label="Koniec (RRRR-MM-DD, nepovinné)" value={endDate} type="text" onChange={setEndDate} />
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť záväzok</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );
