@@ -1,6 +1,6 @@
 import { openDB, type IDBPDatabase } from "idb";
 import type { Repository } from "./repository";
-import type { Asset, AppData, Liability, Position, Property, Settings, Snapshot, Transaction } from "./types";
+import type { Asset, AppData, Liability, Position, Property, RegularIncome, Settings, Snapshot, Transaction } from "./types";
 
 const DB_NAME = "financna-sloboda";
 const DB_VERSION = 2; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28)
@@ -23,6 +23,7 @@ export async function openRepository(name: string = DB_NAME): Promise<Repository
         d.createObjectStore("assets", { keyPath: "id" });
         d.createObjectStore("investments", { keyPath: "id" });
         d.createObjectStore("liabilities", { keyPath: "id" });
+        d.createObjectStore("incomes", { keyPath: "id" });
       }
     },
   });
@@ -33,8 +34,8 @@ class IdbRepository implements Repository {
   constructor(private db: IDBPDatabase) {}
 
   async getData(): Promise<AppData> {
-    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities"], "readonly");
-    const [transactions, snapshots, settings, properties, assets, investments, liabilities] = await Promise.all([
+    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities", "incomes"], "readonly");
+    const [transactions, snapshots, settings, properties, assets, investments, liabilities, incomes] = await Promise.all([
       tx.objectStore("transactions").getAll(),
       tx.objectStore("snapshots").getAll(),
       tx.objectStore("settings").get(SETTINGS_KEY),
@@ -42,9 +43,10 @@ class IdbRepository implements Repository {
       tx.objectStore("assets").getAll(),
       tx.objectStore("investments").getAll(),
       tx.objectStore("liabilities").getAll(),
+      tx.objectStore("incomes").getAll(),
     ]);
     await tx.done;
-    return { settings: (settings as Settings | undefined) ?? null, transactions, snapshots, properties, assets, investments, liabilities };
+    return { settings: (settings as Settings | undefined) ?? null, transactions, snapshots, properties, assets, investments, liabilities, incomes };
   }
 
   async addTransaction(t: Transaction): Promise<void> {
@@ -95,8 +97,16 @@ class IdbRepository implements Repository {
     await this.db.delete("liabilities", id);
   }
 
+  async saveIncome(i: RegularIncome): Promise<void> {
+    await this.db.put("incomes", i);
+  }
+
+  async deleteIncome(id: string): Promise<void> {
+    await this.db.delete("incomes", id);
+  }
+
   async replaceAll(data: AppData): Promise<void> {
-    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities"], "readwrite");
+    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities", "incomes"], "readwrite");
     // Pri zrušení transakcie by tx.done odmietla promise bez poslucháča (neošetrená chyba).
     tx.done.catch(() => undefined);
     try {
@@ -107,6 +117,8 @@ class IdbRepository implements Repository {
       await tx.objectStore("assets").clear();
       await tx.objectStore("investments").clear();
       await tx.objectStore("liabilities").clear();
+      await tx.objectStore("incomes").clear();
+      for (const i of data.incomes) await tx.objectStore("incomes").put(i);
       for (const l of data.liabilities) await tx.objectStore("liabilities").put(l);
       for (const i of data.investments) await tx.objectStore("investments").put(i);
       for (const p of data.properties) await tx.objectStore("properties").put(p);

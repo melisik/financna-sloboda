@@ -28,6 +28,7 @@ const sample: AppData = {
   assets: [],
   investments: [],
   liabilities: [],
+  incomes: [],
 };
 
 // Neplatné fixtúry sú zámerne mimo typu, preto vstup je unknown (buildBackup len obalí dáta).

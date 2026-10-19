@@ -106,6 +106,18 @@ export interface Liability {
   updatedAt: string; // ISO
 }
 
+/** Pravidelný príjem (D-102). Sporenie m sa mení až pri vyhodnotení, nie podľa tejto položky. */
+export interface RegularIncome {
+  id: string;
+  name: string; // max 80 znakov, napr. mzda
+  amountCents: number; // mesačná suma, kladná
+  dayOfMonth?: number; // deň v mesiaci 1–31; len na orientáciu
+  startDate: string; // YYYY-MM-DD, od kedy príjem platí
+  endDate?: string; // YYYY-MM-DD, posledný deň platnosti; bez hodnoty trvá
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+}
+
 export interface AppData {
   settings: Settings | null;
   transactions: Transaction[];
@@ -114,6 +126,7 @@ export interface AppData {
   assets: Asset[];
   investments: Position[];
   liabilities: Liability[];
+  incomes: RegularIncome[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */

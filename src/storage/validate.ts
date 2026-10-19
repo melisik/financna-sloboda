@@ -1,4 +1,4 @@
-import { ASSET_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, TRANSACTION_TYPES, type AppData, type Asset, type Liability, type Position, type Property, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, TRANSACTION_TYPES, type AppData, type Asset, type Liability, type Position, type Property, type RegularIncome, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -118,6 +118,22 @@ export function validateLiability(l: unknown, today: string, label = "záväzok"
   return errors;
 }
 
+export function validateIncome(i: unknown, label = "príjem"): string[] {
+  if (typeof i !== "object" || i === null || Array.isArray(i)) return [`${label}: musí byť objekt`];
+  const o = i as Record<string, unknown>;
+  const errors = unknownKeys(o, ["id", "name", "amountCents", "dayOfMonth", "startDate", "endDate", "createdAt", "updatedAt"], label);
+  if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
+  if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
+  if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť kladné celé číslo v centoch`);
+  if (o.dayOfMonth !== undefined && !(Number.isInteger(o.dayOfMonth) && (o.dayOfMonth as number) >= 1 && (o.dayOfMonth as number) <= 31)) errors.push(`${label}: deň v mesiaci musí byť 1 až 31`);
+  // Začiatok aj koniec môžu byť v budúcnosti (plánovaný príjem), preto sa overuje len platnosť dátumu.
+  errors.push(...checkDate(o.startDate, "9999-12-31", `${label}: začiatok`));
+  if (o.endDate !== undefined) errors.push(...checkDate(o.endDate, "9999-12-31", `${label}: koniec`));
+  if (typeof o.startDate === "string" && typeof o.endDate === "string" && o.endDate < o.startDate) errors.push(`${label}: koniec nesmie byť pred začiatkom`);
+  if (typeof o.createdAt !== "string" || typeof o.updatedAt !== "string") errors.push(`${label}: chýba čas vytvorenia alebo úpravy`);
+  return errors;
+}
+
 export function validateSettings(s: unknown, today: string): string[] {
   if (typeof s !== "object" || s === null || Array.isArray(s)) return ["nastavenia: musia byť objekt"];
   const o = s as Record<string, unknown>;
@@ -140,7 +156,7 @@ export function validateSettings(s: unknown, today: string): string[] {
 export function validateAppData(d: unknown, today: string): Check & { data?: AppData } {
   if (typeof d !== "object" || d === null || Array.isArray(d)) return { ok: false, errors: ["záloha musí byť objekt"] };
   const o = d as Record<string, unknown>;
-  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets", "investments", "liabilities"], "záloha");
+  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets", "investments", "liabilities", "incomes"], "záloha");
   if (o.settings !== null && o.settings !== undefined) errors.push(...validateSettings(o.settings, today));
   if (!Array.isArray(o.transactions)) errors.push("záloha: transactions musí byť pole");
   else o.transactions.forEach((t, i) => errors.push(...validateTransaction(t, today, `transakcia ${i + 1}`)));
@@ -159,7 +175,10 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
   if (!Array.isArray(o.liabilities)) errors.push("záloha: liabilities musí byť pole");
   else o.liabilities.forEach((l, i) => errors.push(...validateLiability(l, today, `záväzok ${i + 1}`)));
   const liabilityList = Array.isArray(o.liabilities) ? (o.liabilities as unknown[]) : [];
-  for (const [name, list] of [["transakcie", ids(o.transactions as unknown[])], ["vyhodnotenia", ids(o.snapshots as unknown[])], ["majetok", ids(propertyList)], ["aktíva", ids(assetList)], ["investície", ids(investmentList)], ["záväzky", ids(liabilityList)]] as const) {
+  if (!Array.isArray(o.incomes)) errors.push("záloha: incomes musí byť pole");
+  else o.incomes.forEach((i, n) => errors.push(...validateIncome(i, `príjem ${n + 1}`)));
+  const incomeList = Array.isArray(o.incomes) ? (o.incomes as unknown[]) : [];
+  for (const [name, list] of [["transakcie", ids(o.transactions as unknown[])], ["vyhodnotenia", ids(o.snapshots as unknown[])], ["majetok", ids(propertyList)], ["aktíva", ids(assetList)], ["investície", ids(investmentList)], ["záväzky", ids(liabilityList)], ["príjmy", ids(incomeList)]] as const) {
     if (new Set(list).size !== list.length) errors.push(`záloha: duplicitné id v ${name}`);
   }
   if (errors.length) return { ok: false, errors };
@@ -173,6 +192,7 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
       assets: o.assets as Asset[],
       investments: o.investments as Position[],
       liabilities: o.liabilities as Liability[],
+      incomes: o.incomes as RegularIncome[],
     },
   };
 }

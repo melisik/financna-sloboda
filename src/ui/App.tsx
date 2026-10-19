@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
@@ -13,6 +13,7 @@ import { monthlySaving } from "../domain/saving";
 import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
 import { investmentsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
+import { isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
 import {
@@ -198,6 +199,11 @@ export function App() {
           <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} />
         </Section>
       )}
+      {section === "prijmy" && (
+        <Section id="prijmy" title="Príjmy">
+          <IncomeSection repo={repo} incomes={data.incomes} today={todayIso()} onSaved={reload} />
+        </Section>
+      )}
       {section === "zavazky" && (
         <Section id="zavazky" title="Záväzky">
           <LiabilitySection repo={repo} liabilities={data.liabilities} today={todayIso()} onSaved={reload} />
@@ -270,11 +276,12 @@ function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; 
 }
 
 
-type SectionId = "prehlad" | "nova-transakcia" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "nastavenia" | "zaloha";
+type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "nastavenia" | "zaloha";
 
 const NAV: { id: SectionId; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
   { id: "nova-transakcia", label: "Transakcie" },
+  { id: "prijmy", label: "Príjmy" },
   { id: "vyhodnotenie", label: "Vyhodnotenie" },
   { id: "majetok", label: "Majetok" },
   { id: "zavazky", label: "Záväzky" },
@@ -972,6 +979,135 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       <Field label="Koniec (RRRR-MM-DD, nepovinné)" value={endDate} type="text" onChange={setEndDate} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť záväzok</button>{" "}
+      <button onClick={onCancel} style={btn}>Zrušiť</button>
+    </div>
+  );
+}
+
+/** Pravidelné príjmy (D-102): len zobrazenie. Sporenie m sa mení až podľa zostatku pri vyhodnotení. */
+function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; incomes: RegularIncome[]; today: string; onSaved: () => void }) {
+  const [editing, setEditing] = useState<RegularIncome | "new" | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deleteIncome(id);
+      setConfirmId(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <section>
+      <p style={{ color: "#555" }}>
+        Tu len vidíš, koľko pravidelne prichádza. Sporenie sa mení až podľa zostatku na konci mesiaca, pri vyhodnotení. Nájom z nehnuteľnosti eviduj v Majetku, aby sa nerátal dvakrát.
+      </p>
+      {incomes.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny pravidelný príjem.</p>}
+      {incomes.length > 0 && (
+        <p style={{ fontSize: "1.05rem" }}>Platné pravidelné príjmy za mesiac: <strong>{eur(monthlyIncomeCents(incomes, today))}</strong></p>
+      )}
+      {incomes.map((i) => {
+        const active = isIncomeActive(i, today);
+        return (
+          <div key={i.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+            <p style={{ margin: 0 }}>
+              <strong>{i.name}</strong>{" "}
+              {!active && <span style={{ color: "#555" }}>(neplatí dnes)</span>}
+            </p>
+            <p style={{ margin: "4px 0" }}>
+              {eur(i.amountCents)} mesačne{i.dayOfMonth !== undefined ? `, zvyčajne ${i.dayOfMonth}. v mesiaci` : ""}
+            </p>
+            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+              Od {i.startDate}{i.endDate ? `, do ${i.endDate}` : ", bez konca"}
+            </p>
+            {confirmId === i.id ? (
+              <div>
+                <p>Naozaj zmazať tento príjem?</p>
+                <button onClick={() => remove(i.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+                <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+              </div>
+            ) : (
+              <div>
+                <button onClick={() => { setEditing(i); setErr(null); }} style={btn}>Upraviť</button>{" "}
+                <button onClick={() => setConfirmId(i.id)} style={btn}>Zmazať</button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {editing !== null ? (
+        <IncomeForm
+          key={editing === "new" ? "new" : editing.id}
+          repo={repo}
+          initial={editing === "new" ? null : editing}
+          today={today}
+          onDone={() => { setEditing(null); onSaved(); }}
+          onCancel={() => setEditing(null)}
+        />
+      ) : (
+        <button onClick={() => setEditing("new")} style={btn}>Pridať pravidelný príjem</button>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+    </section>
+  );
+}
+
+function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: RegularIncome | null; today: string; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [amount, setAmount] = useState<NumIn>(initial ? initial.amountCents / 100 : "");
+  const [day, setDay] = useState<NumIn>(initial?.dayOfMonth ?? "");
+  const [startDate, setStartDate] = useState(initial?.startDate ?? today);
+  const [endDate, setEndDate] = useState(initial?.endDate ?? "");
+  const [err, setErr] = useState<string | null>(null);
+
+  const save = async () => {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return setErr("Vyplň názov.");
+    if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
+    const a = asNum(amount);
+    if (Number.isNaN(a) || !(a > 0)) return setErr("Vyplň mesačnú sumu (väčšiu ako 0).");
+    const d = day === "" ? undefined : asNum(day);
+    if (d !== undefined && (Number.isNaN(d) || !Number.isInteger(d) || d < 1 || d > 31)) return setErr("Deň v mesiaci musí byť od 1 do 31.");
+    const startErr = checkDate(startDate, "9999-12-31", "začiatok");
+    if (startErr.length) return setErr(startErr[0]);
+    if (endDate.trim() !== "") {
+      const endErr = checkDate(endDate.trim(), "9999-12-31", "koniec");
+      if (endErr.length) return setErr(endErr[0]);
+      if (endDate.trim() < startDate) return setErr("Koniec nesmie byť pred začiatkom.");
+    }
+    const now = new Date().toISOString();
+    const income: RegularIncome = {
+      id: initial?.id ?? uid(),
+      name: trimmed,
+      amountCents: cents(a),
+      startDate,
+      createdAt: initial?.createdAt ?? now,
+      updatedAt: now,
+      ...(d !== undefined ? { dayOfMonth: d } : {}),
+      ...(endDate.trim() !== "" ? { endDate: endDate.trim() } : {}),
+    };
+    try {
+      await repo.saveIncome(income);
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť príjem" : "Nový pravidelný príjem"}</h4>
+      <Field label="Názov (napr. mzda)" value={name} type="text" onChange={setName} />
+      <Field label="Suma mesačne (€)" value={amount} onChange={setAmount} />
+      <Field label="Deň v mesiaci (nepovinné)" value={day} onChange={setDay} hint="len na orientáciu" />
+      <Field label="Od (RRRR-MM-DD)" value={startDate} type="text" onChange={setStartDate} />
+      <Field label="Do (RRRR-MM-DD, nepovinné)" value={endDate} type="text" onChange={setEndDate} hint="bez hodnoty príjem trvá" />
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť príjem</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );
