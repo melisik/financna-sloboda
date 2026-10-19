@@ -46,7 +46,8 @@ export function validateTransaction(t: unknown, today: string, label = "transakc
 export function validateSnapshot(s: unknown, today: string, label = "vyhodnotenie"): string[] {
   if (typeof s !== "object" || s === null || Array.isArray(s)) return [`${label}: musí byť objekt`];
   const o = s as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "date", "investmentsCents", "cashCents", "createdAt"], label);
+  const errors = unknownKeys(o, ["id", "date", "investmentsCents", "cashCents", "createdAt", "auto"], label);
+  if (o.auto !== undefined && typeof o.auto !== "boolean") errors.push(`${label}: príznak automatického vyhodnotenia musí byť pravdivostná hodnota`);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   errors.push(...checkDate(o.date, today, label));
   if (!isCents(o.investmentsCents)) errors.push(`${label}: hodnota investícií musí byť celé číslo ≥ 0`);
@@ -152,8 +153,7 @@ export function validateBudget(b: unknown, label = "rozpočet"): string[] {
 export function validateSettings(s: unknown, today: string): string[] {
   if (typeof s !== "object" || s === null || Array.isArray(s)) return ["nastavenia: musia byť objekt"];
   const o = s as Record<string, unknown>;
-  const errors = unknownKeys(o, ["expensesCents", "withdrawalRate", "realReturn", "reserveCents", "thresholdCents", "savingInvCents", "savingCashCents", "feesRate", "lastReviewDate", "reviewReminderDays"], "nastavenia");
-  if (o.reviewReminderDays !== undefined && !(Number.isInteger(o.reviewReminderDays) && (o.reviewReminderDays as number) >= 0 && (o.reviewReminderDays as number) <= 28)) errors.push("nastavenia: pripomienka musí byť celé číslo 0 až 28");
+  const errors = unknownKeys(o, ["expensesCents", "withdrawalRate", "realReturn", "reserveCents", "thresholdCents", "savingInvCents", "savingCashCents", "feesRate", "lastReviewDate"], "nastavenia");
   if (typeof o.expensesCents !== "number" || !Number.isInteger(o.expensesCents) || o.expensesCents <= 0) errors.push("nastavenia: výdavky musia byť kladné celé číslo v centoch");
   if (typeof o.withdrawalRate !== "number" || !(o.withdrawalRate > 0 && o.withdrawalRate <= 1)) errors.push("nastavenia: miera výberu musí byť v (0, 1]");
   if (typeof o.realReturn !== "number" || !(o.realReturn >= 0 && o.realReturn <= 1)) errors.push("nastavenia: výnos r musí byť v [0, 1]");

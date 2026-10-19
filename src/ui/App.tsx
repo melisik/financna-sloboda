@@ -6,7 +6,7 @@ import { checkDate } from "../storage/validate";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
 import { filterHistory, totalsByType } from "../app/history";
-import { backupOverdue, reviewDueSoon, reviewOverdue } from "../app/reminders";
+import { backupOverdue, reviewOverdue } from "../app/reminders";
 import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
@@ -15,6 +15,7 @@ import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCen
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
+import { autoSnapshot } from "../app/autoEvaluation";
 import { budgetStatus, spentInMonthCents } from "../domain/budget";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
@@ -151,6 +152,23 @@ export function App() {
   const reload = async () => {
     if (repo) setData(await repo.getData());
   };
+
+  // Automatické vyhodnotenie (D-116): po zmene dát sa vytvorí vyhodnotenie za posledný ukončený mesiac, ak ešte nie je.
+  // Po uložení sa dáta znova načítajú, a tak sa ďalšie vyhodnotenie nevytvorí, kým nenastane ďalší mesiac.
+  useEffect(() => {
+    if (!repo || !data || !data.settings) return;
+    const ctxNow = makeCtx(data);
+    const snap = autoSnapshot({
+      latest: ctxNow.latest,
+      transactions: data.transactions,
+      positionsTotalCents: data.investments.length ? investmentsTotalCents(data.investments) : null,
+      realReturn: ctxNow.realReturn,
+      today: todayIso(),
+      id: uid(),
+      now: new Date().toISOString(),
+    });
+    if (snap) void repo.addSnapshot(snap).then(reload).catch(() => undefined);
+  }, [repo, data]);
 
   if (isIosBrowser() && !isStandalone()) return <Shell><IosInstallGate /></Shell>;
   if (error) return <Shell><p style={{ color: "#8a0000" }}>{error}</p></Shell>;
@@ -368,11 +386,6 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       : null;
   return (
     <div>
-      {reviewDueSoon(ctx.latest?.date ?? null, today, ctx.settings?.reviewReminderDays ?? 3) && (
-        <p style={{ background: "#eef5f1", padding: 8, borderRadius: 6 }}>
-          Blíži sa koniec mesiaca. Zadaj vyhodnotenie, aby dátum cieľa zodpovedal stavu.
-        </p>
-      )}
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
         <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
           Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.
@@ -395,6 +408,12 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
           <p style={{ fontSize: "0.9rem", color: "#555" }}>
             Posledné vyhodnotenie: <strong>{ctx.latest.date}</strong>. Dátum sa zmení až po ďalšom vyhodnotení.
           </p>
+          {ctx.latest.auto && (
+            <p style={{ fontSize: "0.9rem", color: "#555" }}>
+              Vyhodnotenie vzniklo automaticky z transakcií.
+              {data.investments.length === 0 && " Investície sú odhad z výnosu r, kým ich neupravíš v sekcii Investície."}
+            </p>
+          )}
           {ctx.longHorizon && (
             <p style={{ fontSize: "0.9rem", background: "#fff4e0", padding: 8, borderRadius: 6 }}>
               Pri dlhom horizonte (viac ako 20 rokov) je predpoklad výnosu menej istý; výsledok je v dnešných eurách.
@@ -1305,7 +1324,6 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
     threshold: settings ? settings.thresholdCents / 100 : "" as NumIn,
     savingInv: settings?.savingInvCents !== undefined ? settings.savingInvCents / 100 : "" as NumIn,
     savingCash: settings?.savingCashCents !== undefined ? settings.savingCashCents / 100 : "" as NumIn,
-    reminder: settings?.reviewReminderDays ?? 3 as NumIn,
   });
   const [err, setErr] = useState<string | null>(null);
   const pct = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
@@ -1318,8 +1336,6 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   const save = async () => {
     const vals = [v.expenses, v.withdrawalPct, v.returnPct, v.reserve, v.threshold].map(asNum);
     const fee = v.fees === "" ? 0 : v.fees;
-    const reminder = v.reminder === "" ? 3 : asNum(v.reminder);
-    if (!(Number.isInteger(reminder) && reminder >= 0 && reminder <= 28)) return setErr("Pripomienka musí byť celé číslo od 0 do 28.");
     if (!(fee >= 0 && fee < 100)) return setErr("Poplatky musia byť od 0 do menej ako 100 % ročne.");
     const labels = ["ročné výdavky", "mieru výberu", "výnos", "rezervu", "prah"];
     const missing = labels.filter((_, i) => Number.isNaN(vals[i]));
@@ -1340,7 +1356,6 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
         thresholdCents: cents(thr),
         ...(v.savingInv === "" ? {} : { savingInvCents: cents(v.savingInv) }),
         ...(v.savingCash === "" ? {} : { savingCashCents: cents(v.savingCash) }),
-        reviewReminderDays: reminder,
       });
       onSaved();
     } catch {
@@ -1370,8 +1385,6 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
         hint={`prázdne = počíta sa zo zapísaných transakcií: ${eurs(derived.inv)} mesačne`} changed={differs(v.savingInv, null)} onReset={() => setV({ ...v, savingInv: "" })} />
       <Field label="Mesačné sporenie do hotovosti (€), prázdne = odvodené" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}
         hint={`prázdne = počíta sa zo zapísaných transakcií: ${eurs(derived.cash)} mesačne`} changed={differs(v.savingCash, null)} onReset={() => setV({ ...v, savingCash: "" })} />
-      <Field label="Pripomienka vyhodnotenia (dní pred koncom mesiaca)" value={v.reminder} onChange={(x) => setV({ ...v, reminder: x })}
-        hint="0 = vypnutá; predvolene 3 dni" changed={differs(v.reminder, 3)} onReset={() => setV({ ...v, reminder: 3 })} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť nastavenia</button>
     </section>

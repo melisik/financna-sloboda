@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { backupOverdue, reviewDueSoon, reviewOverdue } from "../src/app/reminders";
+import { backupOverdue, reviewOverdue } from "../src/app/reminders";
 
 describe("pripomienka vyhodnotenia (FR-10)", () => {
   it("v tom istom mesiaci nie je pripomienka", () => {
@@ -30,33 +30,3 @@ describe("pripomienka zálohy (FR-19, D-035)", () => {
     expect(backupOverdue("2026-10-06", "2026-10-14")).toBe(true);
   });
 });
-
-describe("pripomienka blížiaceho sa konca mesiaca (D-107)", () => {
-  it("v posledné tri dni mesiaca, ak vyhodnotenie z tohto mesiaca chýba", () => {
-    expect(reviewDueSoon("2026-09-30", "2026-10-28")).toBe(false);
-    expect(reviewDueSoon("2026-09-30", "2026-10-29")).toBe(true);
-    expect(reviewDueSoon("2026-09-30", "2026-10-30")).toBe(true);
-    expect(reviewDueSoon("2026-09-30", "2026-10-31")).toBe(true);
-  });
-
-  it("nezobrazí sa, ak je vyhodnotenie z tohto mesiaca alebo ak ešte žiadne nie je", () => {
-    expect(reviewDueSoon("2026-10-30", "2026-10-31")).toBe(false);
-    expect(reviewDueSoon(null, "2026-10-31")).toBe(false);
-  });
-
-  it("v decembri a februári počíta s dĺžkou mesiaca", () => {
-    expect(reviewDueSoon("2026-11-30", "2026-12-28")).toBe(false);
-    expect(reviewDueSoon("2026-11-30", "2026-12-31")).toBe(true);
-    expect(reviewDueSoon("2027-01-31", "2027-02-25")).toBe(false);
-    expect(reviewDueSoon("2027-01-31", "2027-02-26")).toBe(true);
-  });
-});
-
-describe("nastaviteľná pripomienka vyhodnotenia (D-107)", () => {
-  it("0 dní vypne pripomienku; zadaný počet dní určuje začiatok", () => {
-    expect(reviewDueSoon("2026-09-30", "2026-10-31", 0)).toBe(false);
-    expect(reviewDueSoon("2026-09-30", "2026-10-26", 5)).toBe(false);
-    expect(reviewDueSoon("2026-09-30", "2026-10-27", 5)).toBe(true);
-  });
-});
-
