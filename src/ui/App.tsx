@@ -377,7 +377,9 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
     const vals = [v.expenses, v.withdrawalPct, v.returnPct, v.reserve, v.threshold].map(asNum);
     const fee = v.fees === "" ? 0 : v.fees;
     if (!(fee >= 0 && fee < 100)) return setErr("Poplatky musia byť od 0 do menej ako 100 % ročne.");
-    if (vals.some((x) => Number.isNaN(x))) return setErr("Vyplň ročné výdavky, mieru výberu, výnos, rezervu a prah.");
+    const labels = ["ročné výdavky", "mieru výberu", "výnos", "rezervu", "prah"];
+    const missing = labels.filter((_, i) => Number.isNaN(vals[i]));
+    if (missing.length) return setErr(`Vyplň ${missing.join(", ")}.`);
     const [exp, wr, rr, res, thr] = vals;
     if (!(exp > 0)) return setErr("Ročné výdavky musia byť väčšie ako 0.");
     if (!(wr > 0 && wr <= 100)) return setErr("Miera výberu musí byť väčšia ako 0 % a najviac 100 %.");
@@ -418,11 +420,11 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
       <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })}
         hint={`východisková hodnota ${eurs(rec.thresholdCents)}`} changed={differs(v.threshold, rec.thresholdCents / 100)} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
       <Field label="Poplatky p. a. (%)" value={v.fees} step={0.01} onChange={(x) => setV({ ...v, fees: x })}
-        hint="predvolene 0 %, zatiaľ bez overeného údaja; doplň z dokumentácie poskytovateľa" changed={differs(v.fees, 0)} onReset={() => setV({ ...v, fees: 0 })} />
+        hint="predvolene 0 %; zadaj, ak ti banka alebo poskytovateľ účtuje poplatky" changed={differs(v.fees, 0)} onReset={() => setV({ ...v, fees: 0 })} />
       <Field label="Mesačné sporenie do investícií (€), prázdne = odvodené" value={v.savingInv} onChange={(x) => setV({ ...v, savingInv: x })}
-        hint={`prázdne = odvodené z transakcií: ${eurs(derived.inv)} mesačne`} changed={differs(v.savingInv, null)} onReset={() => setV({ ...v, savingInv: "" })} />
+        hint={`prázdne = počíta sa zo zapísaných transakcií: ${eurs(derived.inv)} mesačne`} changed={differs(v.savingInv, null)} onReset={() => setV({ ...v, savingInv: "" })} />
       <Field label="Mesačné sporenie do hotovosti (€), prázdne = odvodené" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}
-        hint={`prázdne = odvodené z transakcií: ${eurs(derived.cash)} mesačne`} changed={differs(v.savingCash, null)} onReset={() => setV({ ...v, savingCash: "" })} />
+        hint={`prázdne = počíta sa zo zapísaných transakcií: ${eurs(derived.cash)} mesačne`} changed={differs(v.savingCash, null)} onReset={() => setV({ ...v, savingCash: "" })} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť nastavenia</button>
     </section>

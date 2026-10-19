@@ -60,4 +60,12 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
     await expect(page.getByText("Vyplň hodnotu investícií.")).toBeVisible();
   });
+
+  test("nastavenia: chyba vymenúva len chýbajúce polia", async ({ page }) => {
+    await openApp(page);
+    await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
+    await page.getByLabel("Miera výberu (%)").fill("4");
+    await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
+    await expect(page.getByText("Vyplň výnos, rezervu, prah.")).toBeVisible();
+  });
 });
