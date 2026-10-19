@@ -74,3 +74,19 @@ Karta majetku eviduje nehnuteľnosť a jej čistú hodnotu (D-080), aby ju bolo 
 - Jeden byt alebo dom na používateľa v prvej verzii. Viac nehnuteľností sa zapisuje ako viac kariet; súčet sa počíta len pre K.
 - Odhad zadáva používateľ; aplikácia ho nezisťuje sama.
 - Nájom je mesačný a rovnaký každý mesiac.
+
+## 10. Ďalšie karty majetku (návrh, predpoklad)
+
+Vlastník žiada ďalšie typy aktív: **automobil** a **ocenitelné práva**. Obe karty majú len názov, odhad hodnoty a dátum odhadu. Nemajú hypotéku, nájom ani splátky, a bez rozhodnutia sa nepočítajú do K.
+
+| Typ | Polia | Do K | Stav |
+|---|---|---|---|
+| Automobil | názov, odhad hodnoty (€), dátum odhadu | nie (predpoklad) | návrh |
+| Ocenitelné právo | názov (napr. podiel, licencia), odhad hodnoty (€), dátum odhadu | nie (predpoklad) | návrh |
+
+Dôvody predpokladu: vozidlo sa znehodnocuje a nie je investícia (FR-20 eviduje investíciu a nehnuteľnosť, nie vozidlo). Ocenitelné právo nemá v projekte definované pravidlá výnosu ani daňového režimu.
+
+Otvorené otázky:
+6. Má sa automobil počítať do K, alebo len zobrazovať zvlášť?
+7. Ktoré ocenitelné práva sa majú evidovať (napr. podiel v spoločnosti, licencia, patent)? Pre každé je potrebné samostatné pravidlo ocenenia.
+8. Zobrazovať odpisy alebo znehodnotenie automobilu, alebo stačí jednorazový odhad s dátumom?
