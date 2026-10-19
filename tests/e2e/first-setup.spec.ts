@@ -11,7 +11,8 @@ test.describe("sprievodca prvým nastavením (FR-12)", () => {
     await expect(page.getByRole("heading", { name: "Krok 1 z 2: cieľ a prah" })).toBeVisible();
     await page.getByRole("button", { name: "Preskočiť na hlavnú stránku" }).click();
     await expect(page.getByRole("navigation", { name: "Hlavná navigácia" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Prehľad" })).toBeVisible();
+    await expect(page.locator("details#prehlad > summary")).toBeVisible();
+    await page.locator("details#nastavenia > summary").click();
     await expect(page.getByLabel("Ročné výdavky pri nezávislosti (€)")).toBeVisible();
   });
 });
