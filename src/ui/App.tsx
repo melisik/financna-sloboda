@@ -6,7 +6,7 @@ import { checkDate } from "../storage/validate";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
 import { filterHistory, totalsByType } from "../app/history";
-import { backupOverdue, reviewOverdue } from "../app/reminders";
+import { backupOverdue, reviewDueSoon, reviewOverdue } from "../app/reminders";
 import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
@@ -346,6 +346,11 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       : null;
   return (
     <div>
+      {reviewDueSoon(ctx.latest?.date ?? null, today) && (
+        <p style={{ background: "#eef5f1", padding: 8, borderRadius: 6 }}>
+          Blíži sa koniec mesiaca. Zadaj vyhodnotenie, aby dátum cieľa zodpovedal stavu.
+        </p>
+      )}
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
         <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
           Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.

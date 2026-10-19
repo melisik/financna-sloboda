@@ -14,6 +14,18 @@ export function reviewOverdue(lastReviewIso: string | null, todayIso: string): b
   return idx(todayIso) - idx(lastReviewIso) >= 2;
 }
 
+/**
+ * Blíži sa koniec mesiaca a vyhodnotenie v tomto mesiaci ešte nie je (D-107).
+ * Platí pre posledné tri dni mesiaca; ak je vyhodnotenie z tohto mesiaca, pripomienka sa nezobrazí.
+ */
+export function reviewDueSoon(lastReviewIso: string | null, todayIso: string, lastDays = 3): boolean {
+  if (!lastReviewIso) return false;
+  const [y, m, d] = todayIso.split("-").map(Number);
+  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  if (d <= daysInMonth - lastDays) return false;
+  return lastReviewIso.slice(0, 7) !== todayIso.slice(0, 7);
+}
+
 /** Záloha chýba viac ako 7 dní alebo nikdy (FR-19, D-035). */
 export function backupOverdue(lastExportIso: string | null, todayIso: string, days = 7): boolean {
   if (!lastExportIso) return true;
