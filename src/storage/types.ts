@@ -121,11 +121,20 @@ export interface Liability {
   updatedAt: string; // ISO
 }
 
-/** Pravidelný príjem (D-102). Sporenie m sa mení až pri vyhodnotení, nie podľa tejto položky. */
+/** Druh príjmu (D-109). Nájom z nehnuteľnosti patrí do Majetku. */
+export const INCOME_KINDS = ["mzda", "socialna_davka", "invalidny_dochodok", "starobny_dochodok", "ine"] as const;
+export type IncomeKind = (typeof INCOME_KINDS)[number];
+/** Pravidelný príjem sa počíta do mesačného súčtu; nepravidelný sa zobrazí zvlášť (D-109). */
+export const INCOME_FREQUENCIES = ["mesacne", "nepravidelne"] as const;
+export type IncomeFrequency = (typeof INCOME_FREQUENCIES)[number];
+
+/** Príjem (D-102, D-109). Sporenie m sa mení až pri vyhodnotení, nie podľa tejto položky. */
 export interface RegularIncome {
   id: string;
   name: string; // max 80 znakov, napr. mzda
-  amountCents: number; // mesačná suma, kladná
+  kind: IncomeKind;
+  frequency: IncomeFrequency;
+  amountCents: number; // suma, kladná; pri nepravidelnom za jeden výskyt
   dayOfMonth?: number; // deň v mesiaci 1–31; len na orientáciu
   startDate: string; // YYYY-MM-DD, od kedy príjem platí
   endDate?: string; // YYYY-MM-DD, posledný deň platnosti; bez hodnoty trvá

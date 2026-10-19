@@ -16,11 +16,24 @@ test.describe("sekcia Príjmy (D-102)", () => {
     await page.getByRole("button", { name: "Uložiť príjem" }).click();
     await expect(page.getByText(/Platné pravidelné príjmy za mesiac:\s*1\D*200 €/)).toBeVisible();
 
+    // Nepravidelná sociálna dávka: zobrazí sa zvlášť a do mesačného súčtu sa neráta.
+    await page.getByRole("button", { name: "Pridať pravidelný príjem" }).click();
+    await page.getByLabel("Názov (napr. mzda)").fill("dávka syntetická");
+    await page.getByLabel("Druh").selectOption("socialna_davka");
+    await page.getByLabel("Frekvencia").selectOption("nepravidelne");
+    await page.getByLabel("Suma (€)").fill("300");
+    await page.getByLabel("Dátum (RRRR-MM-DD)").fill("2026-10-05");
+    await page.getByRole("button", { name: "Uložiť príjem" }).click();
+    await expect(page.getByText(/Platné pravidelné príjmy za mesiac:\s*1\D*200 €/)).toBeVisible();
+    await expect(page.getByText(/Nepravidelné príjmy[^:]*:\s*300 €/)).toBeVisible();
+
     await page.reload();
     await goTo(page, "prijmy");
     await expect(page.getByText("mzda syntetická")).toBeVisible();
 
     await page.locator("#prijmy div", { hasText: "mzda syntetická" }).last().getByRole("button", { name: "Zmazať" }).click();
+    await page.getByRole("button", { name: "Potvrdiť zmazanie" }).click();
+    await page.locator("#prijmy div", { hasText: "dávka syntetická" }).last().getByRole("button", { name: "Zmazať" }).click();
     await page.getByRole("button", { name: "Potvrdiť zmazanie" }).click();
     await expect(page.getByText("Zatiaľ nie je zapísaný žiadny pravidelný príjem.")).toBeVisible();
   });

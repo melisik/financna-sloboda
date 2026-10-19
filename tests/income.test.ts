@@ -8,6 +8,8 @@ const TODAY = "2026-10-19";
 const mzda: RegularIncome = {
   id: "p1",
   name: "mzda syntetická",
+  kind: "mzda",
+  frequency: "mesacne",
   amountCents: 120_000,
   dayOfMonth: 15,
   startDate: "2025-01-01",
@@ -24,9 +26,10 @@ describe("pravidelné príjmy – platnosť a súčet (D-102)", () => {
   });
 
   it("mesačný súčet berie len platné príjmy", () => {
-    const najom: RegularIncome = { ...mzda, id: "p2", name: "nájom syntetický", amountCents: 90_000, endDate: "2026-10-01" };
+    const najom: RegularIncome = { ...mzda, id: "p2", name: "príjem syntetický", amountCents: 90_000, endDate: "2026-10-01" };
+    const davka: RegularIncome = { ...mzda, id: "p4", kind: "socialna_davka", frequency: "nepravidelne", amountCents: 50_000 };
     const buduci: RegularIncome = { ...mzda, id: "p3", startDate: "2027-01-01", amountCents: 50_000 };
-    expect(monthlyIncomeCents([mzda, najom, buduci], TODAY)).toBe(120_000);
+    expect(monthlyIncomeCents([mzda, najom, buduci, davka], TODAY)).toBe(120_000);
   });
 });
 
@@ -34,6 +37,12 @@ describe("pravidelné príjmy – validácia", () => {
   it("platný príjem nemá chyby; koniec pred začiatkom je odmietnutý", () => {
     expect(validateIncome(mzda)).toEqual([]);
     expect(validateIncome({ ...mzda, endDate: "2024-12-31" }).join(" ")).toMatch(/koniec nesmie byť pred začiatkom/);
+  });
+
+  it("nepravidelný príjem sa neráta do mesačného súčtu a druh mimo katalógu je odmietnutý", () => {
+    const davka: RegularIncome = { ...mzda, kind: "socialna_davka", frequency: "nepravidelne" };
+    expect(monthlyIncomeCents([davka], TODAY)).toBe(0);
+    expect(validateIncome({ ...mzda, kind: "nájom" }).join(" ")).toMatch(/druh musí byť/);
   });
 
   it("deň mimo 1–31 a záporná suma sú odmietnuté", () => {

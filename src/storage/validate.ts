@@ -1,4 +1,4 @@
-import { ASSET_KINDS, BUDGET_CATEGORIES, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, TRANSACTION_TYPES, type AppData, type Asset, type Budget, type Liability, type Position, type Property, type RegularIncome, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, TRANSACTION_TYPES, type AppData, type Asset, type Budget, type Liability, type Position, type Property, type RegularIncome, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -123,8 +123,10 @@ export function validateLiability(l: unknown, today: string, label = "záväzok"
 export function validateIncome(i: unknown, label = "príjem"): string[] {
   if (typeof i !== "object" || i === null || Array.isArray(i)) return [`${label}: musí byť objekt`];
   const o = i as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "amountCents", "dayOfMonth", "startDate", "endDate", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "kind", "frequency", "amountCents", "dayOfMonth", "startDate", "endDate", "createdAt", "updatedAt"], label);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
+  if (!(INCOME_KINDS as readonly unknown[]).includes(o.kind)) errors.push(`${label}: druh musí byť z katalógu`);
+  if (!(INCOME_FREQUENCIES as readonly unknown[]).includes(o.frequency)) errors.push(`${label}: frekvencia musí byť pravidelná alebo nepravidelná`);
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
   if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť kladné celé číslo v centoch`);
   if (o.dayOfMonth !== undefined && !(Number.isInteger(o.dayOfMonth) && (o.dayOfMonth as number) >= 1 && (o.dayOfMonth as number) <= 31)) errors.push(`${label}: deň v mesiaci musí byť 1 až 31`);

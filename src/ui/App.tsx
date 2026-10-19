@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
@@ -13,7 +13,7 @@ import { monthlySaving } from "../domain/saving";
 import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
 import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
-import { isIncomeActive, monthlyIncomeCents } from "../domain/income";
+import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { budgetStatus, spentInMonthCents } from "../domain/budget";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
@@ -1021,6 +1021,18 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
   );
 }
 
+const INCOME_KIND_LABEL: Record<IncomeKind, string> = {
+  mzda: "Mzda",
+  socialna_davka: "Sociálna dávka",
+  invalidny_dochodok: "Invalidný dôchodok",
+  starobny_dochodok: "Starobný dôchodok",
+  ine: "Iné",
+};
+const INCOME_FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
+  mesacne: "pravidelne každý mesiac",
+  nepravidelne: "nepravidelne",
+};
+
 /** Pravidelné príjmy (D-102): len zobrazenie. Sporenie m sa mení až podľa zostatku pri vyhodnotení. */
 function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; incomes: RegularIncome[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<RegularIncome | "new" | null>(null);
@@ -1047,19 +1059,23 @@ function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; in
       {incomes.length > 0 && (
         <p style={{ fontSize: "1.05rem" }}>Platné pravidelné príjmy za mesiac: <strong>{eur(monthlyIncomeCents(incomes, today))}</strong></p>
       )}
+      {irregularIncomes(incomes).length > 0 && (
+        <p style={{ color: "#555" }}>Nepravidelné príjmy (do mesačného súčtu sa nerátajú): {eur(irregularIncomes(incomes).reduce((sum, i) => sum + i.amountCents, 0))}</p>
+      )}
       {incomes.map((i) => {
         const active = isIncomeActive(i, today);
         return (
           <div key={i.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
             <p style={{ margin: 0 }}>
-              <strong>{i.name}</strong>{" "}
+              <strong>{i.name}</strong> · {INCOME_KIND_LABEL[i.kind]}{" "}
               {!active && <span style={{ color: "#555" }}>(neplatí dnes)</span>}
             </p>
             <p style={{ margin: "4px 0" }}>
-              {eur(i.amountCents)} mesačne{i.dayOfMonth !== undefined ? `, zvyčajne ${i.dayOfMonth}. v mesiaci` : ""}
+              {eur(i.amountCents)}{i.frequency === "mesacne" ? " mesačne" : " (jednorazovo)"}
+              {i.dayOfMonth !== undefined ? `, zvyčajne ${i.dayOfMonth}. v mesiaci` : ""}
             </p>
             <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
-              Od {i.startDate}{i.endDate ? `, do ${i.endDate}` : ", bez konca"}
+              {INCOME_FREQUENCY_LABEL[i.frequency]}; od {i.startDate}{i.endDate ? `, do ${i.endDate}` : i.frequency === "mesacne" ? ", bez konca" : ""}
             </p>
             {confirmId === i.id ? (
               <div>
@@ -1095,6 +1111,8 @@ function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; in
 
 function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: RegularIncome | null; today: string; onDone: () => void; onCancel: () => void }) {
   const [name, setName] = useState(initial?.name ?? "");
+  const [kind, setKind] = useState<IncomeKind>(initial?.kind ?? "mzda");
+  const [frequency, setFrequency] = useState<IncomeFrequency>(initial?.frequency ?? "mesacne");
   const [amount, setAmount] = useState<NumIn>(initial ? initial.amountCents / 100 : "");
   const [day, setDay] = useState<NumIn>(initial?.dayOfMonth ?? "");
   const [startDate, setStartDate] = useState(initial?.startDate ?? today);
@@ -1120,11 +1138,13 @@ function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Reposito
     const income: RegularIncome = {
       id: initial?.id ?? uid(),
       name: trimmed,
+      kind,
+      frequency,
       amountCents: cents(a),
       startDate,
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
-      ...(d !== undefined ? { dayOfMonth: d } : {}),
+      ...(d !== undefined && frequency === "mesacne" ? { dayOfMonth: d } : {}),
       ...(endDate.trim() !== "" ? { endDate: endDate.trim() } : {}),
     };
     try {
@@ -1139,10 +1159,22 @@ function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Reposito
     <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť príjem" : "Nový pravidelný príjem"}</h4>
       <Field label="Názov (napr. mzda)" value={name} type="text" onChange={setName} />
-      <Field label="Suma mesačne (€)" value={amount} onChange={setAmount} />
-      <Field label="Deň v mesiaci (nepovinné)" value={day} onChange={setDay} hint="len na orientáciu" />
-      <Field label="Od (RRRR-MM-DD)" value={startDate} type="text" onChange={setStartDate} />
-      <Field label="Do (RRRR-MM-DD, nepovinné)" value={endDate} type="text" onChange={setEndDate} hint="bez hodnoty príjem trvá" />
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Druh
+        <select value={kind} onChange={(e) => setKind(e.target.value as IncomeKind)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {INCOME_KINDS.map((k) => <option key={k} value={k}>{INCOME_KIND_LABEL[k]}</option>)}
+        </select>
+      </label>
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Frekvencia
+        <select value={frequency} onChange={(e) => setFrequency(e.target.value as IncomeFrequency)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {INCOME_FREQUENCIES.map((f) => <option key={f} value={f}>{INCOME_FREQUENCY_LABEL[f]}</option>)}
+        </select>
+      </label>
+      <Field label={frequency === "mesacne" ? "Suma mesačne (€)" : "Suma (€)"} value={amount} onChange={setAmount} />
+      {frequency === "mesacne" && <Field label="Deň v mesiaci (nepovinné)" value={day} onChange={setDay} hint="len na orientáciu" />}
+      <Field label={frequency === "mesacne" ? "Od (RRRR-MM-DD)" : "Dátum (RRRR-MM-DD)"} value={startDate} type="text" onChange={setStartDate} />
+      {frequency === "mesacne" && <Field label="Do (RRRR-MM-DD, nepovinné)" value={endDate} type="text" onChange={setEndDate} hint="bez hodnoty príjem trvá" />}
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť príjem</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
