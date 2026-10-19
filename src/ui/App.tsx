@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
 import { SOURCES, type AppData, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
@@ -1005,12 +1005,12 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
           <option value="all">všetky typy</option>
           {(Object.keys(TYPE_LABEL) as TransactionType[]).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
         </select>
-        <input aria-label="Od (RRRR-MM-DD)" type="text" placeholder="od RRRR-MM-DD" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
-        <input aria-label="Do (RRRR-MM-DD)" type="text" placeholder="do RRRR-MM-DD" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
+        <input aria-label="Od dátumu" type="text" placeholder="od dátumu" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
+        <input aria-label="Do dátumu" type="text" placeholder="do dátumu" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
       </div>
       <p style={{ fontSize: "0.9rem", color: "#555" }}>
-        Súčty: {(Object.keys(totals) as TransactionType[]).length === 0
-          ? "žiadne"
+        Súčet zobrazených transakcií: {(Object.keys(totals) as TransactionType[]).length === 0
+          ? "žiadne transakcie"
           : (Object.keys(totals) as TransactionType[]).map((t) => `${TYPE_LABEL[t]} ${eur(totals[t] ?? 0)}`).join(" · ")}
       </p>
       {undo && (
@@ -1056,6 +1056,8 @@ function downloadBackup(data: AppData): string {
 }
 
 function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository; data: AppData; onChanged: () => void; onExported: (iso: string) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState("");
   const [preview, setPreview] = useState<{ data: AppData; counts: { transactions: number; snapshots: number }; exportedAt: string } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
@@ -1105,18 +1107,25 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
       <p style={{ color: "#555" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu. Súbor sa stiahne do priečinka Stiahnuté (alebo do priečinka, ktorý nastavil prehliadač).</p>
       <button onClick={exportBackup} style={btn}>Exportovať zálohu</button>
       <label style={{ display: "block", margin: "16px 0 8px" }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>Import zálohy (JSON)</span>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>Obnovenie zo zálohy</span>
+      </label>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <button type="button" onClick={() => fileRef.current?.click()} style={btn}>Vybrať súbor zálohy</button>
+        <span style={{ fontSize: "0.9rem", color: "#555" }}>{fileName || "Nie je vybraný žiadny súbor"}</span>
         <input
+          ref={fileRef}
           type="file"
           accept="application/json,.json"
           aria-label="Súbor zálohy"
+          style={{ display: "none" }}
           onChange={(e) => {
             const f = e.target.files?.[0];
+            setFileName(f?.name ?? "");
             if (f) void onFile(f);
             e.target.value = "";
           }}
         />
-      </label>
+      </div>
       {errors.length > 0 && <ul style={{ color: "#8a0000" }}>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>}
       {preview && (
         <div style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6 }}>
