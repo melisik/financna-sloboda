@@ -103,6 +103,22 @@ class IdbRepository implements Repository {
     await this.db.put("incomes", i);
   }
 
+  async replaceIncomesFromSource(source: string, items: RegularIncome[]): Promise<void> {
+    const tx = this.db.transaction("incomes", "readwrite");
+    tx.done.catch(() => undefined);
+    try {
+      const store = tx.objectStore("incomes");
+      for (const old of await store.getAll()) {
+        if ((old as RegularIncome).source === source) await store.delete((old as RegularIncome).id);
+      }
+      for (const i of items) await store.put(i);
+      await tx.done;
+    } catch (err) {
+      try { tx.abort(); } catch { /* už ukončená */ }
+      throw err;
+    }
+  }
+
   async deleteIncome(id: string): Promise<void> {
     await this.db.delete("incomes", id);
   }

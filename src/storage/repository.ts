@@ -16,6 +16,8 @@ export interface Repository {
   saveLiability(l: Liability): Promise<void>;
   deleteLiability(id: string): Promise<void>;
   saveIncome(i: RegularIncome): Promise<void>;
+  /** Nahradí všetky príjmy od daného zdroja novými položkami v jednej transakcii (D-112). */
+  replaceIncomesFromSource(source: string, items: RegularIncome[]): Promise<void>;
   deleteIncome(id: string): Promise<void>;
   saveBudget(b: Budget): Promise<void>;
   deleteBudget(id: string): Promise<void>;

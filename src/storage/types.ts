@@ -138,6 +138,8 @@ export interface RegularIncome {
   dayOfMonth?: number; // deň v mesiaci 1–31; len na orientáciu
   startDate: string; // YYYY-MM-DD, od kedy príjem platí
   endDate?: string; // YYYY-MM-DD, posledný deň platnosti; bez hodnoty trvá
+  source?: string; // názov zdroja, ak položku dodala integračná služba (D-112)
+  fetchedAt?: string; // kedy zdroj údaj získal, ISO
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }

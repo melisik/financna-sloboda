@@ -14,6 +14,7 @@ import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment
 import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
+import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
 import { budgetStatus, spentInMonthCents } from "../domain/budget";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
@@ -1038,6 +1039,8 @@ const INCOME_FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
 /** Pravidelné príjmy (D-102): len zobrazenie. Sporenie m sa mení až podľa zostatku pri vyhodnotení. */
 function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; incomes: RegularIncome[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<RegularIncome | "new" | null>(null);
+  const [pendingFeed, setPendingFeed] = useState<ParsedFeed | null>(null);
+  const [feedErr, setFeedErr] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -1052,11 +1055,58 @@ function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; in
     }
   };
 
+  // Súbor od integračnej služby (D-112): číta sa len lokálne, bez sieťového volania. Nič sa nezapíše bez potvrdenia.
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    setPendingFeed(null);
+    setFeedErr(null);
+    if (!file) return;
+    if (file.size > FEED_MAX_BYTES) return setFeedErr("Súbor je väčší ako 1 MB. Nič sa nenačítalo.");
+    let json: unknown;
+    try {
+      json = JSON.parse(await file.text());
+    } catch {
+      return setFeedErr("Súbor nie je platný JSON. Nič sa nezmenilo.");
+    }
+    const check = parseFeed(json);
+    if (!check.ok) return setFeedErr(`Súbor nie je v poriadku: ${check.errors.join("; ")}. Nič sa nezmenilo.`);
+    setPendingFeed(check.feed);
+  };
+
+  const confirmFeed = async () => {
+    if (!pendingFeed) return;
+    try {
+      await repo.replaceIncomesFromSource(pendingFeed.source, pendingFeed.items);
+      setPendingFeed(null);
+      onSaved();
+    } catch {
+      setFeedErr(STORAGE_ERROR);
+    }
+  };
+
   return (
     <section>
       <p style={{ color: "#555" }}>
         Tu len vidíš, koľko pravidelne prichádza. Sporenie sa mení až podľa zostatku na konci mesiaca, pri vyhodnotení. Nájom z nehnuteľnosti eviduj v Majetku, aby sa nerátal dvakrát.
       </p>
+      <div style={{ border: "1px dashed #aaa", padding: 12, borderRadius: 6, marginBottom: 12 }}>
+        <label style={{ display: "block" }}>
+          <span style={{ display: "block", fontSize: "0.95rem" }}>Načítať údaje zo súboru integračnej služby</span>
+          <input type="file" accept="application/json,.json" aria-label="Súbor od integračnej služby" onChange={onFile} style={{ marginTop: 6 }} />
+        </label>
+        {feedErr && <p style={{ color: "#8a0000" }}>{feedErr}</p>}
+        {pendingFeed && (
+          <div style={{ marginTop: 8 }}>
+            <p>
+              Zdroj: <strong>{pendingFeed.source}</strong>, získané {pendingFeed.fetchedAt.slice(0, 10)}. Položiek: {pendingFeed.items.length}.
+              Nahradia predchádzajúce položky tohto zdroja.
+            </p>
+            <button onClick={confirmFeed} style={btn}>Importovať</button>{" "}
+            <button onClick={() => setPendingFeed(null)} style={btn}>Zrušiť</button>
+          </div>
+        )}
+      </div>
       {incomes.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny pravidelný príjem.</p>}
       {incomes.length > 0 && (
         <p style={{ fontSize: "1.05rem" }}>Platné pravidelné príjmy za mesiac: <strong>{eur(monthlyIncomeCents(incomes, today))}</strong></p>
@@ -1076,6 +1126,7 @@ function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; in
               {eur(i.amountCents)}{i.frequency === "mesacne" ? " mesačne" : " (jednorazovo)"}
               {i.dayOfMonth !== undefined ? `, zvyčajne ${i.dayOfMonth}. v mesiaci` : ""}
             </p>
+            {i.source && <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>Zdroj: {i.source}, získané {(i.fetchedAt ?? "").slice(0, 10)}</p>}
             <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
               {INCOME_FREQUENCY_LABEL[i.frequency]}; od {i.startDate}{i.endDate ? `, do ${i.endDate}` : i.frequency === "mesacne" ? ", bez konca" : ""}
             </p>

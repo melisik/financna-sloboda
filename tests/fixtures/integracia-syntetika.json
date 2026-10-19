@@ -1,0 +1,10 @@
+{
+  "app": "integracna-sluzba",
+  "feedVersion": 1,
+  "source": "Integračná služba (syntetické)",
+  "fetchedAt": "2026-10-19T08:00:00Z",
+  "items": [
+    { "id": "d1", "kind": "starobny_dochodok", "frequency": "mesacne", "name": "starobný dôchodok (výhľad)", "amountCents": 85000, "startDate": "2040-01-01" },
+    { "id": "d2", "kind": "osetrovne", "frequency": "nepravidelne", "name": "ošetrovné", "amountCents": 12000, "startDate": "2026-10-02" }
+  ]
+}

@@ -123,7 +123,7 @@ export function validateLiability(l: unknown, today: string, label = "záväzok"
 export function validateIncome(i: unknown, label = "príjem"): string[] {
   if (typeof i !== "object" || i === null || Array.isArray(i)) return [`${label}: musí byť objekt`];
   const o = i as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "kind", "frequency", "amountCents", "dayOfMonth", "startDate", "endDate", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "kind", "frequency", "amountCents", "dayOfMonth", "startDate", "endDate", "source", "fetchedAt", "createdAt", "updatedAt"], label);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (!(INCOME_KINDS as readonly unknown[]).includes(o.kind)) errors.push(`${label}: druh musí byť z katalógu`);
   if (!(INCOME_FREQUENCIES as readonly unknown[]).includes(o.frequency)) errors.push(`${label}: frekvencia musí byť pravidelná alebo nepravidelná`);
