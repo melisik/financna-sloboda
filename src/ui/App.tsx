@@ -3,6 +3,7 @@ import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
 import { SOURCES, type AppData, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
+import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
 import { filterHistory, totalsByType } from "../app/history";
@@ -109,6 +110,9 @@ export function App() {
   const [data, setData] = useState<AppData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastExport, setLastExport] = useState<string | null>(null);
+  // Lokálny PIN (D-119): pinSet = PIN je zapnutý; locked = appka čaká na odomknutie.
+  const [pinSet, setPinSet] = useState(false);
+  const [locked, setLocked] = useState(false);
   const section = useSection();
   // Voľba „preskočiť“ sa pamätá v tomto zariadení (per-zariadenie predvoľba); bez úložiska ostáva v pamäti.
   const [skipFirstSetup, setSkipFirstSetup] = useState(() => {
@@ -136,6 +140,9 @@ export function App() {
         setRepo(r);
         setData(d);
         setLastExport(await r.getMeta("lastExportAt"));
+        const pinRecord = await r.getMeta("pin");
+        setPinSet(!!pinRecord);
+        setLocked(!!pinRecord);
       })
       .catch((e) => setError(`Úložisko sa nepodarilo otvoriť: ${String(e)}`));
     return () => {
@@ -144,12 +151,16 @@ export function App() {
   }, []);
 
   const reload = async () => {
-    if (repo) setData(await repo.getData());
+    if (!repo) return;
+    setData(await repo.getData());
+    // PIN mohol vzniknúť v onboardingu; stav sa musí načítať znova (D-119).
+    setPinSet(!!(await repo.getMeta("pin")));
   };
 
   if (isIosBrowser() && !isStandalone()) return <Shell><IosInstallGate /></Shell>;
   if (error) return <Shell><p style={{ color: "#8a0000" }}>{error}</p></Shell>;
   if (!repo || !data) return <Shell><p>Načítavam údaje…</p></Shell>;
+  if (locked) return <Shell><LockScreen repo={repo} onUnlock={() => setLocked(false)} /></Shell>;
 
   const ctx = makeCtx(data);
   // FR-12: prvé spustenie (prázdne nastavenia a žiadne vyhodnotenie) ide cez sprievodcu, kým ho používateľ nepreskočí.
@@ -194,6 +205,7 @@ export function App() {
       {section === "nastavenia" && (
         <Section id="nastavenia" title="Nastavenia">
           <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
+          <PinSection repo={repo} pinSet={pinSet} onChanged={(on) => setPinSet(on)} onLock={() => setLocked(true)} />
         </Section>
       )}
       {section === "zaloha" && (
@@ -230,7 +242,7 @@ function IosInstallGate() {
  */
 /** Sprievodca prvým nastavením (FR-12, D-117, docs/20): jedna otázka na obrazovke, krok so zálohou, výsledok. */
 const ONBOARD_STEP_KEY = "fs-onboarding-step";
-const ONBOARD_STEPS = 6; // 0 úvod, 1 výdavky, 2 miera výberu, 3 dnešný stav, 4 záloha, 5 výsledok
+const ONBOARD_STEPS = 7; // 0 úvod, 1 výdavky, 2 miera výberu, 3 dnešný stav, 4 záloha, 5 PIN (voliteľný), 6 výsledok
 
 function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: () => void; onSkip: () => void }) {
   const [step, setStep] = useState<number>(() => {
@@ -248,6 +260,8 @@ function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: 
   const [result, setResult] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pinNew, setPinNew] = useState("");
+  const [pinRepeat, setPinRepeat] = useState("");
 
   const go = (n: number) => {
     setErr(null);
@@ -316,7 +330,7 @@ function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: 
 
   const nav = (
     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-      {step > 0 && step < 5 && <button onClick={() => go(step - 1)} style={btn}>Späť</button>}
+      {step > 0 && step < 6 && <button onClick={() => go(step - 1)} style={btn}>Späť</button>}
       <button onClick={onSkip} style={btn}>Preskočiť na hlavnú stránku</button>
     </div>
   );
@@ -374,6 +388,31 @@ function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: 
         </>
       )}
       {step === 5 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Chceš PIN?</h2>
+          <p style={{ color: "#555" }}>PIN je nepovinný. Ak ho nastavíš, appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne, údaje nie sú zašifrované.</p>
+          <Field label="Nový PIN (4 až 6 číslic)" value={pinNew} type="text" onChange={setPinNew} />
+          <Field label="Zopakuj PIN" value={pinRepeat} type="text" onChange={setPinRepeat} />
+          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+          <button
+            onClick={async () => {
+              if (!isValidPin(pinNew)) return setErr("PIN musí mať 4 až 6 číslic.");
+              if (pinNew !== pinRepeat) return setErr("PIN sa nezhoduje so zopakovaním.");
+              try {
+                await repo.setMeta("pin", await makePinRecord(pinNew));
+                go(6);
+              } catch {
+                setErr(STORAGE_ERROR);
+              }
+            }}
+            style={btn}
+          >
+            Nastaviť PIN
+          </button>{" "}
+          <button onClick={() => go(6)} style={btn}>Bez PIN</button>
+        </>
+      )}
+      {step === 6 && (
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Hotovo</h2>
           {result && <p>Dátum cieľa: <strong>{result}</strong></p>}
@@ -521,6 +560,87 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
         Pridať transakciu
       </a>
     </div>
+  );
+}
+
+/** Odomknutie PIN-om (D-119). Údaje sa nezobrazia, kým PIN nie je správny. */
+function LockScreen({ repo, onUnlock }: { repo: Repository; onUnlock: () => void }) {
+  const [pin, setPin] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const unlock = async () => {
+    const record = await repo.getMeta("pin");
+    if (record && (await checkPin(pin, record))) return onUnlock();
+    setErr("Nesprávny PIN. Skús znova.");
+    setPin("");
+  };
+  return (
+    <section aria-label="Odomknutie">
+      <h2 style={{ fontSize: "1.1rem" }}>Zadaj PIN</h2>
+      <p style={{ color: "#555" }}>Údaje sú v tomto telefóne. Ak PIN zabudneš, údaje sa nedajú obnoviť; jediná cesta je vymazať dáta prehliadača.</p>
+      <label style={{ display: "block", margin: "8px 0" }}>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>PIN</span>
+        <input type="password" inputMode="numeric" aria-label="PIN" value={pin} onChange={(e) => setPin(e.target.value)} style={inp} />
+      </label>
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={unlock} style={btn}>Odomknúť</button>
+    </section>
+  );
+}
+
+/** Zapnutie, vypnutie a zamknutie PIN-u v Nastaveniach (D-119). */
+function PinSection({ repo, pinSet, onChanged, onLock }: { repo: Repository; pinSet: boolean; onChanged: (on: boolean) => void; onLock: () => void }) {
+  const [newPin, setNewPin] = useState("");
+  const [repeat, setRepeat] = useState("");
+  const [current, setCurrent] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  const enable = async () => {
+    if (!isValidPin(newPin)) return setErr("PIN musí mať 4 až 6 číslic.");
+    if (newPin !== repeat) return setErr("PIN sa nezhoduje so zopakovaním.");
+    try {
+      await repo.setMeta("pin", await makePinRecord(newPin));
+      setNewPin("");
+      setRepeat("");
+      setErr(null);
+      onChanged(true);
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  const disable = async () => {
+    const record = await repo.getMeta("pin");
+    if (!record || !(await checkPin(current, record))) return setErr("Aktuálny PIN nesedí.");
+    try {
+      await repo.setMeta("pin", "");
+      setCurrent("");
+      setErr(null);
+      onChanged(false);
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <section style={{ marginTop: 16 }}>
+      <h3 style={{ fontSize: "1rem" }}>PIN</h3>
+      {pinSet ? (
+        <>
+          <p style={{ color: "#555" }}>PIN je zapnutý. Appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne; údaje nie sú zašifrované.</p>
+          <button onClick={onLock} style={btn}>Zamknúť teraz</button>
+          <Field label="Aktuálny PIN (na vypnutie)" value={current} type="text" onChange={setCurrent} />
+          <button onClick={disable} style={btn}>Vypnúť PIN</button>
+        </>
+      ) : (
+        <>
+          <p style={{ color: "#555" }}>PIN je nepovinný. Údaje nie sú zašifrované; PIN bráni len otvoreniu appky.</p>
+          <Field label="Nový PIN (4 až 6 číslic)" value={newPin} type="text" onChange={setNewPin} />
+          <Field label="Zopakuj PIN" value={repeat} type="text" onChange={setRepeat} />
+          <button onClick={enable} style={btn}>Zapnúť PIN</button>
+        </>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+    </section>
   );
 }
 
