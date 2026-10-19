@@ -39,7 +39,7 @@ Karta majetku eviduje nehnuteľnosť a jej čistú hodnotu (D-080), aby ju bolo 
 
 ## 5. Mimo v1 (nasledujúce kroky)
 
-- Úroková sadzba, splátka, dátum splatenia (FR-22). Potrebné pre tok nájmu a splátky (FR-23).
+- Dátum splatenia (FR-22). Úroková sadzba a delenie splátky na úrok a istinu sú od D-100 v karte.
 - Daňový režim a daňový scenár (FR-24, FR-25, D-083).
 - Vplyv na dátum cieľa (FR-02a, D-092). Karta v prvej verzii nemení žiadny výpočet.
 - Automatický odhad zo štatistík (D-089, D-091: Eurostat, dataset a metóda sa ešte overujú).
