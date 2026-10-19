@@ -916,7 +916,6 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       type,
       amountCents: cents(a),
       ...(needsSource ? { source } : {}),
-      ...(type === "vydavok" ? { belowThreshold: cents(a) < (ctx.settings?.thresholdCents ?? 0) } : {}),
       ...(noteText ? { note: noteText.slice(0, 200) } : {}),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -1025,7 +1024,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
             <span>
               {t.date} · {TYPE_LABEL[t.type]} · {eur(t.amountCents)}
               {t.source ? ` (${SOURCE_LABEL[t.source]})` : ""}
-              {t.belowThreshold ? " · pod prahom" : ""}
+              {t.type === "vydavok" && ctx.settings && t.amountCents >= ctx.settings.thresholdCents ? " · nad prahom" : ""}
               {t.note ? ` · ${t.note}` : ""}
             </span>
             <span style={{ display: "flex", gap: 6 }}>
