@@ -38,12 +38,32 @@ export interface Settings {
   lastReviewDate?: string; // D_L
 }
 
+/** Režim nehnuteľnosti (FR-20, D-093). „nezadane“ je predvolené a do K sa nepočíta. */
+export const PROPERTY_MODES = ["vlastne_byvanie", "prenajom", "nezadane"] as const;
+export type PropertyMode = (typeof PROPERTY_MODES)[number];
+
+/** Nehnuteľnosť v karte majetku (FR-20 až FR-22, návrh docs/11_Karta_majetku.md). */
+export interface Property {
+  id: string;
+  name?: string; // max 80 znakov, len na orientáciu
+  mode: PropertyMode;
+  valueCents: number; // odhad hodnoty, nie trhová cena (FR-21, D-080)
+  valueDate: string; // dátum odhadu, YYYY-MM-DD (D-089)
+  mortgageBalanceCents: number; // zostatok hypotéky; 0 ak nie je
+  monthlyRentCents?: number; // mesačný nájom (FR-23), len pri režime prenájom
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+}
+
 export interface AppData {
   settings: Settings | null;
   transactions: Transaction[];
   snapshots: Snapshot[];
+  properties: Property[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */
 export const APP_NAME = "financna-sloboda";
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2; // v2 pridáva properties (FR-28)
+/** Verzie schémy, ktoré import prijme; verzia 1 nemá majetok (načíta sa prázdny zoznam). */
+export const READABLE_SCHEMA_VERSIONS = [1, 2] as const;

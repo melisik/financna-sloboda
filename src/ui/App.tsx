@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { SOURCES, type AppData, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { PROPERTY_MODES, SOURCES, type AppData, type Property, type PropertyMode, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
@@ -10,6 +10,7 @@ import { backupOverdue, reviewOverdue } from "../app/reminders";
 import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
+import { countsInCapital, netPropertyValueCents, valueIsStale } from "../domain/property";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
 import {
@@ -190,6 +191,11 @@ export function App() {
           <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}`} repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={reload} />
         </Section>
       )}
+      {section === "majetok" && (
+        <Section id="majetok" title="Majetok">
+          <PropertySection repo={repo} properties={data.properties} today={todayIso()} onSaved={reload} />
+        </Section>
+      )}
       {section === "nastavenia" && (
         <Section id="nastavenia" title="Nastavenia">
           <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
@@ -252,12 +258,13 @@ function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; 
 }
 
 
-type SectionId = "prehlad" | "nova-transakcia" | "vyhodnotenie" | "nastavenia" | "zaloha";
+type SectionId = "prehlad" | "nova-transakcia" | "vyhodnotenie" | "majetok" | "nastavenia" | "zaloha";
 
 const NAV: { id: SectionId; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
   { id: "nova-transakcia", label: "Transakcie" },
   { id: "vyhodnotenie", label: "Vyhodnotenie" },
+  { id: "majetok", label: "Majetok" },
   { id: "nastavenia", label: "Nastavenia" },
   { id: "zaloha", label: "Záloha" },
 ];
@@ -381,6 +388,147 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid #888", borderRadius: 4 }}>
         Pridať transakciu
       </a>
+    </div>
+  );
+}
+
+const PROPERTY_MODE_LABEL: Record<PropertyMode, string> = {
+  vlastne_byvanie: "bývam v nej",
+  prenajom: "prenajímam",
+  nezadane: "nezadané",
+};
+
+/** Karta majetku (Fáza 2, návrh docs/11_Karta_majetku.md): nehnuteľnosť a jej čistá hodnota. */
+function PropertySection({ repo, properties, today, onSaved }: { repo: Repository; properties: Property[]; today: string; onSaved: () => void }) {
+  const [editing, setEditing] = useState<Property | "new" | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deleteProperty(id);
+      setConfirmId(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <section>
+      <p style={{ color: "#555" }}>
+        Hodnota je tvoj odhad, nie trhová cena. Do kapitálu K sa počíta len nehnuteľnosť, ktorú prenajímaš; vlastné bývanie sa zobrazí zvlášť.
+      </p>
+      {properties.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna nehnuteľnosť.</p>}
+      {properties.map((p) => {
+        const net = netPropertyValueCents(p);
+        const stale = valueIsStale(p.valueDate, today);
+        return (
+          <div key={p.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+            <p style={{ margin: 0 }}><strong>{p.name || "Nehnuteľnosť"}</strong> · {PROPERTY_MODE_LABEL[p.mode]}</p>
+            <p style={{ margin: "4px 0" }}>Odhad: {eur(p.valueCents)} (k {p.valueDate})</p>
+            {stale && <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
+            <p style={{ margin: "4px 0" }}>Hypotéka: {eur(p.mortgageBalanceCents)}</p>
+            <p style={{ margin: "4px 0" }}>
+              Čistá hodnota: <strong>{eur(net)}</strong>
+              {net < 0 && <span> (hypotéka presahuje odhad)</span>}
+            </p>
+            {p.mode === "prenajom" && p.monthlyRentCents !== undefined && <p style={{ margin: "4px 0" }}>Nájom: {eur(p.monthlyRentCents)} mesačne</p>}
+            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+              {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : countsInCapital(p) ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta; zobrazí sa zvlášť."}
+            </p>
+            {confirmId === p.id ? (
+              <div>
+                <p>Naozaj zmazať túto nehnuteľnosť?</p>
+                <button onClick={() => remove(p.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+                <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+              </div>
+            ) : (
+              <div>
+                <button onClick={() => { setEditing(p); setErr(null); }} style={btn}>Upraviť</button>{" "}
+                <button onClick={() => setConfirmId(p.id)} style={btn}>Zmazať</button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {editing !== null ? (
+        <PropertyForm
+          key={editing === "new" ? "new" : editing.id}
+          repo={repo}
+          initial={editing === "new" ? null : editing}
+          today={today}
+          onDone={() => { setEditing(null); onSaved(); }}
+          onCancel={() => setEditing(null)}
+        />
+      ) : (
+        <button onClick={() => setEditing("new")} style={btn}>Pridať nehnuteľnosť</button>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+    </section>
+  );
+}
+
+function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: Property | null; today: string; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [mode, setMode] = useState<PropertyMode>(initial?.mode ?? "nezadane");
+  const [value, setValue] = useState<NumIn>(initial ? initial.valueCents / 100 : "");
+  const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
+  const [mortgage, setMortgage] = useState<NumIn>(initial ? initial.mortgageBalanceCents / 100 : 0);
+  const [rent, setRent] = useState<NumIn>(initial?.monthlyRentCents !== undefined ? initial.monthlyRentCents / 100 : "");
+  const [err, setErr] = useState<string | null>(null);
+
+  const save = async () => {
+    if (name.trim().length > 80) return setErr("Názov môže mať najviac 80 znakov.");
+    if (Number.isNaN(asNum(value))) return setErr("Vyplň odhad hodnoty.");
+    if (asNum(value) < 0) return setErr("Odhad hodnoty nesmie byť záporný.");
+    const dateErr = checkDate(valueDate, today, "dátum odhadu");
+    if (dateErr.length) return setErr(dateErr[0]);
+    const m = mortgage === "" ? 0 : asNum(mortgage);
+    if (Number.isNaN(m) || m < 0) return setErr("Zostatok hypotéky musí byť číslo 0 alebo viac.");
+    const r = mode === "prenajom" && rent !== "" ? asNum(rent) : undefined;
+    if (r !== undefined && (Number.isNaN(r) || r < 0)) return setErr("Nájom musí byť číslo 0 alebo viac.");
+    const now = new Date().toISOString();
+    const trimmed = name.trim();
+    const property: Property = {
+      id: initial?.id ?? uid(),
+      mode,
+      valueCents: cents(asNum(value)),
+      valueDate,
+      mortgageBalanceCents: cents(m),
+      createdAt: initial?.createdAt ?? now,
+      updatedAt: now,
+      ...(trimmed ? { name: trimmed } : {}),
+      ...(r !== undefined ? { monthlyRentCents: cents(r) } : {}),
+    };
+    try {
+      await repo.saveProperty(property);
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+      <h3 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť nehnuteľnosť" : "Nová nehnuteľnosť"}</h3>
+      <Field label="Názov (nepovinné)" value={name} type="text" onChange={setName} />
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Režim
+        <select value={mode} onChange={(e) => setMode(e.target.value as PropertyMode)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {PROPERTY_MODES.map((m) => (
+            <option key={m} value={m}>{PROPERTY_MODE_LABEL[m]}</option>
+          ))}
+        </select>
+      </label>
+      <Field label="Odhad hodnoty (€)" value={value} onChange={setValue} />
+      <Field label="Dátum odhadu (RRRR-MM-DD)" value={valueDate} type="text" onChange={setValueDate} />
+      <Field label="Zostatok hypotéky (€)" value={mortgage} onChange={setMortgage} hint="0, ak hypotéku nemáš" />
+      {mode === "prenajom" && <Field label="Mesačný nájom (€, nepovinné)" value={rent} onChange={setRent} />}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť nehnuteľnosť</button>{" "}
+      <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );
 }

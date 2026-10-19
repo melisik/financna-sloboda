@@ -24,6 +24,7 @@ const sample: AppData = {
     { id: "t2", date: "2026-10-05", type: "vydavok", amountCents: 15_000, source: "z_hotovosti", note: "syntetický výdavok", createdAt: "2026-10-05T10:00:00Z", updatedAt: "2026-10-05T10:00:00Z" },
   ],
   snapshots: [{ id: "s1", date: "2026-09-30", investmentsCents: 10_000_000, cashCents: 2_000_000, createdAt: "2026-09-30T20:00:00Z" }],
+  properties: [],
 };
 
 // Neplatné fixtúry sú zámerne mimo typu, preto vstup je unknown (buildBackup len obalí dáta).
@@ -108,7 +109,7 @@ describe("záloha: export a import (FR-17, FR-18)", () => {
   });
 
   it("vyššia verzia schémy je odmietnutá", () => {
-    const parsed = parseBackup({ app: "financna-sloboda", schemaVersion: 2, exportedAt: "x", settings: null, transactions: [], snapshots: [] }, TODAY);
+    const parsed = parseBackup({ app: "financna-sloboda", schemaVersion: 3, exportedAt: "x", settings: null, transactions: [], snapshots: [] }, TODAY);
     expect(parsed.ok).toBe(false);
     expect(!parsed.ok && parsed.errors.join(" ")).toMatch(/novšej verzie/);
   });
