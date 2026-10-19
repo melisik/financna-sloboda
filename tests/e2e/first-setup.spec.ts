@@ -1,18 +1,43 @@
 import { expect, test } from "@playwright/test";
 
-// FR-12: prvé spustenie ide cez sprievodcu s dvoma krokmi; každý krok sa dá preskočiť.
-test.describe("sprievodca prvým nastavením (FR-12)", () => {
-  test("prvé spustenie ukáže krok 1, Ďalej/Späť prepínajú a preskočenie vedie na hlavnú stránku", async ({ page }) => {
+// FR-12, D-117 (docs/20): sprievodca má päť krokov a výsledok; každý krok sa dá preskočiť.
+test.describe("sprievodca prvým nastavením (FR-12, D-117)", () => {
+  test("celý tok od úvodu po výsledok a otvorenie prehľadu", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Krok 1 z 2: cieľ a prah" })).toBeVisible();
-    await page.getByRole("button", { name: "Ďalej" }).click();
-    await expect(page.getByRole("heading", { name: "Krok 2 z 2: investície a prvé vyhodnotenie" })).toBeVisible();
-    await page.getByRole("button", { name: "Späť" }).click();
-    await expect(page.getByRole("heading", { name: "Krok 1 z 2: cieľ a prah" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Vitaj" })).toBeVisible();
+    await page.getByRole("button", { name: "Pokračovať" }).click();
+
+    // Výdavky sú povinné: prázdne pole sa neprijme a chyba povie, čo treba urobiť.
+    await page.getByRole("button", { name: "Pokračovať" }).click();
+    await expect(page.getByText("Vyplň ročné výdavky. Napríklad 24 000 € ročne.")).toBeVisible();
+    await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
+    await page.getByRole("button", { name: "Pokračovať" }).click();
+
+    // Miera výberu je nepovinná: prázdne pole použije východiskovú hodnotu.
+    await expect(page.getByRole("heading", { name: "Koľko z kapitálu ročne vyberieš?" })).toBeVisible();
+    await page.getByRole("button", { name: "Pokračovať" }).click();
+
+    await page.getByLabel("Hodnota investícií (€)").fill("100000");
+    await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
+    await page.getByRole("button", { name: "Uložiť a pokračovať" }).click();
+
+    await expect(page.getByRole("heading", { name: "Ulož si zálohu" })).toBeVisible();
+    await page.getByRole("button", { name: "Pokračovať" }).click();
+
+    await expect(page.getByRole("heading", { name: "Hotovo" })).toBeVisible();
+    await expect(page.getByText(/Dátum cieľa:/)).toBeVisible();
+    await page.getByRole("button", { name: "Otvoriť prehľad" }).click();
+    await expect(page.locator("section#prehlad")).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Hlavná navigácia" })).toBeVisible();
+  });
+
+  test("preskočenie vedie na hlavnú stránku a neničí zadané údaje", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Pokračovať" }).click();
+    await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
+    await page.getByRole("button", { name: "Pokračovať" }).click();
     await page.getByRole("button", { name: "Preskočiť na hlavnú stránku" }).click();
     await expect(page.getByRole("navigation", { name: "Hlavná navigácia" })).toBeVisible();
     await expect(page.locator("section#prehlad")).toBeVisible();
-    await page.getByRole("navigation", { name: "Hlavná navigácia" }).locator('a[href="#nastavenia"]').click();
-    await expect(page.getByLabel("Ročné výdavky pri nezávislosti (€)")).toBeVisible();
   });
 });
