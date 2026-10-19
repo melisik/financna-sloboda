@@ -8,7 +8,6 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await openApp(page);
     const guide = page.locator("details#navod");
     await expect(guide.locator("summary", { hasText: "Návod" })).toBeVisible();
-    await guide.locator("summary").click();
     await expect(guide.getByText("Prvé nastavenie:")).toBeVisible();
     await expect(guide.locator('a[href="./testovacia-zaloha.json"]')).toBeVisible();
   });
@@ -41,5 +40,16 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await reset.click();
     await expect(page.getByLabel("Miera výberu (%)")).toHaveValue(/^3[.,]7/);
     await expect(reset).toHaveCount(0);
+  });
+
+  test("zbalené sekcie: pri štarte je otvorený len Prehľad; odkaz v paneli otvorí svoju sekciu", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Preskočiť na hlavnú stránku" }).click();
+    await expect(page.locator("details#prehlad")).toHaveJSProperty("open", true);
+    await expect(page.locator("details#vyhodnotenie")).toHaveJSProperty("open", false);
+    await page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("link", { name: "Vyhodnotenie" }).click();
+    await expect(page.locator("details#vyhodnotenie")).toHaveJSProperty("open", true);
+    await expect(page.getByLabel("Hodnota investícií (€)")).toBeVisible();
   });
 });

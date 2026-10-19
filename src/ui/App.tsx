@@ -160,11 +160,21 @@ export function App() {
   }
   return (
     <Shell nav>
-      <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
-      <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
-      <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}`} repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={reload} />
-      <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} />
-      <BackupSection repo={repo} data={data} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
+      <Collapsible id="prehlad" title="Prehľad" defaultOpen>
+        <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
+      </Collapsible>
+      <Collapsible id="nova-transakcia" title="Transakcie">
+        <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} />
+      </Collapsible>
+      <Collapsible id="vyhodnotenie" title="Vyhodnotenie">
+        <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}`} repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={reload} />
+      </Collapsible>
+      <Collapsible id="nastavenia" title="Nastavenia">
+        <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
+      </Collapsible>
+      <Collapsible id="zaloha" title="Záloha">
+        <BackupSection repo={repo} data={data} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
+      </Collapsible>
       <details id="navod" style={{ marginTop: 16, background: "#f7f5f0", padding: 12, borderRadius: 8 }}>
         <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
         <ol style={{ paddingLeft: 20 }}>
@@ -252,6 +262,28 @@ function Nav() {
   );
 }
 
+/**
+ * Zbalená sekcia (menšia obrazovka na telefóne). Otvorí sa, keď sa použije jej kotva
+ * (odkaz v paneli alebo „Pridať transakciu“); nadpis ostáva vidno vždy.
+ */
+function Collapsible({ id, title, defaultOpen = false, children }: { id: string; title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen);
+  useEffect(() => {
+    const openIfTargeted = () => {
+      if (window.location.hash === `#${id}`) setOpen(true);
+    };
+    openIfTargeted();
+    window.addEventListener("hashchange", openIfTargeted);
+    return () => window.removeEventListener("hashchange", openIfTargeted);
+  }, [id]);
+  return (
+    <details id={id} open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)} style={{ marginBottom: 8, background: "#f7f5f0", padding: "0 12px", borderRadius: 8 }}>
+      <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center", fontSize: "1.1rem" }}>{title}</summary>
+      <div style={{ paddingBottom: 12 }}>{children}</div>
+    </details>
+  );
+}
+
 function Shell({ children, nav = false }: { children: React.ReactNode; nav?: boolean }) {
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
@@ -270,7 +302,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       ? impactMonthsSplit({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target)
       : null;
   return (
-    <section id="prehlad" style={{ background: "#f7f5f0", padding: 12, borderRadius: 8, marginBottom: 8 }}>
+    <section style={{ background: "#f7f5f0", padding: 12, borderRadius: 8, marginBottom: 8 }}>
       <h2 style={{ fontSize: "1.1rem", marginTop: 0 }}>Prehľad</h2>
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
         <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
@@ -367,7 +399,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   };
 
   return (
-    <section id="nastavenia">
+    <section>
       <h2 style={{ fontSize: "1.1rem" }}>Nastavenia</h2>
       {!settings && (
         <p style={{ background: "#eef5f1", padding: 8, borderRadius: 6 }}>
@@ -431,7 +463,7 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
   };
 
   return (
-    <section id="vyhodnotenie">
+    <section>
       <h2 style={{ fontSize: "1.1rem" }}>Vyhodnotenie (D_L)</h2>
       <p style={{ color: "#555" }}>
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
@@ -618,7 +650,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   const inEdit = editingId !== null;
 
   return (
-    <section id="nova-transakcia">
+    <section>
       <h2 style={{ fontSize: "1.1rem" }}>{inEdit ? "Úprava transakcie" : "Transakcie"}</h2>
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Typ</span>
@@ -757,7 +789,7 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
   };
 
   return (
-    <section id="zaloha">
+    <section>
       <h2 style={{ fontSize: "1.1rem" }}>Záloha</h2>
       <p style={{ color: "#555" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu.</p>
       <button onClick={exportBackup} style={btn}>Exportovať zálohu</button>
