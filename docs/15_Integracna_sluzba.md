@@ -1,6 +1,6 @@
 # 15 – Integračná služba pre externé dáta (návrh)
 
-> Stav: **smer zakladateľa (D-112), forma čaká na rozhodnutie.** Kód sa nemení. Všetky údaje o službách, dávkach a dôchodkoch sú predpoklad, kým ich neoverí zdroj.
+> Stav: **rozhodnuté: možnosť A (lokálny súbor), D-112.** Aplikácia číta súbor, nevolá sieť. Integračná služba ešte neexistuje; formát v1 je v sekcii 8. Všetky údaje o službách, dávkach a dôchodkoch sú predpoklad, kým ich neoverí zdroj.
 
 ## 1. Smer
 
@@ -55,3 +55,31 @@ Každý údaj musí niesť zdroj, dátum získania a dátum platnosti. Aplikáci
 - **Bezpečnosť:** prihlasovacie údaje k štátnym službám nesmú skončiť v aplikácii ani v zálohe.
 - **Súkromie:** služba vidí identifikáciu a údaje o dôchodku; minimalizovať na údaje potrebné pre aplikáciu.
 - **Závislosť:** zmena rozhrania externej služby rozbije integráciu. Dodávať verziu a stav.
+
+## 8. Formát súboru v1 (možnosť A)
+
+```json
+{
+  "app": "integracna-sluzba",
+  "feedVersion": 1,
+  "source": "Názov zdroja (max 80 znakov)",
+  "fetchedAt": "2026-10-19T08:00:00Z",
+  "items": [
+    {
+      "id": "jedinečné-id-v-súbore",
+      "kind": "mzda | socialna_davka | invalidny_dochodok | starobny_dochodok | osetrovne | nemocenska_davka | ine",
+      "frequency": "mesacne | nepravidelne",
+      "name": "názov (max 80 znakov)",
+      "amountCents": 85000,
+      "startDate": "YYYY-MM-DD",
+      "endDate": "YYYY-MM-DD (nepovinné)",
+      "dayOfMonth": 15
+    }
+  ]
+}
+```
+
+- Súbor musí mať presne tieto polia; neznáme polia sa odmietnu.
+- Import **nahradí všetky položky daného zdroja** (podľa poľa `source`). Opätovný import nevytvorí duplicity.
+- Maximálna veľkosť súboru je 1 MB. Aplikácia nič nevolá zo siete.
+- Pred importom sa zobrazí náhľad a import sa vykoná až po potvrdení.
