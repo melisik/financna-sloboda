@@ -31,4 +31,15 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     const box = await page.getByRole("navigation", { name: "Hlavná navigácia" }).boundingBox();
     expect(box?.height ?? 999).toBeLessThan(60);
   });
+
+  test("tlačidlo vrátiť východiskovú hodnotu sa ukáže len pri hodnote, ktorá sa líši (FR-13)", async ({ page }) => {
+    await openApp(page);
+    const reset = page.getByRole("button", { name: "Vrátiť východiskovú hodnotu" });
+    await expect(reset).toHaveCount(0);
+    await page.getByLabel("Miera výberu (%)").fill("4");
+    await expect(reset).toHaveCount(1);
+    await reset.click();
+    await expect(page.getByLabel("Miera výberu (%)")).toHaveValue(/^3[.,]7/);
+    await expect(reset).toHaveCount(0);
+  });
 });

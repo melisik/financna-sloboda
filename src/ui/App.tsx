@@ -376,19 +376,19 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
       )}
       <Field label="Ročné výdavky pri nezávislosti (€)" value={v.expenses} onChange={(x) => setV({ ...v, expenses: x })} />
       <Field label="Miera výberu (%)" value={v.withdrawalPct} step={0.1} onChange={(x) => setV({ ...v, withdrawalPct: x })}
-        hint={`východisková hodnota ${pct(rec.withdrawalRate)}`} onReset={() => setV({ ...v, withdrawalPct: rec.withdrawalRate * 100 })} />
+        hint={`východisková hodnota ${pct(rec.withdrawalRate)}`} changed={differs(v.withdrawalPct, rec.withdrawalRate * 100)} onReset={() => setV({ ...v, withdrawalPct: Number((rec.withdrawalRate * 100).toFixed(6)) })} />
       <Field label="Reálny výnos r (%)" value={v.returnPct} step={0.1} onChange={(x) => setV({ ...v, returnPct: x })}
-        hint={`východisková hodnota ${pct(rec.realReturn)}; nominálne ≈ ${pct(nominalFromReal(realIn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 %`} onReset={() => setV({ ...v, returnPct: rec.realReturn * 100 })} />
+        hint={`východisková hodnota ${pct(rec.realReturn)}; nominálne ≈ ${pct(nominalFromReal(realIn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 %`} changed={differs(v.returnPct, rec.realReturn * 100)} onReset={() => setV({ ...v, returnPct: Number((rec.realReturn * 100).toFixed(6)) })} />
       <Field label="Rezerva, cieľová hodnota (€)" value={v.reserve} onChange={(x) => setV({ ...v, reserve: x })}
-        hint={`východisková hodnota ${eurs(rec.reserveCents)} (3 mesiace výdavkov)`} onReset={() => setV({ ...v, reserve: rec.reserveCents / 100 })} />
+        hint={`východisková hodnota ${eurs(rec.reserveCents)} (3 mesiace výdavkov)`} changed={differs(v.reserve, rec.reserveCents / 100)} onReset={() => setV({ ...v, reserve: rec.reserveCents / 100 })} />
       <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })}
-        hint={`východisková hodnota ${eurs(rec.thresholdCents)}`} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
+        hint={`východisková hodnota ${eurs(rec.thresholdCents)}`} changed={differs(v.threshold, rec.thresholdCents / 100)} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
       <Field label="Poplatky p. a. (%)" value={v.fees} step={0.01} onChange={(x) => setV({ ...v, fees: x })}
-        hint="predvolene 0 %, zatiaľ bez overeného údaja; doplň z dokumentácie poskytovateľa" onReset={() => setV({ ...v, fees: 0 })} />
+        hint="predvolene 0 %, zatiaľ bez overeného údaja; doplň z dokumentácie poskytovateľa" changed={differs(v.fees, 0)} onReset={() => setV({ ...v, fees: 0 })} />
       <Field label="Mesačné sporenie do investícií (€), prázdne = odvodené" value={v.savingInv} onChange={(x) => setV({ ...v, savingInv: x })}
-        hint={`prázdne = odvodené z transakcií: ${eurs(derived.inv)} mesačne`} onReset={() => setV({ ...v, savingInv: "" })} />
+        hint={`prázdne = odvodené z transakcií: ${eurs(derived.inv)} mesačne`} changed={differs(v.savingInv, null)} onReset={() => setV({ ...v, savingInv: "" })} />
       <Field label="Mesačné sporenie do hotovosti (€), prázdne = odvodené" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}
-        hint={`prázdne = odvodené z transakcií: ${eurs(derived.cash)} mesačne`} onReset={() => setV({ ...v, savingCash: "" })} />
+        hint={`prázdne = odvodené z transakcií: ${eurs(derived.cash)} mesačne`} changed={differs(v.savingCash, null)} onReset={() => setV({ ...v, savingCash: "" })} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť nastavenia</button>
     </section>
@@ -797,7 +797,14 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
 const inp: React.CSSProperties = { width: "100%", padding: "8px", fontSize: "1rem", boxSizing: "border-box" };
 const btn: React.CSSProperties = { padding: "8px 14px", fontSize: "1rem", marginTop: 8 };
 
-function Field(props: { label: string; value: NumIn | string; onChange: (v: any) => void; step?: number; type?: string; hint?: string; onReset?: () => void }) {
+/** Hodnota poľa sa líši od východiskovej (FR-13): tlačidlo „vrátiť“ sa ukáže len vtedy. */
+function differs(value: NumIn | string, defaultValue: number | null): boolean {
+  if (value === "" || Number.isNaN(value as number)) return false; // nezadané: výzva je v nápovede, nie tlačidlo
+  if (defaultValue === null) return true; // prepísané pole bez východiskovej hodnoty
+  return Math.abs(Number(value) - defaultValue) > 1e-9;
+}
+
+function Field(props: { label: string; value: NumIn | string; onChange: (v: any) => void; step?: number; type?: string; hint?: string; onReset?: () => void; changed?: boolean }) {
   return (
     <label style={{ display: "block", margin: "8px 0" }}>
       <span style={{ display: "block", fontSize: "0.9rem" }}>{props.label}</span>
@@ -814,7 +821,7 @@ function Field(props: { label: string; value: NumIn | string; onChange: (v: any)
       {props.hint && (
         <span style={{ display: "flex", gap: 8, alignItems: "center", fontSize: "0.85rem", color: "#555" }}>
           {props.hint}
-          {props.onReset && (
+          {props.onReset && props.changed && (
             <button type="button" onClick={props.onReset} style={{ ...btn, padding: "2px 8px", fontSize: "0.85rem", marginTop: 0 }}>
               Vrátiť východiskovú hodnotu
             </button>
