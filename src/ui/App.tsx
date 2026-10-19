@@ -337,6 +337,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
             Rozsah: od {scenarioText(ctx, ctx.realReturn + 0.02)} do {scenarioText(ctx, Math.max(0, ctx.realReturn - 0.02))} (opatrný – základný – optimistický).
           </p>
           <p>Posledné vyhodnotenie: <strong>{ctx.latest.date}</strong>. Dátum platí k tomuto dňu.</p>
+          <p>Kapitál: investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}. Rezerva: {eur(ctx.reserve)}.</p>
           <p>
             Predbežný dopad posledných transakcií:{" "}
             <strong>{pending === null ? UNREACHABLE_IMPACT_TEXT : formatImpact(pending)}</strong>
@@ -480,22 +481,6 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
         </div>
       )}
       <button onClick={save} style={btn}>Uložiť vyhodnotenie</button>
-    </section>
-  );
-}
-
-function GoalSection({ ctx }: { ctx: Ctx }) {
-  if (!ctx.latest || ctx.target === null) return null;
-  return (
-    <section>
-      <h2 style={{ fontSize: "1.1rem" }}>Cieľ</h2>
-      <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p>
-      <p>Kapitál: investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}. Rezerva: {eur(ctx.reserve)}.</p>
-      <ul>
-        <li>Opatrný (r − 2 p. b.): {scenarioText(ctx, Math.max(0, ctx.realReturn - 0.02))}</li>
-        <li>Základný (r): {scenarioText(ctx, ctx.realReturn)}</li>
-        <li>Optimistický (r + 2 p. b.): {scenarioText(ctx, ctx.realReturn + 0.02)}</li>
-      </ul>
     </section>
   );
 }
@@ -727,7 +712,6 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
           </li>
         ))}
       </ul>
-      <GoalSection ctx={ctx} />
     </section>
   );
 }
