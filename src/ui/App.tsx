@@ -178,7 +178,7 @@ export function App() {
       <details id="navod" style={{ marginTop: 16, background: "#f7f5f0", padding: 12, borderRadius: 8 }}>
         <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
         <ol style={{ paddingLeft: 20 }}>
-          <li><strong>Prvé nastavenie:</strong> v sprievodcovi zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
+          <li><strong>Prvé nastavenie:</strong> pri prvom spustení zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
           <li><strong>Vyhodnotenie:</strong> na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa mení len po vyhodnotení.</li>
           <li><strong>Transakcie:</strong> zapisuj sporenie, investície a výdavky. Výdavok nad prah sa zvýrazní.</li>
           <li><strong>Záloha:</strong> pravidelne exportuj zálohu. Dáta sú len v tomto zariadení; neukladaj ju do verejných priečinkov.</li>
@@ -219,13 +219,13 @@ function IosInstallGate() {
 function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void; onSkip: () => void }) {
   const [step, setStep] = useState(0);
   const steps = [
-    { title: "Krok 1 z 2: cieľ a prah", note: "Polia sú prázdne. Pod každým je východisková hodnota; ročné výdavky zadaj sám." },
+    { title: "Krok 1 z 2: cieľ a prah", note: "" },
     { title: "Krok 2 z 2: investície a prvé vyhodnotenie", note: "Zadaj aktuálnu hodnotu investícií a hotovosť. Týmto krokom sa nastaví dátum cieľa." },
   ];
   return (
     <section aria-label="Prvé nastavenie">
       <h2 style={{ fontSize: "1.1rem" }}>{steps[step].title}</h2>
-      <p style={{ color: "#555" }}>{steps[step].note}</p>
+      {steps[step].note && <p style={{ color: "#555" }}>{steps[step].note}</p>}
       {step === 0 ? (
         <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={onChanged} />
       ) : (
@@ -414,9 +414,9 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
       <Field label="Miera výberu (%)" value={v.withdrawalPct} step={0.1} onChange={(x) => setV({ ...v, withdrawalPct: x })}
         hint={`východisková hodnota ${pct(rec.withdrawalRate)}`} changed={differs(v.withdrawalPct, rec.withdrawalRate * 100)} onReset={() => setV({ ...v, withdrawalPct: Number((rec.withdrawalRate * 100).toFixed(6)) })} />
       <Field label="Reálny výnos r (%)" value={v.returnPct} step={0.1} onChange={(x) => setV({ ...v, returnPct: x })}
-        hint={`východisková hodnota ${pct(rec.realReturn)}; nominálne ≈ ${pct(nominalFromReal(realIn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 %`} changed={differs(v.returnPct, rec.realReturn * 100)} onReset={() => setV({ ...v, returnPct: Number((rec.realReturn * 100).toFixed(6)) })} />
+        hint={`východisková hodnota ${pct(rec.realReturn)}; reálny výnos je po odpočítaní inflácie`} changed={differs(v.returnPct, rec.realReturn * 100)} onReset={() => setV({ ...v, returnPct: Number((rec.realReturn * 100).toFixed(6)) })} />
       <Field label="Rezerva, cieľová hodnota (€)" value={v.reserve} onChange={(x) => setV({ ...v, reserve: x })}
-        hint={`východisková hodnota ${eurs(rec.reserveCents)} (3 mesiace výdavkov)`} changed={differs(v.reserve, rec.reserveCents / 100)} onReset={() => setV({ ...v, reserve: rec.reserveCents / 100 })} />
+        hint={v.expenses === "" ? "3 mesiace výdavkov; doplní sa po zadaní ročných výdavkov" : `východisková hodnota ${eurs(rec.reserveCents)} (3 mesiace výdavkov)`} changed={differs(v.reserve, rec.reserveCents / 100)} onReset={() => setV({ ...v, reserve: rec.reserveCents / 100 })} />
       <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })}
         hint={`východisková hodnota ${eurs(rec.thresholdCents)}`} changed={differs(v.threshold, rec.thresholdCents / 100)} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
       <Field label="Poplatky p. a. (%)" value={v.fees} step={0.01} onChange={(x) => setV({ ...v, fees: x })}
