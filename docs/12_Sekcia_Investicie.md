@@ -1,6 +1,6 @@
 # 12 – Sekcia Investície (návrh, rozhodnutie čaká)
 
-> Stav: **návrh na rozhodnutie, bez implementácie.** Zdroj cien a kurzov je otvorený konflikt s D-009 a FR-16. Čo je nad rámec dokumentov, je predpoklad.
+> Stav: **rozhodnuté (D-101): možnosť A, suma odvodená zo súčtu položiek.** Externé volania sú odložené do Fázy 3. Pôvodný návrh nižšie je zachovaný. Zdroj cien a kurzov je otvorený konflikt s D-009 a FR-16. Čo je nad rámec dokumentov, je predpoklad.
 
 ## 1. Účel
 
