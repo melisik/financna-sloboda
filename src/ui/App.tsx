@@ -255,7 +255,7 @@ function Nav() {
 function Shell({ children, nav = false }: { children: React.ReactNode; nav?: boolean }) {
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
-      <h1 style={{ fontSize: "1.5rem" }}>Finančná sloboda (prototyp)</h1>
+      <h1 style={{ fontSize: "1.5rem" }}>Finančná sloboda</h1>
       <p style={{ color: "#555" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
       {nav && <Nav />}
       {children}
