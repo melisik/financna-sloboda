@@ -23,4 +23,12 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await expect(page.locator("p", { hasText: "Posledné vyhodnotenie:" }).first()).toContainText("2026-09-30");
     await expect(page.locator("p", { hasText: "Dátum cieľa:" }).first()).toBeVisible();
   });
+
+  test("bez dát sa nezobrazí výzva na zálohu; navigácia je na telefóne v jednom riadku", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openApp(page);
+    await expect(page.getByText("Záloha ešte nebola exportovaná")).toHaveCount(0);
+    const box = await page.getByRole("navigation", { name: "Hlavná navigácia" }).boundingBox();
+    expect(box?.height ?? 999).toBeLessThan(60);
+  });
 });

@@ -242,9 +242,9 @@ const NAV: { id: string; label: string }[] = [
 /** Horný panel s kotvami na sekcie (D-095). Dotyková plocha aspoň 44 px. */
 function Nav() {
   return (
-    <nav aria-label="Hlavná navigácia" style={{ position: "sticky", top: 0, background: "#fff", display: "flex", flexWrap: "wrap", gap: 4, padding: "6px 0", borderBottom: "1px solid #ddd", zIndex: 1 }}>
+    <nav aria-label="Hlavná navigácia" style={{ position: "sticky", top: 0, background: "#fff", display: "flex", flexWrap: "nowrap", overflowX: "auto", gap: 2, padding: "6px 0", borderBottom: "1px solid #ddd", zIndex: 1 }}>
       {NAV.map((n) => (
-        <a key={n.id} href={`#${n.id}`} style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 10px", color: "inherit" }}>
+        <a key={n.id} href={`#${n.id}`} style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 8px", color: "inherit", whiteSpace: "nowrap", flex: "0 0 auto" }}>
           {n.label}
         </a>
       ))}
@@ -277,7 +277,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
           Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.
         </p>
       )}
-      {backupOverdue(lastExport, today) && (
+      {(data.snapshots.length > 0 || data.transactions.length > 0 || data.settings !== null) && backupOverdue(lastExport, today) && (
         <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
           Záloha ešte nebola exportovaná alebo je staršia ako 7 dní (FR-19). Dáta sú len v tomto zariadení.
         </p>
