@@ -88,7 +88,7 @@ export function validateAsset(a: unknown, today: string, label = "aktívum"): st
 export function validatePosition(p: unknown, today: string, label = "položka"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "kind", "quantity", "unitPrice", "currency", "fxToEur", "valueDate", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "kind", "quantity", "unitPrice", "currency", "fxToEur", "valueDate", "monthlyContributionCents", "createdAt", "updatedAt"], label);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
   if (!(INVESTMENT_KINDS as readonly unknown[]).includes(o.kind)) errors.push(`${label}: druh musí byť z katalógu`);
@@ -98,6 +98,7 @@ export function validatePosition(p: unknown, today: string, label = "položka"):
   if (typeof o.fxToEur !== "number" || !(o.fxToEur > 0)) errors.push(`${label}: kurz k euru musí byť kladný`);
   if (o.currency === "EUR" && o.fxToEur !== 1) errors.push(`${label}: pri EUR musí byť kurz 1`);
   errors.push(...checkDate(o.valueDate, today, `${label}: dátum ocenenia`));
+  if (o.monthlyContributionCents !== undefined && !isCents(o.monthlyContributionCents)) errors.push(`${label}: mesačný vklad musí byť celé číslo ≥ 0`);
   if (typeof o.createdAt !== "string" || typeof o.updatedAt !== "string") errors.push(`${label}: chýba čas vytvorenia alebo úpravy`);
   return errors;
 }

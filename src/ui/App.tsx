@@ -11,7 +11,7 @@ import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
 import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
-import { investmentsTotalCents, positionValueCents } from "../domain/investments";
+import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { recommendedSettings } from "../domain/recommendations";
@@ -704,6 +704,7 @@ const INVESTMENT_KIND_LABEL: Record<InvestmentKind, string> = {
   akcie: "Akcie",
   etf: "ETF",
   fond: "Podielový fond",
+  treti_pilier: "Tretí pilier",
   ine: "Iné",
 };
 
@@ -733,13 +734,23 @@ function InvestmentSection({ repo, positions, today, onSaved }: { repo: Reposito
       {positions.length > 0 && (
         <p style={{ fontSize: "1.05rem" }}>Spolu: <strong>{eur(investmentsTotalCents(positions))}</strong></p>
       )}
+      {monthlyContributionsTotalCents(positions) > 0 && (
+        <p style={{ color: "#555" }}>Mesačné vklady do tretieho piliera a iných položiek: {eur(monthlyContributionsTotalCents(positions))} (len zobrazenie)</p>
+      )}
       {positions.map((p) => (
         <div key={p.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
           <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}</p>
-          <p style={{ margin: "4px 0" }}>
-            {String(p.quantity)} ks × {String(p.unitPrice)} {p.currency}
-            {p.currency !== "EUR" && <span> (kurz {String(p.fxToEur)})</span>}
-          </p>
+          {p.kind === "treti_pilier" ? (
+            <p style={{ margin: "4px 0" }}>
+              Stav účtu: {eur(p.unitPrice * 100)}
+              {p.monthlyContributionCents ? `, vklad ${eur(p.monthlyContributionCents)} mesačne` : ""}
+            </p>
+          ) : (
+            <p style={{ margin: "4px 0" }}>
+              {String(p.quantity)} ks × {String(p.unitPrice)} {p.currency}
+              {p.currency !== "EUR" && <span> (kurz {String(p.fxToEur)})</span>}
+            </p>
+          )}
           <p style={{ margin: "4px 0" }}>Hodnota: <strong>{eur(positionValueCents(p))}</strong> (k {p.valueDate})</p>
           {confirmId === p.id ? (
             <div>
@@ -779,22 +790,27 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
   const [unitPrice, setUnitPrice] = useState<NumIn>(initial?.unitPrice ?? "");
   const [currency, setCurrency] = useState(initial?.currency ?? "EUR");
   const [fx, setFx] = useState<NumIn>(initial && initial.currency !== "EUR" ? initial.fxToEur : "");
+  const [contribution, setContribution] = useState<NumIn>(initial?.monthlyContributionCents !== undefined ? initial.monthlyContributionCents / 100 : "");
   const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
   const [err, setErr] = useState<string | null>(null);
-  const code = currency.trim().toUpperCase();
+  const pillar = kind === "treti_pilier";
+  const code = pillar ? "EUR" : currency.trim().toUpperCase();
   const isEur = code === "EUR";
 
   const save = async () => {
     const trimmed = name.trim();
     if (trimmed.length === 0) return setErr("Vyplň názov.");
     if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
-    const q = asNum(quantity);
+    // Tretí pilier je jeden účet: počet kusov je 1 a cena je stav účtu.
+    const q = pillar ? 1 : asNum(quantity);
     if (Number.isNaN(q) || !(q > 0)) return setErr("Vyplň počet kusov (väčší ako 0).");
     const price = asNum(unitPrice);
-    if (Number.isNaN(price) || price < 0) return setErr("Vyplň cenu za kus (0 alebo viac).");
+    if (Number.isNaN(price) || price < 0) return setErr(pillar ? "Vyplň aktuálny stav účtu (0 alebo viac)." : "Vyplň cenu za kus (0 alebo viac).");
     if (!/^[A-Z]{3}$/.test(code)) return setErr("Mena musí byť trojpísmenový kód, napr. EUR alebo USD.");
     const rate = isEur ? 1 : asNum(fx);
     if (Number.isNaN(rate) || !(rate > 0)) return setErr("Vyplň kurz k euru (väčší ako 0).");
+    const vklad = pillar && contribution !== "" ? asNum(contribution) : 0;
+    if (Number.isNaN(vklad) || vklad < 0) return setErr("Mesačný vklad musí byť číslo 0 alebo viac.");
     const dateErr = checkDate(valueDate, today, "dátum ocenenia");
     if (dateErr.length) return setErr(dateErr[0]);
     const now = new Date().toISOString();
@@ -809,6 +825,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
       valueDate,
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
+      ...(pillar && vklad > 0 ? { monthlyContributionCents: cents(vklad) } : {}),
     };
     try {
       await repo.savePosition(position);
@@ -821,7 +838,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
   return (
     <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku" : "Nová položka"}</h4>
-      <Field label="Názov alebo ticker" value={name} type="text" onChange={setName} />
+      <Field label={pillar ? "Názov (napr. účet tretieho piliera)" : "Názov alebo ticker"} value={name} type="text" onChange={setName} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Druh
         <select value={kind} onChange={(e) => setKind(e.target.value as InvestmentKind)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
@@ -830,10 +847,19 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
           ))}
         </select>
       </label>
-      <Field label="Počet kusov" value={quantity} step={0.0001} onChange={setQuantity} />
-      <Field label="Cena za kus (v mene položky)" value={unitPrice} step={0.0001} onChange={setUnitPrice} />
-      <Field label="Mena (napr. EUR, USD)" value={currency} type="text" onChange={setCurrency} />
-      {!isEur && <Field label="Kurz: koľko € za 1 jednotku meny" value={fx} step={0.0001} onChange={setFx} hint="zadaj kurz v deň ocenenia" />}
+      {pillar ? (
+        <>
+          <Field label="Aktuálny stav účtu (€)" value={unitPrice} onChange={setUnitPrice} />
+          <Field label="Mesačný vklad (€, nepovinné)" value={contribution} onChange={setContribution} hint="len na zobrazenie; sporenie sa mení pri vyhodnotení" />
+        </>
+      ) : (
+        <>
+          <Field label="Počet kusov" value={quantity} step={0.0001} onChange={setQuantity} />
+          <Field label="Cena za kus (v mene položky)" value={unitPrice} step={0.0001} onChange={setUnitPrice} />
+          <Field label="Mena (napr. EUR, USD)" value={currency} type="text" onChange={setCurrency} />
+          {!isEur && <Field label="Kurz: koľko € za 1 jednotku meny" value={fx} step={0.0001} onChange={setFx} hint="zadaj kurz v deň ocenenia" />}
+        </>
+      )}
       <Field label="Dátum ocenenia (RRRR-MM-DD)" value={valueDate} type="text" onChange={setValueDate} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť položku</button>{" "}
@@ -841,7 +867,6 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
     </div>
   );
 }
-
 const LIABILITY_KIND_LABEL: Record<LiabilityKind, string> = {
   uver: "Úver",
   kreditka: "Kreditná karta",

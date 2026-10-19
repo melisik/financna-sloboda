@@ -73,7 +73,7 @@ export interface Asset {
 }
 
 /** Druh investície v sekcii Investície (D-101, docs/12). */
-export const INVESTMENT_KINDS = ["akcie", "etf", "fond", "ine"] as const;
+export const INVESTMENT_KINDS = ["akcie", "etf", "fond", "treti_pilier", "ine"] as const;
 export type InvestmentKind = (typeof INVESTMENT_KINDS)[number];
 
 /** Položka investície zadaná ručne (D-101, možnosť A). Hodnota v eurách = počet × cena × kurz. */
@@ -86,6 +86,7 @@ export interface Position {
   currency: string; // ISO kód, napr. EUR, USD
   fxToEur: number; // koľko EUR za 1 jednotku meny; pri EUR je 1
   valueDate: string; // dátum ocenenia, YYYY-MM-DD
+  monthlyContributionCents?: number; // mesačný vklad, len pri treťom pilieri; len na zobrazenie (D-102, D-105)
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
