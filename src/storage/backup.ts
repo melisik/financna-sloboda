@@ -12,6 +12,7 @@ export function buildBackup(data: AppData, exportedAt: string) {
     snapshots: data.snapshots,
     properties: data.properties,
     assets: data.assets,
+    investments: data.investments,
   };
 }
 
@@ -30,7 +31,7 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
   // Obalové polia overené vyššie; validácia obsahu vidí len nastavenia, transakcie a vyhodnotenia.
   const { app: _app, schemaVersion: _schema, exportedAt: _exp, ...content } = o;
   // Verzia 1 nemá majetok: načíta sa prázdny zoznam, dáta sa nestratia (FR-28).
-  const v = validateAppData(o.schemaVersion === 1 ? { ...content, properties: [], assets: [] } : content, today);
+  const v = validateAppData(o.schemaVersion === 1 ? { ...content, properties: [], assets: [], investments: [] } : content, today);
   if (!v.ok) return v;
   return { ok: true, data: v.data, counts: { transactions: v.data!.transactions.length, snapshots: v.data!.snapshots.length } };
 }

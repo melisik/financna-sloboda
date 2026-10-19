@@ -26,6 +26,7 @@ const sample: AppData = {
   snapshots: [{ id: "s1", date: "2026-09-30", investmentsCents: 10_000_000, cashCents: 2_000_000, createdAt: "2026-09-30T20:00:00Z" }],
   properties: [],
   assets: [],
+  investments: [],
 };
 
 // Neplatné fixtúry sú zámerne mimo typu, preto vstup je unknown (buildBackup len obalí dáta).

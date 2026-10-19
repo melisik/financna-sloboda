@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../src/domain/property";
 import { validateProperty } from "../src/storage/validate";
 import type { Property } from "../src/storage/types";
-import { validateAsset } from "../src/storage/validate";
+import { validateAsset, validatePosition } from "../src/storage/validate";
+import { investmentsTotalCents, positionValueCents } from "../src/domain/investments";
 
 // Syntetické hodnoty; karta majetku (docs/11_Karta_majetku.md).
 const TODAY = "2026-10-19";
@@ -96,6 +97,27 @@ describe("ďalšie aktíva: automobil a ocenitelné právo (docs/11, bod 10)", (
     expect(validateAsset({ ...asset, name: "" }, TODAY).join(" ")).toMatch(/názov je povinný/);
     expect(validateAsset({ ...asset, kind: "chata" }, TODAY).join(" ")).toMatch(/typ musí byť/);
     expect(validateAsset({ ...asset, valueCents: -5 }, TODAY).join(" ")).toMatch(/odhad hodnoty/);
+  });
+});
+
+describe("sekcia Investície (D-101)", () => {
+  const pos = { id: "i1", name: "ETF syntetický", kind: "etf", quantity: 10, unitPrice: 50, currency: "EUR", fxToEur: 1, valueDate: "2026-10-01", createdAt: "2026-10-19T10:00:00Z", updatedAt: "2026-10-19T10:00:00Z" } as const;
+
+  it("hodnota v eurách je počet × cena × kurz", () => {
+    expect(positionValueCents(pos as never)).toBe(50_000);
+    expect(positionValueCents({ ...pos, currency: "USD", unitPrice: 20, fxToEur: 0.92 } as never)).toBe(18_400);
+  });
+
+  it("suma investícií je súčet položiek", () => {
+    expect(investmentsTotalCents([pos as never, { ...pos, id: "i2", quantity: 2, unitPrice: 100 } as never])).toBe(70_000);
+    expect(investmentsTotalCents([])).toBe(0);
+  });
+
+  it("platná položka nemá chyby; kurz pri EUR musí byť 1; druh mimo katalógu je odmietnutý", () => {
+    expect(validatePosition(pos, TODAY)).toEqual([]);
+    expect(validatePosition({ ...pos, fxToEur: 0.9 }, TODAY).join(" ")).toMatch(/pri EUR musí byť kurz 1/);
+    expect(validatePosition({ ...pos, kind: "krypto" }, TODAY).join(" ")).toMatch(/druh musí byť/);
+    expect(validatePosition({ ...pos, quantity: 0 }, TODAY).join(" ")).toMatch(/počet kusov/);
   });
 });
 

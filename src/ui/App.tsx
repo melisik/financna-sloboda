@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Property, type PropertyMode, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, INVESTMENT_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type InvestmentKind, type Position, type Property, type PropertyMode, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
@@ -11,6 +11,7 @@ import { targetAmountCents, targetDate } from "../domain/goal";
 import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
 import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
+import { investmentsTotalCents, positionValueCents } from "../domain/investments";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
 import {
@@ -188,12 +189,17 @@ export function App() {
       )}
       {section === "vyhodnotenie" && (
         <Section id="vyhodnotenie" title="Vyhodnotenie">
-          <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}`} repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={reload} />
+          <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}-${data.investments.length}`} repo={repo} latest={ctx.latest} capital={ctx.capital} derivedInvCents={data.investments.length ? investmentsTotalCents(data.investments) : null} snapshots={data.snapshots} onSaved={reload} />
         </Section>
       )}
       {section === "majetok" && (
         <Section id="majetok" title="Majetok">
           <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} />
+        </Section>
+      )}
+      {section === "investicie" && (
+        <Section id="investicie" title="Investície">
+          <InvestmentSection repo={repo} positions={data.investments} today={todayIso()} onSaved={reload} />
         </Section>
       )}
       {section === "nastavenia" && (
@@ -246,7 +252,7 @@ function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; 
       {step === 0 ? (
         <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={onChanged} />
       ) : (
-        <SnapshotSection repo={repo} latest={ctx.latest} capital={ctx.capital} snapshots={data.snapshots} onSaved={onChanged} />
+        <SnapshotSection repo={repo} latest={ctx.latest} capital={ctx.capital} derivedInvCents={null} snapshots={data.snapshots} onSaved={onChanged} />
       )}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
         {step > 0 && <button onClick={() => setStep(step - 1)} style={btn}>Späť</button>}
@@ -258,13 +264,14 @@ function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; 
 }
 
 
-type SectionId = "prehlad" | "nova-transakcia" | "vyhodnotenie" | "majetok" | "nastavenia" | "zaloha";
+type SectionId = "prehlad" | "nova-transakcia" | "vyhodnotenie" | "majetok" | "investicie" | "nastavenia" | "zaloha";
 
 const NAV: { id: SectionId; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
   { id: "nova-transakcia", label: "Transakcie" },
   { id: "vyhodnotenie", label: "Vyhodnotenie" },
   { id: "majetok", label: "Majetok" },
+  { id: "investicie", label: "Investície" },
   { id: "nastavenia", label: "Nastavenia" },
   { id: "zaloha", label: "Záloha" },
 ];
@@ -674,6 +681,148 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   );
 }
 
+const INVESTMENT_KIND_LABEL: Record<InvestmentKind, string> = {
+  akcie: "Akcie",
+  etf: "ETF",
+  fond: "Podielový fond",
+  ine: "Iné",
+};
+
+/** Sekcia Investície (D-101, možnosť A): ručné položky; súčet sa použije vo Vyhodnotení. */
+function InvestmentSection({ repo, positions, today, onSaved }: { repo: Repository; positions: Position[]; today: string; onSaved: () => void }) {
+  const [editing, setEditing] = useState<Position | "new" | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deletePosition(id);
+      setConfirmId(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <section>
+      <p style={{ color: "#555" }}>
+        Zadávaš počet kusov, cenu a kurz k euru. Hodnota v eurách sa počíta v telefóne; nič sa neposiela von. Suma investícií vo Vyhodnotení je súčtom týchto položiek.
+      </p>
+      {positions.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna položka. Vo Vyhodnotení sa suma zadáva ručne.</p>}
+      {positions.length > 0 && (
+        <p style={{ fontSize: "1.05rem" }}>Spolu: <strong>{eur(investmentsTotalCents(positions))}</strong></p>
+      )}
+      {positions.map((p) => (
+        <div key={p.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}</p>
+          <p style={{ margin: "4px 0" }}>
+            {String(p.quantity)} ks × {String(p.unitPrice)} {p.currency}
+            {p.currency !== "EUR" && <span> (kurz {String(p.fxToEur)})</span>}
+          </p>
+          <p style={{ margin: "4px 0" }}>Hodnota: <strong>{eur(positionValueCents(p))}</strong> (k {p.valueDate})</p>
+          {confirmId === p.id ? (
+            <div>
+              <p>Naozaj zmazať túto položku?</p>
+              <button onClick={() => remove(p.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+              <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+            </div>
+          ) : (
+            <div>
+              <button onClick={() => { setEditing(p); setErr(null); }} style={btn}>Upraviť</button>{" "}
+              <button onClick={() => setConfirmId(p.id)} style={btn}>Zmazať</button>
+            </div>
+          )}
+        </div>
+      ))}
+      {editing !== null ? (
+        <InvestmentForm
+          key={editing === "new" ? "new" : editing.id}
+          repo={repo}
+          initial={editing === "new" ? null : editing}
+          today={today}
+          onDone={() => { setEditing(null); onSaved(); }}
+          onCancel={() => setEditing(null)}
+        />
+      ) : (
+        <button onClick={() => setEditing("new")} style={btn}>Pridať položku</button>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+    </section>
+  );
+}
+
+function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: Position | null; today: string; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [kind, setKind] = useState<InvestmentKind>(initial?.kind ?? "etf");
+  const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? "");
+  const [unitPrice, setUnitPrice] = useState<NumIn>(initial?.unitPrice ?? "");
+  const [currency, setCurrency] = useState(initial?.currency ?? "EUR");
+  const [fx, setFx] = useState<NumIn>(initial && initial.currency !== "EUR" ? initial.fxToEur : "");
+  const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
+  const [err, setErr] = useState<string | null>(null);
+  const code = currency.trim().toUpperCase();
+  const isEur = code === "EUR";
+
+  const save = async () => {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return setErr("Vyplň názov.");
+    if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
+    const q = asNum(quantity);
+    if (Number.isNaN(q) || !(q > 0)) return setErr("Vyplň počet kusov (väčší ako 0).");
+    const price = asNum(unitPrice);
+    if (Number.isNaN(price) || price < 0) return setErr("Vyplň cenu za kus (0 alebo viac).");
+    if (!/^[A-Z]{3}$/.test(code)) return setErr("Mena musí byť trojpísmenový kód, napr. EUR alebo USD.");
+    const rate = isEur ? 1 : asNum(fx);
+    if (Number.isNaN(rate) || !(rate > 0)) return setErr("Vyplň kurz k euru (väčší ako 0).");
+    const dateErr = checkDate(valueDate, today, "dátum ocenenia");
+    if (dateErr.length) return setErr(dateErr[0]);
+    const now = new Date().toISOString();
+    const position: Position = {
+      id: initial?.id ?? uid(),
+      name: trimmed,
+      kind,
+      quantity: q,
+      unitPrice: price,
+      currency: code,
+      fxToEur: rate,
+      valueDate,
+      createdAt: initial?.createdAt ?? now,
+      updatedAt: now,
+    };
+    try {
+      await repo.savePosition(position);
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku" : "Nová položka"}</h4>
+      <Field label="Názov alebo ticker" value={name} type="text" onChange={setName} />
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Druh
+        <select value={kind} onChange={(e) => setKind(e.target.value as InvestmentKind)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {INVESTMENT_KINDS.map((k) => (
+            <option key={k} value={k}>{INVESTMENT_KIND_LABEL[k]}</option>
+          ))}
+        </select>
+      </label>
+      <Field label="Počet kusov" value={quantity} step={0.0001} onChange={setQuantity} />
+      <Field label="Cena za kus (v mene položky)" value={unitPrice} step={0.0001} onChange={setUnitPrice} />
+      <Field label="Mena (napr. EUR, USD)" value={currency} type="text" onChange={setCurrency} />
+      {!isEur && <Field label="Kurz: koľko € za 1 jednotku meny" value={fx} step={0.0001} onChange={setFx} hint="zadaj kurz v deň ocenenia" />}
+      <Field label="Dátum ocenenia (RRRR-MM-DD)" value={valueDate} type="text" onChange={setValueDate} />
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť položku</button>{" "}
+      <button onClick={onCancel} style={btn}>Zrušiť</button>
+    </div>
+  );
+}
+
 function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repository; settings: Settings | null; derived: { inv: number; cash: number }; onSaved: () => void }) {
   const [v, setV] = useState({
     expenses: settings ? settings.expensesCents / 100 : "" as NumIn,
@@ -751,7 +900,8 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   );
 }
 
-function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: Repository; latest: Snapshot | null; capital: Capital; snapshots: Snapshot[]; onSaved: () => void }) {
+/** derivedInvCents: súčet položiek v sekcii Investície; ak existuje, suma sa odvodzuje, nie zadáva (D-101). */
+function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, onSaved }: { repo: Repository; latest: Snapshot | null; capital: Capital; derivedInvCents: number | null; snapshots: Snapshot[]; onSaved: () => void }) {
   const [date, setDate] = useState(todayIso());
   // N-04 (D-096): predvyplní K z posledného stavu plus sporenie a investície od D_L.
   const [inv, setInv] = useState<NumIn>(latest ? capital.inv / 100 : "");
@@ -764,7 +914,7 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
       await repo.addSnapshot({
         id: existingId ?? uid(),
         date,
-        investmentsCents: cents(asNum(inv)),
+        investmentsCents: derivedInvCents ?? cents(asNum(inv)),
         cashCents: cents(asNum(cash)),
         createdAt: new Date().toISOString(),
       });
@@ -779,10 +929,11 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
   const save = async () => {
     const dateErr = checkDate(date, todayIso(), "dátum vyhodnotenia");
     if (dateErr.length) return setErr(dateErr[0]);
-    if (Number.isNaN(asNum(inv)) && Number.isNaN(asNum(cash))) return setErr("Vyplň hodnotu investícií aj nasporenú sumu v hotovosti.");
-    if (Number.isNaN(asNum(inv))) return setErr("Vyplň hodnotu investícií.");
+    const invMissing = derivedInvCents === null && Number.isNaN(asNum(inv));
+    if (invMissing && Number.isNaN(asNum(cash))) return setErr("Vyplň hodnotu investícií aj nasporenú sumu v hotovosti.");
+    if (invMissing) return setErr("Vyplň hodnotu investícií.");
     if (Number.isNaN(asNum(cash))) return setErr("Vyplň nasporenú sumu v hotovosti.");
-    if (asNum(inv) < 0 || asNum(cash) < 0) return setErr("Hodnoty nesmú byť záporné.");
+    if ((derivedInvCents === null && asNum(inv) < 0) || asNum(cash) < 0) return setErr("Hodnoty nesmú byť záporné.");
     const same = snapshots.find((s) => s.date === date);
     if (same) return setConfirmId(same.id); // D-055: prepis len po potvrdení
     await write(undefined);
@@ -795,7 +946,11 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
       </p>
       <p style={{ color: "#555" }}>Na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa zmení až po tomto kroku.</p>
       <Field label="Dátum vyhodnotenia (RRRR-MM-DD)" value={date} type="text" onChange={setDate} />
-      <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} />
+      {derivedInvCents === null ? (
+        <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} />
+      ) : (
+        <p>Hodnota investícií: <strong>{eur(derivedInvCents)}</strong> (súčet položiek v sekcii Investície)</p>
+      )}
       <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       {confirmId && (
