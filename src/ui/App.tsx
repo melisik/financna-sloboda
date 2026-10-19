@@ -325,28 +325,33 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       {ctx.latest && ctx.target !== null ? (
         <>
           <p>Dátum cieľa: <strong>{scenarioText(ctx, ctx.realReturn)}</strong></p>
-          <p style={{ fontSize: "0.9rem" }}>
-            Výnos: {pctText(ctx.realReturn)} reálne po poplatkoch, nominálne ≈ {pctText(nominalFromReal(ctx.realReturn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 % (predpoklad).
+          <p style={{ fontSize: "0.9rem", color: "#555" }}>
+            Posledné vyhodnotenie: <strong>{ctx.latest.date}</strong>. Dátum sa zmení až po ďalšom vyhodnotení.
           </p>
           {ctx.longHorizon && (
             <p style={{ fontSize: "0.9rem", background: "#fff4e0", padding: 8, borderRadius: 6 }}>
               Pri dlhom horizonte (viac ako 20 rokov) je predpoklad výnosu menej istý; výsledok je v dnešných eurách.
             </p>
           )}
-          <p style={{ fontSize: "0.9rem" }}>
-            Rozsah: od {scenarioText(ctx, ctx.realReturn + 0.02)} do {scenarioText(ctx, Math.max(0, ctx.realReturn - 0.02))} (opatrný – základný – optimistický).
-          </p>
-          <p>Posledné vyhodnotenie: <strong>{ctx.latest.date}</strong>. Dátum platí k tomuto dňu.</p>
-          <p>Kapitál: investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}. Rezerva: {eur(ctx.reserve)}.</p>
-          <p>
-            Predbežný dopad posledných transakcií:{" "}
-            <strong>{pending === null ? UNREACHABLE_IMPACT_TEXT : formatImpact(pending)}</strong>
-          </p>
+          <details style={{ fontSize: "0.9rem" }}>
+            <summary style={{ cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Podrobnosti</summary>
+            <p>
+              Rozsah dátumu: od {scenarioText(ctx, ctx.realReturn + 0.02)} do {scenarioText(ctx, Math.max(0, ctx.realReturn - 0.02))} (opatrný – základný – optimistický).
+            </p>
+            <p>
+              Výnos: {pctText(ctx.realReturn)} reálne po poplatkoch, nominálne ≈ {pctText(nominalFromReal(ctx.realReturn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 % (predpoklad).
+            </p>
+            <p>Kapitál: investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}. Rezerva: {eur(ctx.reserve)}.</p>
+            <p>
+              Predbežný dopad posledných transakcií:{" "}
+              <strong>{pending === null ? UNREACHABLE_IMPACT_TEXT : formatImpact(pending)}</strong>
+            </p>
+            <p style={{ color: "#555" }}>Transakcií: {data.transactions.length}</p>
+          </details>
         </>
       ) : (
         <p>{ctx.latest ? "" : "Urobte prvé vyhodnotenie. Dátum cieľa sa zobrazí po ňom."}</p>
       )}
-      <p style={{ fontSize: "0.85rem", color: "#555" }}>Transakcií: {data.transactions.length}</p>
       <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid #888", borderRadius: 4 }}>
         Pridať transakciu
       </a>
