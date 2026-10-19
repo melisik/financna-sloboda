@@ -113,6 +113,8 @@ export function App() {
   // Lokálny PIN (D-119): pinSet = PIN je zapnutý; locked = appka čaká na odomknutie.
   const [pinSet, setPinSet] = useState(false);
   const [locked, setLocked] = useState(false);
+  // Sprievodca otvorený z Nastavení nad existujúcimi údajmi (nemaže dáta).
+  const [wizardOpen, setWizardOpen] = useState(false);
   const section = useSection();
   // Voľba „preskočiť“ sa pamätá v tomto zariadení (per-zariadenie predvoľba); bez úložiska ostáva v pamäti.
   const [skipFirstSetup, setSkipFirstSetup] = useState(() => {
@@ -164,6 +166,19 @@ export function App() {
 
   const ctx = makeCtx(data);
   // FR-12: prvé spustenie (prázdne nastavenia a žiadne vyhodnotenie) ide cez sprievodcu, kým ho používateľ nepreskočí.
+  if (wizardOpen) {
+    return (
+      <Shell>
+        <FirstSetup
+          repo={repo}
+          rerun
+          initial={{ expenses: data.settings ? data.settings.expensesCents / 100 : "", withdrawal: data.settings ? Number((data.settings.withdrawalRate * 100).toFixed(4)) : "", inv: ctx.capital.inv / 100, cash: ctx.capital.cash / 100 }}
+          onChanged={() => { setWizardOpen(false); void reload(); }}
+          onSkip={() => setWizardOpen(false)}
+        />
+      </Shell>
+    );
+  }
   if (!data.settings && data.snapshots.length === 0 && !skipFirstSetup) {
     return (
       <Shell>
@@ -204,7 +219,12 @@ export function App() {
       )}
       {section === "nastavenia" && (
         <Section id="nastavenia" title="Nastavenia">
-          <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
+          <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
+          <section style={{ marginTop: 16 }}>
+            <h3 style={{ fontSize: "1rem" }}>Sprievodca</h3>
+            <p style={{ color: "#555" }}>Prejdi sprievodcu znova. Údaje sa predvyplnia a nič sa nevymaže.</p>
+            <button onClick={() => setWizardOpen(true)} style={btn}>Spustiť sprievodcu znova</button>
+          </section>
           <PinSection repo={repo} pinSet={pinSet} onChanged={(on) => setPinSet(on)} onLock={() => setLocked(true)} />
         </Section>
       )}
@@ -244,8 +264,9 @@ function IosInstallGate() {
 const ONBOARD_STEP_KEY = "fs-onboarding-step";
 const ONBOARD_STEPS = 7; // 0 úvod, 1 výdavky, 2 miera výberu, 3 dnešný stav, 4 záloha, 5 PIN (voliteľný), 6 výsledok
 
-function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: () => void; onSkip: () => void }) {
+function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo: Repository; onChanged: () => void; onSkip: () => void; rerun?: boolean; initial?: { expenses: NumIn; withdrawal: NumIn; inv: number; cash: number } }) {
   const [step, setStep] = useState<number>(() => {
+    if (rerun) return 0;
     try {
       const n = Number(localStorage.getItem(ONBOARD_STEP_KEY));
       return Number.isInteger(n) && n >= 0 && n < ONBOARD_STEPS ? n : 0;
@@ -253,10 +274,10 @@ function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: 
       return 0;
     }
   });
-  const [expenses, setExpenses] = useState<NumIn>("");
-  const [withdrawal, setWithdrawal] = useState<NumIn>("");
-  const [inv, setInv] = useState<NumIn>("");
-  const [cash, setCash] = useState<NumIn>("");
+  const [expenses, setExpenses] = useState<NumIn>(initial?.expenses ?? "");
+  const [withdrawal, setWithdrawal] = useState<NumIn>(initial?.withdrawal ?? "");
+  const [inv, setInv] = useState<NumIn>(initial ? initial.inv : "");
+  const [cash, setCash] = useState<NumIn>(initial ? initial.cash : "");
   const [result, setResult] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -266,6 +287,7 @@ function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: 
   const go = (n: number) => {
     setErr(null);
     setStep(n);
+    if (rerun) return;
     try {
       localStorage.setItem(ONBOARD_STEP_KEY, String(n));
     } catch {
@@ -290,7 +312,9 @@ function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: 
         reserveCents: rec.reserveCents,
         thresholdCents: rec.thresholdCents,
       });
-      await repo.addSnapshot({ id: uid(), date: todayIso(), investmentsCents: cents(invVal), cashCents: cents(cashVal), createdAt: new Date().toISOString() });
+      // Vyhodnotenie na dnešok sa prepíše, nie zdvojí (rovnaké pravidlo ako vo Vyhodnotení).
+      const sameDay = (await repo.getData()).snapshots.find((x) => x.date === todayIso());
+      await repo.addSnapshot({ id: sameDay?.id ?? uid(), date: todayIso(), investmentsCents: cents(invVal), cashCents: cents(cashVal), createdAt: new Date().toISOString() });
       const fresh = await repo.getData();
       const c = makeCtx(fresh);
       setResult(scenarioText(c, c.realReturn));
@@ -320,6 +344,7 @@ function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: 
   };
 
   const finish = () => {
+    if (rerun) return onChanged();
     try {
       localStorage.removeItem(ONBOARD_STEP_KEY);
     } catch {
@@ -331,7 +356,7 @@ function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: 
   const nav = (
     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
       {step > 0 && step < 6 && <button onClick={() => go(step - 1)} style={btn}>Späť</button>}
-      <button onClick={onSkip} style={btn}>Preskočiť na hlavnú stránku</button>
+      <button onClick={onSkip} style={btn}>{rerun ? "Zavrieť sprievodcu" : "Preskočiť na hlavnú stránku"}</button>
     </div>
   );
 
@@ -383,7 +408,7 @@ function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: 
           <p>Údaje sú len v tomto telefóne. Ak telefón stratíš alebo vymažeš prehliadač, údaje budú preč.</p>
           <p style={{ color: "#555" }}>Stiahni si zálohu a ulož ju mimo telefónu. Zálohu môžeš urobiť aj neskôr v sekcii Záloha.</p>
           <button onClick={backupNow} style={btn}>Stiahnuť zálohu</button>{" "}
-          <button onClick={() => go(5)} style={btn}>Pokračovať</button>
+          <button onClick={() => go(rerun ? 6 : 5)} style={btn}>Pokračovať</button>
           {err && <p style={{ color: "#8a0000" }}>{err}</p>}
         </>
       )}
@@ -422,7 +447,7 @@ function FirstSetup({ repo, onChanged, onSkip }: { repo: Repository; onChanged: 
             <li>Na konci mesiaca zapíš stav investícií a hotovosti (sekcia Vyhodnotenie).</li>
             <li>Občas si ulož zálohu (sekcia Záloha).</li>
           </ol>
-          <button onClick={finish} style={btn}>Otvoriť prehľad</button>
+          <button onClick={finish} style={btn}>{rerun ? "Zavrieť" : "Otvoriť prehľad"}</button>
         </>
       )}
     </section>
