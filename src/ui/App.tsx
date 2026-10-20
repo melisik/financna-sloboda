@@ -1648,8 +1648,9 @@ function PinSection({ repo, pinSet, onChanged, onLock }: { repo: Repository; pin
 function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repository; settings: Settings | null; derived: { inv: number; cash: number }; onSaved: () => void }) {
   const [v, setV] = useState({
     expenses: settings ? settings.expensesCents / 100 : "" as NumIn,
-    withdrawalPct: settings ? settings.withdrawalRate * 100 : "" as NumIn,
-    returnPct: settings ? settings.realReturn * 100 : "" as NumIn,
+    // zaokrúhlenie: 0,035 * 100 dáva 3,5000000000000004 (binárna aritmetika)
+    withdrawalPct: settings ? Number((settings.withdrawalRate * 100).toFixed(6)) : "" as NumIn,
+    returnPct: settings ? Number((settings.realReturn * 100).toFixed(6)) : "" as NumIn,
     fees: settings ? (settings.feesRate ?? 0) * 100 : "" as NumIn,
     reserve: settings ? settings.reserveCents / 100 : "" as NumIn,
     threshold: settings ? settings.thresholdCents / 100 : "" as NumIn,
