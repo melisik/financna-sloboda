@@ -17,6 +17,16 @@ export interface Budget {
   updatedAt: string; // ISO
 }
 
+/** Položka dokladu z portálu (D-129). Suma je celková cena riadku; pri viac kusoch je aj jednotková cena. */
+export interface ReceiptItem {
+  code: string;
+  name: string; // max 200 znakov
+  quantity: number; // kladné
+  vatPercent: number; // 0 alebo viac
+  unitPriceCents: number; // celé centy, 0 alebo viac
+  amountCents: number; // celé centy, kladné
+}
+
 export interface Transaction {
   id: string;
   date: string; // YYYY-MM-DD, bez časovej zóny (05 §4)
@@ -27,6 +37,7 @@ export interface Transaction {
   category?: BudgetCategory; // len pri výdavku; bez hodnoty = nezaradené (D-106)
   note?: string; // max 200 znakov
   receiptId?: string; // číslo dokladu z QR kódu, len pri výdavku (D-126)
+  receiptItems?: ReceiptItem[]; // položky dokladu z portálu, len pri výdavku (D-129)
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
@@ -214,6 +225,6 @@ export interface AppData {
 
 /** Obal zálohy (05 §4, FR-17). */
 export const APP_NAME = "financna-sloboda";
-export const SCHEMA_VERSION = 5; // v2 pridáva properties (FR-28); v3 pravidelné výdavky (D-124); v4 sklad; v5 recepty (D-127)
+export const SCHEMA_VERSION = 6; // v2 pridáva properties (FR-28); v3 pravidelné výdavky (D-124); v4 sklad; v5 recepty (D-127); v6 položky dokladu (D-129)
 /** Verzie schémy, ktoré import prijme; verzia 1 nemá majetok (načíta sa prázdny zoznam). */
-export const READABLE_SCHEMA_VERSIONS = [1, 2, 3, 4, 5] as const;
+export const READABLE_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6] as const;

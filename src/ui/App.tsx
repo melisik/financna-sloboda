@@ -27,6 +27,7 @@ import { cookRecipe } from "../domain/recipe";
 import { readQrFromImage } from "../app/receiptScan";
 import { ReceiptCamera } from "./ReceiptCamera";
 import { isReceiptId, RECEIPT_CHECK_URL, receiptIdFromQr } from "../domain/receipt";
+import { parseReceiptItems } from "../domain/receiptItems";
 import type { Recipe, RecipeIngredient } from "../storage/types";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
 import { autoSnapshot } from "../app/autoEvaluation";
@@ -44,6 +45,7 @@ import {
 const MONTHS = ["januára", "februára", "marca", "apríla", "mája", "júna", "júla", "augusta", "septembra", "októbra", "novembra", "decembra"];
 const cents = (x: number) => Math.round(x * 100);
 const eur = (c: number) => `${(c / 100).toLocaleString("sk-SK", { maximumFractionDigits: 0 })} €`;
+const eurExact = (c: number) => `${(c / 100).toLocaleString("sk-SK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 /** Lokálny dnešný dátum YYYY-MM-DD (R14: nie UTC). */
 const todayIso = () => {
   const d = new Date();
@@ -2379,6 +2381,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   const [receiptId, setReceiptId] = useState("");
   const [qrMsg, setQrMsg] = useState<string | null>(null);
   const [cameraOn, setCameraOn] = useState(false);
+  const [itemsText, setItemsText] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [undo, setUndo] = useState<Transaction | null>(null);
@@ -2445,6 +2448,11 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     return { blocked: false as const, impact: d, note: c.message, needsConfirm: !!c.needsConfirm };
   }, [type, source, amount, base, ctx]);
 
+  const parsedItems = useMemo(() => parseReceiptItems(itemsText), [itemsText]);
+  const itemsTotal = parsedItems.items.reduce((sum, i) => sum + i.amountCents, 0);
+  const itemsMismatch = parsedItems.items.length > 0 && !Number.isNaN(asNum(amount)) && cents(asNum(amount)) !== itemsTotal;
+  const storedItems = (editingId ? data.transactions.find((x) => x.id === editingId)?.receiptItems : undefined) ?? [];
+
   const resetForm = () => {
     setConfirmExhausted(false);
     setEditingId(null);
@@ -2452,6 +2460,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     setReceiptId("");
     setQrMsg(null);
     setCameraOn(false);
+    setItemsText("");
     setCategory("");
     setAmount("");
     setDate(todayIso());
@@ -2468,6 +2477,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     setNote(t.note ?? "");
     setReceiptId(t.receiptId ?? "");
     setQrMsg(null);
+    setItemsText("");
     setErr(null);
   };
 
@@ -2508,6 +2518,9 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad K_inv` : ""].filter(Boolean).join("; ");
     const receipt = receiptId.trim();
     if (type === "vydavok" && receipt !== "" && !isReceiptId(receipt)) return setErr("Číslo dokladu má 20 až 40 znakov: písmená, číslice a pomlčky.");
+    // Nerozpoznané riadky sa nesmú potichu vynechať (D-129).
+    if (type === "vydavok" && parsedItems.unparsed.length > 0) return setErr("Niektoré riadky položiek sa nepodarilo rozpoznať. Opravte text alebo ho vymažte.");
+    const receiptItems = type === "vydavok" ? (parsedItems.items.length > 0 ? parsedItems.items : existing?.receiptItems) : undefined;
     const t: Transaction = {
       id: existing?.id ?? uid(),
       date,
@@ -2517,6 +2530,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       ...(type === "vydavok" && category !== "" ? { category } : {}),
       ...(noteText ? { note: noteText.slice(0, 200) } : {}),
       ...(type === "vydavok" && receipt !== "" ? { receiptId: receipt } : {}),
+      ...(receiptItems && receiptItems.length > 0 ? { receiptItems } : {}),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -2606,6 +2620,33 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
               <a href={RECEIPT_CHECK_URL} target="_blank" rel="noopener noreferrer">Overiť doklad na portáli finančnej správy</a>
               {" "}(otvorí sa v prehliadači; číslo dokladu skopírujte z poľa vyššie).
             </p>
+          )}
+        </div>
+      )}
+      {type === "vydavok" && (
+        <div style={{ margin: "8px 0" }}>
+          <label style={{ display: "block" }}>
+            <span style={{ display: "block", fontSize: "0.9rem" }}>Položky z dokladu (nepovinné; vložte text skopírovaný z portálu)</span>
+            <textarea aria-label="Položky z dokladu" value={itemsText} onChange={(e) => setItemsText(e.target.value)} rows={4} style={{ ...inp, fontFamily: "inherit" }} />
+          </label>
+          {parsedItems.items.length > 0 && (
+            <>
+              <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "0.9rem" }}>
+                {parsedItems.items.map((i) => (
+                  <li key={i.code}>{i.name}: {i.quantity} ks, DPH {i.vatPercent} %, {eurExact(i.amountCents)}</li>
+                ))}
+              </ul>
+              <p style={{ fontSize: "0.9rem" }}>Súčet položiek: <strong>{eurExact(itemsTotal)}</strong></p>
+            </>
+          )}
+          {parsedItems.unparsed.length > 0 && (
+            <p style={{ color: "#8a0000", fontSize: "0.9rem" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Opravte text alebo ho vymažte; bez toho sa výdavok neuloží.</p>
+          )}
+          {itemsMismatch && (
+            <p style={{ color: "#8a0000", fontSize: "0.9rem" }}>Súčet položiek sa nezhoduje so sumou výdavku {eurExact(cents(asNum(amount)))} (napr. zľava). Uložiť sa dá, ak je to v poriadku.</p>
+          )}
+          {itemsText.trim() === "" && storedItems.length > 0 && (
+            <p style={{ color: "#555", fontSize: "0.9rem" }}>Uložené položky: {storedItems.length}. Vložením nového textu sa nahradia.</p>
           )}
         </div>
       )}

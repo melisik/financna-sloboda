@@ -39,7 +39,7 @@ describe("záloha verzie 2 a import verzie 1 (FR-28)", () => {
     const asset: Asset = { id: "a1", kind: "automobil", name: "auto – syntetické", valueCents: 1_200_000, valueDate: "2026-10-01", createdAt: "2026-10-19T10:00:00Z", updatedAt: "2026-10-19T10:00:00Z" };
     const data: AppData = { settings: null, transactions: [], snapshots: [], properties: [property], assets: [asset], investments: [], liabilities: [], incomes: [], budgets: [], recurringExpenses: [], stockItems: [], recipes: [] };
     const backup = JSON.parse(JSON.stringify(buildBackup(data, "2026-10-19T10:00:00Z")));
-    expect(backup.schemaVersion).toBe(5); // v5 pridáva recepty (D-127); v4 sklad; v3 pravidelné výdavky (D-124)
+    expect(backup.schemaVersion).toBe(6); // v6 pridáva položky dokladu (D-129); v5 recepty (D-127); v4 sklad; v3 pravidelné výdavky (D-124)
     const parsed = parseBackup(backup, TODAY);
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;

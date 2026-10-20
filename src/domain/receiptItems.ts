@@ -1,11 +1,4 @@
-/** Položka dokladu skopírovaná z portálu (Over doklad). Suma je uvedená na riadku portálu. */
-export interface ReceiptItem {
-  code: string;
-  name: string;
-  quantity: number;
-  vatPercent: number;
-  amountCents: number;
-}
+import type { ReceiptItem } from "../storage/types";
 
 export interface ParsedReceiptItems {
   items: ReceiptItem[];
@@ -14,7 +7,8 @@ export interface ParsedReceiptItems {
 }
 
 const HEADER = /^(\d+)\s+(.+)$/;
-const DETAIL = /^(\d+(?:[,.]\d{1,3})?)x\s+(\d+(?:[,.]\d+)?)%\s+(\d+[,.]\d{2})\s*€$/;
+const DETAIL = /^(\d+(?:[,.]\d{1,3})?)x\s+(\d+(?:[,.]\d+)?)%\s+(.+)$/;
+const MONEY = /(\d+[,.]\d{2})\s*€/g;
 
 /** „3,50“ → 350 centov; slovenský desatinný oddeľovač alebo bodka. */
 function toCents(value: string): number {
@@ -24,7 +18,8 @@ function toCents(value: string): number {
 
 /**
  * Rozdelí text skopírovaný z portálu na položky. Položka je dvojica riadkov:
- * „kód názov“ a „početx  DPH%  suma €“. Iné riadky sa vrátia v `unparsed`.
+ * „kód názov“ a „početx  DPH%  suma €“. Pri viac kusoch sú na riadku dve sumy:
+ * jednotková cena a celková cena za všetky kusy (D-129). Iné riadky sa vrátia v `unparsed`.
  */
 export function parseReceiptItems(text: string): ParsedReceiptItems {
   const lines = text.split("\n").map((l) => l.trim()).filter((l) => l !== "");
@@ -34,16 +29,26 @@ export function parseReceiptItems(text: string): ParsedReceiptItems {
 
   for (const line of lines) {
     const detail = DETAIL.exec(line);
-    if (detail && pending) {
-      items.push({
-        code: pending.code,
-        name: pending.name,
-        quantity: Number(detail[1].replace(",", ".")),
-        vatPercent: Number(detail[2].replace(",", ".")),
-        amountCents: toCents(detail[3]),
-      });
-      pending = null;
-      continue;
+    const money = detail ? [...detail[3].matchAll(MONEY)].map((m) => m[1]) : [];
+    const quantity = detail ? Number(detail[1].replace(",", ".")) : 0;
+    const shapeOk = money.length === 2 || (money.length === 1 && quantity === 1);
+
+    if (detail && pending && shapeOk) {
+      const total = toCents(money[money.length - 1]);
+      const unit = money.length === 2 ? toCents(money[0]) : total;
+      // Jednotková cena × počet sa musí zhodovať so sumou riadku (zaokrúhlenie na centy po kusoch).
+      if (Math.abs(unit * quantity - total) <= quantity) {
+        items.push({
+          code: pending.code,
+          name: pending.name,
+          quantity,
+          vatPercent: Number(detail[2].replace(",", ".")),
+          unitPriceCents: unit,
+          amountCents: total,
+        });
+        pending = null;
+        continue;
+      }
     }
     if (pending) unparsed.push(`${pending.code} ${pending.name}`);
     const header = HEADER.exec(line);

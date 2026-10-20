@@ -1,5 +1,5 @@
 import { isReceiptId } from "../domain/receipt";
-import { ASSET_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Recipe, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Recipe, type ReceiptItem, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -28,8 +28,12 @@ const isCents = (v: unknown) => typeof v === "number" && Number.isInteger(v) && 
 export function validateTransaction(t: unknown, today: string, label = "transakcia"): string[] {
   if (typeof t !== "object" || t === null || Array.isArray(t)) return [`${label}: musí byť objekt`];
   const o = t as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "date", "type", "amountCents", "source", "belowThreshold", "note", "category", "receiptId", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "date", "type", "amountCents", "source", "belowThreshold", "note", "category", "receiptId", "receiptItems", "createdAt", "updatedAt"], label);
   if (o.receiptId !== undefined && (o.type !== "vydavok" || !isReceiptId(o.receiptId))) errors.push(`${label}: číslo dokladu patrí len k výdavku a má 20 až 40 znakov`);
+  if (o.receiptItems !== undefined) {
+    if (o.type !== "vydavok" || !Array.isArray(o.receiptItems)) errors.push(`${label}: položky dokladu patria len k výdavku`);
+    else o.receiptItems.forEach((i, n) => errors.push(...validateReceiptItem(i, `${label}, položka ${n + 1}`)));
+  }
   if (o.category !== undefined && (o.type !== "vydavok" || !(BUDGET_CATEGORIES as readonly unknown[]).includes(o.category))) errors.push(`${label}: kategória patrí len k výdavku a musí byť z katalógu`);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   errors.push(...checkDate(o.date, today, label));
@@ -133,6 +137,19 @@ export function validateStockItem(i: unknown, label = "položka skladu"): string
   if (typeof o.quantity !== "number" || !(o.quantity >= 0)) errors.push(`${label}: množstvo musí byť číslo 0 alebo väčšie`);
   if (!(STOCK_UNITS as readonly unknown[]).includes(o.unit)) errors.push(`${label}: jednotka musí byť z katalógu`);
   if (o.expiryDate !== undefined) errors.push(...checkDate(o.expiryDate, "9999-12-31", `${label}: dátum spotreby`));
+  return errors;
+}
+
+export function validateReceiptItem(i: unknown, label = "položka dokladu"): string[] {
+  if (typeof i !== "object" || i === null || Array.isArray(i)) return [`${label}: musí byť objekt`];
+  const o = i as Record<string, unknown>;
+  const errors = unknownKeys(o, ["code", "name", "quantity", "vatPercent", "unitPriceCents", "amountCents"], label);
+  if (typeof o.code !== "string" || o.code.length === 0) errors.push(`${label}: chýba kód`);
+  if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 200) errors.push(`${label}: názov je povinný, max 200 znakov`);
+  if (typeof o.quantity !== "number" || !(o.quantity > 0)) errors.push(`${label}: počet musí byť kladné číslo`);
+  if (typeof o.vatPercent !== "number" || !(o.vatPercent >= 0)) errors.push(`${label}: DPH musí byť číslo 0 alebo väčšie`);
+  if (!isCents(o.unitPriceCents)) errors.push(`${label}: jednotková cena musí byť celé číslo v centoch`);
+  if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť kladné celé číslo v centoch`);
   return errors;
 }
 
