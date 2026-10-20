@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterHistory, totalsByType } from "../src/app/history";
+import { expenseTotalsByCategory, filterHistory, totalsByType } from "../src/app/history";
 import { recommendedReserveCents, recommendedSettings } from "../src/domain/recommendations";
 import type { Transaction } from "../src/storage/types";
 
@@ -45,3 +45,24 @@ describe("východiskové hodnoty (FR-13, D-061)", () => {
     expect(s.reserveCents).toBe(600_000);
   });
 });
+
+describe("filter a súčty podľa kategórie", () => {
+  const base = { amountCents: 1000, createdAt: "2026-10-01T10:00:00Z", updatedAt: "2026-10-01T10:00:00Z", date: "2026-10-01", source: "z_hotovosti" as const };
+  const food: Transaction = { ...base, id: "f", type: "vydavok", category: "jedlo", amountCents: 4500 };
+  const transport: Transaction = { ...base, id: "d", type: "vydavok", category: "doprava", amountCents: 1200 };
+  const unassigned: Transaction = { ...base, id: "n", type: "vydavok", amountCents: 300 };
+  const saving: Transaction = { ...base, id: "s", type: "sporenie", source: undefined, amountCents: 50000 };
+  const all = [food, transport, unassigned, saving];
+
+  it("filter kategórie vyberie len danú kategóriu, nezaradené je samostatná voľba", () => {
+    expect(filterHistory(all, { category: "jedlo" }).map((t) => t.id)).toEqual(["f"]);
+    expect(filterHistory(all, { category: "none" }).map((t) => t.id).sort()).toEqual(["n", "s"]);
+    expect(filterHistory(all, {}).length).toBe(4);
+  });
+
+  it("súčty výdavkov podľa kategórie; sporenie sa nerátа a bez kategórie je nezaradené", () => {
+    expect(expenseTotalsByCategory(all)).toEqual({ jedlo: 4500, doprava: 1200, "nezaradené": 300 });
+    expect(expenseTotalsByCategory([saving])).toEqual({});
+  });
+});
+

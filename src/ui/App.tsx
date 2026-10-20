@@ -6,7 +6,7 @@ import { checkDate } from "../storage/validate";
 import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
-import { filterHistory, totalsByType } from "../app/history";
+import { expenseTotalsByCategory, filterHistory, totalsByType } from "../app/history";
 import { backupOverdue, reviewOverdue } from "../app/reminders";
 import { targetAmountCents } from "../domain/goal";
 import { goalDisplay } from "../domain/goalDisplay";
@@ -2396,6 +2396,9 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   const [fType, setFType] = useState<"all" | TransactionType>("all");
   const [fFrom, setFFrom] = useState("");
   const [fTo, setFTo] = useState("");
+  const [fCategory, setFCategory] = useState<BudgetCategory | "all" | "none">("all");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [copyMsg, setCopyMsg] = useState<string | null>(null);
   const [confirmExhausted, setConfirmExhausted] = useState(false);
   useEffect(() => setConfirmExhausted(false), [type, source, amount]);
 
@@ -2490,6 +2493,15 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   };
 
   // Fotka QR kódu dokladu: číslo dokladu sa len navrhne, potvrdí ho používateľ (D-126).
+  const copyReceipt = async () => {
+    try {
+      await navigator.clipboard.writeText(receiptId.trim());
+      setCopyMsg("Číslo dokladu je skopírované. Vložte ho na portál.");
+    } catch {
+      setCopyMsg("Skopírovanie sa nepodarilo. Skopírujte číslo ručne z poľa.");
+    }
+  };
+
   // Text z QR kódu: ak je to číslo dokladu, vyplní pole; inak povie, čo sa prečítalo (bez obsahu).
   const useQrText = (text: string) => {
     const id = receiptIdFromQr(text);
@@ -2574,8 +2586,9 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     onChanged();
   };
 
-  const list = filterHistory(data.transactions, { type: fType === "all" ? undefined : fType, from: fFrom || undefined, to: fTo || undefined });
+  const list = filterHistory(data.transactions, { type: fType === "all" ? undefined : fType, from: fFrom || undefined, to: fTo || undefined, category: fCategory === "all" ? undefined : fCategory });
   const totals = totalsByType(list);
+  const categoryTotals = expenseTotalsByCategory(list);
   const inEdit = editingId !== null;
 
   return (
@@ -2624,10 +2637,14 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
           </label>
           {qrMsg && <p style={{ color: "#555", fontSize: "0.9rem" }}>{qrMsg}</p>}
           {isReceiptId(receiptId.trim()) && (
-            <p style={{ fontSize: "0.9rem" }}>
-              <a href={RECEIPT_CHECK_URL} target="_blank" rel="noopener noreferrer">Overiť doklad na portáli finančnej správy</a>
-              {" "}(otvorí sa v prehliadači; číslo dokladu skopírujte z poľa vyššie).
-            </p>
+            <>
+              <p style={{ fontSize: "0.9rem" }}>
+                <a href={RECEIPT_CHECK_URL} target="_blank" rel="noopener noreferrer">Overiť doklad na portáli finančnej správy</a>
+                {" "}(otvorí sa v prehliadači).
+              </p>
+              <button type="button" onClick={copyReceipt} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Skopírovať číslo dokladu</button>
+              {copyMsg && <p style={{ color: "#555", fontSize: "0.9rem" }}>{copyMsg}</p>}
+            </>
           )}
         </div>
       )}
@@ -2687,6 +2704,11 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
           <option value="all">všetky typy</option>
           {(Object.keys(TYPE_LABEL) as TransactionType[]).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
         </select>
+        <select aria-label="Filter kategórie" value={fCategory} onChange={(e) => setFCategory(e.target.value as BudgetCategory | "all" | "none")} style={{ ...inp, width: "auto" }}>
+          <option value="all">všetky kategórie</option>
+          <option value="none">nezaradené</option>
+          {BUDGET_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
         <input aria-label="Od dátumu" type="date" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
         <input aria-label="Do dátumu" type="date" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
       </div>
@@ -2695,6 +2717,11 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
           ? "žiadne transakcie"
           : (Object.keys(totals) as TransactionType[]).map((t) => `${TYPE_LABEL[t]} ${eur(totals[t] ?? 0)}`).join(" · ")}
       </p>
+      {Object.keys(categoryTotals).length > 0 && (
+        <p style={{ fontSize: "0.9rem", color: "#555" }}>
+          Výdavky podľa kategórie: {Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]).map(([c, v]) => `${c} ${eurExact(v)}`).join(" · ")}
+        </p>
+      )}
       {undo && (
         <p style={{ background: "#f4f1e8", padding: 8, borderRadius: 6 }}>
           Transakcia bola zmazaná. <button onClick={restore} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Vrátiť späť</button>
@@ -2714,7 +2741,15 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
             </span>
             <span style={{ display: "flex", gap: 6 }}>
               <button onClick={() => startEdit(t)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Upraviť</button>
-              <button onClick={() => remove(t.id)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>
+              {confirmDeleteId === t.id ? (
+                <>
+                  <span>Naozaj zmazať?</span>
+                  <button onClick={() => { setConfirmDeleteId(null); void remove(t.id); }} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>
+                  <button onClick={() => setConfirmDeleteId(null)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Zrušiť</button>
+                </>
+              ) : (
+                <button onClick={() => setConfirmDeleteId(t.id)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>
+              )}
             </span>
           </li>
         ))}
