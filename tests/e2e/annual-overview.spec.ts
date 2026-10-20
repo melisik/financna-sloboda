@@ -38,6 +38,10 @@ test.describe("Ročný prehľad", () => {
     await expect(second).toContainText(/K: 400\D?000 €/);
     await expect(second).toContainText(/Zmena K: \+100\D?000 €/);
     await expect(second).toContainText(/Zmena dátumu cieľa: .*skôr/);
+
+    // Auto-vyhodnotenie (D-116) vychádza z najnovšieho ručného stavu 400 000 €, nie zo staršieho 300 000 €.
+    const auto = page.locator("section#rocny-prehlad div", { hasText: "automaticky" }).last();
+    await expect(auto).toContainText(/K: 40\d\D?\d{3} €/);
   });
 
   test("bez vyhodnotení sa zobrazí výzva", async ({ page }) => {

@@ -372,7 +372,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
       });
       // Vyhodnotenie na dnešok sa prepíše, nie zdvojí (rovnaké pravidlo ako vo Vyhodnotení).
       const sameDay = (await repo.getData()).snapshots.find((x) => x.date === todayIso());
-      await repo.addSnapshot({ id: sameDay?.id ?? uid(), date: todayIso(), investmentsCents: cents(invVal), cashCents: cents(cashVal), createdAt: new Date().toISOString() });
+      await repo.addManualSnapshot({ id: sameDay?.id ?? uid(), date: todayIso(), investmentsCents: cents(invVal), cashCents: cents(cashVal), createdAt: new Date().toISOString() });
       const fresh = await repo.getData();
       const c = makeCtx(fresh);
       setResult(scenarioText(c, c.realReturn));
@@ -1736,7 +1736,7 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
 
   const write = async (existingId: string | undefined) => {
     try {
-      await repo.addSnapshot({
+      await repo.addManualSnapshot({
         id: existingId ?? uid(),
         date,
         investmentsCents: derivedInvCents ?? cents(asNum(inv)),

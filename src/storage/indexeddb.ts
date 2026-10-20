@@ -63,6 +63,23 @@ class IdbRepository implements Repository {
     await this.db.put("snapshots", s);
   }
 
+  async addManualSnapshot(s: Snapshot): Promise<void> {
+    const tx = this.db.transaction("snapshots", "readwrite");
+    tx.done.catch(() => undefined);
+    try {
+      const store = tx.objectStore("snapshots");
+      // Auto-vyhodnotenie, ktoré by prebilo ručný stav, sa zmaže; vznikne znova z nového stavu.
+      for (const old of await store.getAll()) {
+        if (old.auto && old.date >= s.date) await store.delete(old.id);
+      }
+      await store.put(s);
+      await tx.done;
+    } catch (err) {
+      try { tx.abort(); } catch { /* už ukončená */ }
+      throw err;
+    }
+  }
+
   async saveSettings(s: Settings): Promise<void> {
     await this.db.put("settings", s, SETTINGS_KEY);
   }

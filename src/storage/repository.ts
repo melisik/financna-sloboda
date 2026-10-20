@@ -6,6 +6,8 @@ export interface Repository {
   addTransaction(t: Transaction): Promise<void>;
   deleteTransaction(id: string): Promise<void>;
   addSnapshot(s: Snapshot): Promise<void>;
+  /** Ručné vyhodnotenie: auto-vyhodnotenia na rovnaký alebo neskorší dátum sa zmažú v tej istej transakcii (D-116). */
+  addManualSnapshot(s: Snapshot): Promise<void>;
   saveSettings(s: Settings): Promise<void>;
   saveProperty(p: Property): Promise<void>;
   deleteProperty(id: string): Promise<void>;
