@@ -336,8 +336,8 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
   const backupNow = async () => {
     try {
       const d = await repo.getData();
-      const iso = downloadBackup(d);
-      await repo.setMeta("lastExportAt", iso);
+      const r = await exportBackupFile(d);
+      if (r.result !== "cancelled") await repo.setMeta("lastExportAt", r.exportedAt);
     } catch {
       setErr(STORAGE_ERROR);
     }
@@ -1074,19 +1074,33 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
 }
 
 /** Stiahne zálohu aktuálnych dát a vráti čas exportu (FR-17). */
-function downloadBackup(data: AppData): string {
+/**
+ * Export zálohy. Ak prehliadač dokáže zdieľať súbory (iPhone), ponúkne zdieľací list, kde sa dá zvoliť
+ * „Uložiť do Súborov“. Inak alebo pri chybe zdieľania súbor stiahne. Zrušenie zdieľania nič neuloží.
+ */
+async function exportBackupFile(data: AppData): Promise<{ result: "shared" | "downloaded" | "cancelled"; exportedAt: string }> {
   const nowIso = new Date().toISOString();
-  const obj = buildBackup(data, nowIso);
-  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
+  const name = `financna-sloboda-zaloha-${todayIso()}.json`;
+  const text = JSON.stringify(buildBackup(data, nowIso), null, 2);
+  const file = new File([text], name, { type: "application/json" });
+  if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: name });
+      return { result: "shared", exportedAt: nowIso };
+    } catch (err) {
+      if ((err as { name?: string })?.name === "AbortError") return { result: "cancelled", exportedAt: nowIso };
+      // inak spadneme na stiahnutie
+    }
+  }
+  const url = URL.createObjectURL(file);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `financna-sloboda-zaloha-${todayIso()}.json`;
+  a.download = name;
   document.body.appendChild(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  return nowIso;
+  return { result: "downloaded", exportedAt: nowIso };
 }
 
 function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository; data: AppData; onChanged: () => void; onExported: (iso: string) => void }) {
@@ -1097,9 +1111,13 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
   const [status, setStatus] = useState<string | null>(null);
   const [backupFirst, setBackupFirst] = useState(false);
 
-  const exportBackup = () => {
-    onExported(downloadBackup(data));
-    setStatus("Záloha sa stiahla. Obsahuje citlivé finančné údaje: neukladaj ju do verejných priečinkov.");
+  const exportBackup = async () => {
+    const r = await exportBackupFile(data);
+    if (r.result === "cancelled") return setStatus("Export bol zrušený. Záloha nie je uložená.");
+    onExported(r.exportedAt);
+    setStatus(r.result === "shared"
+      ? "Záloha je uložená podľa tvojho výberu. Obsahuje citlivé finančné údaje: neukladaj ju do verejných priečinkov."
+      : "Záloha sa stiahla. Obsahuje citlivé finančné údaje: neukladaj ju do verejných priečinkov.");
   };
 
   const onFile = async (file: File) => {
@@ -1125,7 +1143,11 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
   const confirmImport = async () => {
     if (!preview) return;
     try {
-      if (backupFirst) exportBackup(); // D-078: záloha len na výslovné zaškrtnutie používateľom
+      if (backupFirst) { // D-078: záloha len na výslovné zaškrtnutie; bez uloženej zálohy sa dáta nenahradia
+        const r = await exportBackupFile(data);
+        if (r.result === "cancelled") return setStatus("Import zrušený: záloha nie je uložená, dáta sa nezmenili.");
+        onExported(r.exportedAt);
+      }
       await repo.replaceAll(preview.data);
     } catch {
       setErrors([STORAGE_ERROR]);
