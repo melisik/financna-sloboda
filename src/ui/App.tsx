@@ -24,6 +24,7 @@ import { PHASE2_ENABLED, visibleSections } from "../app/features";
 import { daysUntil, expiringItems, stockStatus } from "../domain/stock";
 import { findExpiryDate, findProductName } from "../domain/scan";
 import { cookRecipe } from "../domain/recipe";
+import { readQrFromImage } from "../app/receiptScan";
 import { isReceiptId, RECEIPT_CHECK_URL, receiptIdFromQr } from "../domain/receipt";
 import type { Recipe, RecipeIngredient } from "../storage/types";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
@@ -2469,23 +2470,17 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   const scanReceipt = async (file: File) => {
     setQrMsg("Načítavam QR kód…");
     try {
-      const { default: jsQR } = await import("jsqr");
-      const bitmap = await createImageBitmap(file);
-      const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.round(bitmap.width * scale);
-      canvas.height = Math.round(bitmap.height * scale);
-      const context = canvas.getContext("2d");
-      if (!context) throw new Error("canvas");
-      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-      const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(pixels.data, pixels.width, pixels.height);
-      const id = code ? receiptIdFromQr(code.data) : null;
+      const text = await readQrFromImage(file);
+      if (text === null) {
+        setQrMsg("QR kód sa v obrázku nenašiel. Nafoťte ho bližšie, rovno a v dobrom svetle.");
+        return;
+      }
+      const id = receiptIdFromQr(text);
       if (id) {
         setReceiptId(id);
         setQrMsg("Číslo dokladu je načítané. Skontrolujte ho.");
       } else {
-        setQrMsg("QR kód sa nenašiel alebo nejde o číslo dokladu. Zadajte ho ručne.");
+        setQrMsg(`QR kód sa prečítal, ale nie je to číslo dokladu (${text.trim().length} znakov). Zadajte ho ručne.`);
       }
     } catch {
       setQrMsg("Skener QR kódu sa nepodarilo spustiť. Zadajte číslo dokladu ručne.");
