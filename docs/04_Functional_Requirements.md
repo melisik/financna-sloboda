@@ -86,9 +86,13 @@ Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnos
 - A2: `i_h` sa odvodí z nominálnej sadzby hypotéky a inflácie `π = 2 %` (D-063, zdroj treba overiť).
 - A3: úrok je súčasťou `P`; delenie na úrok a istinu je v `Z(k)` cez `i_h` (D-085).
 
-**Golden cases (kandidáti, neimplementované):**
-- **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 2 %`, `P = 1 000`, `N = 1 200`. Očakávané `n ≈ 257,2` mesiaca (≈ 21 rokov a 5 mesiacov), dátum = D_L + 258 mesiacov.
-- **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. Hotovosť dosiahne 0 v mesiaci 25; v mesiaci 26 by klesla pod 0, preto sa výpočet zastaví s hlásením „nedostatok hotovosti v mesiaci 26“.
+**Golden cases (overené nezávislým výpočtom 2026-10-20; v kóde neimplementované):**
+- **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 2 %`, `P = 1 000`, `N = 1 200`. Výsledok: `i_h ≈ 0,0813 %` mesačne, `n ≈ 257,25` mesiaca (≈ 21 rokov a 5 mesiacov), dátum = D_L + 258 mesiacov (zaokrúhlenie hore podľa FR-02).
+- **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. `K_cash(k) = 10 000 − 400·k`: hotovosť je 0 v mesiaci 25; v mesiaci 26 je −400, preto sa výpočet zastaví s hlásením „nedostatok hotovosti v mesiaci 26“ (bez dátumu; K_L v tom čase ≈ 229 000 €, cieľ sa nedosiahol).
+- **GC-P2-03 (vlastné bývanie nevplýva na K, D-093):** `K_inv = 100 000`, `m_inv = 500`, `r = 3,5 %`, `T = 600 000`, plus nehnuteľnosť v režime „vlastné bývanie“ s hodnotami z GC-P2-01 (`V = 300 000`, `Z0 = 200 000`, `P = 1 000`, `N = 1 200`). Výsledok musí byť rovnaký ako bez nehnuteľnosti: `n ≈ 362,10` mesiaca (rovnaké ako regresný príklad vyššie).
+- **GC-P2-04 (splátka nepokrýva úrok):** ako GC-P2-01, ale `P = 100`. Úrok za mesiac je ≈ 162,7 €, takže zostatok hypotéky rastie a `K_cash(k) = 1 100·k`. Výsledok: `n ≈ 273,08` mesiaca. Zostatok hypotéky pri cieli ≈ 219 000 € (rast od 200 000 €); tento prípad musí zobraziť upozornenie (FR-22).
+
+**Stav kódu (2026-10-20):** FR-02a nie je implementovaný. Vetva Fázy 2 nepočíta hodnotu nehnuteľnosti do K_L (`monthsToTargetSplit` ani `makeCtx` ju nepoužívajú). Pre vlastné bývanie a nájom je to v rozpore s textom v UI („Do K sa počíta ako čistá hodnota“), kým FR-02a nie je implementovaný. Pred zapnutím tohto textu alebo započítania do K sa musia GC-P2-01 až GC-P2-04 overiť na kóde.
 
 **Rozhodnuté (D-093):** vlastné bývanie sa do K nepočíta a zobrazí sa zvlášť. Hodnota bytu, v ktorom používateľ býva, nezvyšuje K_nem.
 
