@@ -13,7 +13,7 @@ import { goalDisplay } from "../domain/goalDisplay";
 import { goalDateText } from "../domain/goalText";
 import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
-import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
+import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
 import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
@@ -703,7 +703,7 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
               {net < 0 && <span> (hypotéka presahuje odhad)</span>}
             </p>
             <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
-              {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : countsInCapital(p) ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta; zobrazí sa zvlášť."}
+              {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Zatiaľ sa do K nepočíta; zobrazí sa zvlášť." : "Do K sa nepočíta; zobrazí sa zvlášť."}
             </p>
             {confirmId === p.id ? (
               <div>

@@ -22,7 +22,7 @@ test.describe("karta majetku (Fáza 2)", () => {
 
     const card = page.locator("#majetok div", { hasText: "byt – syntetický" }).last();
     await expect(card).toContainText(/Čistá hodnota:\s*150\D?000 €/);
-    await expect(card).toContainText("Do K sa počíta ako čistá hodnota.");
+    await expect(card).toContainText("Zatiaľ sa do K nepočíta; zobrazí sa zvlášť.");
     await expect(card.locator("dl")).toContainText(/Nájom\D*900/);
     await expect(card.locator("dl")).toContainText(/Splátka hypotéky\D*800/);
     await expect(card.locator("dl")).toContainText(/Mesačné náklady spolu\D*950/);
@@ -32,7 +32,7 @@ test.describe("karta majetku (Fáza 2)", () => {
     // Pretrvanie po obnovení stránky (IndexedDB, schéma v2).
     await page.reload();
     await expect(page.locator("section#majetok")).toBeVisible();
-    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Do K sa počíta ako čistá hodnota.");
+    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Zatiaľ sa do K nepočíta; zobrazí sa zvlášť.");
 
     // Zmena režimu na vlastné bývanie: mimo K, zobrazí sa zvlášť.
     await page.getByRole("button", { name: "Upraviť" }).click();
