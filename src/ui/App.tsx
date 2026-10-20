@@ -23,6 +23,9 @@ import { TAX_CATALOG, taxScenario } from "../domain/tax";
 import { PHASE2_ENABLED, visibleSections } from "../app/features";
 import { daysUntil, expiringItems, stockStatus } from "../domain/stock";
 import { findExpiryDate, findProductName } from "../domain/scan";
+import { cookRecipe } from "../domain/recipe";
+import { isReceiptId, RECEIPT_CHECK_URL, receiptIdFromQr } from "../domain/receipt";
+import type { Recipe, RecipeIngredient } from "../storage/types";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
 import { autoSnapshot } from "../app/autoEvaluation";
 import { budgetStatus, spentInMonthCents } from "../domain/budget";
@@ -287,7 +290,7 @@ export function App() {
       )}
       {section === "sklad" && (
         <Section id="sklad" title="Sklad">
-          <StockSection repo={repo} items={data.stockItems} today={todayIso()} onSaved={reload} />
+          <StockSection repo={repo} items={data.stockItems} recipes={data.recipes} today={todayIso()} onSaved={reload} />
         </Section>
       )}
       {section === "rocny-prehlad" && (
@@ -1743,7 +1746,7 @@ const STOCK_STATUS_TEXT: Record<string, string> = {
 };
 
 /** Sklad potravín (samostatná sekcia): položky, množstvo, dátum spotreby a upozornenia. */
-function StockSection({ repo, items, today, onSaved }: { repo: Repository; items: StockItem[]; today: string; onSaved: () => void }) {
+function StockSection({ repo, items, recipes, today, onSaved }: { repo: Repository; items: StockItem[]; recipes: Recipe[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<StockItem | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -1805,8 +1808,158 @@ function StockSection({ repo, items, today, onSaved }: { repo: Repository; items
       ) : (
         <button onClick={() => setEditing("new")} style={btn}>Pridať položku skladu</button>
       )}
+      <RecipesBlock repo={repo} recipes={recipes} stock={items} onSaved={onSaved} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
     </section>
+  );
+}
+
+function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; recipes: Recipe[]; stock: StockItem[]; onSaved: () => void }) {
+  const [editing, setEditing] = useState<Recipe | "new" | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  // Uvarenie odpočíta suroviny len vtedy, keď všetky stačia (D-127).
+  const cook = async (r: Recipe) => {
+    const res = cookRecipe(r, stock, new Date().toISOString());
+    if (!res.ok) {
+      setResult({ ok: false, text: `Recept „${r.name}“ sa neodpočítal, sklad ostáva bez zmeny. ${res.problems.join("; ")}.` });
+      return;
+    }
+    try {
+      await repo.applyStockChanges(res.changed);
+      setResult({ ok: true, text: `Uvarené: „${r.name}“. Suroviny sú odpočítané zo skladu.` });
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deleteRecipe(id);
+      setConfirmId(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: 16 }}>
+      <h4 style={{ fontSize: "1rem" }}>Recepty</h4>
+      <p style={{ color: "#555", fontSize: "0.9rem" }}>Pri uvarení sa suroviny odpočítajú zo skladu. Ak niečo chýba, nič sa neodpočíta.</p>
+      {recipes.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané recepty.</p>}
+      {recipes.map((r) => (
+        <div key={r.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <p style={{ margin: 0 }}><strong>{r.name}</strong></p>
+          <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "0.9rem" }}>
+            {r.ingredients.map((ing: RecipeIngredient) => {
+              const item = stock.find((s) => s.id === ing.stockItemId);
+              return <li key={ing.stockItemId}>{item ? `${item.name}: ${ing.quantity} ${item.unit}` : "surovina už nie je v sklade"}</li>;
+            })}
+          </ul>
+          {confirmId === r.id ? (
+            <div>
+              <p>Naozaj zmazať recept „{r.name}“?</p>
+              <button onClick={() => remove(r.id)} style={btn}>Zmazať</button>{" "}
+              <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+            </div>
+          ) : (
+            <>
+              <button onClick={() => cook(r)} style={btn}>Uvariť</button>{" "}
+              <button onClick={() => setEditing(r)} style={btn}>Upraviť</button>{" "}
+              <button onClick={() => setConfirmId(r.id)} style={btn}>Zmazať</button>
+            </>
+          )}
+        </div>
+      ))}
+      {result && <p style={{ color: result.ok ? "#1b5e20" : "#8a0000" }}>{result.text}</p>}
+      {editing ? (
+        <RecipeForm
+          repo={repo}
+          initial={editing === "new" ? null : editing}
+          stock={stock}
+          onDone={() => { setEditing(null); onSaved(); }}
+          onCancel={() => setEditing(null)}
+        />
+      ) : (
+        <button onClick={() => setEditing("new")} style={btn}>Pridať recept</button>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+    </div>
+  );
+}
+
+function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Repository; initial: Recipe | null; stock: StockItem[]; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [rows, setRows] = useState<{ stockItemId: string; quantity: NumIn }[]>(
+    initial ? initial.ingredients.map((i) => ({ stockItemId: i.stockItemId, quantity: i.quantity })) : [{ stockItemId: "", quantity: "" }],
+  );
+  const [err, setErr] = useState<string | null>(null);
+
+  const updateRow = (n: number, patch: Partial<{ stockItemId: string; quantity: NumIn }>) =>
+    setRows((prev) => prev.map((r, i) => (i === n ? { ...r, ...patch } : r)));
+
+  const save = async () => {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return setErr("Vyplň názov receptu.");
+    if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
+    const ingredients: RecipeIngredient[] = [];
+    for (const row of rows) {
+      const q = asNum(row.quantity);
+      if (row.stockItemId === "" || Number.isNaN(q) || !(q > 0)) return setErr("Každá surovina potrebuje položku skladu a množstvo väčšie ako 0.");
+      if (ingredients.some((i) => i.stockItemId === row.stockItemId)) return setErr("Rovnaká surovina je v recepte dvakrát.");
+      ingredients.push({ stockItemId: row.stockItemId, quantity: q });
+    }
+    const now = new Date().toISOString();
+    try {
+      await repo.saveRecipe({ id: initial?.id ?? uid(), name: trimmed, ingredients, createdAt: initial?.createdAt ?? now, updatedAt: now });
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť recept" : "Nový recept"}</h4>
+      {stock.length === 0 && <p style={{ color: "#555" }}>Najprv pridajte položky do skladu.</p>}
+      <Field label="Názov receptu (napr. palacinky)" value={name} type="text" onChange={setName} />
+      {rows.map((row, n) => (
+        <div key={n} style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 8 }}>
+          <label style={{ flex: "2 1 160px" }}>
+            <span style={{ display: "block", fontSize: "0.9rem" }}>Surovina</span>
+            <select aria-label="Surovina" value={row.stockItemId} onChange={(e) => updateRow(n, { stockItemId: e.target.value })} style={inp}>
+              <option value="">vyberte</option>
+              {stock.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.unit})</option>)}
+            </select>
+          </label>
+          <label style={{ flex: "1 1 90px" }}>
+            <span style={{ display: "block", fontSize: "0.9rem" }}>Množstvo</span>
+            <input
+              type="number"
+              step="any"
+              inputMode="decimal"
+              aria-label="Množstvo suroviny"
+              value={row.quantity}
+              onChange={(e) => updateRow(n, { quantity: e.target.value === "" ? "" : Number(e.target.value) })}
+              style={inp}
+            />
+          </label>
+          <button onClick={() => setRows((prev) => prev.filter((_, i) => i !== n))} style={btn} disabled={rows.length === 1}>Odobrať</button>
+        </div>
+      ))}
+      <button onClick={() => setRows((prev) => [...prev, { stockItemId: "", quantity: "" }])} style={btn} disabled={stock.length === 0}>Pridať surovinu</button>
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <div>
+        <button onClick={save} style={btn}>Uložiť recept</button>{" "}
+        <button onClick={onCancel} style={btn}>Zrušiť</button>
+      </div>
+    </div>
   );
 }
 
@@ -1841,7 +1994,7 @@ function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repositor
     if (trimmed.length === 0) return setErr("Vyplň názov.");
     if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
     const q = asNum(quantity);
-    if (Number.isNaN(q) || !(q > 0)) return setErr("Vyplň množstvo (väčšie ako 0).");
+    if (Number.isNaN(q) || q < 0) return setErr("Vyplň množstvo (0 alebo viac).");
     if (expiry.trim() !== "") {
       const dErr = checkDate(expiry.trim(), "9999-12-31", "dátum spotreby");
       if (dErr.length) return setErr(dErr[0]);
@@ -2219,6 +2372,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   const [source, setSource] = useState<Source>("z_hotovosti");
   const [category, setCategory] = useState<BudgetCategory | "">("");
   const [note, setNote] = useState("");
+  const [receiptId, setReceiptId] = useState("");
+  const [qrMsg, setQrMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [undo, setUndo] = useState<Transaction | null>(null);
@@ -2289,6 +2444,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     setConfirmExhausted(false);
     setEditingId(null);
     setNote("");
+    setReceiptId("");
+    setQrMsg(null);
     setCategory("");
     setAmount("");
     setDate(todayIso());
@@ -2303,7 +2460,36 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     setSource(t.source ?? "z_hotovosti");
     setCategory(t.category ?? "");
     setNote(t.note ?? "");
+    setReceiptId(t.receiptId ?? "");
+    setQrMsg(null);
     setErr(null);
+  };
+
+  // Fotka QR kódu dokladu: číslo dokladu sa len navrhne, potvrdí ho používateľ (D-126).
+  const scanReceipt = async (file: File) => {
+    setQrMsg("Načítavam QR kód…");
+    try {
+      const { default: jsQR } = await import("jsqr");
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("canvas");
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(pixels.data, pixels.width, pixels.height);
+      const id = code ? receiptIdFromQr(code.data) : null;
+      if (id) {
+        setReceiptId(id);
+        setQrMsg("Číslo dokladu je načítané. Skontrolujte ho.");
+      } else {
+        setQrMsg("QR kód sa nenašiel alebo nejde o číslo dokladu. Zadajte ho ručne.");
+      }
+    } catch {
+      setQrMsg("Skener QR kódu sa nepodarilo spustiť. Zadajte číslo dokladu ručne.");
+    }
   };
 
   const save = async () => {
@@ -2318,6 +2504,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     const existing = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
     const excess = type === "vydavok" && source === "z_investicii" && c.needsConfirm ? cents(a) - base.capital.inv : 0;
     const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad K_inv` : ""].filter(Boolean).join("; ");
+    const receipt = receiptId.trim();
+    if (type === "vydavok" && receipt !== "" && !isReceiptId(receipt)) return setErr("Číslo dokladu má 20 až 40 znakov: písmená, číslice a pomlčky.");
     const t: Transaction = {
       id: existing?.id ?? uid(),
       date,
@@ -2326,6 +2514,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       ...(needsSource ? { source } : {}),
       ...(type === "vydavok" && category !== "" ? { category } : {}),
       ...(noteText ? { note: noteText.slice(0, 200) } : {}),
+      ...(type === "vydavok" && receipt !== "" ? { receiptId: receipt } : {}),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -2394,6 +2583,22 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       )}
       <Field label="Suma (€)" value={amount} onChange={setAmount} />
       <Field label="Dátum" value={date} type="date" max={todayIso()} onChange={setDate} />
+      {type === "vydavok" && (
+        <div style={{ margin: "8px 0" }}>
+          <Field label="Číslo dokladu (nepovinné, z QR kódu)" value={receiptId} type="text" onChange={setReceiptId} />
+          <label style={{ display: "block", margin: "4px 0" }}>
+            <span style={{ display: "block", fontSize: "0.9rem" }}>Naskenovať QR kód z dokladu</span>
+            <input type="file" accept="image/*" capture="environment" aria-label="Fotka QR kódu dokladu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void scanReceipt(f); }} />
+          </label>
+          {qrMsg && <p style={{ color: "#555", fontSize: "0.9rem" }}>{qrMsg}</p>}
+          {isReceiptId(receiptId.trim()) && (
+            <p style={{ fontSize: "0.9rem" }}>
+              <a href={RECEIPT_CHECK_URL} target="_blank" rel="noopener noreferrer">Overiť doklad na portáli finančnej správy</a>
+              {" "}(otvorí sa v prehliadači; číslo dokladu skopírujte z poľa vyššie).
+            </p>
+          )}
+        </div>
+      )}
       <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} />
       {preview && (
         <p>

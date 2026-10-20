@@ -26,6 +26,7 @@ export interface Transaction {
   belowThreshold?: boolean; // D-030
   category?: BudgetCategory; // len pri výdavku; bez hodnoty = nezaradené (D-106)
   note?: string; // max 200 znakov
+  receiptId?: string; // číslo dokladu z QR kódu, len pri výdavku (D-126)
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
@@ -174,9 +175,24 @@ export type StockUnit = (typeof STOCK_UNITS)[number];
 export interface StockItem {
   id: string;
   name: string; // max 80 znakov
-  quantity: number; // kladné, môže byť desatinné
+  quantity: number; // nezáporné (0 po uvarení receptu), môže byť desatinné
   unit: StockUnit;
   expiryDate?: string; // dátum spotreby, YYYY-MM-DD; bez hodnoty = bez dátumu
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Surovina receptu: odkaz na položku skladu a množstvo v jednotke tejto položky (D-127). */
+export interface RecipeIngredient {
+  stockItemId: string;
+  quantity: number; // kladné
+}
+
+/** Recept: názov a suroviny. Uvarenie odpočíta suroviny zo skladu (D-127). */
+export interface Recipe {
+  id: string;
+  name: string; // max 80 znakov
+  ingredients: RecipeIngredient[];
   createdAt: string;
   updatedAt: string;
 }
@@ -193,10 +209,11 @@ export interface AppData {
   budgets: Budget[];
   recurringExpenses: RecurringExpense[];
   stockItems: StockItem[];
+  recipes: Recipe[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */
 export const APP_NAME = "financna-sloboda";
-export const SCHEMA_VERSION = 4; // v2 pridáva properties (FR-28); v3 pravidelné výdavky (D-124); v4 sklad
+export const SCHEMA_VERSION = 5; // v2 pridáva properties (FR-28); v3 pravidelné výdavky (D-124); v4 sklad; v5 recepty (D-127)
 /** Verzie schémy, ktoré import prijme; verzia 1 nemá majetok (načíta sa prázdny zoznam). */
-export const READABLE_SCHEMA_VERSIONS = [1, 2, 3, 4] as const;
+export const READABLE_SCHEMA_VERSIONS = [1, 2, 3, 4, 5] as const;

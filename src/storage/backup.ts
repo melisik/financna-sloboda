@@ -17,6 +17,7 @@ export function buildBackup(data: AppData, exportedAt: string) {
     incomes: data.incomes,
     recurringExpenses: data.recurringExpenses,
     stockItems: data.stockItems,
+    recipes: data.recipes,
     budgets: data.budgets,
   };
 }
@@ -38,8 +39,8 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
   // Verzia 1 nemá majetok: načíta sa prázdny zoznam, dáta sa nestratia (FR-28).
   const base = o.schemaVersion === 1 ? { ...content, properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [] } : content;
   // Verzie 1 a 2 nemajú pravidelné výdavky: načíta sa prázdny zoznam (D-124).
-  // Staršie zálohy nemajú pravidelné výdavky (v3) ani sklad (v4): načíta sa prázdny zoznam (D-124).
-  const v = validateAppData({ recurringExpenses: [], stockItems: [], ...base }, today);
+  // Staršie zálohy nemajú pravidelné výdavky (v3), sklad (v4) ani recepty (v5): načíta sa prázdny zoznam (D-124, D-127).
+  const v = validateAppData({ recurringExpenses: [], stockItems: [], recipes: [], ...base }, today);
   if (!v.ok) return v;
   return { ok: true, data: v.data, counts: { transactions: v.data!.transactions.length, snapshots: v.data!.snapshots.length } };
 }
