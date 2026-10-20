@@ -68,12 +68,14 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await expect(page.getByText("Vyplň hodnotu investícií.")).toBeVisible();
   });
 
-  test("nastavenia: chyba vymenúva len chýbajúce polia", async ({ page }) => {
+  test("nastavenia: bez ročných výdavkov sa uloženie odmietne; prázdne ostatné polia použijú východiskové hodnoty (D-118)", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nastavenia");
-    await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
-    await page.getByLabel("Miera výberu (%)").fill("4");
     await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
-    await expect(page.getByText("Vyplň výnos, rezervu, prah.")).toBeVisible();
+    await expect(page.getByText("Vyplň ročné výdavky.")).toBeVisible();
+    await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
+    await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
+    await expect(page.getByText("Vyplň ročné výdavky.")).toHaveCount(0);
+    await expect(page.getByText(/Vyplň /)).toHaveCount(0);
   });
 });

@@ -1,13 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
 import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
+import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
 import { filterHistory, totalsByType } from "../app/history";
 import { backupOverdue, reviewOverdue } from "../app/reminders";
-import { targetAmountCents, targetDate } from "../domain/goal";
+import { targetAmountCents } from "../domain/goal";
+import { goalDisplay } from "../domain/goalDisplay";
+import { goalDateText } from "../domain/goalText";
 import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
 import { countsInCapital, monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
@@ -103,9 +106,8 @@ const pctText = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
 function scenarioText(ctx: Ctx, rate: number, capital: Capital = ctx.capital): string {
   if (!ctx.latest || ctx.target === null) return "—";
   const n = monthsToTargetSplit(capital, ctx.mInv, ctx.mCash, rate, ctx.target);
-  if (n === null) return "Pri súčasnom sporení a výnose sa cieľ nedosiahne";
-  if (n === 0) return "Cieľ je dosiahnutý";
-  return monthYear(targetDate(ctx.latest.date, n));
+  const display = goalDisplay(n, ctx.latest.date, todayIso());
+  return goalDateText(display, ctx.mInv + ctx.mCash === 0, monthYear);
 }
 
 const SKIP_FIRST_SETUP_KEY = "fs-skip-first-setup";
@@ -115,6 +117,11 @@ export function App() {
   const [data, setData] = useState<AppData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastExport, setLastExport] = useState<string | null>(null);
+  // Lokálny PIN (D-119): pinSet = PIN je zapnutý; locked = appka čaká na odomknutie.
+  const [pinSet, setPinSet] = useState(false);
+  const [locked, setLocked] = useState(false);
+  // Sprievodca otvorený z Nastavení nad existujúcimi údajmi (nemaže dáta).
+  const [wizardOpen, setWizardOpen] = useState(false);
   const section = useSection();
   // Voľba „preskočiť“ sa pamätá v tomto zariadení (per-zariadenie predvoľba); bez úložiska ostáva v pamäti.
   const [skipFirstSetup, setSkipFirstSetup] = useState(() => {
@@ -142,6 +149,9 @@ export function App() {
         setRepo(r);
         setData(d);
         setLastExport(await r.getMeta("lastExportAt"));
+        const pinRecord = await r.getMeta("pin");
+        setPinSet(!!pinRecord);
+        setLocked(!!pinRecord);
       })
       .catch((e) => setError(`Úložisko sa nepodarilo otvoriť: ${String(e)}`));
     return () => {
@@ -150,7 +160,10 @@ export function App() {
   }, []);
 
   const reload = async () => {
-    if (repo) setData(await repo.getData());
+    if (!repo) return;
+    setData(await repo.getData());
+    // PIN mohol vzniknúť v onboardingu; stav sa musí načítať znova (D-119).
+    setPinSet(!!(await repo.getMeta("pin")));
   };
 
   // Automatické vyhodnotenie (D-116): po zmene dát sa vytvorí vyhodnotenie za posledný ukončený mesiac, ak ešte nie je.
@@ -173,13 +186,27 @@ export function App() {
   if (isIosBrowser() && !isStandalone()) return <Shell><IosInstallGate /></Shell>;
   if (error) return <Shell><p style={{ color: "#8a0000" }}>{error}</p></Shell>;
   if (!repo || !data) return <Shell><p>Načítavam údaje…</p></Shell>;
+  if (locked) return <Shell><LockScreen repo={repo} onUnlock={() => setLocked(false)} /></Shell>;
 
   const ctx = makeCtx(data);
   // FR-12: prvé spustenie (prázdne nastavenia a žiadne vyhodnotenie) ide cez sprievodcu, kým ho používateľ nepreskočí.
+  if (wizardOpen) {
+    return (
+      <Shell>
+        <FirstSetup
+          repo={repo}
+          rerun
+          initial={{ expenses: data.settings ? data.settings.expensesCents / 100 : "", withdrawal: data.settings ? Number((data.settings.withdrawalRate * 100).toFixed(4)) : "", inv: ctx.capital.inv / 100, cash: ctx.capital.cash / 100 }}
+          onChanged={() => { setWizardOpen(false); void reload(); }}
+          onSkip={() => setWizardOpen(false)}
+        />
+      </Shell>
+    );
+  }
   if (!data.settings && data.snapshots.length === 0 && !skipFirstSetup) {
     return (
       <Shell>
-        <FirstSetup repo={repo} data={data} ctx={ctx} onChanged={reload} onSkip={skipFirstSetupAndRemember} />
+        <FirstSetup repo={repo} onChanged={reload} onSkip={skipFirstSetupAndRemember} />
       </Shell>
     );
   }
@@ -241,7 +268,13 @@ export function App() {
       )}
       {section === "nastavenia" && (
         <Section id="nastavenia" title="Nastavenia">
-          <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
+          <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
+          <section style={{ marginTop: 16 }}>
+            <h3 style={{ fontSize: "1rem" }}>Sprievodca</h3>
+            <p style={{ color: "#555" }}>Prejdi sprievodcu znova. Údaje sa predvyplnia a nič sa nevymaže.</p>
+            <button onClick={() => setWizardOpen(true)} style={btn}>Spustiť sprievodcu znova</button>
+          </section>
+          <PinSection repo={repo} pinSet={pinSet} onChanged={(on) => setPinSet(on)} onLock={() => setLocked(true)} />
         </Section>
       )}
       {section === "zaloha" && (
@@ -276,26 +309,196 @@ function IosInstallGate() {
  * Krok 1: cieľ a prah (SettingsSection). Krok 2: investície a prvé vyhodnotenie (SnapshotSection);
  * uložením vyhodnotenia sa nastaví D_L a sprievodca zmizne.
  */
-function FirstSetup({ repo, data, ctx, onChanged, onSkip }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void; onSkip: () => void }) {
-  const [step, setStep] = useState(0);
-  const steps = [
-    { title: "Krok 1 z 2: cieľ a prah", note: "" },
-    { title: "Krok 2 z 2: investície a prvé vyhodnotenie", note: "Zadaj aktuálnu hodnotu investícií a hotovosť. Týmto krokom sa nastaví dátum cieľa." },
-  ];
+/** Sprievodca prvým nastavením (FR-12, D-117, docs/20): jedna otázka na obrazovke, krok so zálohou, výsledok. */
+const ONBOARD_STEP_KEY = "fs-onboarding-step";
+const ONBOARD_STEPS = 7; // 0 úvod, 1 výdavky, 2 miera výberu, 3 dnešný stav, 4 záloha, 5 PIN (voliteľný), 6 výsledok
+
+function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo: Repository; onChanged: () => void; onSkip: () => void; rerun?: boolean; initial?: { expenses: NumIn; withdrawal: NumIn; inv: number; cash: number } }) {
+  const [step, setStep] = useState<number>(() => {
+    if (rerun) return 0;
+    try {
+      const n = Number(localStorage.getItem(ONBOARD_STEP_KEY));
+      return Number.isInteger(n) && n >= 0 && n < ONBOARD_STEPS ? n : 0;
+    } catch {
+      return 0;
+    }
+  });
+  const [expenses, setExpenses] = useState<NumIn>(initial?.expenses ?? "");
+  const [withdrawal, setWithdrawal] = useState<NumIn>(initial?.withdrawal ?? "");
+  const [inv, setInv] = useState<NumIn>(initial ? initial.inv : "");
+  const [cash, setCash] = useState<NumIn>(initial ? initial.cash : "");
+  const [result, setResult] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [pinNew, setPinNew] = useState("");
+  const [pinRepeat, setPinRepeat] = useState("");
+
+  const go = (n: number) => {
+    setErr(null);
+    setStep(n);
+    if (rerun) return;
+    try {
+      localStorage.setItem(ONBOARD_STEP_KEY, String(n));
+    } catch {
+      // bez úložiska sa priebeh udrží len do obnovenia stránky
+    }
+  };
+  const rec = recommendedSettings(Number.isNaN(asNum(expenses)) ? 0 : cents(asNum(expenses)));
+
+  const saveAll = async () => {
+    const invVal = asNum(inv);
+    const cashVal = asNum(cash);
+    if (Number.isNaN(invVal) || Number.isNaN(cashVal)) return setErr("Vyplň hodnotu investícií aj hotovosti. Ak nemáš, zadaj 0.");
+    if (invVal < 0 || cashVal < 0) return setErr("Hodnoty nesmú byť záporné.");
+    setBusy(true);
+    try {
+      const wr = Number.isNaN(asNum(withdrawal)) ? rec.withdrawalRate : asNum(withdrawal) / 100;
+      await repo.saveSettings({
+        expensesCents: cents(asNum(expenses)),
+        withdrawalRate: wr,
+        realReturn: rec.realReturn,
+        feesRate: 0,
+        reserveCents: rec.reserveCents,
+        thresholdCents: rec.thresholdCents,
+      });
+      // Vyhodnotenie na dnešok sa prepíše, nie zdvojí (rovnaké pravidlo ako vo Vyhodnotení).
+      const sameDay = (await repo.getData()).snapshots.find((x) => x.date === todayIso());
+      await repo.addSnapshot({ id: sameDay?.id ?? uid(), date: todayIso(), investmentsCents: cents(invVal), cashCents: cents(cashVal), createdAt: new Date().toISOString() });
+      const fresh = await repo.getData();
+      const c = makeCtx(fresh);
+      setResult(scenarioText(c, c.realReturn));
+      go(4);
+    } catch {
+      setErr(STORAGE_ERROR);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const nextFromExpenses = () => {
+    const e = asNum(expenses);
+    if (Number.isNaN(e)) return setErr("Vyplň ročné výdavky. Napríklad 24 000 € ročne.");
+    if (!(e > 0)) return setErr("Ročné výdavky musia byť väčšie ako 0.");
+    go(2);
+  };
+
+  const backupNow = async () => {
+    try {
+      const d = await repo.getData();
+      const iso = downloadBackup(d);
+      await repo.setMeta("lastExportAt", iso);
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  const finish = () => {
+    if (rerun) return onChanged();
+    try {
+      localStorage.removeItem(ONBOARD_STEP_KEY);
+    } catch {
+      // nič
+    }
+    onChanged();
+  };
+
+  const nav = (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+      {step > 0 && step < 6 && <button onClick={() => go(step - 1)} style={btn}>Späť</button>}
+      <button onClick={onSkip} style={btn}>{rerun ? "Zavrieť sprievodcu" : "Preskočiť na hlavnú stránku"}</button>
+    </div>
+  );
+
   return (
     <section aria-label="Prvé nastavenie">
-      <h2 style={{ fontSize: "1.1rem" }}>{steps[step].title}</h2>
-      {steps[step].note && <p style={{ color: "#555" }}>{steps[step].note}</p>}
-      {step === 0 ? (
-        <SettingsSection repo={repo} settings={data.settings} derived={ctx.derived} onSaved={onChanged} />
-      ) : (
-        <SnapshotSection repo={repo} latest={ctx.latest} capital={ctx.capital} derivedInvCents={null} snapshots={data.snapshots} onSaved={onChanged} />
+      <p style={{ color: "#555", fontSize: "0.9rem" }}>Krok {step + 1} z {ONBOARD_STEPS}</p>
+      {step === 0 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Vitaj</h2>
+          <p>Appka ukáže, kedy by si mohol dosiahnuť finančnú slobodu, ak budeš pokračovať v sporení. Údaje zostávajú len v tomto telefóne.</p>
+          <p style={{ color: "#555" }}>Výsledky sú odhady podľa tvojich predpokladov, nie finančné poradenstvo.</p>
+          <button onClick={() => go(1)} style={btn}>Pokračovať</button>
+          {nav}
+        </>
       )}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-        {step > 0 && <button onClick={() => setStep(step - 1)} style={btn}>Späť</button>}
-        {step < steps.length - 1 && <button onClick={() => setStep(step + 1)} style={btn}>Ďalej</button>}
-        <button onClick={onSkip} style={btn}>Preskočiť na hlavnú stránku</button>
-      </div>
+      {step === 1 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Koľko by si ročne potreboval na život?</h2>
+          <p style={{ color: "#555" }}>Suma, ktorú by si ročne minul bez práce. Napríklad 24 000 € ročne.</p>
+          <Field label="Ročné výdavky pri nezávislosti (€)" value={expenses} onChange={setExpenses} />
+          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+          <button onClick={nextFromExpenses} style={btn}>Pokračovať</button>
+          {nav}
+        </>
+      )}
+      {step === 2 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Koľko z kapitálu ročne vyberieš?</h2>
+          <p style={{ color: "#555" }}>Ak nevieš, nechaj prázdne. Použije sa východisková hodnota {(rec.withdrawalRate * 100).toFixed(1).replace(".", ",")} %.</p>
+          <Field label="Miera výberu (%)" value={withdrawal} step={0.1} onChange={setWithdrawal} />
+          <button onClick={() => go(3)} style={btn}>Pokračovať</button>
+          {nav}
+        </>
+      )}
+      {step === 3 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Koľko máš dnes?</h2>
+          <p style={{ color: "#555" }}>Investície sú súčet účtov a cenných papierov. Hotovosť je suma, ktorú máš na účte. Môžeš to neskôr zmeniť.</p>
+          <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} hint="0, ak nemáš" />
+          <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} hint="0, ak nemáš" />
+          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+          <button onClick={saveAll} disabled={busy} style={btn}>Uložiť a pokračovať</button>
+          {nav}
+        </>
+      )}
+      {step === 4 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Ulož si zálohu</h2>
+          <p>Údaje sú len v tomto telefóne. Ak telefón stratíš alebo vymažeš prehliadač, údaje budú preč.</p>
+          <p style={{ color: "#555" }}>Stiahni si zálohu a ulož ju mimo telefónu. Zálohu môžeš urobiť aj neskôr v sekcii Záloha.</p>
+          <button onClick={backupNow} style={btn}>Stiahnuť zálohu</button>{" "}
+          <button onClick={() => go(rerun ? 6 : 5)} style={btn}>Pokračovať</button>
+          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+        </>
+      )}
+      {step === 5 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Chceš PIN?</h2>
+          <p style={{ color: "#555" }}>PIN je nepovinný. Ak ho nastavíš, appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne, údaje nie sú zašifrované.</p>
+          <Field label="Nový PIN (4 až 6 číslic)" value={pinNew} type="password" inputMode="numeric" onChange={setPinNew} />
+          <Field label="Zopakuj PIN" value={pinRepeat} type="password" inputMode="numeric" onChange={setPinRepeat} />
+          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+          <button
+            onClick={async () => {
+              if (!isValidPin(pinNew)) return setErr("PIN musí mať 4 až 6 číslic.");
+              if (pinNew !== pinRepeat) return setErr("PIN sa nezhoduje so zopakovaním.");
+              try {
+                await repo.setMeta("pin", await makePinRecord(pinNew));
+                go(6);
+              } catch {
+                setErr(STORAGE_ERROR);
+              }
+            }}
+            style={btn}
+          >
+            Nastaviť PIN
+          </button>{" "}
+          <button onClick={() => go(6)} style={btn}>Bez PIN</button>
+        </>
+      )}
+      {step === 6 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Hotovo</h2>
+          {result && <p>Dátum cieľa: <strong>{result}</strong></p>}
+          <p style={{ color: "#555" }}>Ďalšie kroky:</p>
+          <ol style={{ paddingLeft: 20 }}>
+            <li>Zapíš transakcie, keď niečo sporíš alebo minieš (sekcia Transakcie).</li>
+            <li>Na konci mesiaca zapíš stav investícií a hotovosti (sekcia Vyhodnotenie).</li>
+            <li>Občas si ulož zálohu (sekcia Záloha).</li>
+          </ol>
+          <button onClick={finish} style={btn}>{rerun ? "Zavrieť" : "Otvoriť prehľad"}</button>
+        </>
+      )}
     </section>
   );
 }
@@ -396,7 +599,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
           Záloha ešte nebola exportovaná alebo je staršia ako 7 dní. Dáta sú len v tomto zariadení.
         </p>
       )}
-      {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadané</strong> (zadaj ročné výdavky a mieru výberu).</p>}
+      {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v <a href="#nastavenia">Nastaveniach</a>; ostatné hodnoty sú predvolené.</p>}
       {(ctx.negative.cash || ctx.negative.inv) && (
         <p style={{ background: "#fbe3e3", padding: 8, borderRadius: 6 }}>
           Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení.
@@ -436,7 +639,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
           </details>
         </>
       ) : (
-        <p>{ctx.latest ? "" : "Urobte prvé vyhodnotenie. Dátum cieľa sa zobrazí po ňom."}</p>
+        <p>{ctx.latest ? "" : <>Urob prvé vyhodnotenie vo <a href="#vyhodnotenie">Vyhodnotení</a>. Dátum cieľa sa zobrazí po ňom.</>}</p>
       )}
       <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid #888", borderRadius: 4 }}>
         Pridať transakciu
@@ -1314,6 +1517,87 @@ function BudgetSection({ repo, budgets, transactions, today, onSaved }: { repo: 
   );
 }
 
+/** Odomknutie PIN-om (D-119). Údaje sa nezobrazia, kým PIN nie je správny. */
+function LockScreen({ repo, onUnlock }: { repo: Repository; onUnlock: () => void }) {
+  const [pin, setPin] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const unlock = async () => {
+    const record = await repo.getMeta("pin");
+    if (record && (await checkPin(pin, record))) return onUnlock();
+    setErr("Nesprávny PIN. Skús znova.");
+    setPin("");
+  };
+  return (
+    <section aria-label="Odomknutie">
+      <h2 style={{ fontSize: "1.1rem" }}>Zadaj PIN</h2>
+      <p style={{ color: "#555" }}>Údaje sú v tomto telefóne. Ak PIN zabudneš, údaje sa nedajú obnoviť; jediná cesta je vymazať dáta prehliadača.</p>
+      <label style={{ display: "block", margin: "8px 0" }}>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>PIN</span>
+        <input type="password" inputMode="numeric" aria-label="PIN" value={pin} onChange={(e) => setPin(e.target.value)} style={inp} />
+      </label>
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={unlock} style={btn}>Odomknúť</button>
+    </section>
+  );
+}
+
+/** Zapnutie, vypnutie a zamknutie PIN-u v Nastaveniach (D-119). */
+function PinSection({ repo, pinSet, onChanged, onLock }: { repo: Repository; pinSet: boolean; onChanged: (on: boolean) => void; onLock: () => void }) {
+  const [newPin, setNewPin] = useState("");
+  const [repeat, setRepeat] = useState("");
+  const [current, setCurrent] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  const enable = async () => {
+    if (!isValidPin(newPin)) return setErr("PIN musí mať 4 až 6 číslic.");
+    if (newPin !== repeat) return setErr("PIN sa nezhoduje so zopakovaním.");
+    try {
+      await repo.setMeta("pin", await makePinRecord(newPin));
+      setNewPin("");
+      setRepeat("");
+      setErr(null);
+      onChanged(true);
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  const disable = async () => {
+    const record = await repo.getMeta("pin");
+    if (!record || !(await checkPin(current, record))) return setErr("Aktuálny PIN nesedí.");
+    try {
+      await repo.setMeta("pin", "");
+      setCurrent("");
+      setErr(null);
+      onChanged(false);
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <section style={{ marginTop: 16 }}>
+      <h3 style={{ fontSize: "1rem" }}>PIN</h3>
+      {pinSet ? (
+        <>
+          <p style={{ color: "#555" }}>PIN je zapnutý. Appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne; údaje nie sú zašifrované.</p>
+          <button onClick={onLock} style={btn}>Zamknúť teraz</button>
+          <Field label="Aktuálny PIN (na vypnutie)" value={current} type="password" inputMode="numeric" onChange={setCurrent} />
+          <button onClick={disable} style={btn}>Vypnúť PIN</button>
+        </>
+      ) : (
+        <>
+          <p style={{ color: "#555" }}>PIN je nepovinný. Údaje nie sú zašifrované; PIN bráni len otvoreniu appky.</p>
+          <Field label="Nový PIN (4 až 6 číslic)" value={newPin} type="password" inputMode="numeric" onChange={setNewPin} />
+          <Field label="Zopakuj PIN" value={repeat} type="password" inputMode="numeric" onChange={setRepeat} />
+          <button onClick={enable} style={btn}>Zapnúť PIN</button>
+        </>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+    </section>
+  );
+}
+
 function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repository; settings: Settings | null; derived: { inv: number; cash: number }; onSaved: () => void }) {
   const [v, setV] = useState({
     expenses: settings ? settings.expensesCents / 100 : "" as NumIn,
@@ -1334,14 +1618,17 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   const realIn = typeof v.returnPct === "number" ? v.returnPct / 100 : rec.realReturn;
 
   const save = async () => {
-    const vals = [v.expenses, v.withdrawalPct, v.returnPct, v.reserve, v.threshold].map(asNum);
+    // D-118: ročné výdavky sú povinné; prázdne ostatné polia použijú východiskovú hodnotu.
     const fee = v.fees === "" ? 0 : v.fees;
     if (!(fee >= 0 && fee < 100)) return setErr("Poplatky musia byť od 0 do menej ako 100 % ročne.");
-    const labels = ["ročné výdavky", "mieru výberu", "výnos", "rezervu", "prah"];
-    const missing = labels.filter((_, i) => Number.isNaN(vals[i]));
-    if (missing.length) return setErr(`Vyplň ${missing.join(", ")}.`);
-    const [exp, wr, rr, res, thr] = vals;
+    const exp = asNum(v.expenses);
+    if (Number.isNaN(exp)) return setErr("Vyplň ročné výdavky.");
     if (!(exp > 0)) return setErr("Ročné výdavky musia byť väčšie ako 0.");
+    const pick = (x: NumIn, fallback: number) => (Number.isNaN(asNum(x)) ? fallback : asNum(x));
+    const wr = pick(v.withdrawalPct, rec.withdrawalRate * 100);
+    const rr = pick(v.returnPct, rec.realReturn * 100);
+    const res = pick(v.reserve, rec.reserveCents / 100);
+    const thr = pick(v.threshold, rec.thresholdCents / 100);
     if (!(wr > 0 && wr <= 100)) return setErr("Miera výberu musí byť väčšia ako 0 % a najviac 100 %.");
     if (!(rr >= 0 && rr <= 100)) return setErr("Výnos r musí byť v rozsahu 0 až 100 %.");
     if (res < 0 || thr < 0) return setErr("Rezerva a prah nesmú byť záporné.");
@@ -1436,7 +1723,7 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
       <p style={{ color: "#555" }}>Na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa zmení až po tomto kroku.</p>
-      <Field label="Dátum vyhodnotenia (RRRR-MM-DD)" value={date} type="text" onChange={setDate} />
+      <Field label="Dátum vyhodnotenia" value={date} type="date" max={todayIso()} onChange={setDate} />
       {derivedInvCents === null ? (
         <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} />
       ) : (
@@ -1550,7 +1837,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   };
 
   const save = async () => {
-    if (!ctx.latest) return setErr("Najprv zadaj vyhodnotenie (D_L).");
+    if (!ctx.latest) return setErr("Najprv zapíš stav investícií a hotovosti vo Vyhodnotení.");
     const a = asNum(amount);
     if (Number.isNaN(a) || !(a > 0)) return setErr("Suma musí byť kladná.");
     const dateErr = checkDate(date, todayIso(), "dátum");
@@ -1567,7 +1854,6 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       type,
       amountCents: cents(a),
       ...(needsSource ? { source } : {}),
-      ...(type === "vydavok" ? { belowThreshold: cents(a) < (ctx.settings?.thresholdCents ?? 0) } : {}),
       ...(type === "vydavok" && category !== "" ? { category } : {}),
       ...(noteText ? { note: noteText.slice(0, 200) } : {}),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
@@ -1611,6 +1897,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
 
   return (
     <section>
+      {!ctx.latest && <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>Najprv urob vyhodnotenie vo <a href="#vyhodnotenie">Vyhodnotení</a>, potom môžeš zapisovať transakcie.</p>}
       {inEdit && <h2 style={{ fontSize: "1.1rem" }}>Úprava transakcie</h2>}
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Typ</span>
@@ -1636,7 +1923,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
         </label>
       )}
       <Field label="Suma (€)" value={amount} onChange={setAmount} />
-      <Field label="Dátum (RRRR-MM-DD)" value={date} type="text" onChange={setDate} />
+      <Field label="Dátum" value={date} type="date" max={todayIso()} onChange={setDate} />
       <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} />
       {preview && (
         <p>
@@ -1666,12 +1953,12 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
           <option value="all">všetky typy</option>
           {(Object.keys(TYPE_LABEL) as TransactionType[]).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
         </select>
-        <input aria-label="Od (RRRR-MM-DD)" type="text" placeholder="od RRRR-MM-DD" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
-        <input aria-label="Do (RRRR-MM-DD)" type="text" placeholder="do RRRR-MM-DD" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
+        <input aria-label="Od dátumu" type="date" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
+        <input aria-label="Do dátumu" type="date" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
       </div>
       <p style={{ fontSize: "0.9rem", color: "#555" }}>
-        Súčty: {(Object.keys(totals) as TransactionType[]).length === 0
-          ? "žiadne"
+        Súčet zobrazených transakcií: {(Object.keys(totals) as TransactionType[]).length === 0
+          ? "žiadne transakcie"
           : (Object.keys(totals) as TransactionType[]).map((t) => `${TYPE_LABEL[t]} ${eur(totals[t] ?? 0)}`).join(" · ")}
       </p>
       {undo && (
@@ -1686,7 +1973,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
             <span>
               {t.date} · {TYPE_LABEL[t.type]} · {eur(t.amountCents)}
               {t.source ? ` (${SOURCE_LABEL[t.source]})` : ""}
-              {t.belowThreshold ? " · pod prahom" : ""}
+              {t.type === "vydavok" && t.amountCents >= (ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents) ? " · nad prahom" : ""}
               {t.note ? ` · ${t.note}` : ""}
             </span>
             <span style={{ display: "flex", gap: 6 }}>
@@ -1700,25 +1987,32 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   );
 }
 
+/** Stiahne zálohu aktuálnych dát a vráti čas exportu (FR-17). */
+function downloadBackup(data: AppData): string {
+  const nowIso = new Date().toISOString();
+  const obj = buildBackup(data, nowIso);
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `financna-sloboda-zaloha-${todayIso()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return nowIso;
+}
+
 function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository; data: AppData; onChanged: () => void; onExported: (iso: string) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState("");
   const [preview, setPreview] = useState<{ data: AppData; counts: { transactions: number; snapshots: number }; exportedAt: string } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [backupFirst, setBackupFirst] = useState(false);
 
   const exportBackup = () => {
-    const nowIso = new Date().toISOString();
-    const obj = buildBackup(data, nowIso);
-    onExported(nowIso);
-    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `financna-sloboda-zaloha-${todayIso()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    onExported(downloadBackup(data));
     setStatus("Záloha sa stiahla. Obsahuje citlivé finančné údaje: neukladaj ju do verejných priečinkov.");
   };
 
@@ -1761,18 +2055,25 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
       <p style={{ color: "#555" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu. Súbor sa stiahne do priečinka Stiahnuté (alebo do priečinka, ktorý nastavil prehliadač).</p>
       <button onClick={exportBackup} style={btn}>Exportovať zálohu</button>
       <label style={{ display: "block", margin: "16px 0 8px" }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>Import zálohy (JSON)</span>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>Obnovenie zo zálohy</span>
+      </label>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <button type="button" onClick={() => fileRef.current?.click()} style={btn}>Vybrať súbor zálohy</button>
+        <span style={{ fontSize: "0.9rem", color: "#555" }}>{fileName || "Nie je vybraný žiadny súbor"}</span>
         <input
+          ref={fileRef}
           type="file"
           accept="application/json,.json"
           aria-label="Súbor zálohy"
+          style={{ display: "none" }}
           onChange={(e) => {
             const f = e.target.files?.[0];
+            setFileName(f?.name ?? "");
             if (f) void onFile(f);
             e.target.value = "";
           }}
         />
-      </label>
+      </div>
       {errors.length > 0 && <ul style={{ color: "#8a0000" }}>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>}
       {preview && (
         <div style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6 }}>
@@ -1803,16 +2104,19 @@ function differs(value: NumIn | string, defaultValue: number | null): boolean {
   return Math.abs(Number(value) - defaultValue) > 1e-9;
 }
 
-function Field(props: { label: string; value: NumIn | string; onChange: (v: any) => void; step?: number; type?: string; hint?: string; onReset?: () => void; changed?: boolean }) {
+function Field(props: { label: string; value: NumIn | string; onChange: (v: any) => void; step?: number; type?: string; inputMode?: "numeric" | "text"; max?: string; hint?: string; onReset?: () => void; changed?: boolean }) {
+  const textual = props.type === "text" || props.type === "date" || props.type === "password";
   return (
     <label style={{ display: "block", margin: "8px 0" }}>
       <span style={{ display: "block", fontSize: "0.9rem" }}>{props.label}</span>
       <input
         type={props.type ?? "number"}
+        inputMode={props.inputMode}
+        max={props.max}
         step={props.step ?? 1}
         value={props.value}
         onChange={(e) => {
-          if (props.type === "text") return props.onChange(e.target.value);
+          if (textual) return props.onChange(e.target.value);
           props.onChange(e.target.value === "" ? "" : Number(e.target.value));
         }}
         style={inp}

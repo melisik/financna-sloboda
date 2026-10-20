@@ -16,7 +16,7 @@ async function setupGoalAndEvaluation(page: Page) {
   await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
   // Vyhodnotenie k D_L (dátum v minulosti, aby transakcie po ňom boli započítané)
   await goTo(page, "vyhodnotenie");
-  await page.getByLabel("Dátum vyhodnotenia (RRRR-MM-DD)").fill("2026-10-01");
+  await page.getByLabel("Dátum vyhodnotenia", { exact: true }).fill("2026-10-01");
   await page.getByLabel("Hodnota investícií (€)").fill("100000");
   await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
   await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
@@ -39,11 +39,15 @@ test.describe("M3 – zadanie transakcií", () => {
     expect(elapsedMs).toBeLessThan(20_000);
   });
 
-  test("výdavok pod prahom sa uloží s príznakom „pod prahom“", async ({ page }) => {
+  test("výdavok nad prahom sa označí „nad prahom“; výdavok pod prahom sa uloží bez značky (D-120)", async ({ page }) => {
     await setupGoalAndEvaluation(page);
     await page.getByLabel("Suma (€)").fill("50");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("výdavok · 50 € (z hotovosti) · pod prahom").first()).toBeVisible();
+    await expect(page.getByText("výdavok · 50 € (z hotovosti)").first()).toBeVisible();
+    await expect(page.getByText("pod prahom")).toHaveCount(0);
+    await page.getByLabel("Suma (€)").fill("150");
+    await page.getByRole("button", { name: "Uložiť transakciu" }).click();
+    await expect(page.getByText("výdavok · 150 € (z hotovosti) · nad prahom").first()).toBeVisible();
   });
 
   test("prázdna alebo nulová suma sa neuloží a zobrazí chybu", async ({ page }) => {
@@ -57,6 +61,8 @@ test.describe("M3 – zadanie transakcií", () => {
     await setupGoalAndEvaluation(page);
     await page.getByLabel("Suma (€)").fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
+    // Počkaj, kým sa prvá transakcia uloží; inak jej dokončenie vymaže sumu druhej.
+    await expect(page.getByText("výdavok · 150 €").first()).toBeVisible();
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
     await page.getByLabel("Suma (€)").fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
