@@ -1792,6 +1792,7 @@ function StockSection({ repo, items, today, onSaved }: { repo: Repository; items
         <StockForm
           repo={repo}
           initial={editing === "new" ? null : editing}
+          today={today}
           onDone={() => { setEditing(null); onSaved(); }}
           onCancel={() => setEditing(null)}
         />
@@ -1803,11 +1804,11 @@ function StockSection({ repo, items, today, onSaved }: { repo: Repository; items
   );
 }
 
-function StockForm({ repo, initial, onDone, onCancel }: { repo: Repository; initial: StockItem | null; onDone: () => void; onCancel: () => void }) {
+function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: StockItem | null; today: string; onDone: () => void; onCancel: () => void }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? "");
   const [unit, setUnit] = useState<StockUnit>(initial?.unit ?? "ks");
-  const [expiry, setExpiry] = useState(initial?.expiryDate ?? "");
+  const [expiry, setExpiry] = useState(initial ? initial.expiryDate ?? "" : today);
   const [err, setErr] = useState<string | null>(null);
 
   const save = async () => {
@@ -1849,7 +1850,7 @@ function StockForm({ repo, initial, onDone, onCancel }: { repo: Repository; init
           {STOCK_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
         </select>
       </label>
-      <Field label="Dátum spotreby (RRRR-MM-DD, nepovinné)" value={expiry} type="text" onChange={setExpiry} />
+      <Field label="Dátum spotreby (nepovinné, bez dátumu nechajte prázdne)" value={expiry} type="date" onChange={setExpiry} />
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť položku</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>

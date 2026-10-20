@@ -15,7 +15,7 @@ test.describe("sklad potravín", () => {
       await page.getByLabel("Názov (napr. mlieko)").fill(name);
       await page.getByLabel("Množstvo").fill(qty);
       await page.getByLabel("Jednotka").selectOption(unit);
-      if (date) await page.getByLabel("Dátum spotreby (RRRR-MM-DD, nepovinné)").fill(date);
+      await page.getByLabel("Dátum spotreby (nepovinné, bez dátumu nechajte prázdne)").fill(date);
       await page.getByRole("button", { name: "Uložiť položku" }).click();
     };
     await add("Mlieko", "1", "l", isoDay(1));
