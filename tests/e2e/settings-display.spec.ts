@@ -10,6 +10,9 @@ test.describe("zobrazenie percent v Nastaveniach", () => {
     await page.getByLabel("Miera výberu (%)").fill("3.7");
     await page.getByLabel("Reálny výnos r (%)").fill("3.5");
     await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
+    // Zápis je asynchrónny: počkáme, kým Prehľad ukáže cieľovú sumu z uložených nastavení.
+    await goTo(page, "prehlad");
+    await expect(page.locator("section#prehlad")).toContainText("Cieľová suma: 648");
 
     await page.reload();
     await openApp(page);
