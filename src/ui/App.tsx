@@ -907,6 +907,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
 
   const preview = useMemo(() => {
     if (!ctx.latest || ctx.target === null) return null;
+    if (Number.isNaN(asNum(amount)) || asNum(amount) <= 0) return { blocked: true as const, message: "Zadaj sumu, aby sa ukázal predbežný dopad." };
     const c = check();
     if (c.after === null) return { blocked: true as const, message: c.message };
     const d = impactMonthsSplit(base.capital, c.after, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target);
