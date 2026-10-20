@@ -20,12 +20,21 @@ export function currentCapital(snapshot: Snapshot | null, transactions: Transact
  * Ako currentCapital, ale hlási, či sa niektorá zložka dostala pod 0 (R2).
  * Záporný stav znamená nekonzistentné zadanie (napr. výdavok nad stav); UI ho musí ukázať, nie skryť.
  */
+/**
+ * Transakcia je po vyhodnotení (D-121): dátum je neskorší, alebo je rovnaký a zadaná po uložení vyhodnotenia.
+ * Transakcia zadaná pred vyhodnotením v ten istý deň je už v jeho hodnote, nepridáva sa znovu.
+ */
+export function isAfterEvaluation(t: Transaction, snapshot: Snapshot): boolean {
+  if (t.date !== snapshot.date) return t.date > snapshot.date;
+  return t.createdAt > snapshot.createdAt;
+}
+
 export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transaction[]): { capital: Capital; negative: { inv: boolean; cash: boolean } } {
   if (!snapshot) return { capital: { inv: 0, cash: 0 }, negative: { inv: false, cash: false } };
   let inv = snapshot.investmentsCents;
   let cash = snapshot.cashCents;
   const after = transactions
-    .filter((t) => t.date > snapshot.date)
+    .filter((t) => isAfterEvaluation(t, snapshot))
     .sort((a, b) => (a.date === b.date ? a.createdAt.localeCompare(b.createdAt) : a.date.localeCompare(b.date)));
   for (const t of after) {
     const a = t.amountCents;
