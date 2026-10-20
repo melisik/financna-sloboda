@@ -24,8 +24,9 @@ test.describe("domovská obrazovka a úprava (M4, FR-09, FR-14)", () => {
     await page.getByRole("button", { name: "Uložiť zmeny" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 300 €")).toBeVisible();
 
-    // Zmazanie a vrátenie späť.
-    await page.getByRole("button", { name: "Zmazať" }).click();
+    // Zmazanie (po potvrdení) a vrátenie späť.
+    await page.getByRole("button", { name: "Zmazať", exact: true }).click();
+    await page.getByRole("button", { name: "Zmazať", exact: true }).click();
     await expect(page.getByText("Transakcia bola zmazaná.")).toBeVisible();
     await expect(page.getByText("sporenie (do hotovosti) · 300 €")).toHaveCount(0);
     await page.getByRole("button", { name: "Vrátiť späť" }).click();
