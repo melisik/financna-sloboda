@@ -92,7 +92,7 @@ Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnos
 - **GC-P2-03 (vlastné bývanie nevplýva na K, D-093):** `K_inv = 100 000`, `m_inv = 500`, `r = 3,5 %`, `T = 600 000`, plus nehnuteľnosť v režime „vlastné bývanie“ s hodnotami z GC-P2-01 (`V = 300 000`, `Z0 = 200 000`, `P = 1 000`, `N = 1 200`). Výsledok musí byť rovnaký ako bez nehnuteľnosti: `n ≈ 362,10` mesiaca (rovnaké ako regresný príklad vyššie).
 - **GC-P2-04 (splátka nepokrýva úrok):** ako GC-P2-01, ale `P = 100`. Úrok za mesiac je ≈ 162,7 €, takže zostatok hypotéky rastie a `K_cash(k) = 1 100·k`. Výsledok: `n ≈ 273,08` mesiaca. Zostatok hypotéky pri cieli ≈ 219 000 € (rast od 200 000 €); tento prípad musí zobraziť upozornenie (FR-22).
 
-**Stav kódu (2026-10-20):** FR-02a nie je implementovaný. Vetva Fázy 2 nepočíta hodnotu nehnuteľnosti do K_L (`monthsToTargetSplit` ani `makeCtx` ju nepoužívajú). Pre vlastné bývanie a nájom je to v rozpore s textom v UI („Do K sa počíta ako čistá hodnota“), kým FR-02a nie je implementovaný. Pred zapnutím tohto textu alebo započítania do K sa musia GC-P2-01 až GC-P2-04 overiť na kóde.
+**Stav kódu (2026-10-20):** FR-02a je implementovaný na vetve `claude/phase2-property-card` (`src/domain/rentalGoal.ts`), nie na `main`. Do K vstupuje len prenájom (D-093). GC-P2-01 až GC-P2-04 a regresia FR-02 sú overené jednotkovými testami (`tests/rentalGoal.test.ts`). Predpoklady, ktoré treba overiť: ostatné náklady znižujú čistý nájom `N`; inflácia π = 2 % (A2). E2E test prenájmu zatiaľ kontroluje len text v Majetku, nie dátum cieľa.
 
 **Rozhodnuté (D-093):** vlastné bývanie sa do K nepočíta a zobrazí sa zvlášť. Hodnota bytu, v ktorom používateľ býva, nezvyšuje K_nem.
 
