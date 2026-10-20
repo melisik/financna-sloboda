@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
@@ -19,6 +19,7 @@ import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCen
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
+import { TAX_CATALOG, taxScenario } from "../domain/tax";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
 import { autoSnapshot } from "../app/autoEvaluation";
 import { budgetStatus, spentInMonthCents } from "../domain/budget";
@@ -276,6 +277,11 @@ export function App() {
           <RecurringSection repo={repo} items={data.recurringExpenses} today={todayIso()} onSaved={reload} />
         </Section>
       )}
+      {section === "dane" && (
+        <Section id="dane" title="Dane">
+          <TaxSection positions={data.investments} />
+        </Section>
+      )}
       {section === "rocny-prehlad" && (
         <Section id="rocny-prehlad" title="Ročný prehľad">
           <RocnyPrehladSection data={data} ctx={ctx} />
@@ -519,7 +525,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
 }
 
 
-type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "rocny-prehlad" | "nastavenia" | "zaloha";
+type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "dane" | "rocny-prehlad" | "nastavenia" | "zaloha";
 
 const NAV: { id: SectionId; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
@@ -531,6 +537,7 @@ const NAV: { id: SectionId; label: string }[] = [
   { id: "zavazky", label: "Záväzky" },
   { id: "investicie", label: "Investície" },
   { id: "pravidelne-vydavky", label: "Pravidelné výdavky" },
+  { id: "dane", label: "Dane" },
   { id: "rocny-prehlad", label: "Ročný prehľad" },
   { id: "nastavenia", label: "Nastavenia" },
   { id: "zaloha", label: "Záloha" },
@@ -1112,6 +1119,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
   const [fx, setFx] = useState<NumIn>(initial && initial.currency !== "EUR" ? initial.fxToEur : "");
   const [contribution, setContribution] = useState<NumIn>(initial?.monthlyContributionCents !== undefined ? initial.monthlyContributionCents / 100 : "");
   const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
+  const [taxRegime, setTaxRegime] = useState<TaxRegime>(initial?.taxRegime ?? "nezadane");
   const [err, setErr] = useState<string | null>(null);
   const balance = (BALANCE_INVESTMENT_KINDS as readonly string[]).includes(kind);
   const code = balance ? "EUR" : currency.trim().toUpperCase();
@@ -1146,6 +1154,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
       ...(balance && vklad > 0 ? { monthlyContributionCents: cents(vklad) } : {}),
+      taxRegime,
     };
     try {
       await repo.savePosition(position);
@@ -1181,6 +1190,12 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
         </>
       )}
       <Field label="Dátum ocenenia (RRRR-MM-DD)" value={valueDate} type="text" onChange={setValueDate} />
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Daňový režim (zatiaľ bez výpočtu, FR-24)
+        <select aria-label="Daňový režim investície" value={taxRegime} onChange={(e) => setTaxRegime(e.target.value as TaxRegime)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {TAX_REGIMES.map((r) => <option key={r} value={r}>{TAX_CATALOG[r].label}</option>)}
+        </select>
+      </label>
       {err && <p style={{ color: "#8a0000" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť položku</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
@@ -1682,6 +1697,28 @@ function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       <button onClick={save} style={btn}>Uložiť výdavok</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
+  );
+}
+
+/** Daňový rámec (FR-24, FR-25, D-104): režimy a stav overenia. Čísla po dani sa nezobrazia, kým nie sú pravidlá overené. */
+function TaxSection({ positions }: { positions: Position[] }) {
+  const lines = taxScenario(positions);
+  return (
+    <section>
+      <p style={{ color: "#555" }}>Hlavný výpočet ostáva nominálny (D-077). Daňový scenár je samostatný a zatiaľ nemá čísla po dani: pravidlá ešte nie sú overené (D-104).</p>
+      {lines.map((l) => (
+        <div key={l.regime} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <p style={{ margin: 0 }}><strong>{l.label}</strong></p>
+          <p style={{ margin: "4px 0" }}>Hodnota investícií v režime: {eur(l.valueCents)}</p>
+          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+            {l.regime === "nezadane" ? "Zadaj daňový režim v položkách investícií." : "Po dani: čaká na overenie pravidiel."}
+          </p>
+          <p style={{ margin: "4px 0", fontSize: "0.85rem", color: "#555" }}>
+            Zdroj: {TAX_CATALOG[l.regime].source ?? "nie je zadaný"} · platnosť od: {TAX_CATALOG[l.regime].validFrom ?? "nie je zadaná"} · stav: {TAX_CATALOG[l.regime].status}
+          </p>
+        </div>
+      ))}
+    </section>
   );
 }
 

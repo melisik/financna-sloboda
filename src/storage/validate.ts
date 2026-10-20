@@ -1,4 +1,4 @@
-import { ASSET_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, TRANSACTION_TYPES, type AppData, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -90,7 +90,8 @@ export function validateAsset(a: unknown, today: string, label = "aktívum"): st
 export function validatePosition(p: unknown, today: string, label = "položka"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "kind", "quantity", "unitPrice", "currency", "fxToEur", "valueDate", "monthlyContributionCents", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "kind", "quantity", "unitPrice", "currency", "fxToEur", "valueDate", "monthlyContributionCents", "taxRegime", "createdAt", "updatedAt"], label);
+  if (o.taxRegime !== undefined && !(TAX_REGIMES as readonly unknown[]).includes(o.taxRegime)) errors.push(`${label}: daňový režim musí byť z katalógu`);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
   if (!(INVESTMENT_KINDS as readonly unknown[]).includes(o.kind)) errors.push(`${label}: druh musí byť z katalógu`);

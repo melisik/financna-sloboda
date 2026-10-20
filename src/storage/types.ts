@@ -92,6 +92,10 @@ export const BALANCE_INVESTMENT_KINDS = ["sporiaci_ucet", "treti_pilier", "docho
 export type InvestmentKind = (typeof INVESTMENT_KINDS)[number];
 
 /** Položka investície zadaná ručne (D-101, možnosť A). Hodnota v eurách = počet × cena × kurz. */
+/** Daňový režim investície (FR-24). Katalóg je v domain/tax.ts; sadzby sú neoverené (D-104). */
+export const TAX_REGIMES = ["nezadane", "zdanene", "oslobodene"] as const;
+export type TaxRegime = (typeof TAX_REGIMES)[number];
+
 export interface Position {
   id: string;
   name: string; // max 80 znakov, napr. ticker alebo názov fondu
@@ -102,6 +106,7 @@ export interface Position {
   fxToEur: number; // koľko EUR za 1 jednotku meny; pri EUR je 1
   valueDate: string; // dátum ocenenia, YYYY-MM-DD
   monthlyContributionCents?: number; // mesačný vklad, len pri treťom pilieri; len na zobrazenie (D-102, D-105)
+  taxRegime?: TaxRegime; // daňový režim (FR-24); bez hodnoty = nezadané
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
