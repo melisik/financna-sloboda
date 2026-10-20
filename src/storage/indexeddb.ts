@@ -63,6 +63,10 @@ class IdbRepository implements Repository {
     await this.db.put("snapshots", s);
   }
 
+  async deleteSnapshot(id: string): Promise<void> {
+    await this.db.delete("snapshots", id);
+  }
+
   async addManualSnapshot(s: Snapshot): Promise<void> {
     const tx = this.db.transaction("snapshots", "readwrite");
     tx.done.catch(() => undefined);

@@ -32,4 +32,13 @@ describe("ručné vyhodnotenie", () => {
     expect((await repo.getData()).snapshots.map((s) => s.id)).toEqual(["m1"]);
     repo.close();
   });
+
+  it("zmazanie odstráni len vybrané vyhodnotenie", async () => {
+    const repo = await openRepository(freshName());
+    await repo.addManualSnapshot(snap("m1", "2026-01-01"));
+    await repo.addManualSnapshot(snap("m2", "2026-07-01"));
+    await repo.deleteSnapshot("m2");
+    expect((await repo.getData()).snapshots.map((s) => s.id)).toEqual(["m1"]);
+    repo.close();
+  });
 });
