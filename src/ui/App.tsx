@@ -253,7 +253,7 @@ export function App() {
       )}
       {section === "rozpocet" && (
         <Section id="rozpocet" title="Rozpočet">
-          <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} today={todayIso()} onSaved={reload} />
+          <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} recurring={data.recurringExpenses} today={todayIso()} onSaved={reload} />
         </Section>
       )}
       {section === "prijmy" && (
@@ -1685,7 +1685,7 @@ function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
   );
 }
 
-function BudgetSection({ repo, budgets, transactions, today, onSaved }: { repo: Repository; budgets: Budget[]; transactions: Transaction[]; today: string; onSaved: () => void }) {
+function BudgetSection({ repo, budgets, transactions, recurring, today, onSaved }: { repo: Repository; budgets: Budget[]; transactions: Transaction[]; recurring: RecurringExpense[]; today: string; onSaved: () => void }) {
   const [limits, setLimits] = useState<Record<string, NumIn>>(() =>
     Object.fromEntries(BUDGET_CATEGORIES.map((c) => {
       const b = budgets.find((x) => x.category === c);
@@ -1715,6 +1715,7 @@ function BudgetSection({ repo, budgets, transactions, today, onSaved }: { repo: 
     }
   };
 
+  const recurringByCat = monthlyRecurringByCategory(recurring, today);
   return (
     <section>
       <p style={{ color: "#555" }}>
@@ -1722,11 +1723,14 @@ function BudgetSection({ repo, budgets, transactions, today, onSaved }: { repo: 
       </p>
       {BUDGET_CATEGORIES.map((c) => {
         const b = budgets.find((x) => x.category === c);
-        const spent = spentInMonthCents(transactions, c, today);
+        // Pravidelné výdavky (D-124) sa rátajú do minutého za mesiac spolu s transakciami v kategórii.
+        const rec = recurringByCat[c] ?? 0;
+        const spent = spentInMonthCents(transactions, c, today) + rec;
         const st = budgetStatus(b, spent);
+        const recText = rec > 0 ? ` (z toho pravidelné ${eur(rec)})` : "";
         const hint = st
-          ? `minuté tento mesiac ${eur(spent)}; ${st.over ? `prekročené o ${eur(st.remainingCents)}` : `zostáva ${eur(st.remainingCents)}`}`
-          : `minuté tento mesiac ${eur(spent)}`;
+          ? `minuté tento mesiac ${eur(spent)}${recText}; ${st.over ? `prekročené o ${eur(st.remainingCents)}` : `zostáva ${eur(st.remainingCents)}`}`
+          : `minuté tento mesiac ${eur(spent)}${recText}`;
         return (
           <Field
             key={c}

@@ -34,4 +34,20 @@ test.describe("pravidelné výdavky (D-124)", () => {
     await card.getByRole("button", { name: "Zmazať", exact: true }).click();
     await expect(page.getByText("Spolu za mesiac: 12 €")).toBeVisible();
   });
+
+  test("pravidelný výdavok sa rátа do minutého za mesiac v rozpočte kategórie", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "pravidelne-vydavky");
+    await page.getByRole("button", { name: "Pridať pravidelný výdavok" }).click();
+    await page.getByLabel("Názov (napr. predplatné)").fill("Mesačné nákupy");
+    await page.getByLabel("Kategória pravidelného výdavku").selectOption("jedlo");
+    await page.getByLabel("Suma mesačne (€)").fill("100");
+    await page.getByRole("button", { name: "Uložiť výdavok" }).click();
+    await expect(page.getByText("Spolu za mesiac: 100 €")).toBeVisible();
+
+    await goTo(page, "rozpocet");
+    await page.getByLabel("jedlo: limit (€)").fill("300");
+    await page.getByRole("button", { name: "Uložiť rozpočet" }).click();
+    await expect(page.getByText("minuté tento mesiac 100 € (z toho pravidelné 100 €); zostáva 200 €")).toBeVisible();
+  });
 });
