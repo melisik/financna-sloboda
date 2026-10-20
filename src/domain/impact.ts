@@ -1,4 +1,5 @@
 import { monthsToTarget } from "./goal";
+import type { Impact } from "./rentalGoal";
 
 /**
  * Text, ak dopad nemožno vyčísliť, lebo niektorý stav cieľ nedosiahne (R26b, schválené zakladateľom).
@@ -30,6 +31,23 @@ export function impactMonths(
   const after = monthsToTarget(pendingCapitalCents, monthlySavingCents, annualRate, targetCents);
   if (before === null || after === null) return null;
   return before - after;
+}
+
+/**
+ * Text výsledku dopadu pre UI (FR-04, FR-02a). Vyčerpanie hotovosti sa pomenuje, nie zamieňa za „cieľ sa nedosiahne“:
+ * ide o iný dôvod a iné riešenie (zdroj alebo suma výdavku).
+ */
+export function formatImpactOutcome(i: Impact): string {
+  switch (i.kind) {
+    case "delta":
+      return formatImpact(i.months);
+    case "unreachable":
+      return UNREACHABLE_IMPACT_TEXT;
+    case "cash_exhausted":
+      return i.side === "after"
+        ? `Po tejto transakcii by sa hotovosť vyčerpala v mesiaci ${i.month}. Dopad sa nedá vyčísliť; zváž iný zdroj alebo nižšiu sumu.`
+        : `Hotovosť by sa vyčerpala už v mesiaci ${i.month}, aj bez tejto transakcie. Dopad sa nedá vyčísliť.`;
+  }
 }
 
 /** Slovenské skloňovanie čísla pri jednotkách: 1 mesiac / 2–4 mesiace / 5+ mesiacov. */

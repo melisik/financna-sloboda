@@ -102,7 +102,16 @@ export function goalMonths(
   return monthsToTargetWithRentals(c, mInv, mCash, annualRate, targetCents, rentals);
 }
 
-/** Predbežný dopad (FR-04): n(before) − n(after). Null, ak niektorý stav nedá dátum. */
+/**
+ * Výsledok predbežného dopadu (FR-04). cash_exhausted: hotovosť klesne pod 0 pred alebo po transakcii
+ * (side); dopad sa nedá vyčísliť, lebo dátum neexistuje (FR-02a).
+ */
+export type Impact =
+  | { kind: "delta"; months: number }
+  | { kind: "cash_exhausted"; side: "before" | "after"; month: number }
+  | { kind: "unreachable" };
+
+/** Predbežný dopad (FR-04): n(before) − n(after), kladné = cieľ bližšie. */
 export function impactWithRentals(
   before: Capital,
   after: Capital,
@@ -111,9 +120,11 @@ export function impactWithRentals(
   annualRate: number,
   targetCents: number,
   rentals: Rental[],
-): number | null {
+): Impact {
   const b = goalMonths(before, mInv, mCash, annualRate, targetCents, rentals);
   const a = goalMonths(after, mInv, mCash, annualRate, targetCents, rentals);
-  if (b.kind !== "months" || a.kind !== "months") return null;
-  return b.months - a.months;
+  if (a.kind === "cash_exhausted") return { kind: "cash_exhausted", side: "after", month: a.month };
+  if (b.kind === "cash_exhausted") return { kind: "cash_exhausted", side: "before", month: b.month };
+  if (b.kind !== "months" || a.kind !== "months") return { kind: "unreachable" };
+  return { kind: "delta", months: b.months - a.months };
 }

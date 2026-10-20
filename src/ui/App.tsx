@@ -11,7 +11,7 @@ import { backupOverdue, reviewOverdue } from "../app/reminders";
 import { targetAmountCents } from "../domain/goal";
 import { goalDisplay } from "../domain/goalDisplay";
 import { goalDateText } from "../domain/goalText";
-import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
+import { formatImpactOutcome, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { monthlySaving } from "../domain/saving";
 import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
 import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
@@ -636,7 +636,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
             <p>Kapitál: investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}. Rezerva: {eur(ctx.reserve)}.</p>
             <p>
               Predbežný dopad posledných transakcií:{" "}
-              <strong>{pending === null ? UNREACHABLE_IMPACT_TEXT : formatImpact(pending)}</strong>
+              <strong>{pending === null ? UNREACHABLE_IMPACT_TEXT : formatImpactOutcome(pending)}</strong>
             </p>
             <p style={{ color: "#555" }}>Transakcií: {data.transactions.length}</p>
           </details>
@@ -1932,7 +1932,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
         <p>
           {preview.blocked
             ? preview.message
-            : <>Predbežný dopad: <strong>{preview.impact === null ? UNREACHABLE_IMPACT_TEXT : formatImpact(preview.impact)}</strong></>}
+            : <>Predbežný dopad: <strong>{formatImpactOutcome(preview.impact)}</strong></>}
         </p>
       )}
       {preview && !preview.blocked && preview.note && (

@@ -6,6 +6,7 @@ import {
   rentalsFor,
   type Rental,
 } from "../src/domain/rentalGoal";
+import { formatImpactOutcome } from "../src/domain/impact";
 import type { Property } from "../src/storage/types";
 
 // Golden cases FR-02a (docs/04, GC-P2-01 až GC-P2-04). Syntetické hodnoty v centoch.
@@ -97,6 +98,22 @@ describe("FR-02a – rentalsFor a dopad", () => {
 
   it("dopad je rozdiel dvoch n a bez zmeny pri rovnakom stave", () => {
     const c = { inv: 10_000_000, cash: 0 };
-    expect(impactWithRentals(c, c, 0, 0, r, T, [mainRental])).toBeCloseTo(0, 6);
+    expect(impactWithRentals(c, c, 0, 0, r, T, [mainRental])).toEqual({ kind: "delta", months: 0 });
+  });
+
+  it("transakcia, po ktorej hotovosť klesne pod 0, je cash_exhausted na strane po transakcii", () => {
+    // Pred transakciou vystačí hotovosť do mesiaca 51, po transakcii do mesiaca 26 (GC-P2-02 logika).
+    const drain: Rental = { ...mainRental, netRentCents: 60_000 };
+    const before = { inv: 10_000_000, cash: 2_000_000 };
+    const after = { inv: 10_000_000, cash: 1_000_000 };
+    expect(impactWithRentals(before, after, 0, 0, r, T, [drain])).toEqual({ kind: "cash_exhausted", side: "after", month: 26 });
+  });
+
+  it("text vyčerpania hotovosti pomenuje mesiac a nezamieňa ho za nedosiahnuteľný cieľ", () => {
+    const text = formatImpactOutcome({ kind: "cash_exhausted", side: "after", month: 26 });
+    expect(text).toContain("vyčerpala v mesiaci 26");
+    expect(text).not.toContain("nedosiahne");
+    expect(formatImpactOutcome({ kind: "delta", months: 2 })).toBe("predbežne +2 mesiace");
+    expect(formatImpactOutcome({ kind: "unreachable" })).toContain("nedosiahne");
   });
 });
