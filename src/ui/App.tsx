@@ -25,6 +25,7 @@ import { daysUntil, expiringItems, stockStatus } from "../domain/stock";
 import { findExpiryDate, findProductName } from "../domain/scan";
 import { cookRecipe } from "../domain/recipe";
 import { readQrFromImage } from "../app/receiptScan";
+import { ReceiptCamera } from "./ReceiptCamera";
 import { isReceiptId, RECEIPT_CHECK_URL, receiptIdFromQr } from "../domain/receipt";
 import type { Recipe, RecipeIngredient } from "../storage/types";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
@@ -63,6 +64,8 @@ const TYPE_LABEL: Record<TransactionType, string> = {
   vyber_rezervy: "výber z rezervy",
 };
 const SOURCE_LABEL: Record<Source, string> = { z_prijmu: "z príjmu", z_hotovosti: "z hotovosti", z_investicii: "z investícií" };
+/** Kamera je dostupná len v bezpečnom kontexte (HTTPS alebo localhost) a ak prehliadač podporuje getUserMedia. */
+const canUseCamera = (): boolean => typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getUserMedia === "function";
 const STORAGE_ERROR = "Úložisko zlyhalo a dáta sa nezmenili. Skús znova alebo exportuj zálohu.";
 
 /** Číselné pole môže byť prázdne (NaN); validácia pri uložení (R11). */
@@ -2375,6 +2378,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   const [note, setNote] = useState("");
   const [receiptId, setReceiptId] = useState("");
   const [qrMsg, setQrMsg] = useState<string | null>(null);
+  const [cameraOn, setCameraOn] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [undo, setUndo] = useState<Transaction | null>(null);
@@ -2447,6 +2451,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     setNote("");
     setReceiptId("");
     setQrMsg(null);
+    setCameraOn(false);
     setCategory("");
     setAmount("");
     setDate(todayIso());
@@ -2467,21 +2472,23 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   };
 
   // Fotka QR kódu dokladu: číslo dokladu sa len navrhne, potvrdí ho používateľ (D-126).
+  // Text z QR kódu: ak je to číslo dokladu, vyplní pole; inak povie, čo sa prečítalo (bez obsahu).
+  const useQrText = (text: string) => {
+    const id = receiptIdFromQr(text);
+    if (id) {
+      setReceiptId(id);
+      setQrMsg("Číslo dokladu je načítané. Skontrolujte ho.");
+    } else {
+      setQrMsg(`QR kód sa prečítal, ale nie je to číslo dokladu (${text.trim().length} znakov). Zadajte ho ručne.`);
+    }
+  };
+
   const scanReceipt = async (file: File) => {
     setQrMsg("Načítavam QR kód…");
     try {
       const text = await readQrFromImage(file);
-      if (text === null) {
-        setQrMsg("QR kód sa v obrázku nenašiel. Nafoťte ho bližšie, rovno a v dobrom svetle.");
-        return;
-      }
-      const id = receiptIdFromQr(text);
-      if (id) {
-        setReceiptId(id);
-        setQrMsg("Číslo dokladu je načítané. Skontrolujte ho.");
-      } else {
-        setQrMsg(`QR kód sa prečítal, ale nie je to číslo dokladu (${text.trim().length} znakov). Zadajte ho ručne.`);
-      }
+      if (text === null) setQrMsg("QR kód sa v obrázku nenašiel. Nafoťte ho bližšie, rovno a v dobrom svetle.");
+      else useQrText(text);
     } catch {
       setQrMsg("Skener QR kódu sa nepodarilo spustiť. Zadajte číslo dokladu ručne.");
     }
@@ -2581,8 +2588,16 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       {type === "vydavok" && (
         <div style={{ margin: "8px 0" }}>
           <Field label="Číslo dokladu (nepovinné, z QR kódu)" value={receiptId} type="text" onChange={setReceiptId} />
+          {cameraOn ? (
+            <ReceiptCamera
+              onFound={(text) => { setCameraOn(false); useQrText(text); }}
+              onClose={() => setCameraOn(false)}
+            />
+          ) : (
+            canUseCamera() && <button type="button" onClick={() => setCameraOn(true)} style={btn}>Skenovať QR kód kamerou</button>
+          )}
           <label style={{ display: "block", margin: "4px 0" }}>
-            <span style={{ display: "block", fontSize: "0.9rem" }}>Naskenovať QR kód z dokladu</span>
+            <span style={{ display: "block", fontSize: "0.9rem" }}>Alebo nafoťte QR kód z dokladu</span>
             <input type="file" accept="image/*" capture="environment" aria-label="Fotka QR kódu dokladu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void scanReceipt(f); }} />
           </label>
           {qrMsg && <p style={{ color: "#555", fontSize: "0.9rem" }}>{qrMsg}</p>}
