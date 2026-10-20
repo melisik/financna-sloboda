@@ -13,6 +13,17 @@ describe("skener obalu: dátum spotreby a názov", () => {
     expect(findExpiryDate("2027-03-15")).toBe("2027-03-15");
   });
 
+  it("len mesiac a rok sa prevedie na posledný deň mesiaca", () => {
+    expect(findExpiryDate("Spotrebujte do 10.2027")).toBe("2027-10-31");
+    expect(findExpiryDate("Min. trv. do 02/2028")).toBe("2028-02-29");
+    expect(findExpiryDate("Spotrebujte do 13.2027")).toBeUndefined();
+  });
+
+  it("celý dátum má prednosť pred mesiacom a rok sa nečíta z vnútra dátumu", () => {
+    expect(findExpiryDate("Vyrobené 10.2027\nSpotrebujte do 15.03.2027")).toBe("2027-03-15");
+    expect(findExpiryDate("Spotrebujte do 15.03.2027")).toBe("2027-03-15");
+  });
+
   it("neplatný kalendárny dátum sa nepoužije", () => {
     expect(findExpiryDate("Spotrebujte do 31.02.2027")).toBeUndefined();
   });
@@ -24,5 +35,6 @@ describe("skener obalu: dátum spotreby a názov", () => {
   it("názov je prvý riadok s textom, nie dátum ani číslo", () => {
     expect(findProductName("12345\nMLIEKO POLTRÁCKE\nSpotrebujte do 1.2.2027")).toBe("MLIEKO POLTRÁCKE");
     expect(findProductName("12.03.2027\n99")).toBeUndefined();
+    expect(findProductName("Nestle CINI Minis\n10.2027")).toBe("Nestle CINI Minis");
   });
 });

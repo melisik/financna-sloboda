@@ -1976,6 +1976,7 @@ function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repositor
   const [expiry, setExpiry] = useState(initial ? initial.expiryDate ?? "" : today);
   const [err, setErr] = useState<string | null>(null);
   const [scanMsg, setScanMsg] = useState<string | null>(null);
+  const [ocrText, setOcrText] = useState<string | null>(null);
 
   // Skener: fotka obalu, offline rozpoznanie; názov a dátum sa len navrhnú, potvrdí ich používateľ.
   const onPhoto = async (file: File) => {
@@ -1983,6 +1984,7 @@ function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repositor
     try {
       const { recognizeImage } = await import("../app/ocr");
       const text = await recognizeImage(file);
+      setOcrText(text);
       const date = findExpiryDate(text);
       const product = findProductName(text);
       if (product && name.trim() === "") setName(product);
@@ -2031,6 +2033,12 @@ function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repositor
         <input type="file" accept="image/*" capture="environment" aria-label="Fotka obalu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); }} />
       </label>
       {scanMsg && <p style={{ color: "#555", fontSize: "0.9rem" }}>{scanMsg}</p>}
+      {ocrText !== null && (
+        <details style={{ fontSize: "0.9rem", marginBottom: 8 }}>
+          <summary>Rozpoznaný text z fotky</summary>
+          <pre style={{ whiteSpace: "pre-wrap", background: "#f4f4f4", padding: 8, borderRadius: 4 }}>{ocrText.trim() || "(žiadny text)"}</pre>
+        </details>
+      )}
       <Field label="Názov (napr. mlieko)" value={name} type="text" onChange={setName} />
       <Field label="Množstvo" value={quantity} step={0.01} onChange={setQuantity} />
       <label style={{ display: "block", marginBottom: 8 }}>
