@@ -33,6 +33,7 @@ test.describe("položky dokladu z portálu", () => {
     await expect(page.getByText("Nerozpoznané")).toHaveCount(0);
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 
+    await expect(page.locator("section#nova-transakcia li", { hasText: "položiek: 2" })).toBeVisible();
     await page.getByRole("button", { name: "Upraviť" }).first().click();
     await expect(page.getByText("Uložené položky: 2")).toBeVisible();
   });

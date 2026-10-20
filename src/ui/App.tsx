@@ -2709,6 +2709,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
               {t.source ? ` (${SOURCE_LABEL[t.source]})` : ""}
               {t.type === "vydavok" && t.amountCents >= (ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents) ? " · nad prahom" : ""}
               {t.note ? ` · ${t.note}` : ""}
+              {t.receiptId ? " · doklad" : ""}
+              {t.receiptItems && t.receiptItems.length > 0 ? ` · položiek: ${t.receiptItems.length}` : ""}
             </span>
             <span style={{ display: "flex", gap: 6 }}>
               <button onClick={() => startEdit(t)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Upraviť</button>
