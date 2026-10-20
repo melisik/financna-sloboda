@@ -48,3 +48,15 @@ Rozpočet kategórií je schválený (D-106). Pripomienky sú schválené (D-107
 4. Investície: tretí pilier a ciele (D-105).
 5. Rozpočet kategórií (D-106) po overení zoznamu kategórií.
 6. Dane (D-104) až po overení pravidiel.
+
+## 4. Ročný prehľad (návrh, 2026-10-20; implementácia na vetve Fázy 2)
+
+Účel: vidieť, ako sa kapitál a dátum cieľa menili medzi vyhodnoteniami. Ide o odvodený pohľad na uložené vyhodnotenia (FR-15); nové údaje a nové rozhodnutia nepotrebuje.
+
+- **Riadky:** jeden riadok za každé vyhodnotenie, od najstaršieho po najnovšie. Auto-vyhodnotenia (D-116) sa zobrazia rovnako, s poznámkou „automaticky“.
+- **Stĺpce:** dátum, K_inv, K_cash, K spolu (K_inv + K_cash), zmena K oproti predchádzajúcemu vyhodnoteniu, dátum cieľa podľa aktuálnych Nastavení (mesiac a rok alebo upozornenie z FR-02), zmena dátumu v mesiacoch oproti predchádzajúcemu riadku.
+- **Nehnuteľnosti:** história majetku sa neukladá (vlastník ju neupravuje spätne). Ročný prehľad preto ukazuje K bez nehnuteľností a text to hovorí výslovne.
+- **Dátum cieľa v minulosti:** počíta sa z uloženého stavu K a z **aktuálnych** Nastavení, nie z nastavení platných v čase vyhodnotenia. Text to hovorí výslovne.
+- **Bez dát:** „Zatiaľ nie sú vyhodnotenia.“ Bez Nastavení sa zobrazí len K.
+- **Rozsah:** len zobrazenie, bez úprav a bez exportu. Nemení dátum cieľa ani výpočty.
+- **Predpoklad [overiť]:** vlastník chce vidieť zmenu K a dátumu medzi vyhodnoteniami, nie tabuľku všetkých polí transakcií.
