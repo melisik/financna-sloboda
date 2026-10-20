@@ -20,9 +20,14 @@ describe("pravidlo D-121: transakcie v deň vyhodnotenia", () => {
     expect(capitalWithFlags(snap, [t]).capital.inv).toBe(31_000_000);
   });
 
-  it("transakcia s dátumom pred vyhodnotením sa nepridá", () => {
-    const t = expense("c", "2026-10-19", "2026-10-20T11:00:00.000Z", 15_000);
+  it("transakcia s dátumom pred vyhodnotením, zadaná pred ním, sa nepridá", () => {
+    const t = expense("c", "2026-10-19", "2026-10-20T09:00:00.000Z", 15_000);
     expect(capitalWithFlags(snap, [t]).capital.inv).toBe(31_000_000);
+  });
+
+  it("zabudnutá transakcia s dátumom pred vyhodnotením, zadaná po ňom, sa odpočíta (D-123)", () => {
+    const t = expense("g", "2026-10-19", "2026-10-20T11:00:00.000Z", 15_000);
+    expect(capitalWithFlags(snap, [t]).capital.inv).toBe(31_000_000 - 15_000);
   });
 
   it("transakcia s neskorším dátumom sa odpočíta", () => {
@@ -30,8 +35,9 @@ describe("pravidlo D-121: transakcie v deň vyhodnotenia", () => {
     expect(capitalWithFlags(snap, [t]).capital.inv).toBe(31_000_000 - 15_000);
   });
 
-  it("isAfterEvaluation: rovnaký dátum rozhoduje čas zadania", () => {
+  it("isAfterEvaluation: rozhoduje dátum alebo čas zadania po vyhodnotení", () => {
     expect(isAfterEvaluation(expense("e", "2026-10-20", "2026-10-20T10:00:00.001Z", 1), snap)).toBe(true);
     expect(isAfterEvaluation(expense("f", "2026-10-20", "2026-10-20T10:00:00.000Z", 1), snap)).toBe(false);
+    expect(isAfterEvaluation(expense("h", "2026-10-19", "2026-10-21T10:00:00.000Z", 1), snap)).toBe(true);
   });
 });
