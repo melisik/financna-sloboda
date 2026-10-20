@@ -123,7 +123,7 @@ Dopad = n(K_L) − n(K_pred) (surový rozdiel, nie rozdiel zaokrúhlených dátu
 ### FR-05 – Mesačné vyhodnotenie
 Vstupy: dátum, hodnota investícií, nasporená suma (kumulatívny stav hotovosti, D-033; UR-11). Výsledok: nový snapshot K_L = hodnota investícií + nasporená suma, prepočet cieľa a dátumov, zobrazenie „Posledné vyhodnotenie: dátum“.
 
-- Transakcie s dátumom pred dátumom vyhodnotenia, alebo s rovnakým dátumom zadané pred uložením vyhodnotenia, sú už zahrnuté v zadaných hodnotách a **nepridávajú sa znovu** (D-121).
+- Transakcie zadané pred uložením vyhodnotenia s dátumom pred dátumom vyhodnotenia sú už zahrnuté v zadaných hodnotách a **nepridávajú sa znovu** (D-123). Transakcia zadaná až po uložení vyhodnotenia sa počíta do K aj vtedy, ak má dátum pred vyhodnotením (zabudnutý výdavok, D-123).
 - Transakcie s dátumom po dátume vyhodnotenia, alebo s rovnakým dátumom zadané po uložení vyhodnotenia, tvoria nový predbežný dopad (FR-04) a do K sa počítajú (D-121).
 - Prepis predchádzajúceho vyhodnotenia je možný len s potvrdením; história snapshotov sa zachováva.
 
