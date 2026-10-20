@@ -669,8 +669,8 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
               Pri dlhom horizonte (viac ako 20 rokov) je predpoklad výnosu menej istý; výsledok je v dnešných eurách.
             </p>
           )}
-          <details style={{ fontSize: "0.9rem" }}>
-            <summary style={{ cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Podrobnosti</summary>
+          <details style={{ marginTop: 8 }}>
+            <summary style={{ cursor: "pointer", minHeight: 44, display: "inline-flex", alignItems: "center", padding: "8px 14px", border: "1px solid #555", borderRadius: 6, background: "#fff", listStyle: "none" }}>Podrobnosti ▾</summary>
             <p>
               Rozsah dátumu: od {scenarioText(ctx, ctx.realReturn + 0.02)} do {scenarioText(ctx, Math.max(0, ctx.realReturn - 0.02))} (opatrný – základný – optimistický).
             </p>
