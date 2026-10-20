@@ -7,7 +7,7 @@ test.describe("navigácia a predvyplnenie vyhodnotenia", () => {
     await openApp(page);
     const nav = page.getByRole("navigation", { name: "Hlavná navigácia" });
     for (const label of ["Prehľad", "Vyhodnotenie", "Transakcie", "Nastavenia", "Záloha"]) {
-      await expect(nav.getByRole("link", { name: label })).toBeVisible();
+      await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
     }
     await nav.getByRole("link", { name: "Vyhodnotenie" }).click();
     await expect(page).toHaveURL(/#vyhodnotenie$/);

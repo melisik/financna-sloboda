@@ -55,7 +55,7 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await goTo(page, "vyhodnotenie");
     await expect(page.locator("section#prehlad")).toHaveCount(0);
     await expect(page.getByLabel("Hodnota investícií (€)")).toBeVisible();
-    await page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("link", { name: "Prehľad" }).click();
+    await page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("link", { name: "Prehľad", exact: true }).click();
     await expect(page.locator("section#prehlad")).toBeVisible();
   });
 

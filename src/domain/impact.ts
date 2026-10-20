@@ -51,7 +51,7 @@ export function formatImpactOutcome(i: Impact): string {
 }
 
 /** Slovenské skloňovanie čísla pri jednotkách: 1 mesiac / 2–4 mesiace / 5+ mesiacov. */
-function plural(n: number, one: string, few: string, many: string): string {
+export function plural(n: number, one: string, few: string, many: string): string {
   const last = n % 10;
   const lastTwo = n % 100;
   if (last === 1 && lastTwo !== 11) return one;

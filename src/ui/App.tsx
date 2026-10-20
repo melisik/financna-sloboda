@@ -11,7 +11,8 @@ import { backupOverdue, reviewOverdue } from "../app/reminders";
 import { targetAmountCents } from "../domain/goal";
 import { goalDisplay } from "../domain/goalDisplay";
 import { goalDateText } from "../domain/goalText";
-import { formatImpactOutcome, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
+import { formatImpactOutcome, plural, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
+import { annualOverview, type OverviewSettings } from "../domain/annualOverview";
 import { monthlySaving } from "../domain/saving";
 import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
 import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
@@ -269,6 +270,11 @@ export function App() {
           <InvestmentSection repo={repo} positions={data.investments} today={todayIso()} onSaved={reload} />
         </Section>
       )}
+      {section === "rocny-prehlad" && (
+        <Section id="rocny-prehlad" title="Ročný prehľad">
+          <RocnyPrehladSection data={data} ctx={ctx} />
+        </Section>
+      )}
       {section === "nastavenia" && (
         <Section id="nastavenia" title="Nastavenia">
           <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
@@ -507,7 +513,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
 }
 
 
-type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "nastavenia" | "zaloha";
+type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "rocny-prehlad" | "nastavenia" | "zaloha";
 
 const NAV: { id: SectionId; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
@@ -518,6 +524,7 @@ const NAV: { id: SectionId; label: string }[] = [
   { id: "majetok", label: "Majetok" },
   { id: "zavazky", label: "Záväzky" },
   { id: "investicie", label: "Investície" },
+  { id: "rocny-prehlad", label: "Ročný prehľad" },
   { id: "nastavenia", label: "Nastavenia" },
   { id: "zaloha", label: "Záloha" },
 ];
@@ -581,6 +588,43 @@ function Shell({ children, nav }: { children: React.ReactNode; nav?: SectionId }
       {nav && <Nav active={nav} />}
       {children}
     </main>
+  );
+}
+
+/** Zmena dátumu cieľa v mesiacoch, slovne (docs/13, oddiel 4). */
+function goalShiftText(d: number): string {
+  if (d === 0) return "bez zmeny";
+  const k = Math.abs(d);
+  return `o ${k} ${plural(k, "mesiac", "mesiace", "mesiacov")} ${d < 0 ? "skôr" : "neskôr"}`;
+}
+
+/** Ročný prehľad (docs/13, oddiel 4): história K a dátumu cieľa medzi vyhodnoteniami. Len zobrazenie. */
+function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) {
+  const s: OverviewSettings | null =
+    ctx.settings && ctx.target !== null ? { target: ctx.target, realReturn: ctx.realReturn, mInv: ctx.mInv, mCash: ctx.mCash } : null;
+  const rows = annualOverview(data.snapshots, s);
+  if (rows.length === 0) return <p>Zatiaľ nie sú vyhodnotenia. Prehľad sa zobrazí po prvom vyhodnotení.</p>;
+  const savingZero = ctx.mInv + ctx.mCash === 0;
+  return (
+    <div>
+      <p style={{ color: "#555" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K a z aktuálnych Nastavení, bez nehnuteľností.</p>
+      {!s && <p style={{ color: "#555" }}>Nastavenia nie sú zadané; zobrazí sa len K.</p>}
+      {rows.map((r) => (
+        <div key={r.date} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <p style={{ margin: 0 }}><strong>{r.date}</strong>{r.auto ? " · automaticky" : ""}</p>
+          <p style={{ margin: "4px 0" }}>K: {eur(r.totalCents)} (investície {eur(r.invCents)}, hotovosť {eur(r.cashCents)})</p>
+          {r.deltaTotalCents !== null && (
+            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+              Zmena K: {r.deltaTotalCents >= 0 ? "+" : "−"}{eur(Math.abs(r.deltaTotalCents))}
+            </p>
+          )}
+          {r.goal && <p style={{ margin: "4px 0" }}>Dátum cieľa: <strong>{goalDateText(r.goal, savingZero, monthYear)}</strong></p>}
+          {r.deltaGoalMonths !== null && (
+            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>Zmena dátumu cieľa: {goalShiftText(r.deltaGoalMonths)}</p>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
 
