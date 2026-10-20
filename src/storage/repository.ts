@@ -1,4 +1,4 @@
-import type { Asset, AppData, Budget, Liability, Position, Property, RecurringExpense, RegularIncome, Snapshot, Transaction, Settings } from "./types";
+import type { Asset, AppData, Budget, Liability, Position, Property, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings } from "./types";
 
 /** Rozhranie úložiska (05 §3): aplikácia a doména nevidia, či ide o IndexedDB. */
 export interface Repository {
@@ -26,6 +26,8 @@ export interface Repository {
   deleteBudget(id: string): Promise<void>;
   saveRecurringExpense(e: RecurringExpense): Promise<void>;
   deleteRecurringExpense(id: string): Promise<void>;
+  saveStockItem(i: StockItem): Promise<void>;
+  deleteStockItem(id: string): Promise<void>;
   /** Nahradí všetky dáta v jednej transakcii; pri chybe zostanú pôvodné dáta (FR-18, D-018). */
   replaceAll(data: AppData): Promise<void>;
   getMeta(key: string): Promise<string | null>;

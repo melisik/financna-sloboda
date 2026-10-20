@@ -166,6 +166,21 @@ export interface RecurringExpense {
   updatedAt: string;
 }
 
+/** Jednotky skladu (sklad potravín). */
+export const STOCK_UNITS = ["ks", "g", "kg", "ml", "l"] as const;
+export type StockUnit = (typeof STOCK_UNITS)[number];
+
+/** Položka skladu potravín: množstvo a dátum spotreby (samostatná sekcia). */
+export interface StockItem {
+  id: string;
+  name: string; // max 80 znakov
+  quantity: number; // kladné, môže byť desatinné
+  unit: StockUnit;
+  expiryDate?: string; // dátum spotreby, YYYY-MM-DD; bez hodnoty = bez dátumu
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   settings: Settings | null;
   transactions: Transaction[];
@@ -177,10 +192,11 @@ export interface AppData {
   incomes: RegularIncome[];
   budgets: Budget[];
   recurringExpenses: RecurringExpense[];
+  stockItems: StockItem[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */
 export const APP_NAME = "financna-sloboda";
-export const SCHEMA_VERSION = 3; // v2 pridáva properties (FR-28); v3 pravidelné výdavky (D-124)
+export const SCHEMA_VERSION = 4; // v2 pridáva properties (FR-28); v3 pravidelné výdavky (D-124); v4 sklad
 /** Verzie schémy, ktoré import prijme; verzia 1 nemá majetok (načíta sa prázdny zoznam). */
-export const READABLE_SCHEMA_VERSIONS = [1, 2, 3] as const;
+export const READABLE_SCHEMA_VERSIONS = [1, 2, 3, 4] as const;

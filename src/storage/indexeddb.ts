@@ -1,9 +1,9 @@
 import { openDB, type IDBPDatabase } from "idb";
 import type { Repository } from "./repository";
-import type { Asset, AppData, Budget, Liability, Position, Property, RecurringExpense, RegularIncome, Settings, Snapshot, Transaction } from "./types";
+import type { Asset, AppData, Budget, Liability, Position, Property, RecurringExpense, RegularIncome, Settings, Snapshot, StockItem, Transaction } from "./types";
 
 const DB_NAME = "financna-sloboda";
-const DB_VERSION = 3; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28)
+const DB_VERSION = 4; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28)
 const SETTINGS_KEY = "current";
 
 /** Otvorí databázu s úložiskami z 05 §4. */
@@ -29,6 +29,9 @@ export async function openRepository(name: string = DB_NAME): Promise<Repository
       if (oldVersion < 3) {
         d.createObjectStore("recurringExpenses", { keyPath: "id" });
       }
+      if (oldVersion < 4) {
+        d.createObjectStore("stockItems", { keyPath: "id" });
+      }
     },
   });
   return new IdbRepository(db);
@@ -38,8 +41,8 @@ class IdbRepository implements Repository {
   constructor(private db: IDBPDatabase) {}
 
   async getData(): Promise<AppData> {
-    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses"], "readonly");
-    const [transactions, snapshots, settings, properties, assets, investments, liabilities, incomes, budgets, recurringExpenses] = await Promise.all([
+    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems"], "readonly");
+    const [transactions, snapshots, settings, properties, assets, investments, liabilities, incomes, budgets, recurringExpenses, stockItems] = await Promise.all([
       tx.objectStore("transactions").getAll(),
       tx.objectStore("snapshots").getAll(),
       tx.objectStore("settings").get(SETTINGS_KEY),
@@ -50,9 +53,10 @@ class IdbRepository implements Repository {
       tx.objectStore("incomes").getAll(),
       tx.objectStore("budgets").getAll(),
       tx.objectStore("recurringExpenses").getAll(),
+      tx.objectStore("stockItems").getAll(),
     ]);
     await tx.done;
-    return { settings: (settings as Settings | undefined) ?? null, transactions, snapshots, properties, assets, investments, liabilities, incomes, budgets, recurringExpenses };
+    return { settings: (settings as Settings | undefined) ?? null, transactions, snapshots, properties, assets, investments, liabilities, incomes, budgets, recurringExpenses, stockItems };
   }
 
   async addTransaction(t: Transaction): Promise<void> {
@@ -148,6 +152,14 @@ class IdbRepository implements Repository {
     await this.db.delete("incomes", id);
   }
 
+  async saveStockItem(i: StockItem): Promise<void> {
+    await this.db.put("stockItems", i);
+  }
+
+  async deleteStockItem(id: string): Promise<void> {
+    await this.db.delete("stockItems", id);
+  }
+
   async saveRecurringExpense(e: RecurringExpense): Promise<void> {
     await this.db.put("recurringExpenses", e);
   }
@@ -165,7 +177,7 @@ class IdbRepository implements Repository {
   }
 
   async replaceAll(data: AppData): Promise<void> {
-    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses"], "readwrite");
+    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems"], "readwrite");
     // Pri zrušení transakcie by tx.done odmietla promise bez poslucháča (neošetrená chyba).
     tx.done.catch(() => undefined);
     try {
@@ -179,8 +191,10 @@ class IdbRepository implements Repository {
       await tx.objectStore("incomes").clear();
       await tx.objectStore("budgets").clear();
       await tx.objectStore("recurringExpenses").clear();
+      await tx.objectStore("stockItems").clear();
       for (const b of data.budgets) await tx.objectStore("budgets").put(b);
       for (const e of data.recurringExpenses) await tx.objectStore("recurringExpenses").put(e);
+      for (const i of data.stockItems) await tx.objectStore("stockItems").put(i);
       for (const i of data.incomes) await tx.objectStore("incomes").put(i);
       for (const l of data.liabilities) await tx.objectStore("liabilities").put(l);
       for (const i of data.investments) await tx.objectStore("investments").put(i);

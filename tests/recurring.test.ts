@@ -31,7 +31,7 @@ import { buildBackup, parseBackup } from "../src/storage/backup";
 
 describe("pravidelné výdavky v zálohe (D-124)", () => {
   it("export a import zachová položky a verzia 2 zálohy dostane prázdny zoznam", () => {
-    const data: any = { settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [], recurringExpenses: [subs, insurance] };
+    const data: any = { settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [], recurringExpenses: [subs, insurance], stockItems: [] };
     const back: any = parseBackup(JSON.parse(JSON.stringify(buildBackup(data, "2026-10-20T10:00:00.000Z"))), "2026-10-20");
     expect(back.ok).toBe(true);
     expect(back.data.recurringExpenses).toEqual([subs, insurance]);

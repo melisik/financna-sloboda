@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
@@ -20,6 +20,7 @@ import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
+import { daysUntil, expiringItems, stockStatus } from "../domain/stock";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
 import { autoSnapshot } from "../app/autoEvaluation";
 import { budgetStatus, spentInMonthCents } from "../domain/budget";
@@ -282,6 +283,11 @@ export function App() {
           <TaxSection positions={data.investments} />
         </Section>
       )}
+      {section === "sklad" && (
+        <Section id="sklad" title="Sklad">
+          <StockSection repo={repo} items={data.stockItems} today={todayIso()} onSaved={reload} />
+        </Section>
+      )}
       {section === "rocny-prehlad" && (
         <Section id="rocny-prehlad" title="Ročný prehľad">
           <RocnyPrehladSection data={data} ctx={ctx} />
@@ -525,7 +531,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
 }
 
 
-type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "dane" | "rocny-prehlad" | "nastavenia" | "zaloha";
+type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "dane" | "sklad" | "rocny-prehlad" | "nastavenia" | "zaloha";
 
 const NAV: { id: SectionId; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
@@ -538,6 +544,7 @@ const NAV: { id: SectionId; label: string }[] = [
   { id: "investicie", label: "Investície" },
   { id: "pravidelne-vydavky", label: "Pravidelné výdavky" },
   { id: "dane", label: "Dane" },
+  { id: "sklad", label: "Sklad" },
   { id: "rocny-prehlad", label: "Ročný prehľad" },
   { id: "nastavenia", label: "Nastavenia" },
   { id: "zaloha", label: "Záloha" },
@@ -1719,6 +1726,134 @@ function TaxSection({ positions }: { positions: Position[] }) {
         </div>
       ))}
     </section>
+  );
+}
+
+const STOCK_STATUS_TEXT: Record<string, string> = {
+  prešlo: "dátum spotreby prešiel",
+  blizi_sa: "dátum spotreby sa blíži",
+  v_poriadku: "v poriadku",
+  bez_datumu: "bez dátumu spotreby",
+};
+
+/** Sklad potravín (samostatná sekcia): položky, množstvo, dátum spotreby a upozornenia. */
+function StockSection({ repo, items, today, onSaved }: { repo: Repository; items: StockItem[]; today: string; onSaved: () => void }) {
+  const [editing, setEditing] = useState<StockItem | "new" | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const warnings = expiringItems(items, today);
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deleteStockItem(id);
+      setConfirmId(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <section>
+      <p style={{ color: "#555" }}>Potraviny doma a ich dátum spotreby. Množstvo a dátum zadávate ručne.</p>
+      {warnings.length > 0 && (
+        <div style={{ background: "#fff4e0", padding: 8, borderRadius: 6, marginBottom: 12 }}>
+          <strong>Pozor:</strong>
+          <ul style={{ paddingLeft: 20, margin: "4px 0" }}>
+            {warnings.map((w) => <li key={w.id}>{w.name}: {STOCK_STATUS_TEXT[stockStatus(w, today)]} ({w.expiryDate})</li>)}
+          </ul>
+        </div>
+      )}
+      {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané položky skladu.</p>}
+      {items.map((i) => (
+        <div key={i.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <p style={{ margin: 0 }}><strong>{i.name}</strong></p>
+          <p style={{ margin: "4px 0" }}>{i.quantity} {i.unit}</p>
+          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+            {i.expiryDate ? `Spotrebovať do ${i.expiryDate} (za ${daysUntil(today, i.expiryDate)} dní)` : "Bez dátumu spotreby"}
+            {" · "}{STOCK_STATUS_TEXT[stockStatus(i, today)]}
+          </p>
+          {confirmId === i.id ? (
+            <div>
+              <p>Naozaj zmazať položku „{i.name}“?</p>
+              <button onClick={() => remove(i.id)} style={btn}>Zmazať</button>{" "}
+              <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+            </div>
+          ) : (
+            <>
+              <button onClick={() => setEditing(i)} style={btn}>Upraviť</button>{" "}
+              <button onClick={() => setConfirmId(i.id)} style={btn}>Zmazať</button>
+            </>
+          )}
+        </div>
+      ))}
+      {editing ? (
+        <StockForm
+          repo={repo}
+          initial={editing === "new" ? null : editing}
+          onDone={() => { setEditing(null); onSaved(); }}
+          onCancel={() => setEditing(null)}
+        />
+      ) : (
+        <button onClick={() => setEditing("new")} style={btn}>Pridať položku skladu</button>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+    </section>
+  );
+}
+
+function StockForm({ repo, initial, onDone, onCancel }: { repo: Repository; initial: StockItem | null; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? "");
+  const [unit, setUnit] = useState<StockUnit>(initial?.unit ?? "ks");
+  const [expiry, setExpiry] = useState(initial?.expiryDate ?? "");
+  const [err, setErr] = useState<string | null>(null);
+
+  const save = async () => {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return setErr("Vyplň názov.");
+    if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
+    const q = asNum(quantity);
+    if (Number.isNaN(q) || !(q > 0)) return setErr("Vyplň množstvo (väčšie ako 0).");
+    if (expiry.trim() !== "") {
+      const dErr = checkDate(expiry.trim(), "9999-12-31", "dátum spotreby");
+      if (dErr.length) return setErr(dErr[0]);
+    }
+    const now = new Date().toISOString();
+    const item: StockItem = {
+      id: initial?.id ?? uid(),
+      name: trimmed,
+      quantity: q,
+      unit,
+      createdAt: initial?.createdAt ?? now,
+      updatedAt: now,
+      ...(expiry.trim() !== "" ? { expiryDate: expiry.trim() } : {}),
+    };
+    try {
+      await repo.saveStockItem(item);
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku skladu" : "Nová položka skladu"}</h4>
+      <Field label="Názov (napr. mlieko)" value={name} type="text" onChange={setName} />
+      <Field label="Množstvo" value={quantity} step={0.01} onChange={setQuantity} />
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Jednotka
+        <select aria-label="Jednotka" value={unit} onChange={(e) => setUnit(e.target.value as StockUnit)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {STOCK_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+        </select>
+      </label>
+      <Field label="Dátum spotreby (RRRR-MM-DD, nepovinné)" value={expiry} type="text" onChange={setExpiry} />
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť položku</button>{" "}
+      <button onClick={onCancel} style={btn}>Zrušiť</button>
+    </div>
   );
 }
 
