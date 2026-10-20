@@ -22,9 +22,8 @@ import { autoSnapshot } from "../app/autoEvaluation";
 import { budgetStatus, spentInMonthCents } from "../domain/budget";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
+import { goalMonths, impactWithRentals, rentalsFor, type Rental } from "../domain/rentalGoal";
 import {
-  impactMonthsSplit,
-  monthsToTargetSplit,
   payFromCash,
   payFromInvestments,
   transferToInvestments,
@@ -72,6 +71,7 @@ interface Ctx {
   mCash: number;
   target: number | null;
   realReturn: number;
+  rentals: Rental[];
   longHorizon: boolean;
 }
 
@@ -84,7 +84,8 @@ function makeCtx(data: AppData): Ctx {
   const mInv = s?.savingInvCents ?? derived.inv;
   const mCash = s?.savingCashCents ?? derived.cash;
   const realReturn = netRealReturn(s?.realReturn ?? RETURN_ASSUMPTIONS.realReturn, s?.feesRate ?? 0);
-  const n = latest && target !== null ? monthsToTargetSplit(flags.capital, mInv, mCash, realReturn, target) : null;
+  const rentals = rentalsFor(data.properties);
+  const g = latest && target !== null ? goalMonths(flags.capital, mInv, mCash, realReturn, target, rentals) : null;
   return {
     settings: s,
     latest,
@@ -96,7 +97,8 @@ function makeCtx(data: AppData): Ctx {
     mCash,
     target,
     realReturn,
-    longHorizon: n !== null && n > LONG_HORIZON_MONTHS,
+    rentals,
+    longHorizon: g?.kind === "months" && g.months > LONG_HORIZON_MONTHS,
   };
 }
 
@@ -105,8 +107,9 @@ const pctText = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
 /** Dátum cieľa pre danú mieru výnosu (FR-02, FR-03). */
 function scenarioText(ctx: Ctx, rate: number, capital: Capital = ctx.capital): string {
   if (!ctx.latest || ctx.target === null) return "—";
-  const n = monthsToTargetSplit(capital, ctx.mInv, ctx.mCash, rate, ctx.target);
-  const display = goalDisplay(n, ctx.latest.date, todayIso());
+  const g = goalMonths(capital, ctx.mInv, ctx.mCash, rate, ctx.target, ctx.rentals);
+  if (g.kind === "cash_exhausted") return `Hotovosť by sa vyčerpala v mesiaci ${g.month}; dátum sa nezobrazuje.`;
+  const display = goalDisplay(g.kind === "months" ? g.months : null, ctx.latest.date, todayIso());
   return goalDateText(display, ctx.mInv + ctx.mCash === 0, monthYear);
 }
 
@@ -585,7 +588,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
   const today = todayIso();
   const pending =
     ctx.latest && ctx.target !== null && ctx.settings
-      ? impactMonthsSplit({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target)
+      ? impactWithRentals({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target, ctx.rentals)
       : null;
   return (
     <div>
@@ -703,7 +706,7 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
               {net < 0 && <span> (hypotéka presahuje odhad)</span>}
             </p>
             <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
-              {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Zatiaľ sa do K nepočíta; zobrazí sa zvlášť." : "Do K sa nepočíta; zobrazí sa zvlášť."}
+              {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta; zobrazí sa zvlášť."}
             </p>
             {confirmId === p.id ? (
               <div>
@@ -1811,7 +1814,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     if (!ctx.latest || ctx.target === null) return null;
     const c = check();
     if (c.after === null) return { blocked: true as const, message: c.message };
-    const d = impactMonthsSplit(base.capital, c.after, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target);
+    const d = impactWithRentals(base.capital, c.after, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target, ctx.rentals);
     return { blocked: false as const, impact: d, note: c.message, needsConfirm: !!c.needsConfirm };
   }, [type, source, amount, base, ctx]);
 
