@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
@@ -18,6 +18,7 @@ import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } 
 import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
+import { isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
 import { autoSnapshot } from "../app/autoEvaluation";
 import { budgetStatus, spentInMonthCents } from "../domain/budget";
@@ -270,6 +271,11 @@ export function App() {
           <InvestmentSection repo={repo} positions={data.investments} today={todayIso()} onSaved={reload} />
         </Section>
       )}
+      {section === "pravidelne-vydavky" && (
+        <Section id="pravidelne-vydavky" title="Pravidelné výdavky">
+          <RecurringSection repo={repo} items={data.recurringExpenses} today={todayIso()} onSaved={reload} />
+        </Section>
+      )}
       {section === "rocny-prehlad" && (
         <Section id="rocny-prehlad" title="Ročný prehľad">
           <RocnyPrehladSection data={data} ctx={ctx} />
@@ -513,7 +519,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
 }
 
 
-type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "rocny-prehlad" | "nastavenia" | "zaloha";
+type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "rocny-prehlad" | "nastavenia" | "zaloha";
 
 const NAV: { id: SectionId; label: string }[] = [
   { id: "prehlad", label: "Prehľad" },
@@ -524,6 +530,7 @@ const NAV: { id: SectionId; label: string }[] = [
   { id: "majetok", label: "Majetok" },
   { id: "zavazky", label: "Záväzky" },
   { id: "investicie", label: "Investície" },
+  { id: "pravidelne-vydavky", label: "Pravidelné výdavky" },
   { id: "rocny-prehlad", label: "Ročný prehľad" },
   { id: "nastavenia", label: "Nastavenia" },
   { id: "zaloha", label: "Záloha" },
@@ -1536,6 +1543,148 @@ function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Reposito
 }
 
 /** Rozpočet kategórií (D-106): mesačný limit a čo sa za aktuálny mesiac minulo. Prázdny limit = bez rozpočtu. */
+const RECURRING_FREQUENCY_LABEL: Record<RecurringFrequency, string> = {
+  mesacne: "mesačne",
+  rocne: "ročne",
+};
+
+/** Pravidelné výdavky (D-124): zoznam, súčet za mesiac a podľa kategórie. Iba zobrazenie. */
+function RecurringSection({ repo, items, today, onSaved }: { repo: Repository; items: RecurringExpense[]; today: string; onSaved: () => void }) {
+  const [editing, setEditing] = useState<RecurringExpense | "new" | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const total = monthlyRecurringTotalCents(items, today);
+  const byCat = monthlyRecurringByCategory(items, today);
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deleteRecurringExpense(id);
+      setConfirmId(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <section>
+      <p style={{ color: "#555" }}>Predplatné, poistky a paušály. Iba zobrazenie: nemenia Kapitál, dátum cieľa ani sporenie.</p>
+      <p>Spolu za mesiac: <strong>{eur(total)}</strong></p>
+      {Object.keys(byCat).length > 0 && (
+        <ul style={{ paddingLeft: 20 }}>
+          {Object.entries(byCat).map(([c, v]) => <li key={c}>{c}: {eur(v ?? 0)}</li>)}
+        </ul>
+      )}
+      {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané pravidelné výdavky.</p>}
+      {items.map((e) => (
+        <div key={e.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <p style={{ margin: 0 }}><strong>{e.name}</strong> · {e.category}</p>
+          <p style={{ margin: "4px 0" }}>
+            {eur(e.amountCents)} {RECURRING_FREQUENCY_LABEL[e.frequency]}
+            {e.frequency === "rocne" ? ` (≈ ${eur(monthlyShareCents(e))} mesačne)` : ""}
+          </p>
+          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+            Od {e.startDate}{e.endDate ? `, do ${e.endDate}` : ""}{isRecurringActive(e, today) ? "" : " · dnes neplatí"}
+          </p>
+          {confirmId === e.id ? (
+            <div>
+              <p>Naozaj zmazať pravidelný výdavok „{e.name}“?</p>
+              <button onClick={() => remove(e.id)} style={btn}>Zmazať</button>{" "}
+              <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+            </div>
+          ) : (
+            <>
+              <button onClick={() => setEditing(e)} style={btn}>Upraviť</button>{" "}
+              <button onClick={() => setConfirmId(e.id)} style={btn}>Zmazať</button>
+            </>
+          )}
+        </div>
+      ))}
+      {editing ? (
+        <RecurringForm
+          repo={repo}
+          initial={editing === "new" ? null : editing}
+          today={today}
+          onDone={() => { setEditing(null); onSaved(); }}
+          onCancel={() => setEditing(null)}
+        />
+      ) : (
+        <button onClick={() => setEditing("new")} style={btn}>Pridať pravidelný výdavok</button>
+      )}
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+    </section>
+  );
+}
+
+function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: RecurringExpense | null; today: string; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [category, setCategory] = useState<BudgetCategory>(initial?.category ?? "predplatné a služby");
+  const [frequency, setFrequency] = useState<RecurringFrequency>(initial?.frequency ?? "mesacne");
+  const [amount, setAmount] = useState<NumIn>(initial ? initial.amountCents / 100 : "");
+  const [startDate, setStartDate] = useState(initial?.startDate ?? today);
+  const [endDate, setEndDate] = useState(initial?.endDate ?? "");
+  const [err, setErr] = useState<string | null>(null);
+
+  const save = async () => {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return setErr("Vyplň názov.");
+    if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
+    const a = asNum(amount);
+    if (Number.isNaN(a) || !(a > 0)) return setErr("Vyplň sumu (väčšiu ako 0).");
+    const startErr = checkDate(startDate, "9999-12-31", "začiatok");
+    if (startErr.length) return setErr(startErr[0]);
+    if (endDate.trim() !== "") {
+      const endErr = checkDate(endDate.trim(), "9999-12-31", "koniec");
+      if (endErr.length) return setErr(endErr[0]);
+      if (endDate.trim() < startDate) return setErr("Koniec nesmie byť pred začiatkom.");
+    }
+    const now = new Date().toISOString();
+    const item: RecurringExpense = {
+      id: initial?.id ?? uid(),
+      name: trimmed,
+      category,
+      frequency,
+      amountCents: cents(a),
+      startDate,
+      createdAt: initial?.createdAt ?? now,
+      updatedAt: now,
+      ...(endDate.trim() !== "" ? { endDate: endDate.trim() } : {}),
+    };
+    try {
+      await repo.saveRecurringExpense(item);
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť pravidelný výdavok" : "Nový pravidelný výdavok"}</h4>
+      <Field label="Názov (napr. predplatné)" value={name} type="text" onChange={setName} />
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Kategória
+        <select aria-label="Kategória pravidelného výdavku" value={category} onChange={(e) => setCategory(e.target.value as BudgetCategory)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {BUDGET_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </label>
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Frekvencia
+        <select aria-label="Frekvencia pravidelného výdavku" value={frequency} onChange={(e) => setFrequency(e.target.value as RecurringFrequency)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {RECURRING_FREQUENCIES.map((f) => <option key={f} value={f}>{RECURRING_FREQUENCY_LABEL[f]}</option>)}
+        </select>
+      </label>
+      <Field label={frequency === "mesacne" ? "Suma mesačne (€)" : "Suma ročne (€)"} value={amount} onChange={setAmount} />
+      <Field label="Od (RRRR-MM-DD)" value={startDate} type="text" onChange={setStartDate} />
+      <Field label="Do (RRRR-MM-DD, nepovinné)" value={endDate} type="text" onChange={setEndDate} hint="bez hodnoty trvá" />
+      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť výdavok</button>{" "}
+      <button onClick={onCancel} style={btn}>Zrušiť</button>
+    </div>
+  );
+}
+
 function BudgetSection({ repo, budgets, transactions, today, onSaved }: { repo: Repository; budgets: Budget[]; transactions: Transaction[]; today: string; onSaved: () => void }) {
   const [limits, setLimits] = useState<Record<string, NumIn>>(() =>
     Object.fromEntries(BUDGET_CATEGORIES.map((c) => {

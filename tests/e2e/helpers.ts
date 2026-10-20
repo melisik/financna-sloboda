@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-export type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "rocny-prehlad" | "nastavenia" | "zaloha";
+export type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "rocny-prehlad" | "nastavenia" | "zaloha";
 
 /** Prepne na sekciu kliknutím v hornom paneli (zobrazí sa len táto sekcia, D-099). */
 export async function goTo(page: Page, id: SectionId) {

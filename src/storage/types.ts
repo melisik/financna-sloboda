@@ -145,6 +145,22 @@ export interface RegularIncome {
   updatedAt: string; // ISO
 }
 
+export const RECURRING_FREQUENCIES = ["mesacne", "rocne"] as const;
+export type RecurringFrequency = (typeof RECURRING_FREQUENCIES)[number];
+
+/** Pravidelný výdavok (D-124): predplatné, poistka, paušál. Iba zobrazenie; nemení K ani sporenie. */
+export interface RecurringExpense {
+  id: string;
+  name: string; // max 80 znakov
+  category: BudgetCategory;
+  frequency: RecurringFrequency;
+  amountCents: number; // kladná suma za jeden výskyt (mesiac alebo rok)
+  startDate: string; // YYYY-MM-DD
+  endDate?: string; // YYYY-MM-DD, bez hodnoty trvá
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   settings: Settings | null;
   transactions: Transaction[];
@@ -155,10 +171,11 @@ export interface AppData {
   liabilities: Liability[];
   incomes: RegularIncome[];
   budgets: Budget[];
+  recurringExpenses: RecurringExpense[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */
 export const APP_NAME = "financna-sloboda";
-export const SCHEMA_VERSION = 2; // v2 pridáva properties (FR-28)
+export const SCHEMA_VERSION = 3; // v2 pridáva properties (FR-28); v3 pravidelné výdavky (D-124)
 /** Verzie schémy, ktoré import prijme; verzia 1 nemá majetok (načíta sa prázdny zoznam). */
-export const READABLE_SCHEMA_VERSIONS = [1, 2] as const;
+export const READABLE_SCHEMA_VERSIONS = [1, 2, 3] as const;

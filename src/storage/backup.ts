@@ -15,6 +15,7 @@ export function buildBackup(data: AppData, exportedAt: string) {
     investments: data.investments,
     liabilities: data.liabilities,
     incomes: data.incomes,
+    recurringExpenses: data.recurringExpenses,
     budgets: data.budgets,
   };
 }
@@ -34,7 +35,9 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
   // Obalové polia overené vyššie; validácia obsahu vidí len nastavenia, transakcie a vyhodnotenia.
   const { app: _app, schemaVersion: _schema, exportedAt: _exp, ...content } = o;
   // Verzia 1 nemá majetok: načíta sa prázdny zoznam, dáta sa nestratia (FR-28).
-  const v = validateAppData(o.schemaVersion === 1 ? { ...content, properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [] } : content, today);
+  const base = o.schemaVersion === 1 ? { ...content, properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [] } : content;
+  // Verzie 1 a 2 nemajú pravidelné výdavky: načíta sa prázdny zoznam (D-124).
+  const v = validateAppData(o.schemaVersion < 3 ? { recurringExpenses: [], ...base } : base, today);
   if (!v.ok) return v;
   return { ok: true, data: v.data, counts: { transactions: v.data!.transactions.length, snapshots: v.data!.snapshots.length } };
 }
