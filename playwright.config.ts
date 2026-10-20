@@ -5,7 +5,8 @@ export default defineConfig({
   testMatch: "**/*.spec.ts",
   use: { baseURL: "http://localhost:4173", trace: "off" },
   webServer: {
-    command: "npx vite build && npx vite preview --port 4173 --strictPort",
+    // Testy používajú zostavu s Fázou 2 do dist-test; dist (verejná zostava) ostáva bez Fázy 2 (D-125).
+    command: "VITE_PHASE2=1 npx vite build --outDir dist-test && npx vite preview --outDir dist-test --port 4173 --strictPort",
     url: "http://localhost:4173",
     reuseExistingServer: true,
     timeout: 120_000,

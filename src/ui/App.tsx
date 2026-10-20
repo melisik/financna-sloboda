@@ -20,6 +20,7 @@ import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
+import { PHASE2_ENABLED, visibleSections } from "../app/features";
 import { daysUntil, expiringItems, stockStatus } from "../domain/stock";
 import { findExpiryDate, findProductName } from "../domain/scan";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
@@ -554,7 +555,7 @@ const NAV: { id: SectionId; label: string }[] = [
 /** Sekcia z kotvy v adrese; bez platnej kotvy ide na Prehľad. */
 function sectionFromHash(): SectionId {
   const id = window.location.hash.slice(1);
-  return NAV.some((n) => n.id === id) ? (id as SectionId) : "prehlad";
+  return NAV_VISIBLE.some((n) => n.id === id) ? (id as SectionId) : "prehlad";
 }
 
 /** Zobrazí sa len jedna sekcia; zmena kotvy (odkaz v paneli) ju prepne. */
@@ -574,11 +575,13 @@ function useSection(): SectionId {
 /** Horný panel s odkazmi na sekcie (D-095, D-099). Dotyková plocha aspoň 44 px. */
 /** Sekcie v hornom paneli; ostatné sú v ponuke „Viac“ (rozhodnutie zakladateľa, navigácia sa môže meniť). */
 const PRIMARY_NAV: SectionId[] = ["prehlad", "nova-transakcia", "vyhodnotenie", "majetok", "nastavenia", "zaloha"];
+/** Navigácia podľa prepínača Fázy 2 (D-125); verejná zostava ponúka len MVP. */
+const NAV_VISIBLE = visibleSections(NAV, PHASE2_ENABLED);
 
 function Nav({ active }: { active: SectionId }) {
   const [more, setMore] = useState(false);
-  const primary = NAV.filter((n) => PRIMARY_NAV.includes(n.id));
-  const secondary = NAV.filter((n) => !PRIMARY_NAV.includes(n.id));
+  const primary = NAV_VISIBLE.filter((n) => PRIMARY_NAV.includes(n.id));
+  const secondary = NAV_VISIBLE.filter((n) => !PRIMARY_NAV.includes(n.id));
   const moreActive = secondary.some((n) => n.id === active);
   return (
     <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 1, borderBottom: "1px solid #ddd" }}>
@@ -593,6 +596,7 @@ function Nav({ active }: { active: SectionId }) {
           {n.label}
         </a>
       ))}
+      {secondary.length > 0 && (
       <button
         type="button"
         aria-expanded={more}
@@ -602,8 +606,9 @@ function Nav({ active }: { active: SectionId }) {
       >
         Viac ▾
       </button>
+      )}
     </nav>
-    {more && (
+    {more && secondary.length > 0 && (
       <div id="nav-viac" aria-label="Ďalšie sekcie" style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 0", background: "#fff", borderBottom: "1px solid #ddd" }}>
         {secondary.map((n) => (
           <a

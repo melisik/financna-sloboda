@@ -86,9 +86,13 @@ Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnos
 - A2: `i_h` sa odvodí z nominálnej sadzby hypotéky a inflácie `π = 2 %` (D-063, zdroj treba overiť).
 - A3: úrok je súčasťou `P`; delenie na úrok a istinu je v `Z(k)` cez `i_h` (D-085).
 
-**Golden cases (kandidáti, neimplementované):**
-- **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 2 %`, `P = 1 000`, `N = 1 200`. Očakávané `n ≈ 257,2` mesiaca (≈ 21 rokov a 5 mesiacov), dátum = D_L + 258 mesiacov.
-- **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. Hotovosť dosiahne 0 v mesiaci 25; v mesiaci 26 by klesla pod 0, preto sa výpočet zastaví s hlásením „nedostatok hotovosti v mesiaci 26“.
+**Golden cases (overené nezávislým výpočtom 2026-10-20; v kóde neimplementované):**
+- **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 2 %`, `P = 1 000`, `N = 1 200`. Výsledok: `i_h ≈ 0,0813 %` mesačne, `n ≈ 257,25` mesiaca (≈ 21 rokov a 5 mesiacov), dátum = D_L + 258 mesiacov (zaokrúhlenie hore podľa FR-02).
+- **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. `K_cash(k) = 10 000 − 400·k`: hotovosť je 0 v mesiaci 25; v mesiaci 26 je −400, preto sa výpočet zastaví s hlásením „nedostatok hotovosti v mesiaci 26“ (bez dátumu; K_L v tom čase ≈ 229 000 €, cieľ sa nedosiahol).
+- **GC-P2-03 (vlastné bývanie nevplýva na K, D-093):** `K_inv = 100 000`, `m_inv = 500`, `r = 3,5 %`, `T = 600 000`, plus nehnuteľnosť v režime „vlastné bývanie“ s hodnotami z GC-P2-01 (`V = 300 000`, `Z0 = 200 000`, `P = 1 000`, `N = 1 200`). Výsledok musí byť rovnaký ako bez nehnuteľnosti: `n ≈ 362,10` mesiaca (rovnaké ako regresný príklad vyššie).
+- **GC-P2-04 (splátka nepokrýva úrok):** ako GC-P2-01, ale `P = 100`. Úrok za mesiac je ≈ 162,7 €, takže zostatok hypotéky rastie a `K_cash(k) = 1 100·k`. Výsledok: `n ≈ 273,08` mesiaca. Zostatok hypotéky pri cieli ≈ 219 000 € (rast od 200 000 €); tento prípad musí zobraziť upozornenie (FR-22).
+
+**Stav kódu (2026-10-20):** FR-02a je implementovaný na vetve `claude/phase2-property-card` (`src/domain/rentalGoal.ts`), nie na `main`. Do K vstupuje len prenájom (D-093). GC-P2-01 až GC-P2-04 a regresia FR-02 sú overené jednotkovými testami (`tests/rentalGoal.test.ts`). Predpoklady, ktoré treba overiť: ostatné náklady znižujú čistý nájom `N`; inflácia π = 2 % (A2). E2E test prenájmu zatiaľ kontroluje len text v Majetku, nie dátum cieľa.
 
 **Rozhodnuté (D-093):** vlastné bývanie sa do K nepočíta a zobrazí sa zvlášť. Hodnota bytu, v ktorom používateľ býva, nezvyšuje K_nem.
 
@@ -105,7 +109,7 @@ Pre každú transakciu po poslednom vyhodnotení sa počíta pracovný kapitál:
 
 `K_pred = max(0; K_L + Σ(sporenie po D_L) + Σ(investícia z príjmu po D_L) + Σ(výbery z rezervy po D_L) − Σ(vklady do rezervy po D_L) − Σ(výdavky „z kapitálu“ po D_L))`. Presun z hotovosti do investícií (investícia „z hotovosti“) K nemení. Stav rezervy nie je v K (D-017, D-058); vklad do rezervy K zníži, výber ho zvýši (D-060).
 
-„Po K_L“ znamená transakcie s **dátumom po D_L** (dátum posledného vyhodnotenia), nie podľa času zadania. Transakcia zadaná neskôr s dátumom pred D_L je už v K_L a nepridáva sa znovu (FR-05).
+„Po K_L“ znamená transakcie s **dátumom po D_L** (dátum posledného vyhodnotenia), alebo s dátumom D_L zadané **po uložení vyhodnotenia** (D-121). Transakcia zadaná neskôr s dátumom pred D_L je už v K_L a nepridáva sa znovu (FR-05).
 
 Dopad = n(K_L) − n(K_pred) (surový rozdiel, nie rozdiel zaokrúhlených dátumov; N1). Ak |dopad| ≥ 1 mesiac, zobrazí sa zaokrúhlene na najbližší celý mesiac (D-014, napr. „predbežne +2 mesiace“). Ak |dopad| < 1 mesiac, zobrazí sa v dňoch (1 mesiac = 30,44 dňa) (napr. „predbežne +4 dni“), aby drobné transakcie (napr. 100 €, cca 0,12 mesiaca) nevyšli ako „bez zmeny“ (M1). Obe n sa počítajú od D_L, takže dopad nezávisí od dnešného dátumu (D-024). Kladné číslo = cieľ bližšie, záporné = ďalej.
 - Výsledok sa zobrazí ako krátky text (D-014), napr. „predbežne +2 mesiace“.
@@ -119,8 +123,8 @@ Dopad = n(K_L) − n(K_pred) (surový rozdiel, nie rozdiel zaokrúhlených dátu
 ### FR-05 – Mesačné vyhodnotenie
 Vstupy: dátum, hodnota investícií, nasporená suma (kumulatívny stav hotovosti, D-033; UR-11). Výsledok: nový snapshot K_L = hodnota investícií + nasporená suma, prepočet cieľa a dátumov, zobrazenie „Posledné vyhodnotenie: dátum“.
 
-- Transakcie s dátumom ≤ dátum vyhodnotenia sú už zahrnuté v zadaných hodnotách a **nepridávajú sa znovu**.
-- Transakcie po dátume vyhodnotenia tvoria nový predbežný dopad (FR-04).
+- Transakcie zadané pred uložením vyhodnotenia s dátumom pred dátumom vyhodnotenia sú už zahrnuté v zadaných hodnotách a **nepridávajú sa znovu** (D-123). Transakcia zadaná až po uložení vyhodnotenia sa počíta do K aj vtedy, ak má dátum pred vyhodnotením (zabudnutý výdavok, D-123).
+- Transakcie s dátumom po dátume vyhodnotenia, alebo s rovnakým dátumom zadané po uložení vyhodnotenia, tvoria nový predbežný dopad (FR-04) a do K sa počítajú (D-121).
 - Prepis predchádzajúceho vyhodnotenia je možný len s potvrdením; história snapshotov sa zachováva.
 
 ### FR-06 – Zaokrúhľovanie a formát
