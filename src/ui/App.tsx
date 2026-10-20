@@ -758,6 +758,20 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
   const [err, setErr] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [delErr, setDelErr] = useState<string | null>(null);
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deleteSnapshot(id);
+      setDeleteId(null);
+      setDelErr(null);
+      onSaved();
+    } catch {
+      setDelErr(STORAGE_ERROR);
+    }
+  };
+
   const write = async (existingId: string | undefined) => {
     try {
       await repo.addSnapshot({
@@ -805,6 +819,25 @@ function SnapshotSection({ repo, latest, capital, snapshots, onSaved }: { repo: 
         </div>
       )}
       <button onClick={save} style={btn}>Uložiť vyhodnotenie</button>
+
+      <h3 style={{ fontSize: "1rem", marginTop: 24 }}>Uložené vyhodnotenia</h3>
+      {snapshots.length === 0 && <p>Zatiaľ nie sú uložené vyhodnotenia.</p>}
+      {[...snapshots].sort((a, b) => b.date.localeCompare(a.date)).map((s) => (
+        <div key={s.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <p style={{ margin: 0 }}><strong>{s.date}</strong></p>
+          <p style={{ margin: "4px 0" }}>K: {eur(s.investmentsCents + s.cashCents)}</p>
+          {deleteId === s.id ? (
+            <div>
+              <p>Naozaj zmazať vyhodnotenie z {s.date}? Ak chceš mať kópiu, najprv stiahni zálohu v sekcii Záloha.</p>
+              <button onClick={() => remove(s.id)} style={btn}>Zmazať vyhodnotenie</button>{" "}
+              <button onClick={() => setDeleteId(null)} style={btn}>Zrušiť</button>
+            </div>
+          ) : (
+            <button onClick={() => setDeleteId(s.id)} style={btn}>Zmazať</button>
+          )}
+        </div>
+      ))}
+      {delErr && <p style={{ color: "#8a0000" }}>{delErr}</p>}
     </section>
   );
 }

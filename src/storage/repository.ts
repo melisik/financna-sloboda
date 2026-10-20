@@ -6,6 +6,7 @@ export interface Repository {
   addTransaction(t: Transaction): Promise<void>;
   deleteTransaction(id: string): Promise<void>;
   addSnapshot(s: Snapshot): Promise<void>;
+  deleteSnapshot(id: string): Promise<void>;
   saveSettings(s: Settings): Promise<void>;
   /** Nahradí všetky dáta v jednej transakcii; pri chybe zostanú pôvodné dáta (FR-18, D-018). */
   replaceAll(data: AppData): Promise<void>;
