@@ -21,6 +21,7 @@ import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/
 import { isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
 import { daysUntil, expiringItems, stockStatus } from "../domain/stock";
+import { findExpiryDate, findProductName } from "../domain/scan";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
 import { autoSnapshot } from "../app/autoEvaluation";
 import { budgetStatus, spentInMonthCents } from "../domain/budget";
@@ -1810,6 +1811,25 @@ function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repositor
   const [unit, setUnit] = useState<StockUnit>(initial?.unit ?? "ks");
   const [expiry, setExpiry] = useState(initial ? initial.expiryDate ?? "" : today);
   const [err, setErr] = useState<string | null>(null);
+  const [scanMsg, setScanMsg] = useState<string | null>(null);
+
+  // Skener: fotka obalu, offline rozpoznanie; názov a dátum sa len navrhnú, potvrdí ich používateľ.
+  const onPhoto = async (file: File) => {
+    setScanMsg("Rozpoznávam text z fotky…");
+    try {
+      const { recognizeImage } = await import("../app/ocr");
+      const text = await recognizeImage(file);
+      const date = findExpiryDate(text);
+      const product = findProductName(text);
+      if (product && name.trim() === "") setName(product);
+      if (date) setExpiry(date);
+      setScanMsg(date || product
+        ? `Navrhnuté: ${product ?? "názov nenájdený"}, dátum spotreby ${date ?? "nenájdený"}. Skontrolujte údaje a množstvo doplňte ručne.`
+        : "Text sa nepodarilo rozpoznať. Zadajte údaje ručne.");
+    } catch {
+      setScanMsg("Skener sa nepodarilo spustiť. Zadajte údaje ručne.");
+    }
+  };
 
   const save = async () => {
     const trimmed = name.trim();
@@ -1842,6 +1862,11 @@ function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repositor
   return (
     <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku skladu" : "Nová položka skladu"}</h4>
+      <label style={{ display: "block", margin: "8px 0" }}>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>Fotka obalu (navrhne názov a dátum spotreby)</span>
+        <input type="file" accept="image/*" capture="environment" aria-label="Fotka obalu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); }} />
+      </label>
+      {scanMsg && <p style={{ color: "#555", fontSize: "0.9rem" }}>{scanMsg}</p>}
       <Field label="Názov (napr. mlieko)" value={name} type="text" onChange={setName} />
       <Field label="Množstvo" value={quantity} step={0.01} onChange={setQuantity} />
       <label style={{ display: "block", marginBottom: 8 }}>

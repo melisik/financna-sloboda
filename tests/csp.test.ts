@@ -11,8 +11,8 @@ describe("Content Security Policy (R17, 05 §7)", () => {
   it("meta tag CSP existuje", () => {
     expect(csp).not.toBe("");
   });
-  it("script-src neobsahuje unsafe-inline ani unsafe-eval", () => {
-    expect(scriptSrc).toBe("script-src 'self'");
+  it("script-src neobsahuje unsafe-inline ani unsafe-eval; povolený je len wasm (OCR skenera, offline)", () => {
+    expect(scriptSrc).toBe("script-src 'self' 'wasm-unsafe-eval'");
   });
   it("default-src je len 'self'", () => {
     expect(csp).toMatch(/default-src 'self'/);
