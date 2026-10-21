@@ -293,7 +293,7 @@ export function App() {
       )}
       {section === "prijmy" && (
         <Section id="prijmy" title="Príjmy">
-          <IncomeSection repo={repo} incomes={data.incomes} today={todayIso()} onSaved={reload} />
+          <IncomeSection repo={repo} incomes={data.incomes} data={data} today={todayIso()} onSaved={reload} />
         </Section>
       )}
       {section === "zavazky" && (
@@ -823,6 +823,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
 function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; today: string; thresholdCents: number }) {
   const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents, data.properties);
   const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
+  const income = monthlyIncomeCents(data.incomes, today);
   const ending = data.recurringExpenses.filter((e) => endingSoon(e, today));
   const over = s.percent !== null && s.percent > 100;
   return (
@@ -836,6 +837,11 @@ function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; to
         <p style={{ margin: "4px 0", color: "var(--muted)" }}>
           {PHASE2_ENABLED && <>Mesačný plán nie je nastavený. Limity nastavíš v <a href="#rozpocet">Rozpočte</a>. </>}
           Minuté tento mesiac: {eur(spent)}.
+        </p>
+      )}
+      {PHASE2_ENABLED && (
+        <p style={{ margin: "4px 0" }}>
+          Príjem: <strong>{eur(income)}</strong> · rozdiel: <strong>{income - spent >= 0 ? "+" : "−"}{eur(Math.abs(income - spent))}</strong>
         </p>
       )}
       <details>
@@ -1512,7 +1518,25 @@ const INCOME_FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
 };
 
 /** Pravidelné príjmy (D-102): len zobrazenie. Sporenie m sa mení až podľa zostatku pri vyhodnotení. */
-function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; incomes: RegularIncome[]; today: string; onSaved: () => void }) {
+/** Príjem a minuté tento mesiac: rozdiel ukazuje, kam ide mzda. Nájom je v bývaní (D-137), nie v príjmoch. */
+function IncomeBalance({ income, data, today }: { income: number; data: AppData; today: string }) {
+  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, 0, data.properties);
+  const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
+  const diff = income - spent;
+  return (
+    <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 12, background: "var(--surface)" }}>
+      <p style={{ margin: "4px 0" }}>Mesačný príjem: <strong>{eur(income)}</strong> · minuté tento mesiac: <strong>{eur(spent)}</strong></p>
+      <p style={{ margin: "4px 0" }}>Rozdiel: <strong>{diff >= 0 ? "+" : "−"}{eur(Math.abs(diff))}</strong></p>
+      {income === 0 && spent > 0 && (
+        <p style={{ margin: "8px 0 0", background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+          Nie je zadaný žiadny platný pravidelný príjem. Rozdiel nie je správny, kým ho nepridáš.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: Repository; incomes: RegularIncome[]; data: AppData; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<RegularIncome | "new" | null>(null);
   const [pendingFeed, setPendingFeed] = useState<ParsedFeed | null>(null);
   const [feedErr, setFeedErr] = useState<string | null>(null);
@@ -1583,9 +1607,7 @@ function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; in
         )}
       </div>
       {incomes.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny pravidelný príjem.</p>}
-      {incomes.length > 0 && (
-        <p style={{ fontSize: "1.05rem" }}>Platné pravidelné príjmy za mesiac: <strong>{eur(monthlyIncomeCents(incomes, today))}</strong></p>
-      )}
+      <IncomeBalance income={monthlyIncomeCents(incomes, today)} data={data} today={today} />
       {irregularIncomes(incomes).length > 0 && (
         <p style={{ color: "var(--muted)" }}>Nepravidelné príjmy (do mesačného súčtu sa nerátajú): {eur(irregularIncomes(incomes).reduce((sum, i) => sum + i.amountCents, 0))}</p>
       )}
@@ -1607,7 +1629,7 @@ function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; in
             </p>
             {confirmId === i.id ? (
               <div>
-                <p>Naozaj zmazať tento príjem?</p>
+                <p>Naozaj zmazať príjem „{i.name}“?</p>
                 <button onClick={() => remove(i.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
                 <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
               </div>
