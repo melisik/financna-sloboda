@@ -1,4 +1,4 @@
-import type { Snapshot } from "../storage/types";
+import type { Snapshot, Transaction } from "../storage/types";
 import { goalMonths } from "./rentalGoal";
 import { goalDisplay, type GoalDisplay } from "./goalDisplay";
 
@@ -20,6 +20,32 @@ export interface OverviewRow {
   deltaTotalCents: number | null; // zmena K oproti predchádzajúcemu riadku
   goal: GoalDisplay | null; // null, ak nie sú Nastavenia
   deltaGoalMonths: number | null; // zmena dátumu cieľa v mesiacoch, + = neskôr
+  // Rozpis zmeny K od predchádzajúceho vyhodnotenia (null pri prvom riadku). Výnos a ostatné je zvyšok.
+  sporenieCents: number | null;
+  vydavkyCents: number | null; // výdavky z hotovosti alebo z investícií (z príjmu nemenia K)
+  ostatneCents: number | null; // zvyšok: výnos a trhové zmeny
+}
+
+/** Ročný súhrn (docs/13, oddiel 4): K na konci roka, zmena za rok, sporenie, výdavky a najväčšia kategória. */
+export interface YearSummary {
+  year: number;
+  endK: number | null; // K z posledného vyhodnotenia v roku
+  deltaK: number | null; // zmena oproti poslednému vyhodnoteniu pred rokom
+  sporenieCents: number;
+  vydavkyCents: number;
+  topCategory: { name: string; cents: number } | null;
+}
+
+/** Sporenie a výdavky, ktoré menia K, v období (od, do]. Nulové pole sa počíta len z dátumov. */
+export function flowsBetween(transactions: Transaction[], fromExclusive: string, toInclusive: string) {
+  let sporenie = 0;
+  let vydavky = 0;
+  for (const t of transactions) {
+    if (t.date <= fromExclusive || t.date > toInclusive) continue;
+    if (t.type === "sporenie") sporenie += t.amountCents;
+    if (t.type === "vydavok" && (t.source === "z_hotovosti" || t.source === "z_investicii")) vydavky += t.amountCents;
+  }
+  return { sporenie, vydavky };
 }
 
 /** Mesiac v čase ako celé číslo (rok · 12 + mesiac) na porovnanie dátumov cieľa. */
@@ -32,10 +58,11 @@ function monthIndex(iso: string): number {
  * Ročný prehľad (docs/13, oddiel 4): riadky od najstaršieho vyhodnotenia.
  * Dátum cieľa sa počíta z uloženého K a z aktuálnych Nastavení, bez nehnuteľností.
  */
-export function annualOverview(snapshots: Snapshot[], s: OverviewSettings | null): OverviewRow[] {
+export function annualOverview(snapshots: Snapshot[], s: OverviewSettings | null, transactions: Transaction[] = []): OverviewRow[] {
   const sorted = [...snapshots].sort((a, b) => a.date.localeCompare(b.date));
   const rows: OverviewRow[] = [];
   let prevTotal: number | null = null;
+  let prevDate: string | null = null;
   let prevGoalIdx: number | null = null;
 
   for (const snap of sorted) {
@@ -48,18 +75,59 @@ export function annualOverview(snapshots: Snapshot[], s: OverviewSettings | null
       goal = goalDisplay(months, snap.date, snap.date);
       if (goal.kind === "date" || goal.kind === "reached") goalIdx = monthIndex(goal.date);
     }
+    const deltaTotalCents = prevTotal === null ? null : totalCents - prevTotal;
+    const flows = prevDate === null ? null : flowsBetween(transactions, prevDate, snap.date);
     rows.push({
       date: snap.date,
       auto: snap.auto ?? false,
       invCents: snap.investmentsCents,
       cashCents: snap.cashCents,
       totalCents,
-      deltaTotalCents: prevTotal === null ? null : totalCents - prevTotal,
+      deltaTotalCents,
       goal,
       deltaGoalMonths: prevGoalIdx !== null && goalIdx !== null ? goalIdx - prevGoalIdx : null,
+      sporenieCents: flows && deltaTotalCents !== null ? flows.sporenie : null,
+      vydavkyCents: flows && deltaTotalCents !== null ? flows.vydavky : null,
+      ostatneCents: flows && deltaTotalCents !== null ? deltaTotalCents - flows.sporenie + flows.vydavky : null,
     });
     prevTotal = totalCents;
+    prevDate = snap.date;
     prevGoalIdx = goalIdx;
   }
   return rows;
+}
+
+/** Ročné súhrny od najstaršieho roka; roky z vyhodnotení aj z transakcií. */
+export function yearlySummary(snapshots: Snapshot[], transactions: Transaction[]): YearSummary[] {
+  const yearOf = (iso: string) => Number(iso.slice(0, 4));
+  const years = [...new Set([...snapshots.map((x) => yearOf(x.date)), ...transactions.map((x) => yearOf(x.date))])].sort((a, b) => a - b);
+  const sortedSnaps = [...snapshots].sort((a, b) => a.date.localeCompare(b.date));
+  return years.map((year) => {
+    const inYear = sortedSnaps.filter((x) => yearOf(x.date) === year);
+    const last = inYear[inYear.length - 1];
+    const before = sortedSnaps.filter((x) => yearOf(x.date) < year);
+    const prev = before[before.length - 1];
+    const endK = last ? last.investmentsCents + last.cashCents : null;
+    const prevK = prev ? prev.investmentsCents + prev.cashCents : null;
+
+    const txs = transactions.filter((t) => yearOf(t.date) === year);
+    const sporenie = txs.filter((t) => t.type === "sporenie").reduce((sum, t) => sum + t.amountCents, 0);
+    const expenses = txs.filter((t) => t.type === "vydavok");
+    const vydavky = expenses.reduce((sum, t) => sum + t.amountCents, 0);
+    const byCat: Record<string, number> = {};
+    for (const t of expenses) {
+      const key = t.category ?? "nezaradené";
+      byCat[key] = (byCat[key] ?? 0) + t.amountCents;
+    }
+    const top = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
+
+    return {
+      year,
+      endK,
+      deltaK: endK !== null && prevK !== null ? endK - prevK : null,
+      sporenieCents: sporenie,
+      vydavkyCents: vydavky,
+      topCategory: top ? { name: top[0], cents: top[1] } : null,
+    };
+  });
 }
