@@ -137,6 +137,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [lastExport, setLastExport] = useState<string | null>(null);
   const [settingsFlash, setSettingsFlash] = useState<string | null>(null);
+  const [budgetFlash, setBudgetFlash] = useState<string | null>(null);
   // Lokálny PIN (D-119): pinSet = PIN je zapnutý; locked = appka čaká na odomknutie.
   const [pinSet, setPinSet] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -272,7 +273,8 @@ export function App() {
       )}
       {section === "rozpocet" && (
         <Section id="rozpocet" title="Rozpočet">
-          <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} recurring={data.recurringExpenses} today={todayIso()} onSaved={reload} />
+          {budgetFlash && <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, color: "var(--ok)" }}>{budgetFlash}</p>}
+          <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} recurring={data.recurringExpenses} today={todayIso()} onSaved={() => { reload(); setBudgetFlash("Rozpočet je uložený."); }} />
         </Section>
       )}
       {section === "prijmy" && (
@@ -2135,6 +2137,7 @@ function BudgetSection({ repo, budgets, transactions, recurring, today, onSaved 
   );
   const [err, setErr] = useState<string | null>(null);
   const unassigned = spentInMonthCents(transactions, null, today);
+  const plan = monthSummary(transactions, budgets, recurring, today, 0);
 
   const save = async () => {
     try {
@@ -2160,8 +2163,15 @@ function BudgetSection({ repo, budgets, transactions, recurring, today, onSaved 
   return (
     <section>
       <p style={{ color: "var(--muted)" }}>
-        Mesačný limit pre kategóriu. Čo je v kategórii zaradené, vidíš v zázname výdavku. Prázdny limit znamená bez rozpočtu. Zoznam kategórií je návrh.
+        Mesačný limit pre kategóriu. Rozpočet je plán, nie povinnosť: vyplň len kategórie, ktoré chceš sledovať. Prázdny limit znamená bez rozpočtu. Zoznam kategórií je návrh.
       </p>
+      {budgets.length === 0 && <p>Zatiaľ nie je nastavený žiadny limit.</p>}
+      {plan.planCents > 0 && (
+        <p>
+          <strong>Plán spolu: {eur(plan.planCents)}</strong> · minuté v kategóriách s limitom: {eur(plan.plannedSpentCents)}
+          {plan.percent !== null ? ` (${plan.percent} %)` : ""}
+        </p>
+      )}
       {BUDGET_CATEGORIES.map((c) => {
         const b = budgets.find((x) => x.category === c);
         // Pravidelné výdavky (D-124) sa rátajú do minutého za mesiac spolu s transakciami v kategórii.
@@ -2169,17 +2179,19 @@ function BudgetSection({ repo, budgets, transactions, recurring, today, onSaved 
         const spent = spentInMonthCents(transactions, c, today) + rec;
         const st = budgetStatus(b, spent);
         const recText = rec > 0 ? ` (z toho pravidelné ${eur(rec)})` : "";
-        const hint = st
-          ? `minuté tento mesiac ${eur(spent)}${recText}; ${st.over ? `prekročené o ${eur(st.remainingCents)}` : `zostáva ${eur(st.remainingCents)}`}`
+        const hint = st && !st.over
+          ? `minuté tento mesiac ${eur(spent)}${recText}; zostáva ${eur(st.remainingCents)}`
           : `minuté tento mesiac ${eur(spent)}${recText}`;
         return (
-          <Field
-            key={c}
-            label={`${c}: limit (€)`}
-            value={limits[c] ?? ""}
-            onChange={(v) => setLimits({ ...limits, [c]: v })}
-            hint={hint}
-          />
+          <div key={c}>
+            <Field
+              label={`${c}: limit (€)`}
+              value={limits[c] ?? ""}
+              onChange={(v) => setLimits({ ...limits, [c]: v })}
+              hint={hint}
+            />
+            {st?.over && <p style={{ color: "var(--danger)", fontSize: "0.9rem", margin: "4px 0" }}>Prekročené o {eur(st.remainingCents)}.</p>}
+          </div>
         );
       })}
       <p style={{ color: "var(--muted)" }}>Výdavky bez kategórie tento mesiac: {eur(unassigned)}</p>
