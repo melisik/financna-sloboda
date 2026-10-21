@@ -19,9 +19,8 @@ const property: Property = {
 };
 
 describe("záloha verzie 2 a import verzie 1 (FR-28)", () => {
-  it("záloha verzie 1 (testovacia, syntetická) sa načíta a majetok je prázdny", () => {
+  it("testovacia záloha (syntetická) sa načíta a majetok je prázdny", () => {
     const json = JSON.parse(readFileSync(path.resolve("public/testovacia-zaloha.json"), "utf8"));
-    expect(json.schemaVersion).toBe(1);
     const parsed = parseBackup(json, TODAY);
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
@@ -31,8 +30,8 @@ describe("záloha verzie 2 a import verzie 1 (FR-28)", () => {
     expect(parsed.data?.liabilities).toEqual([]);
     expect(parsed.data?.incomes).toEqual([]);
     expect(parsed.data?.budgets).toEqual([]);
-    expect(parsed.data?.transactions.length).toBe(3);
-    expect(parsed.data?.snapshots.length).toBe(1);
+    expect(parsed.data?.transactions.length).toBe(12);
+    expect(parsed.data?.snapshots.length).toBe(2);
   });
 
   it("export a import verzie 2 zachová nehnuteľnosť", () => {

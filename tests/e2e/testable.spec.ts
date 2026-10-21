@@ -18,7 +18,7 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await goTo(page, "zaloha");
     const file = path.resolve("public/testovacia-zaloha.json");
     await page.getByLabel("Súbor zálohy").setInputFiles(file);
-    await expect(page.getByText(/Záloha z .*: 3 transakcií, 1 vyhodnotení\./)).toBeVisible();
+    await expect(page.getByText(/Záloha z .*: 12 transakcií, 2 vyhodnotení\./)).toBeVisible();
     await page.getByRole("button", { name: "Nahradiť dáta zálohou" }).click();
     await expect(page.getByText("Dáta boli nahradené zálohou.")).toBeVisible();
     await goTo(page, "prehlad");

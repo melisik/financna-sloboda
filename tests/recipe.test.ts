@@ -31,7 +31,7 @@ describe("uvarenie receptu", () => {
 
   it("surovina, ktorá už nie je v sklade, sa nahlási", () => {
     const gone: Recipe = { ...porridge, ingredients: [{ stockItemId: "x", quantity: 1 }] };
-    expect(cookRecipe(gone, stock, NOW)).toEqual({ ok: false, problems: ["niektorá surovina už nie je v sklade"] });
+    expect(cookRecipe(gone, stock, NOW)).toEqual({ ok: false, problems: ["Niektorá surovina už nie je v sklade"] });
   });
 
   it("presne použité množstvo nechá stav 0 a ten je platný", () => {

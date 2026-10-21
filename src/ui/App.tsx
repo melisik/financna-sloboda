@@ -239,11 +239,14 @@ export function App() {
             <ol style={{ paddingLeft: 20 }}>
               <li><strong>Prvé nastavenie:</strong> pri prvom spustení zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
               <li><strong>Vyhodnotenie:</strong> mesačné vyhodnotenie vzniká automaticky. Ručne ho zadáš len na opravu. Dátum cieľa sa mení len po vyhodnotení.</li>
-              <li><strong>Rozpočet:</strong> limity na kategórie sú mesačný plán. Prehľad ukáže plnenie a rozpis na nevyhnutné a nie nevyhnutné výdavky.</li>
+              {PHASE2_ENABLED && <li><strong>Rozpočet:</strong> limity na kategórie sú mesačný plán. Prehľad ukáže plnenie a rozpis na nevyhnutné a nie nevyhnutné výdavky.</li>}
               <li><strong>Transakcie:</strong> zapisuj sporenie, investície a výdavky. Výdavok nad prah sa zvýrazní.</li>
               <li><strong>Záloha:</strong> pravidelne exportuj zálohu. Dáta sú len v tomto zariadení; neukladaj ju do verejných priečinkov.</li>
               <li><strong>Obnova:</strong> import nahradí všetky dáta a vyžaduje potvrdenie.</li>
             </ol>
+            <p>
+              <strong>Ako testovať:</strong> stiahnite testovaciu zálohu nižšie a importujte ju v sekcii Záloha. Skúste pridať výdavok s kategóriou, zadať vyhodnotenie, exportovať zálohu a znova ju importovať. Pripomienky pošlite autorovi spôsobom, ktorý ste dostali.
+            </p>
             <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
               Výpočty sú odhady podľa zadaných predpokladov, nie finančné poradenstvo.
               Testovacie dáta (syntetické): <a href="./testovacia-zaloha.json" download>stiahnuť testovaciu zálohu</a>, potom ju importuj v sekcii Záloha.
@@ -780,7 +783,8 @@ function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; to
         </p>
       ) : (
         <p style={{ margin: "4px 0", color: "var(--muted)" }}>
-          Mesačný plán nie je nastavený. Limity nastavíš v <a href="#rozpocet">Rozpočte</a>. Minuté tento mesiac: {eur(spent)}.
+          {PHASE2_ENABLED && <>Mesačný plán nie je nastavený. Limity nastavíš v <a href="#rozpocet">Rozpočte</a>. </>}
+          Minuté tento mesiac: {eur(spent)}.
         </p>
       )}
       <details>
@@ -792,7 +796,7 @@ function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; to
           <li>Výdavky nad prahom: {s.overThresholdCount}</li>
         </ul>
       </details>
-      {ending.length > 0 && (
+      {PHASE2_ENABLED && ending.length > 0 && (
         <p style={{ margin: "8px 0 0", background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "0.9rem" }}>
           Koniec platnosti do 30 dní: {ending.map((e) => e.name).join(", ")}. <a href="#pravidelne-vydavky">Pozrieť</a>
         </p>
@@ -1809,6 +1813,13 @@ const STOCK_STATUS_TEXT: Record<string, string> = {
 };
 
 /** Sklad potravín (samostatná sekcia): položky, množstvo, dátum spotreby a upozornenia. */
+/** Počet dní od dneška slovami: „dnes“, „za 1 deň“, „za 3 dni“, „pred 2 dňami“. */
+function dniText(n: number): string {
+  if (n === 0) return "dnes";
+  if (n > 0) return `za ${n} ${n === 1 ? "deň" : n < 5 ? "dni" : "dní"}`;
+  return `pred ${-n} ${-n === 1 ? "dňom" : "dňami"}`;
+}
+
 function StockSection({ repo, items, recipes, today, onSaved }: { repo: Repository; items: StockItem[]; recipes: Recipe[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<StockItem | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -1843,8 +1854,8 @@ function StockSection({ repo, items, recipes, today, onSaved }: { repo: Reposito
           <p style={{ margin: 0 }}><strong>{i.name}</strong></p>
           <p style={{ margin: "4px 0" }}>{i.quantity} {i.unit}</p>
           <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
-            {i.expiryDate ? `Spotrebovať do ${i.expiryDate} (za ${daysUntil(today, i.expiryDate)} dní)` : "Bez dátumu spotreby"}
-            {" · "}{STOCK_STATUS_TEXT[stockStatus(i, today)]}
+            {i.expiryDate ? `Spotrebovať do ${i.expiryDate} (${dniText(daysUntil(today, i.expiryDate))})` : "Bez dátumu spotreby"}
+            {i.expiryDate ? <>{" · "}{STOCK_STATUS_TEXT[stockStatus(i, today)]}</> : null}
           </p>
           {confirmId === i.id ? (
             <div>
@@ -1904,6 +1915,7 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
     try {
       await repo.deleteRecipe(id);
       setConfirmId(null);
+      setResult(null);
       setErr(null);
       onSaved();
     } catch {
@@ -1991,7 +2003,7 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť recept" : "Nový recept"}</h4>
       {stock.length === 0 && <p style={{ color: "var(--muted)" }}>Najprv pridajte položky do skladu.</p>}
-      <Field label="Názov receptu (napr. palacinky)" value={name} type="text" onChange={setName} />
+      <Field label="Názov receptu" value={name} type="text" onChange={setName} />
       {rows.map((row, n) => (
         <div key={n} style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 8 }}>
           <label style={{ flex: "2 1 160px" }}>
@@ -2013,7 +2025,7 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
               style={inp}
             />
           </label>
-          <button onClick={() => setRows((prev) => prev.filter((_, i) => i !== n))} style={btn} disabled={rows.length === 1}>Odobrať</button>
+          <button onClick={() => setRows((prev) => (prev.length === 1 ? [{ stockItemId: "", quantity: "" }] : prev.filter((_, i) => i !== n)))} style={btn}>Odobrať</button>
         </div>
       ))}
       <button onClick={() => setRows((prev) => [...prev, { stockItemId: "", quantity: "" }])} style={btn} disabled={stock.length === 0}>Pridať surovinu</button>

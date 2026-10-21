@@ -18,7 +18,7 @@ test.describe("recepty a sklad", () => {
     await addItem("Ryža", "500", "g");
 
     await page.getByRole("button", { name: "Pridať recept" }).click();
-    await page.getByLabel("Názov receptu (napr. palacinky)").fill("Kaša");
+    await page.getByLabel("Názov receptu").fill("Kaša");
     await page.getByLabel("Surovina", { exact: true }).nth(0).selectOption({ label: "Mlieko (l)" });
     await page.getByLabel("Množstvo suroviny").nth(0).fill("0.5");
     await page.getByRole("button", { name: "Pridať surovinu" }).click();
@@ -33,7 +33,7 @@ test.describe("recepty a sklad", () => {
     await expect(page.locator("section#sklad p", { hasText: /^400 g$/ })).toBeVisible();
 
     await page.getByRole("button", { name: "Pridať recept" }).click();
-    await page.getByLabel("Názov receptu (napr. palacinky)").fill("Rizoto");
+    await page.getByLabel("Názov receptu").fill("Rizoto");
     await page.getByLabel("Surovina", { exact: true }).nth(0).selectOption({ label: "Ryža (g)" });
     await page.getByLabel("Množstvo suroviny").nth(0).fill("1000");
     await page.getByRole("button", { name: "Uložiť recept" }).click();

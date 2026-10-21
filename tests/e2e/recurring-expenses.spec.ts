@@ -35,7 +35,7 @@ test.describe("pravidelné výdavky (D-124)", () => {
     await expect(page.getByText("Spolu za mesiac: 12 €")).toBeVisible();
   });
 
-  test("pravidelný výdavok sa rátа do minutého za mesiac v rozpočte kategórie", async ({ page }) => {
+  test("pravidelný výdavok sa ráta do minutého za mesiac v rozpočte kategórie", async ({ page }) => {
     await openApp(page);
     await goTo(page, "pravidelne-vydavky");
     await page.getByRole("button", { name: "Pridať pravidelný výdavok" }).click();

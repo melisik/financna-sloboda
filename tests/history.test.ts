@@ -60,7 +60,7 @@ describe("filter a súčty podľa kategórie", () => {
     expect(filterHistory(all, {}).length).toBe(4);
   });
 
-  it("súčty výdavkov podľa kategórie; sporenie sa nerátа a bez kategórie je nezaradené", () => {
+  it("súčty výdavkov podľa kategórie; sporenie sa neráta a bez kategórie je nezaradené", () => {
     expect(expenseTotalsByCategory(all)).toEqual({ jedlo: 4500, doprava: 1200, "nezaradené": 300 });
     expect(expenseTotalsByCategory([saving])).toEqual({});
   });

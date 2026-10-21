@@ -18,7 +18,7 @@ export function cookRecipe(recipe: Recipe, stock: StockItem[], now: string): Coo
   for (const [stockItemId, qty] of needed) {
     const item = stock.find((s) => s.id === stockItemId);
     if (!item) {
-      problems.push("niektorá surovina už nie je v sklade");
+      problems.push("Niektorá surovina už nie je v sklade");
       continue;
     }
     const missing = round2(qty - item.quantity);
