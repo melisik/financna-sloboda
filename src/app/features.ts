@@ -1,7 +1,6 @@
 /**
- * Fáza 2 (D-094, D-125): kód je v hlavnej vetve, ale verejná zostava ju nezobrazuje.
- * Zapína sa vo vývojovom serveri (npm run dev) alebo pri zostavení s VITE_PHASE2=1.
- * Nejde o zabezpečenie: kód Fázy 2 je v zostave, len sa neponúka v navigácii.
+ * Fáza 2 (D-094, D-125, D-142): zapína sa vo vývojovom serveri (npm run dev) alebo pri zostavení s VITE_PHASE2=1.
+ * Verejné nasadenie (pages.yml) ju zapína od D-142. Bez príznaku zostava Fázu 2 nezobrazí.
  */
 export const PHASE2_ENABLED: boolean = import.meta.env.DEV || import.meta.env.VITE_PHASE2 === "1";
 
