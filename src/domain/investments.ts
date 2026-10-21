@@ -14,3 +14,15 @@ export function monthlyContributionsTotalCents(positions: Position[]): number {
 export function investmentsTotalCents(positions: Position[]): number {
   return positions.reduce((sum, p) => sum + positionValueCents(p), 0);
 }
+
+/** Súčet hodnoty v centoch podľa druhu položky (rozpis pri súhrne investícií). */
+export function investmentsByKindCents(positions: Position[]): Partial<Record<Position["kind"], number>> {
+  const out: Partial<Record<Position["kind"], number>> = {};
+  for (const p of positions) out[p.kind] = (out[p.kind] ?? 0) + positionValueCents(p);
+  return out;
+}
+
+/** Zmenila sa položka po danom čase? Upozornenie pri vyhodnotení, lebo suma investícií sa z nej odvodzuje (D-101). */
+export function positionsChangedSince(positions: Position[], isoTime: string): boolean {
+  return positions.some((p) => p.updatedAt > isoTime);
+}

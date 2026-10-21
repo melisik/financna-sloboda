@@ -16,7 +16,7 @@ import { annualOverview, yearlySummary, type OverviewSettings } from "../domain/
 import { monthlySaving } from "../domain/saving";
 import { housingFlowCents, monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
 import { amortizeMortgage } from "../domain/mortgage";
-import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
+import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { monthSummary } from "../domain/monthSummary";
@@ -277,7 +277,7 @@ export function App() {
       )}
       {section === "vyhodnotenie" && (
         <Section id="vyhodnotenie" title="Vyhodnotenie">
-          <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}-${data.investments.length}`} repo={repo} latest={ctx.latest} capital={ctx.capital} derivedInvCents={data.investments.length ? investmentsTotalCents(data.investments) : null} snapshots={data.snapshots} properties={data.properties} onSaved={reload} />
+          <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}-${data.investments.length}`} repo={repo} latest={ctx.latest} capital={ctx.capital} derivedInvCents={data.investments.length ? investmentsTotalCents(data.investments) : null} snapshots={data.snapshots} properties={data.properties} positions={data.investments} onSaved={reload} />
         </Section>
       )}
       {section === "majetok" && (
@@ -749,6 +749,11 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       : null;
   return (
     <div>
+      {ctx.latest && positionsChangedSince(data.investments, ctx.latest.createdAt) && (
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+          Investície sa zmenili od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.
+        </p>
+      )}
       {ctx.latest && propertyChangedSince(data.properties, ctx.latest.createdAt) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
           Majetok sa zmenil od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.
@@ -1199,6 +1204,11 @@ function InvestmentSection({ repo, positions, today, onSaved }: { repo: Reposito
       {positions.length > 0 && (
         <p style={{ fontSize: "1.05rem" }}>Spolu: <strong>{eur(investmentsTotalCents(positions))}</strong></p>
       )}
+      {positions.length > 0 && (
+        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+          {Object.entries(investmentsByKindCents(positions)).map(([k, v]) => `${INVESTMENT_KIND_LABEL[k as Position["kind"]]} ${eur(v ?? 0)}`).join(" · ")}
+        </p>
+      )}
       {monthlyContributionsTotalCents(positions) > 0 && (
         <p style={{ color: "var(--muted)" }}>Mesačné vklady do tretieho piliera a iných položiek: {eur(monthlyContributionsTotalCents(positions))} (len zobrazenie)</p>
       )}
@@ -1207,7 +1217,7 @@ function InvestmentSection({ repo, positions, today, onSaved }: { repo: Reposito
           <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}</p>
           {(BALANCE_INVESTMENT_KINDS as readonly string[]).includes(p.kind) ? (
             <p style={{ margin: "4px 0" }}>
-              Stav účtu: {eur(p.unitPrice * 100)}
+              Stav účtu: {eur(positionValueCents(p))}
               {p.monthlyContributionCents ? `, vklad ${eur(p.monthlyContributionCents)} mesačne` : ""}
             </p>
           ) : (
@@ -1219,7 +1229,7 @@ function InvestmentSection({ repo, positions, today, onSaved }: { repo: Reposito
           <p style={{ margin: "4px 0" }}>Hodnota: <strong>{eur(positionValueCents(p))}</strong> (k {p.valueDate})</p>
           {confirmId === p.id ? (
             <div>
-              <p>Naozaj zmazať túto položku?</p>
+              <p>Naozaj zmazať položku „{p.name}“?</p>
               <button onClick={() => remove(p.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>
@@ -2475,7 +2485,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
 }
 
 /** derivedInvCents: súčet položiek v sekcii Investície; ak existuje, suma sa odvodzuje, nie zadáva (D-101). */
-function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, properties, onSaved }: { repo: Repository; latest: Snapshot | null; capital: Capital; derivedInvCents: number | null; snapshots: Snapshot[]; properties: Property[]; onSaved: () => void }) {
+function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, properties, positions, onSaved }: { repo: Repository; latest: Snapshot | null; capital: Capital; derivedInvCents: number | null; snapshots: Snapshot[]; properties: Property[]; positions: Position[]; onSaved: () => void }) {
   const [date, setDate] = useState(todayIso());
   // N-04 (D-096): predvyplní K z posledného stavu plus sporenie a investície od D_L.
   const [inv, setInv] = useState<NumIn>(latest ? capital.inv / 100 : "");
@@ -2550,6 +2560,9 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, pr
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
       <p style={{ color: "var(--muted)" }}>Mesačné vyhodnotenie sa vytvára automaticky. Tu ho zadáš len na opravu. Dátum cieľa sa mení až pri vyhodnotení.</p>
+      {latest && positionsChangedSince(positions, latest.createdAt) && (
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Investície sa zmenili od posledného vyhodnotenia. Nové vyhodnotenie zohľadní aj túto zmenu.</p>
+      )}
       {latest && propertyChangedSince(properties, latest.createdAt) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Majetok sa zmenil od posledného vyhodnotenia. Nové vyhodnotenie zohľadní aj túto zmenu.</p>
       )}
