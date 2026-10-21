@@ -2591,12 +2591,13 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   };
 
   // Fotka QR kódu dokladu: číslo dokladu sa len navrhne, potvrdí ho používateľ (D-126).
+  // Overenie na portáli: číslo ide len do schránky, nezobrazuje sa (D-133).
   const copyReceipt = async () => {
     try {
       await navigator.clipboard.writeText(receiptId.trim());
-      setCopyMsg("Číslo dokladu je skopírované. Vložte ho na portál.");
+      setCopyMsg("Číslo je v schránke. Vložte ho na portál.");
     } catch {
-      setCopyMsg("Skopírovanie sa nepodarilo. Skopírujte číslo ručne z poľa.");
+      setCopyMsg("Schránku sa nepodarilo použiť. Overenie na portáli urobte neskôr.");
     }
   };
 
@@ -2605,7 +2606,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     const id = receiptIdFromQr(text);
     if (id) {
       setReceiptId(id);
-      setQrMsg("Číslo dokladu je načítané. Skontrolujte ho.");
+      setQrMsg("QR kód je načítaný.");
     } else {
       setQrMsg(`QR kód sa prečítal, ale nie je to číslo dokladu (${text.trim().length} znakov). Zadajte ho ručne.`);
     }
@@ -2720,7 +2721,6 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       <Field label="Dátum" value={date} type="date" max={todayIso()} onChange={setDate} />
       {type === "vydavok" && (
         <div style={{ margin: "8px 0" }}>
-          <Field label="Číslo dokladu (nepovinné, z QR kódu)" value={receiptId} type="text" onChange={setReceiptId} />
           {cameraOn ? (
             <ReceiptCamera
               onFound={(text) => { setCameraOn(false); useQrText(text); }}
@@ -2734,13 +2734,22 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
             <input type="file" accept="image/*" capture="environment" aria-label="Fotka QR kódu dokladu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void scanReceipt(f); }} />
           </label>
           {qrMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{qrMsg}</p>}
-          {isReceiptId(receiptId.trim()) && (
+          {/* Číslo dokladu sa nezobrazuje a nedá sa zadať ručne; používa sa len na overenie (D-133). */}
+          {receiptId !== "" && (
             <>
               <p style={{ fontSize: "0.9rem" }}>
-                <a href={RECEIPT_CHECK_URL} target="_blank" rel="noopener noreferrer">Overiť doklad na portáli finančnej správy</a>
-                {" "}(otvorí sa v prehliadači).
+                Doklad je priradený.{" "}
+                <button type="button" onClick={() => { setReceiptId(""); setQrMsg(null); setCopyMsg(null); }} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Odstrániť doklad</button>
               </p>
-              <button type="button" onClick={copyReceipt} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Skopírovať číslo dokladu</button>
+              <a
+                href={RECEIPT_CHECK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => void copyReceipt()}
+                style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid var(--border-strong)", borderRadius: 4 }}
+              >
+                Overiť doklad na portáli
+              </a>
               {copyMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{copyMsg}</p>}
             </>
           )}

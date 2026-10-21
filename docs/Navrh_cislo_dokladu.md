@@ -1,6 +1,6 @@
 # Návrh: číslo dokladu sa nezobrazuje
 
-Stav: návrh na schválenie. Kód sa zatiaľ nemení.
+Stav: schválené 2026-10-21 (D-133), implementované na branchi `claude/phase2-property-card`.
 
 ## Rozhodnutie zakladateľa (2026-10-21)
 Číslo dokladu sa nikde nezobrazuje (ani v poli, ani v zozname, ani v správach). Overenie dokladu na portáli finančnej správy zostáva. Neskôr ho zabezpečí integrácia (D-112, Fáza 3).
@@ -26,5 +26,4 @@ Stav: návrh na schválenie. Kód sa zatiaľ nemení.
 - `tests/receipt.test.ts`: bez zmeny (validácia čísla).
 
 ## Otvorené otázky
-- Má sa pri zálohe číslo dokladu vynechať? (odporúčam: áno, pri exporte vynechať a pri importe nič nemazať)
-- Má ostať možnosť ručného zadania čísla bez zobrazenia (napr. pole typu heslo)? (odporúčam: nie, skener stačí)
+- Pri zálohe sa číslo ukladá (rozhodnutie zakladateľa 2026-10-21).

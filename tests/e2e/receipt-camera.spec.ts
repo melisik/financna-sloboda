@@ -14,13 +14,14 @@ test.use({
 });
 
 test.describe("živé skenovanie kamerou", () => {
-  test("kamera rozpozná QR kód a vyplní číslo dokladu", async ({ page }) => {
+  test("kamera rozpozná QR kód a priradí doklad bez zobrazenia čísla", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nova-transakcia");
     await page.getByRole("button", { name: "Skenovať QR kód kamerou" }).click();
     await expect(page.getByLabel("Živý náhľad kamery")).toBeVisible();
 
-    await expect(page.getByLabel("Číslo dokladu (nepovinné, z QR kódu)")).toHaveValue("O-A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6", { timeout: 15000 });
+    await expect(page.getByText("Doklad je priradený.")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("body")).not.toContainText("O-A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6");
     await expect(page.getByLabel("Živý náhľad kamery")).toHaveCount(0);
   });
 
