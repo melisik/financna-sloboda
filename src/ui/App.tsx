@@ -16,7 +16,7 @@ import { annualOverview, yearlySummary, type OverviewSettings } from "../domain/
 import { monthlySaving } from "../domain/saving";
 import { housingFlowCents, monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
 import { amortizeMortgage } from "../domain/mortgage";
-import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
+import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, staleValuationNames, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { monthSummary } from "../domain/monthSummary";
@@ -1200,6 +1200,11 @@ function InvestmentSection({ repo, positions, today, onSaved }: { repo: Reposito
       <p style={{ color: "var(--muted)" }}>
         Zadávaš počet kusov, cenu a kurz k euru. Hodnota v eurách sa počíta v telefóne; nič sa neposiela von. Suma investícií vo Vyhodnotení je súčtom týchto položiek.
       </p>
+      {staleValuationNames(positions, today).length > 0 && (
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+          Staré ocenenie (viac ako 3 mesiace): {staleValuationNames(positions, today).join(", ")}. Over cenu a aktualizuj položku.
+        </p>
+      )}
       {positions.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna položka. Vo Vyhodnotení sa suma zadáva ručne.</p>}
       {positions.length > 0 && (
         <p style={{ fontSize: "1.05rem" }}>Spolu: <strong>{eur(investmentsTotalCents(positions))}</strong></p>
@@ -2560,6 +2565,9 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, pr
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
       <p style={{ color: "var(--muted)" }}>Mesačné vyhodnotenie sa vytvára automaticky. Tu ho zadáš len na opravu. Dátum cieľa sa mení až pri vyhodnotení.</p>
+      {staleValuationNames(positions, todayIso()).length > 0 && (
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Ocenenie niektorých investícií je staršie ako 3 mesiace. Suma vo vyhodnotení môže byť zastaraná.</p>
+      )}
       {latest && positionsChangedSince(positions, latest.createdAt) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Investície sa zmenili od posledného vyhodnotenia. Nové vyhodnotenie zohľadní aj túto zmenu.</p>
       )}

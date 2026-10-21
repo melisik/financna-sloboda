@@ -1,4 +1,5 @@
 import type { Position } from "../storage/types";
+import { fullMonthsBetween } from "./mortgage";
 
 /** Hodnota položky v centoch: počet × cena × kurz k euru (D-101). */
 export function positionValueCents(p: Position): number {
@@ -25,4 +26,9 @@ export function investmentsByKindCents(positions: Position[]): Partial<Record<Po
 /** Zmenila sa položka po danom čase? Upozornenie pri vyhodnotení, lebo suma investícií sa z nej odvodzuje (D-101). */
 export function positionsChangedSince(positions: Position[], isoTime: string): boolean {
   return positions.some((p) => p.updatedAt > isoTime);
+}
+
+/** Názvy položiek, ktorých ocenenie je staršie ako daný počet mesiacov (N-16, schválené 3 mesiace). */
+export function staleValuationNames(positions: Position[], today: string, months = 3): string[] {
+  return positions.filter((p) => fullMonthsBetween(p.valueDate, today) >= months).map((p) => p.name);
 }

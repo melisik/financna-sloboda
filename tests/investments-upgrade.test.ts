@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { investmentsByKindCents, positionsChangedSince } from "../src/domain/investments";
+import { investmentsByKindCents, positionsChangedSince, staleValuationNames } from "../src/domain/investments";
 import type { Position } from "../src/storage/types";
 
 // Investície: rozpis podľa druhu a upozornenie na zmenu po vyhodnotení. Syntetické hodnoty.
@@ -15,5 +15,14 @@ describe("investície", () => {
     expect(positionsChangedSince([base], "2026-10-01T09:00:00Z")).toBe(true);
     expect(positionsChangedSince([base], "2026-10-01T11:00:00Z")).toBe(false);
     expect(positionsChangedSince([], "2026-10-01T09:00:00Z")).toBe(false);
+  });
+});
+
+describe("staré ocenenie investícií", () => {
+  it("ocenenie staršie ako 3 mesiace sa označí, čerstvé nie", () => {
+    const old = { ...base, id: "o", name: "starý", valueDate: "2026-06-30" };
+    const fresh = { ...base, id: "f", name: "čerstvý", valueDate: "2026-08-15" };
+    expect(staleValuationNames([old, fresh], "2026-10-21")).toEqual(["starý"]);
+    expect(staleValuationNames([fresh], "2026-10-21")).toEqual([]);
   });
 });
