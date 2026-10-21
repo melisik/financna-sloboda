@@ -1,6 +1,6 @@
 # Návrh: účty a rodinné zdieľanie (N-07)
 
-Stav: **návrh na rozhodnutie, nie rozhodnutie.** Žiadny kód sa zatiaľ nemení. Dokument pripravuje cestu k rozhodnutiam, ktoré mení D-009, D-020 a D-119.
+Stav: **rozhodnuté: možnosť A (D-148).** Appka zostáva lokálna, bez účtov a servera. Možnosti B a C ostávajú len ako budúci návrh, kým nebudú splnené podmienky D-026 (šifrovanie) a D-090 (právne posúdenie). Kód sa nemení.
 
 ## 1. Čo sa žiada
 - Prihlásenie účtom, aby sa dáta dali otvoriť na viacerých zariadeniach.

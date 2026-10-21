@@ -31,7 +31,7 @@
 ## Návrhy z 2026-10-21 (stav: návrh, nie rozhodnutie)
 
 ### Účty a rodinné zdieľanie
-- **N-07 Účty:** prihlásenie účtom, rodinné zdieľanie, sekcia podľa prihláseného používateľa (vrátane dieťaťa podľa kognitívnych schopností). **Konflikt:** D-119 (bez servera a bez účtov), D-009 a D-020 (bez servera). Vyžaduje nové rozhodnutie zakladateľa a zmenu týchto rozhodnutí. Pôvodne súvisí s rodinnou verziou (D-114, D-115, až po pilote).
+- **N-07 Účty (rozhodnuté: možnosť A, D-148; účty sa neplánujú bez D-026 a D-090):** prihlásenie účtom, rodinné zdieľanie, sekcia podľa prihláseného používateľa (vrátane dieťaťa podľa kognitívnych schopností). **Konflikt:** D-119 (bez servera a bez účtov), D-009 a D-020 (bez servera). Vyžaduje nové rozhodnutie zakladateľa a zmenu týchto rozhodnutí. Pôvodne súvisí s rodinnou verziou (D-114, D-115, až po pilote).
 
 ### Zobrazenie podľa životnej etapy (N-08)
 Personas v `docs/01_Personas.md` sú zatiaľ len zakladateľ (fáza 1) a fáza 2 je nedefinovaná. Návrhy treba najprv zapísať ako persony a potom rozhodnúť, ktoré patria do MVP.
