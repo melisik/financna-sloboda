@@ -2308,6 +2308,8 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [delErr, setDelErr] = useState<string | null>(null);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
+  const [bigChange, setBigChange] = useState(false);
 
   const write = async (existingId: string | undefined) => {
     try {
@@ -2319,6 +2321,8 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
         createdAt: new Date().toISOString(),
       });
       setConfirmId(null);
+      setBigChange(false);
+      setEditingDate(null);
       setErr(null);
       onSaved();
     } catch {
@@ -2336,7 +2340,21 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
     if ((derivedInvCents === null && asNum(inv) < 0) || asNum(cash) < 0) return setErr("Hodnoty nesmú byť záporné.");
     const same = snapshots.find((s) => s.date === date);
     if (same) return setConfirmId(same.id); // D-055: prepis len po potvrdení
+    // Preklep (napr. 3 000 namiesto 30 000) sa len overí: zmena nad 50 % sa potvrdí, nezablokuje.
+    const newK = (derivedInvCents ?? cents(asNum(inv))) + cents(asNum(cash));
+    const oldK = latest ? latest.investmentsCents + latest.cashCents : 0;
+    if (!bigChange && oldK > 0 && Math.abs(newK - oldK) > oldK * 0.5) return setBigChange(true);
     await write(undefined);
+  };
+
+  // Úprava existujúceho ručného vyhodnotenia: údaje sa načítajú do formulára, uloženie ide cez prepis (D-055).
+  const startEdit = (s: Snapshot) => {
+    setEditingDate(s.date);
+    setDate(s.date);
+    setInv(s.investmentsCents / 100);
+    setCash(s.cashCents / 100);
+    setErr(null);
+    setBigChange(false);
   };
 
   const remove = async (id: string) => {
@@ -2355,7 +2373,8 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
       <p style={{ color: "var(--muted)" }}>
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
-      <p style={{ color: "var(--muted)" }}>Na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa zmení až po tomto kroku.</p>
+      <p style={{ color: "var(--muted)" }}>Mesačné vyhodnotenie sa vytvára automaticky. Tu ho zadáš len na opravu. Dátum cieľa sa mení až pri vyhodnotení.</p>
+      {editingDate && <p style={{ background: "var(--banner)", padding: 8, borderRadius: 6 }}>Upravuješ vyhodnotenie z {editingDate}. Uložením sa prepíše.</p>}
       <Field label="Dátum vyhodnotenia" value={date} type="date" max={todayIso()} onChange={setDate} />
       {derivedInvCents === null ? (
         <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} />
@@ -2364,6 +2383,13 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
       )}
       <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
+      {bigChange && (
+        <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6 }}>
+          <p>Zmena K je viac ako 50 % oproti poslednému vyhodnoteniu. Je to správne?</p>
+          <button onClick={() => write(undefined)} style={btn}>Áno, uložiť</button>{" "}
+          <button onClick={() => setBigChange(false)} style={btn}>Upraviť údaje</button>
+        </div>
+      )}
       {confirmId && (
         <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6 }}>
           <p>Vyhodnotenie s dátumom {date} už existuje. Prepísať ho? História sa zachová v zálohe.</p>
@@ -2378,7 +2404,7 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
       {[...snapshots].sort((a, b) => b.date.localeCompare(a.date)).map((s) => (
         <div key={s.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{s.date}</strong>{s.auto ? " · automaticky" : ""}</p>
-          <p style={{ margin: "4px 0" }}>K: {eur(s.investmentsCents + s.cashCents)}</p>
+          <p style={{ margin: "4px 0" }}>K: {eur(s.investmentsCents + s.cashCents)} (investície {eur(s.investmentsCents)}, hotovosť {eur(s.cashCents)})</p>
           {s.auto ? (
             <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Automatické vyhodnotenie sa vytvorí znova z ručných údajov.</p>
           ) : deleteId === s.id ? (
@@ -2388,7 +2414,10 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
               <button onClick={() => setDeleteId(null)} style={btn}>Zrušiť</button>
             </div>
           ) : (
-            <button onClick={() => setDeleteId(s.id)} style={btn}>Zmazať</button>
+            <>
+              <button onClick={() => startEdit(s)} style={btn}>Upraviť</button>{" "}
+              <button onClick={() => setDeleteId(s.id)} style={btn}>Zmazať</button>
+            </>
           )}
         </div>
       ))}

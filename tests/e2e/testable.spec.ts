@@ -62,7 +62,7 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
   test("vyhodnotenie: vysvetlenie účelu a chyba, ktorá pomenuje chýbajúce pole", async ({ page }) => {
     await openApp(page);
     await goTo(page, "vyhodnotenie");
-    await expect(page.getByText("Na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa zmení až po tomto kroku.", { exact: true })).toBeVisible();
+    await expect(page.getByText("Mesačné vyhodnotenie sa vytvára automaticky. Tu ho zadáš len na opravu. Dátum cieľa sa mení až pri vyhodnotení.", { exact: true })).toBeVisible();
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
     await expect(page.getByText("Vyplň hodnotu investícií.")).toBeVisible();
