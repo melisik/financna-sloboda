@@ -70,9 +70,9 @@ export function ReceiptCamera({ onFound, onClose }: { onFound: (text: string) =>
   }, []);
 
   return (
-    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff", margin: "8px 0" }}>
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)", margin: "8px 0" }}>
       <video ref={videoRef} playsInline muted aria-label="Živý náhľad kamery" style={{ width: "100%", borderRadius: 6, background: "#000" }} />
-      <p style={{ color: "#555", fontSize: "0.9rem" }}>{status}</p>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{status}</p>
       <button type="button" onClick={onClose} style={buttonStyle}>Zrušiť</button>
     </div>
   );

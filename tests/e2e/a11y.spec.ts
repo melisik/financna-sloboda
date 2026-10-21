@@ -28,3 +28,20 @@ test.describe("dostupnosť", () => {
     });
   }
 });
+
+// Tmavý režim (systémová voľba): rovnaká kontrola dostupnosti, najmä kontrast textu a ohraničení.
+test.describe("dostupnosť v tmavom režime", () => {
+  test.use({ colorScheme: "dark" });
+  for (const id of SECTIONS) {
+    test(`sekcia ${id}: tmavý režim bez vážnych a kritických porušení`, async ({ page }) => {
+      await openApp(page);
+      await goTo(page, id);
+      const isDark = await page.evaluate(() => getComputedStyle(document.body).backgroundColor !== "rgb(255, 255, 255)");
+      expect(isDark).toBe(true);
+      const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+      const summary = serious.map((v) => `${v.id} (${v.impact}): ${v.nodes.length}× ${v.help}`);
+      expect(summary, summary.join("\n")).toEqual([]);
+    });
+  }
+});

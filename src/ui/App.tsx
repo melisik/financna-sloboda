@@ -202,7 +202,7 @@ export function App() {
   }, [repo, data]);
 
   if (isIosBrowser() && !isStandalone()) return <Shell><IosInstallGate /></Shell>;
-  if (error) return <Shell><p style={{ color: "#8a0000" }}>{error}</p></Shell>;
+  if (error) return <Shell><p style={{ color: "var(--danger)" }}>{error}</p></Shell>;
   if (!repo || !data) return <Shell><p>Načítavam údaje…</p></Shell>;
   if (locked) return <Shell><LockScreen repo={repo} onUnlock={() => setLocked(false)} /></Shell>;
 
@@ -233,7 +233,7 @@ export function App() {
       {section === "prehlad" && (
         <Section id="prehlad" title="Prehľad">
           <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
-          <details id="navod" style={{ marginTop: 16, background: "#fff", padding: 12, borderRadius: 8 }}>
+          <details id="navod" style={{ marginTop: 16, background: "var(--surface)", padding: 12, borderRadius: 8 }}>
             <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
             <ol style={{ paddingLeft: 20 }}>
               <li><strong>Prvé nastavenie:</strong> pri prvom spustení zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
@@ -242,7 +242,7 @@ export function App() {
               <li><strong>Záloha:</strong> pravidelne exportuj zálohu. Dáta sú len v tomto zariadení; neukladaj ju do verejných priečinkov.</li>
               <li><strong>Obnova:</strong> import nahradí všetky dáta a vyžaduje potvrdenie.</li>
             </ol>
-            <p style={{ fontSize: "0.9rem", color: "#555" }}>
+            <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
               Výpočty sú odhady podľa zadaných predpokladov, nie finančné poradenstvo.
               Testovacie dáta (syntetické): <a href="./testovacia-zaloha.json" download>stiahnuť testovaciu zálohu</a>, potom ju importuj v sekcii Záloha.
             </p>
@@ -309,7 +309,7 @@ export function App() {
           <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
           <section style={{ marginTop: 16 }}>
             <h3 style={{ fontSize: "1rem" }}>Sprievodca</h3>
-            <p style={{ color: "#555" }}>Prejdi sprievodcu znova. Údaje sa predvyplnia a nič sa nevymaže.</p>
+            <p style={{ color: "var(--muted)" }}>Prejdi sprievodcu znova. Údaje sa predvyplnia a nič sa nevymaže.</p>
             <button onClick={() => setWizardOpen(true)} style={btn}>Spustiť sprievodcu znova</button>
           </section>
           <PinSection repo={repo} pinSet={pinSet} onChanged={(on) => setPinSet(on)} onLock={() => setLocked(true)} />
@@ -334,10 +334,10 @@ function isStandalone(): boolean {
 }
 function IosInstallGate() {
   return (
-    <div style={{ background: "#eef5f1", padding: 16, borderRadius: 8 }}>
+    <div style={{ background: "var(--ok-bg)", padding: 16, borderRadius: 8 }}>
       <h2 style={{ fontSize: "1.1rem", marginTop: 0 }}>Najprv pridaj appku na plochu</h2>
       <p>Údaje sa v Safari ukladajú slabšie. Na plochu sa appka pridá takto: klikni <strong>Zdieľať</strong> (štvorček so šípkou), vyber <strong>Pridať na plochu</strong> a potom otvor appku z ikony.</p>
-      <p style={{ color: "#555" }}>Potom už budeš pracovať len z ikony na ploche.</p>
+      <p style={{ color: "var(--muted)" }}>Potom už budeš pracovať len z ikony na ploche.</p>
     </div>
   );
 }
@@ -449,12 +449,12 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
 
   return (
     <section aria-label="Prvé nastavenie">
-      <p style={{ color: "#555", fontSize: "0.9rem" }}>Krok {step + 1} z {ONBOARD_STEPS}</p>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Krok {step + 1} z {ONBOARD_STEPS}</p>
       {step === 0 && (
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Vitaj</h2>
           <p>Appka ukáže, kedy by si mohol dosiahnuť finančnú slobodu, ak budeš pokračovať v sporení. Údaje zostávajú len v tomto telefóne.</p>
-          <p style={{ color: "#555" }}>Výsledky sú odhady podľa tvojich predpokladov, nie finančné poradenstvo.</p>
+          <p style={{ color: "var(--muted)" }}>Výsledky sú odhady podľa tvojich predpokladov, nie finančné poradenstvo.</p>
           <button onClick={() => go(1)} style={btn}>Pokračovať</button>
           {nav}
         </>
@@ -462,9 +462,9 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
       {step === 1 && (
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Koľko by si ročne potreboval na život?</h2>
-          <p style={{ color: "#555" }}>Suma, ktorú by si ročne minul bez práce. Napríklad 24 000 € ročne.</p>
+          <p style={{ color: "var(--muted)" }}>Suma, ktorú by si ročne minul bez práce. Napríklad 24 000 € ročne.</p>
           <Field label="Ročné výdavky pri nezávislosti (€)" value={expenses} onChange={setExpenses} />
-          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+          {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
           <button onClick={nextFromExpenses} style={btn}>Pokračovať</button>
           {nav}
         </>
@@ -472,7 +472,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
       {step === 2 && (
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Koľko z kapitálu ročne vyberieš?</h2>
-          <p style={{ color: "#555" }}>Ak nevieš, nechaj prázdne. Použije sa východisková hodnota {(rec.withdrawalRate * 100).toFixed(1).replace(".", ",")} %.</p>
+          <p style={{ color: "var(--muted)" }}>Ak nevieš, nechaj prázdne. Použije sa východisková hodnota {(rec.withdrawalRate * 100).toFixed(1).replace(".", ",")} %.</p>
           <Field label="Miera výberu (%)" value={withdrawal} step={0.1} onChange={setWithdrawal} />
           <button onClick={() => go(3)} style={btn}>Pokračovať</button>
           {nav}
@@ -481,10 +481,10 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
       {step === 3 && (
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Koľko máš dnes?</h2>
-          <p style={{ color: "#555" }}>Investície sú súčet účtov a cenných papierov. Hotovosť je suma, ktorú máš na účte. Môžeš to neskôr zmeniť.</p>
+          <p style={{ color: "var(--muted)" }}>Investície sú súčet účtov a cenných papierov. Hotovosť je suma, ktorú máš na účte. Môžeš to neskôr zmeniť.</p>
           <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} hint="0, ak nemáš" />
           <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} hint="0, ak nemáš" />
-          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+          {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
           <button onClick={saveAll} disabled={busy} style={btn}>Uložiť a pokračovať</button>
           {nav}
         </>
@@ -493,19 +493,19 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Ulož si zálohu</h2>
           <p>Údaje sú len v tomto telefóne. Ak telefón stratíš alebo vymažeš prehliadač, údaje budú preč.</p>
-          <p style={{ color: "#555" }}>Stiahni si zálohu a ulož ju mimo telefónu. Zálohu môžeš urobiť aj neskôr v sekcii Záloha.</p>
+          <p style={{ color: "var(--muted)" }}>Stiahni si zálohu a ulož ju mimo telefónu. Zálohu môžeš urobiť aj neskôr v sekcii Záloha.</p>
           <button onClick={backupNow} style={btn}>Stiahnuť zálohu</button>{" "}
           <button onClick={() => go(rerun ? 6 : 5)} style={btn}>Pokračovať</button>
-          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+          {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
         </>
       )}
       {step === 5 && (
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Chceš PIN?</h2>
-          <p style={{ color: "#555" }}>PIN je nepovinný. Ak ho nastavíš, appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne, údaje nie sú zašifrované.</p>
+          <p style={{ color: "var(--muted)" }}>PIN je nepovinný. Ak ho nastavíš, appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne, údaje nie sú zašifrované.</p>
           <Field label="Nový PIN (4 až 6 číslic)" value={pinNew} type="password" inputMode="numeric" onChange={setPinNew} />
           <Field label="Zopakuj PIN" value={pinRepeat} type="password" inputMode="numeric" onChange={setPinRepeat} />
-          {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+          {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
           <button
             onClick={async () => {
               if (!isValidPin(pinNew)) return setErr("PIN musí mať 4 až 6 číslic.");
@@ -528,7 +528,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Hotovo</h2>
           {result && <p>Dátum cieľa: <strong>{result}</strong></p>}
-          <p style={{ color: "#555" }}>Ďalšie kroky:</p>
+          <p style={{ color: "var(--muted)" }}>Ďalšie kroky:</p>
           <ol style={{ paddingLeft: 20 }}>
             <li>Zapíš transakcie, keď niečo sporíš alebo minieš (sekcia Transakcie).</li>
             <li>Na konci mesiaca zapíš stav investícií a hotovosti (sekcia Vyhodnotenie).</li>
@@ -593,7 +593,7 @@ function Nav({ active }: { active: SectionId }) {
   const secondary = NAV_VISIBLE.filter((n) => !PRIMARY_NAV.includes(n.id));
   const moreActive = secondary.some((n) => n.id === active);
   return (
-    <div style={{ position: "sticky", top: 0, background: "#fff", zIndex: 1, borderBottom: "1px solid #ddd" }}>
+    <div style={{ position: "sticky", top: 0, background: "var(--surface)", zIndex: 1, borderBottom: "1px solid var(--border-soft)" }}>
     <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexWrap: "nowrap", overflowX: "auto", gap: 0, padding: "4px 0" }}>
       {primary.map((n) => (
         <a
@@ -618,7 +618,7 @@ function Nav({ active }: { active: SectionId }) {
       )}
     </nav>
     {more && secondary.length > 0 && (
-      <div id="nav-viac" aria-label="Ďalšie sekcie" style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 0", background: "#fff", borderBottom: "1px solid #ddd" }}>
+      <div id="nav-viac" aria-label="Ďalšie sekcie" style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 0", background: "var(--surface)", borderBottom: "1px solid var(--border-soft)" }}>
         {secondary.map((n) => (
           <a
             key={n.id}
@@ -632,7 +632,7 @@ function Nav({ active }: { active: SectionId }) {
         ))}
       </div>
     )}
-    <div aria-hidden="true" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 28, pointerEvents: "none", background: "linear-gradient(to right, rgba(255,255,255,0), #fff)" }} />
+    <div aria-hidden="true" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 28, pointerEvents: "none", background: "linear-gradient(to right, transparent, var(--surface))" }} />
     </div>
   );
 }
@@ -640,7 +640,7 @@ function Nav({ active }: { active: SectionId }) {
 /** Nadpis a obsah jednej sekcie (zobrazuje sa samostatne). */
 function Section({ id, title, children }: { id: SectionId; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} style={{ background: "#f7f5f0", padding: 12, borderRadius: 8, marginBottom: 8 }}>
+    <section id={id} style={{ background: "var(--page)", padding: 12, borderRadius: 8, marginBottom: 8 }}>
       <h2 style={{ fontSize: "1.2rem", marginTop: 0 }}>{title}</h2>
       {children}
     </section>
@@ -651,7 +651,7 @@ function Shell({ children, nav }: { children: React.ReactNode; nav?: SectionId }
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
       <h1 style={{ fontSize: "1.5rem" }}>Finančná sloboda</h1>
-      <p style={{ color: "#555" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
+      <p style={{ color: "var(--muted)" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
       {nav && <Nav active={nav} />}
       {children}
     </main>
@@ -674,20 +674,20 @@ function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) {
   const savingZero = ctx.mInv + ctx.mCash === 0;
   return (
     <div>
-      <p style={{ color: "#555" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K a z aktuálnych Nastavení, bez nehnuteľností.</p>
-      {!s && <p style={{ color: "#555" }}>Nastavenia nie sú zadané; zobrazí sa len K.</p>}
+      <p style={{ color: "var(--muted)" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K a z aktuálnych Nastavení, bez nehnuteľností.</p>
+      {!s && <p style={{ color: "var(--muted)" }}>Nastavenia nie sú zadané; zobrazí sa len K.</p>}
       {rows.map((r) => (
-        <div key={r.date} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+        <div key={r.date} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{r.date}</strong>{r.auto ? " · automaticky" : ""}</p>
           <p style={{ margin: "4px 0" }}>K: {eur(r.totalCents)} (investície {eur(r.invCents)}, hotovosť {eur(r.cashCents)})</p>
           {r.deltaTotalCents !== null && (
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
               Zmena K: {r.deltaTotalCents >= 0 ? "+" : "−"}{eur(Math.abs(r.deltaTotalCents))}
             </p>
           )}
           {r.goal && <p style={{ margin: "4px 0" }}>Dátum cieľa: <strong>{goalDateText(r.goal, savingZero, monthYear)}</strong></p>}
           {r.deltaGoalMonths !== null && (
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>Zmena dátumu cieľa: {goalShiftText(r.deltaGoalMonths)}</p>
+            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Zmena dátumu cieľa: {goalShiftText(r.deltaGoalMonths)}</p>
           )}
         </div>
       ))}
@@ -704,40 +704,40 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
   return (
     <div>
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
-        <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
           Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.
         </p>
       )}
       {(data.snapshots.length > 0 || data.transactions.length > 0 || data.settings !== null) && backupOverdue(lastExport, today) && (
-        <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
           Záloha ešte nebola exportovaná alebo je staršia ako 7 dní. Dáta sú len v tomto zariadení.
         </p>
       )}
       {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v <a href="#nastavenia">Nastaveniach</a>; ostatné hodnoty sú predvolené.</p>}
       {(ctx.negative.cash || ctx.negative.inv) && (
-        <p style={{ background: "#fbe3e3", padding: 8, borderRadius: 6 }}>
+        <p style={{ background: "var(--err-bg)", padding: 8, borderRadius: 6 }}>
           Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení.
         </p>
       )}
       {ctx.latest && ctx.target !== null ? (
         <>
           <p>Dátum cieľa: <strong>{scenarioText(ctx, ctx.realReturn)}</strong></p>
-          <p style={{ fontSize: "0.9rem", color: "#555" }}>
+          <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
             Posledné vyhodnotenie: <strong>{ctx.latest.date}</strong>. Dátum sa zmení až po ďalšom vyhodnotení.
           </p>
           {ctx.latest.auto && (
-            <p style={{ fontSize: "0.9rem", color: "#555" }}>
+            <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
               Vyhodnotenie vzniklo automaticky z transakcií.
               {data.investments.length === 0 && " Investície sú odhad z výnosu r, kým ich neupravíš v sekcii Investície."}
             </p>
           )}
           {ctx.longHorizon && (
-            <p style={{ fontSize: "0.9rem", background: "#fff4e0", padding: 8, borderRadius: 6 }}>
+            <p style={{ fontSize: "0.9rem", background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
               Pri dlhom horizonte (viac ako 20 rokov) je predpoklad výnosu menej istý; výsledok je v dnešných eurách.
             </p>
           )}
           <details style={{ marginTop: 8 }}>
-            <summary style={{ cursor: "pointer", minHeight: 44, display: "inline-flex", alignItems: "center", padding: "8px 14px", border: "1px solid #555", borderRadius: 6, background: "#fff", listStyle: "none" }}>Podrobnosti ▾</summary>
+            <summary style={{ cursor: "pointer", minHeight: 44, display: "inline-flex", alignItems: "center", padding: "8px 14px", border: "1px solid var(--muted)", borderRadius: 6, background: "var(--surface)", listStyle: "none" }}>Podrobnosti ▾</summary>
             <p>
               Rozsah dátumu: od {scenarioText(ctx, ctx.realReturn + 0.02)} do {scenarioText(ctx, Math.max(0, ctx.realReturn - 0.02))} (opatrný – základný – optimistický).
             </p>
@@ -749,13 +749,13 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
               Predbežný dopad posledných transakcií:{" "}
               <strong>{pending === null ? UNREACHABLE_IMPACT_TEXT : formatImpactOutcome(pending)}</strong>
             </p>
-            <p style={{ color: "#555" }}>Transakcií: {data.transactions.length}</p>
+            <p style={{ color: "var(--muted)" }}>Transakcií: {data.transactions.length}</p>
           </details>
         </>
       ) : (
         <p>{ctx.latest ? "" : <>Urob prvé vyhodnotenie vo <a href="#vyhodnotenie">Vyhodnotení</a>. Dátum cieľa sa zobrazí po ňom.</>}</p>
       )}
-      <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid #888", borderRadius: 4 }}>
+      <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid var(--border-strong)", borderRadius: 4 }}>
         Pridať transakciu
       </a>
     </div>
@@ -787,7 +787,7 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
 
   return (
     <section>
-      <p style={{ color: "#555" }}>
+      <p style={{ color: "var(--muted)" }}>
         Hodnota je tvoj odhad, nie trhová cena. Do kapitálu K sa počíta len nehnuteľnosť, ktorú prenajímaš; vlastné bývanie sa zobrazí zvlášť.
       </p>
       {properties.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna nehnuteľnosť.</p>}
@@ -795,18 +795,18 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
         const net = netPropertyValueCents(p);
         const stale = valueIsStale(p.valueDate, today);
         return (
-          <div key={p.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <div key={p.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
             <p style={{ margin: 0 }}><strong>{p.name || "Nehnuteľnosť"}</strong> · {PROPERTY_MODE_LABEL[p.mode]}</p>
             <p style={{ margin: "4px 0" }}>Odhad: {eur(p.valueCents)} (k {p.valueDate})</p>
-            {stale && <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
+            {stale && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
             <p style={{ margin: "4px 0" }}>Hypotéka: {eur(p.mortgageBalanceCents)}</p>
             <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
               {p.mode === "prenajom" && <><dt>Nájom</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(p.monthlyRentCents ?? 0)}</dd></>}
               <dt>Splátka hypotéky</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(p.monthlyPaymentCents ?? 0)}</dd>
               {(p.monthlyPaymentCents ?? 0) > 0 && p.mortgageBalanceCents > 0 && (
                 <>
-                  <dt style={{ paddingLeft: 12, color: "#555" }}>z toho úrok</dt><dd style={{ margin: 0, textAlign: "right", color: "#555" }}>{eur(splitPayment(p).interestCents)}</dd>
-                  <dt style={{ paddingLeft: 12, color: "#555" }}>z toho istina</dt><dd style={{ margin: 0, textAlign: "right", color: "#555" }}>{eur(splitPayment(p).principalCents)}</dd>
+                  <dt style={{ paddingLeft: 12, color: "var(--muted)" }}>z toho úrok</dt><dd style={{ margin: 0, textAlign: "right", color: "var(--muted)" }}>{eur(splitPayment(p).interestCents)}</dd>
+                  <dt style={{ paddingLeft: 12, color: "var(--muted)" }}>z toho istina</dt><dd style={{ margin: 0, textAlign: "right", color: "var(--muted)" }}>{eur(splitPayment(p).principalCents)}</dd>
                 </>
               )}
               <dt>Ostatné náklady</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(p.monthlyOtherCostsCents ?? 0)}</dd>
@@ -816,7 +816,7 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
               Čistá hodnota: <strong>{eur(net)}</strong>
               {net < 0 && <span> (hypotéka presahuje odhad)</span>}
             </p>
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
               {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta; zobrazí sa zvlášť."}
             </p>
             {confirmId === p.id ? (
@@ -846,7 +846,7 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
       ) : (
         <button onClick={() => setEditing("new")} style={btn}>Pridať nehnuteľnosť</button>
       )}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <AssetSection repo={repo} assets={assets} today={today} onSaved={onSaved} />
     </section>
   );
@@ -877,14 +877,14 @@ function AssetSection({ repo, assets, today, onSaved }: { repo: Repository; asse
   return (
     <div style={{ marginTop: 16 }}>
       <h3 style={{ fontSize: "1rem" }}>Automobily a ocenitelné práva</h3>
-      <p style={{ color: "#555" }}>Odhad je tvoj, nie trhová cena. Zatiaľ sa do K nepočítajú (predpoklad).</p>
+      <p style={{ color: "var(--muted)" }}>Odhad je tvoj, nie trhová cena. Zatiaľ sa do K nepočítajú (predpoklad).</p>
       {assets.length === 0 && editing === null && <p>Zatiaľ nie je zapísané žiadne aktívum.</p>}
       {assets.map((a) => (
-        <div key={a.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+        <div key={a.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{a.name}</strong> · {ASSET_KIND_LABEL[a.kind]}</p>
           <p style={{ margin: "4px 0" }}>Odhad: {eur(a.valueCents)} (k {a.valueDate})</p>
-          {valueIsStale(a.valueDate, today) && <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
-          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>Do K sa zatiaľ nepočíta.</p>
+          {valueIsStale(a.valueDate, today) && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
+          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Do K sa zatiaľ nepočíta.</p>
           {confirmId === a.id ? (
             <div>
               <p>Naozaj zmazať toto aktívum?</p>
@@ -916,7 +916,7 @@ function AssetSection({ repo, assets, today, onSaved }: { repo: Repository; asse
           ))}
         </div>
       )}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </div>
   );
 }
@@ -954,12 +954,12 @@ function AssetForm({ repo, kind, initial, today, onDone, onCancel }: { repo: Rep
   };
 
   return (
-    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť" : "Nové"}: {ASSET_KIND_LABEL[kind].toLowerCase()}</h4>
       <Field label="Názov (napr. značka a rok, alebo podiel)" value={name} type="text" onChange={setName} />
       <Field label="Odhad hodnoty (€)" value={value} onChange={setValue} />
       <Field label="Dátum odhadu (RRRR-MM-DD)" value={valueDate} type="text" onChange={setValueDate} />
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
@@ -1019,7 +1019,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   };
 
   return (
-    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h3 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť nehnuteľnosť" : "Nová nehnuteľnosť"}</h3>
       <Field label="Názov (nepovinné)" value={name} type="text" onChange={setName} />
       <label style={{ display: "block", marginBottom: 8 }}>
@@ -1037,7 +1037,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <Field label="Mesačná splátka hypotéky (€)" value={payment} onChange={setPayment} hint="0, ak hypotéku nemáš" />
       <Field label="Ostatné mesačné náklady (€)" value={otherCosts} onChange={setOtherCosts} hint="údržba, poistenie, poplatky; 0, ak nie sú" />
       {mode === "prenajom" && <Field label="Mesačný nájom (€, nepovinné)" value={rent} onChange={setRent} />}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť nehnuteľnosť</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
@@ -1076,7 +1076,7 @@ function InvestmentSection({ repo, positions, today, onSaved }: { repo: Reposito
 
   return (
     <section>
-      <p style={{ color: "#555" }}>
+      <p style={{ color: "var(--muted)" }}>
         Zadávaš počet kusov, cenu a kurz k euru. Hodnota v eurách sa počíta v telefóne; nič sa neposiela von. Suma investícií vo Vyhodnotení je súčtom týchto položiek.
       </p>
       {positions.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna položka. Vo Vyhodnotení sa suma zadáva ručne.</p>}
@@ -1084,10 +1084,10 @@ function InvestmentSection({ repo, positions, today, onSaved }: { repo: Reposito
         <p style={{ fontSize: "1.05rem" }}>Spolu: <strong>{eur(investmentsTotalCents(positions))}</strong></p>
       )}
       {monthlyContributionsTotalCents(positions) > 0 && (
-        <p style={{ color: "#555" }}>Mesačné vklady do tretieho piliera a iných položiek: {eur(monthlyContributionsTotalCents(positions))} (len zobrazenie)</p>
+        <p style={{ color: "var(--muted)" }}>Mesačné vklady do tretieho piliera a iných položiek: {eur(monthlyContributionsTotalCents(positions))} (len zobrazenie)</p>
       )}
       {positions.map((p) => (
-        <div key={p.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+        <div key={p.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}</p>
           {(BALANCE_INVESTMENT_KINDS as readonly string[]).includes(p.kind) ? (
             <p style={{ margin: "4px 0" }}>
@@ -1127,7 +1127,7 @@ function InvestmentSection({ repo, positions, today, onSaved }: { repo: Reposito
       ) : (
         <button onClick={() => setEditing("new")} style={btn}>Pridať položku</button>
       )}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
   );
 }
@@ -1187,7 +1187,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
   };
 
   return (
-    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku" : "Nová položka"}</h4>
       <Field label={balance ? "Názov účtu" : "Názov alebo ticker"} value={name} type="text" onChange={setName} />
       <label style={{ display: "block", marginBottom: 8 }}>
@@ -1218,7 +1218,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
           {TAX_REGIMES.map((r) => <option key={r} value={r}>{TAX_CATALOG[r].label}</option>)}
         </select>
       </label>
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť položku</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
@@ -1251,7 +1251,7 @@ function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: Reposit
 
   return (
     <section>
-      <p style={{ color: "#555" }}>Hypotéku evidujte v sekcii Majetok. Tu sú ostatné dlhy: úver, kreditná karta, leasing.</p>
+      <p style={{ color: "var(--muted)" }}>Hypotéku evidujte v sekcii Majetok. Tu sú ostatné dlhy: úver, kreditná karta, leasing.</p>
       {liabilities.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny záväzok.</p>}
       {liabilities.length > 0 && (
         <p style={{ fontSize: "1.05rem" }}>
@@ -1259,7 +1259,7 @@ function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: Reposit
         </p>
       )}
       {liabilities.map((l) => (
-        <div key={l.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+        <div key={l.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{l.name}</strong> · {LIABILITY_KIND_LABEL[l.kind]}</p>
           <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
             <dt>Zostatok</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(l.balanceCents)}</dd>
@@ -1267,7 +1267,7 @@ function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: Reposit
             <dt>Splátka mesačne</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(l.monthlyPaymentCents)}</dd>
             <dt>Úrok za mesiac</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(liabilityInterestCents(l))}</dd>
           </dl>
-          {l.endDate && <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>Koniec: {l.endDate}</p>}
+          {l.endDate && <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Koniec: {l.endDate}</p>}
           {confirmId === l.id ? (
             <div>
               <p>Naozaj zmazať tento záväzok?</p>
@@ -1294,7 +1294,7 @@ function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: Reposit
       ) : (
         <button onClick={() => setEditing("new")} style={btn}>Pridať záväzok</button>
       )}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
   );
 }
@@ -1344,7 +1344,7 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
   };
 
   return (
-    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť záväzok" : "Nový záväzok"}</h4>
       <Field label="Názov" value={name} type="text" onChange={setName} />
       <label style={{ display: "block", marginBottom: 8 }}>
@@ -1359,7 +1359,7 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       <Field label="Úroková sadzba (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak úrok nie je" />
       <Field label="Splátka mesačne (€)" value={payment} onChange={setPayment} hint="0, ak splátku nemáš" />
       <Field label="Koniec (RRRR-MM-DD, nepovinné)" value={endDate} type="text" onChange={setEndDate} />
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť záväzok</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
@@ -1431,15 +1431,15 @@ function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; in
 
   return (
     <section>
-      <p style={{ color: "#555" }}>
+      <p style={{ color: "var(--muted)" }}>
         Tu len vidíš, koľko pravidelne prichádza. Sporenie sa mení až podľa zostatku na konci mesiaca, pri vyhodnotení. Nájom z nehnuteľnosti eviduj v Majetku, aby sa nerátal dvakrát.
       </p>
-      <div style={{ border: "1px dashed #aaa", padding: 12, borderRadius: 6, marginBottom: 12 }}>
+      <div style={{ border: "1px dashed var(--border-dashed)", padding: 12, borderRadius: 6, marginBottom: 12 }}>
         <label style={{ display: "block" }}>
           <span style={{ display: "block", fontSize: "0.95rem" }}>Načítať údaje zo súboru integračnej služby</span>
           <input type="file" accept="application/json,.json" aria-label="Súbor od integračnej služby" onChange={onFile} style={{ marginTop: 6 }} />
         </label>
-        {feedErr && <p style={{ color: "#8a0000" }}>{feedErr}</p>}
+        {feedErr && <p style={{ color: "var(--danger)" }}>{feedErr}</p>}
         {pendingFeed && (
           <div style={{ marginTop: 8 }}>
             <p>
@@ -1456,22 +1456,22 @@ function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; in
         <p style={{ fontSize: "1.05rem" }}>Platné pravidelné príjmy za mesiac: <strong>{eur(monthlyIncomeCents(incomes, today))}</strong></p>
       )}
       {irregularIncomes(incomes).length > 0 && (
-        <p style={{ color: "#555" }}>Nepravidelné príjmy (do mesačného súčtu sa nerátajú): {eur(irregularIncomes(incomes).reduce((sum, i) => sum + i.amountCents, 0))}</p>
+        <p style={{ color: "var(--muted)" }}>Nepravidelné príjmy (do mesačného súčtu sa nerátajú): {eur(irregularIncomes(incomes).reduce((sum, i) => sum + i.amountCents, 0))}</p>
       )}
       {incomes.map((i) => {
         const active = isIncomeActive(i, today);
         return (
-          <div key={i.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+          <div key={i.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
             <p style={{ margin: 0 }}>
               <strong>{i.name}</strong> · {INCOME_KIND_LABEL[i.kind]}{" "}
-              {!active && <span style={{ color: "#555" }}>(neplatí dnes)</span>}
+              {!active && <span style={{ color: "var(--muted)" }}>(neplatí dnes)</span>}
             </p>
             <p style={{ margin: "4px 0" }}>
               {eur(i.amountCents)}{i.frequency === "mesacne" ? " mesačne" : " (jednorazovo)"}
               {i.dayOfMonth !== undefined ? `, zvyčajne ${i.dayOfMonth}. v mesiaci` : ""}
             </p>
-            {i.source && <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>Zdroj: {i.source}, získané {(i.fetchedAt ?? "").slice(0, 10)}</p>}
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+            {i.source && <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Zdroj: {i.source}, získané {(i.fetchedAt ?? "").slice(0, 10)}</p>}
+            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
               {INCOME_FREQUENCY_LABEL[i.frequency]}; od {i.startDate}{i.endDate ? `, do ${i.endDate}` : i.frequency === "mesacne" ? ", bez konca" : ""}
             </p>
             {confirmId === i.id ? (
@@ -1501,7 +1501,7 @@ function IncomeSection({ repo, incomes, today, onSaved }: { repo: Repository; in
       ) : (
         <button onClick={() => setEditing("new")} style={btn}>Pridať pravidelný príjem</button>
       )}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
   );
 }
@@ -1553,7 +1553,7 @@ function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Reposito
   };
 
   return (
-    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť príjem" : "Nový pravidelný príjem"}</h4>
       <Field label="Názov (napr. mzda)" value={name} type="text" onChange={setName} />
       <label style={{ display: "block", marginBottom: 8 }}>
@@ -1572,7 +1572,7 @@ function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Reposito
       {frequency === "mesacne" && <Field label="Deň v mesiaci (nepovinné)" value={day} onChange={setDay} hint="len na orientáciu" />}
       <Field label={frequency === "mesacne" ? "Od (RRRR-MM-DD)" : "Dátum (RRRR-MM-DD)"} value={startDate} type="text" onChange={setStartDate} />
       {frequency === "mesacne" && <Field label="Do (RRRR-MM-DD, nepovinné)" value={endDate} type="text" onChange={setEndDate} hint="bez hodnoty príjem trvá" />}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť príjem</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
@@ -1606,7 +1606,7 @@ function RecurringSection({ repo, items, today, onSaved }: { repo: Repository; i
 
   return (
     <section>
-      <p style={{ color: "#555" }}>Predplatné, poistky a paušály. Iba zobrazenie: nemenia Kapitál, dátum cieľa ani sporenie.</p>
+      <p style={{ color: "var(--muted)" }}>Predplatné, poistky a paušály. Iba zobrazenie: nemenia Kapitál, dátum cieľa ani sporenie.</p>
       <p>Spolu za mesiac: <strong>{eur(total)}</strong></p>
       {Object.keys(byCat).length > 0 && (
         <ul style={{ paddingLeft: 20 }}>
@@ -1615,13 +1615,13 @@ function RecurringSection({ repo, items, today, onSaved }: { repo: Repository; i
       )}
       {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané pravidelné výdavky.</p>}
       {items.map((e) => (
-        <div key={e.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+        <div key={e.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{e.name}</strong> · {e.category}</p>
           <p style={{ margin: "4px 0" }}>
             {eur(e.amountCents)} {RECURRING_FREQUENCY_LABEL[e.frequency]}
             {e.frequency === "rocne" ? ` (≈ ${eur(monthlyShareCents(e))} mesačne)` : ""}
           </p>
-          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
             Od {e.startDate}{e.endDate ? `, do ${e.endDate}` : ""}{isRecurringActive(e, today) ? "" : " · dnes neplatí"}
           </p>
           {confirmId === e.id ? (
@@ -1649,7 +1649,7 @@ function RecurringSection({ repo, items, today, onSaved }: { repo: Repository; i
       ) : (
         <button onClick={() => setEditing("new")} style={btn}>Pridať pravidelný výdavok</button>
       )}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
   );
 }
@@ -1697,7 +1697,7 @@ function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
   };
 
   return (
-    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť pravidelný výdavok" : "Nový pravidelný výdavok"}</h4>
       <Field label="Názov (napr. predplatné)" value={name} type="text" onChange={setName} />
       <label style={{ display: "block", marginBottom: 8 }}>
@@ -1715,7 +1715,7 @@ function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       <Field label={frequency === "mesacne" ? "Suma mesačne (€)" : "Suma ročne (€)"} value={amount} onChange={setAmount} />
       <Field label="Od (RRRR-MM-DD)" value={startDate} type="text" onChange={setStartDate} />
       <Field label="Do (RRRR-MM-DD, nepovinné)" value={endDate} type="text" onChange={setEndDate} hint="bez hodnoty trvá" />
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť výdavok</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
@@ -1727,15 +1727,15 @@ function TaxSection({ positions }: { positions: Position[] }) {
   const lines = taxScenario(positions);
   return (
     <section>
-      <p style={{ color: "#555" }}>Hlavný výpočet ostáva nominálny (D-077). Daňový scenár je samostatný a zatiaľ nemá čísla po dani: pravidlá ešte nie sú overené (D-104).</p>
+      <p style={{ color: "var(--muted)" }}>Hlavný výpočet ostáva nominálny (D-077). Daňový scenár je samostatný a zatiaľ nemá čísla po dani: pravidlá ešte nie sú overené (D-104).</p>
       {lines.map((l) => (
-        <div key={l.regime} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+        <div key={l.regime} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{l.label}</strong></p>
           <p style={{ margin: "4px 0" }}>Hodnota investícií v režime: {eur(l.valueCents)}</p>
-          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
             {l.regime === "nezadane" ? "Zadaj daňový režim v položkách investícií." : "Po dani: čaká na overenie pravidiel."}
           </p>
-          <p style={{ margin: "4px 0", fontSize: "0.85rem", color: "#555" }}>
+          <p style={{ margin: "4px 0", fontSize: "0.85rem", color: "var(--muted)" }}>
             Zdroj: {TAX_CATALOG[l.regime].source ?? "nie je zadaný"} · platnosť od: {TAX_CATALOG[l.regime].validFrom ?? "nie je zadaná"} · stav: {TAX_CATALOG[l.regime].status}
           </p>
         </div>
@@ -1771,9 +1771,9 @@ function StockSection({ repo, items, recipes, today, onSaved }: { repo: Reposito
 
   return (
     <section>
-      <p style={{ color: "#555" }}>Potraviny doma a ich dátum spotreby. Množstvo a dátum zadávate ručne.</p>
+      <p style={{ color: "var(--muted)" }}>Potraviny doma a ich dátum spotreby. Množstvo a dátum zadávate ručne.</p>
       {warnings.length > 0 && (
-        <div style={{ background: "#fff4e0", padding: 8, borderRadius: 6, marginBottom: 12 }}>
+        <div style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, marginBottom: 12 }}>
           <strong>Pozor:</strong>
           <ul style={{ paddingLeft: 20, margin: "4px 0" }}>
             {warnings.map((w) => <li key={w.id}>{w.name}: {STOCK_STATUS_TEXT[stockStatus(w, today)]} ({w.expiryDate})</li>)}
@@ -1782,10 +1782,10 @@ function StockSection({ repo, items, recipes, today, onSaved }: { repo: Reposito
       )}
       {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané položky skladu.</p>}
       {items.map((i) => (
-        <div key={i.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+        <div key={i.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{i.name}</strong></p>
           <p style={{ margin: "4px 0" }}>{i.quantity} {i.unit}</p>
-          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>
+          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
             {i.expiryDate ? `Spotrebovať do ${i.expiryDate} (za ${daysUntil(today, i.expiryDate)} dní)` : "Bez dátumu spotreby"}
             {" · "}{STOCK_STATUS_TEXT[stockStatus(i, today)]}
           </p>
@@ -1815,7 +1815,7 @@ function StockSection({ repo, items, recipes, today, onSaved }: { repo: Reposito
         <button onClick={() => setEditing("new")} style={btn}>Pridať položku skladu</button>
       )}
       <RecipesBlock repo={repo} recipes={recipes} stock={items} onSaved={onSaved} />
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
   );
 }
@@ -1857,10 +1857,10 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
   return (
     <div style={{ marginTop: 16 }}>
       <h4 style={{ fontSize: "1rem" }}>Recepty</h4>
-      <p style={{ color: "#555", fontSize: "0.9rem" }}>Pri uvarení sa suroviny odpočítajú zo skladu. Ak niečo chýba, nič sa neodpočíta.</p>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Pri uvarení sa suroviny odpočítajú zo skladu. Ak niečo chýba, nič sa neodpočíta.</p>
       {recipes.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané recepty.</p>}
       {recipes.map((r) => (
-        <div key={r.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+        <div key={r.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{r.name}</strong></p>
           <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "0.9rem" }}>
             {r.ingredients.map((ing: RecipeIngredient) => {
@@ -1883,7 +1883,7 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
           )}
         </div>
       ))}
-      {result && <p style={{ color: result.ok ? "#1b5e20" : "#8a0000" }}>{result.text}</p>}
+      {result && <p style={{ color: result.ok ? "var(--ok)" : "var(--danger)" }}>{result.text}</p>}
       {editing ? (
         <RecipeForm
           repo={repo}
@@ -1895,7 +1895,7 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
       ) : (
         <button onClick={() => setEditing("new")} style={btn}>Pridať recept</button>
       )}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </div>
   );
 }
@@ -1931,9 +1931,9 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
   };
 
   return (
-    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť recept" : "Nový recept"}</h4>
-      {stock.length === 0 && <p style={{ color: "#555" }}>Najprv pridajte položky do skladu.</p>}
+      {stock.length === 0 && <p style={{ color: "var(--muted)" }}>Najprv pridajte položky do skladu.</p>}
       <Field label="Názov receptu (napr. palacinky)" value={name} type="text" onChange={setName} />
       {rows.map((row, n) => (
         <div key={n} style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 8 }}>
@@ -1960,7 +1960,7 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
         </div>
       ))}
       <button onClick={() => setRows((prev) => [...prev, { stockItemId: "", quantity: "" }])} style={btn} disabled={stock.length === 0}>Pridať surovinu</button>
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <div>
         <button onClick={save} style={btn}>Uložiť recept</button>{" "}
         <button onClick={onCancel} style={btn}>Zrušiť</button>
@@ -2026,17 +2026,17 @@ function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repositor
   };
 
   return (
-    <div style={{ border: "1px solid #888", padding: 12, borderRadius: 6, background: "#fff" }}>
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku skladu" : "Nová položka skladu"}</h4>
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Fotka obalu (navrhne názov a dátum spotreby)</span>
         <input type="file" accept="image/*" capture="environment" aria-label="Fotka obalu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); }} />
       </label>
-      {scanMsg && <p style={{ color: "#555", fontSize: "0.9rem" }}>{scanMsg}</p>}
+      {scanMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{scanMsg}</p>}
       {ocrText !== null && (
         <details style={{ fontSize: "0.9rem", marginBottom: 8 }}>
           <summary>Rozpoznaný text z fotky</summary>
-          <pre style={{ whiteSpace: "pre-wrap", background: "#f4f4f4", padding: 8, borderRadius: 4 }}>{ocrText.trim() || "(žiadny text)"}</pre>
+          <pre style={{ whiteSpace: "pre-wrap", background: "var(--surface-2)", padding: 8, borderRadius: 4 }}>{ocrText.trim() || "(žiadny text)"}</pre>
         </details>
       )}
       <Field label="Názov (napr. mlieko)" value={name} type="text" onChange={setName} />
@@ -2048,7 +2048,7 @@ function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repositor
         </select>
       </label>
       <Field label="Dátum spotreby (nepovinné, bez dátumu nechajte prázdne)" value={expiry} type="date" onChange={setExpiry} />
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť položku</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
@@ -2088,7 +2088,7 @@ function BudgetSection({ repo, budgets, transactions, recurring, today, onSaved 
   const recurringByCat = monthlyRecurringByCategory(recurring, today);
   return (
     <section>
-      <p style={{ color: "#555" }}>
+      <p style={{ color: "var(--muted)" }}>
         Mesačný limit pre kategóriu. Čo je v kategórii zaradené, vidíš v zázname výdavku. Prázdny limit znamená bez rozpočtu. Zoznam kategórií je návrh.
       </p>
       {BUDGET_CATEGORIES.map((c) => {
@@ -2111,8 +2111,8 @@ function BudgetSection({ repo, budgets, transactions, recurring, today, onSaved 
           />
         );
       })}
-      <p style={{ color: "#555" }}>Výdavky bez kategórie tento mesiac: {eur(unassigned)}</p>
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      <p style={{ color: "var(--muted)" }}>Výdavky bez kategórie tento mesiac: {eur(unassigned)}</p>
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť rozpočet</button>
     </section>
   );
@@ -2131,12 +2131,12 @@ function LockScreen({ repo, onUnlock }: { repo: Repository; onUnlock: () => void
   return (
     <section aria-label="Odomknutie">
       <h2 style={{ fontSize: "1.1rem" }}>Zadaj PIN</h2>
-      <p style={{ color: "#555" }}>Údaje sú v tomto telefóne. Ak PIN zabudneš, údaje sa nedajú obnoviť; jediná cesta je vymazať dáta prehliadača.</p>
+      <p style={{ color: "var(--muted)" }}>Údaje sú v tomto telefóne. Ak PIN zabudneš, údaje sa nedajú obnoviť; jediná cesta je vymazať dáta prehliadača.</p>
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>PIN</span>
         <input type="password" inputMode="numeric" aria-label="PIN" value={pin} onChange={(e) => setPin(e.target.value)} style={inp} />
       </label>
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={unlock} style={btn}>Odomknúť</button>
     </section>
   );
@@ -2181,20 +2181,20 @@ function PinSection({ repo, pinSet, onChanged, onLock }: { repo: Repository; pin
       <h3 style={{ fontSize: "1rem" }}>PIN</h3>
       {pinSet ? (
         <>
-          <p style={{ color: "#555" }}>PIN je zapnutý. Appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne; údaje nie sú zašifrované.</p>
+          <p style={{ color: "var(--muted)" }}>PIN je zapnutý. Appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne; údaje nie sú zašifrované.</p>
           <button onClick={onLock} style={btn}>Zamknúť teraz</button>
           <Field label="Aktuálny PIN (na vypnutie)" value={current} type="password" inputMode="numeric" onChange={setCurrent} />
           <button onClick={disable} style={btn}>Vypnúť PIN</button>
         </>
       ) : (
         <>
-          <p style={{ color: "#555" }}>PIN je nepovinný. Údaje nie sú zašifrované; PIN bráni len otvoreniu appky.</p>
+          <p style={{ color: "var(--muted)" }}>PIN je nepovinný. Údaje nie sú zašifrované; PIN bráni len otvoreniu appky.</p>
           <Field label="Nový PIN (4 až 6 číslic)" value={newPin} type="password" inputMode="numeric" onChange={setNewPin} />
           <Field label="Zopakuj PIN" value={repeat} type="password" inputMode="numeric" onChange={setRepeat} />
           <button onClick={enable} style={btn}>Zapnúť PIN</button>
         </>
       )}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
   );
 }
@@ -2255,7 +2255,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
   return (
     <section>
       {!settings && (
-        <p style={{ background: "#eef5f1", padding: 8, borderRadius: 6 }}>
+        <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6 }}>
           Prvé nastavenie: polia sú prázdne. Pod každým je východisková hodnota; ročné výdavky zadaj sám.
         </p>
       )}
@@ -2274,7 +2274,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
         hint={`prázdne = počíta sa zo zapísaných transakcií: ${eurs(derived.inv)} mesačne`} changed={differs(v.savingInv, null)} onReset={() => setV({ ...v, savingInv: "" })} />
       <Field label="Mesačné sporenie do hotovosti (€), prázdne = odvodené" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}
         hint={`prázdne = počíta sa zo zapísaných transakcií: ${eurs(derived.cash)} mesačne`} changed={differs(v.savingCash, null)} onReset={() => setV({ ...v, savingCash: "" })} />
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť nastavenia</button>
     </section>
   );
@@ -2334,10 +2334,10 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
 
   return (
     <section>
-      <p style={{ color: "#555" }}>
+      <p style={{ color: "var(--muted)" }}>
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
-      <p style={{ color: "#555" }}>Na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa zmení až po tomto kroku.</p>
+      <p style={{ color: "var(--muted)" }}>Na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa zmení až po tomto kroku.</p>
       <Field label="Dátum vyhodnotenia" value={date} type="date" max={todayIso()} onChange={setDate} />
       {derivedInvCents === null ? (
         <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} />
@@ -2345,9 +2345,9 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
         <p>Hodnota investícií: <strong>{eur(derivedInvCents)}</strong> (súčet položiek v sekcii Investície)</p>
       )}
       <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} />
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       {confirmId && (
-        <div style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6 }}>
+        <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6 }}>
           <p>Vyhodnotenie s dátumom {date} už existuje. Prepísať ho? História sa zachová v zálohe.</p>
           <button onClick={() => write(confirmId)} style={btn}>Prepísať vyhodnotenie</button>{" "}
           <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
@@ -2358,11 +2358,11 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
       <h3 style={{ fontSize: "1rem", marginTop: 24 }}>Uložené vyhodnotenia</h3>
       {snapshots.length === 0 && <p>Zatiaľ nie sú uložené vyhodnotenia.</p>}
       {[...snapshots].sort((a, b) => b.date.localeCompare(a.date)).map((s) => (
-        <div key={s.id} style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6, marginBottom: 8, background: "#fff" }}>
+        <div key={s.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{s.date}</strong>{s.auto ? " · automaticky" : ""}</p>
           <p style={{ margin: "4px 0" }}>K: {eur(s.investmentsCents + s.cashCents)}</p>
           {s.auto ? (
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "#555" }}>Automatické vyhodnotenie sa vytvorí znova z ručných údajov.</p>
+            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Automatické vyhodnotenie sa vytvorí znova z ručných údajov.</p>
           ) : deleteId === s.id ? (
             <div>
               <p>Naozaj zmazať vyhodnotenie z {s.date}? Ak chceš mať kópiu, najprv stiahni zálohu v sekcii Záloha.</p>
@@ -2374,7 +2374,7 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
           )}
         </div>
       ))}
-      {delErr && <p style={{ color: "#8a0000" }}>{delErr}</p>}
+      {delErr && <p style={{ color: "var(--danger)" }}>{delErr}</p>}
     </section>
   );
 }
@@ -2593,7 +2593,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
 
   return (
     <section>
-      {!ctx.latest && <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>Najprv urob vyhodnotenie vo <a href="#vyhodnotenie">Vyhodnotení</a>, potom môžeš zapisovať transakcie.</p>}
+      {!ctx.latest && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Najprv urob vyhodnotenie vo <a href="#vyhodnotenie">Vyhodnotení</a>, potom môžeš zapisovať transakcie.</p>}
       {inEdit && <h2 style={{ fontSize: "1.1rem" }}>Úprava transakcie</h2>}
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Typ</span>
@@ -2635,7 +2635,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
             <span style={{ display: "block", fontSize: "0.9rem" }}>Alebo nafoťte QR kód z dokladu</span>
             <input type="file" accept="image/*" capture="environment" aria-label="Fotka QR kódu dokladu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void scanReceipt(f); }} />
           </label>
-          {qrMsg && <p style={{ color: "#555", fontSize: "0.9rem" }}>{qrMsg}</p>}
+          {qrMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{qrMsg}</p>}
           {isReceiptId(receiptId.trim()) && (
             <>
               <p style={{ fontSize: "0.9rem" }}>
@@ -2643,7 +2643,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
                 {" "}(otvorí sa v prehliadači).
               </p>
               <button type="button" onClick={copyReceipt} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Skopírovať číslo dokladu</button>
-              {copyMsg && <p style={{ color: "#555", fontSize: "0.9rem" }}>{copyMsg}</p>}
+              {copyMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{copyMsg}</p>}
             </>
           )}
         </div>
@@ -2665,13 +2665,13 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
             </>
           )}
           {parsedItems.unparsed.length > 0 && (
-            <p style={{ color: "#8a0000", fontSize: "0.9rem" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Opravte text alebo ho vymažte; bez toho sa výdavok neuloží.</p>
+            <p style={{ color: "var(--danger)", fontSize: "0.9rem" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Opravte text alebo ho vymažte; bez toho sa výdavok neuloží.</p>
           )}
           {itemsMismatch && (
-            <p style={{ color: "#8a0000", fontSize: "0.9rem" }}>Súčet položiek sa nezhoduje so sumou výdavku {eurExact(cents(asNum(amount)))} (napr. zľava). Uložiť sa dá, ak je to v poriadku.</p>
+            <p style={{ color: "var(--danger)", fontSize: "0.9rem" }}>Súčet položiek sa nezhoduje so sumou výdavku {eurExact(cents(asNum(amount)))} (napr. zľava). Uložiť sa dá, ak je to v poriadku.</p>
           )}
           {itemsText.trim() === "" && storedItems.length > 0 && (
-            <p style={{ color: "#555", fontSize: "0.9rem" }}>Uložené položky: {storedItems.length}. Vložením nového textu sa nahradia.</p>
+            <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Uložené položky: {storedItems.length}. Vložením nového textu sa nahradia.</p>
           )}
         </div>
       )}
@@ -2684,7 +2684,7 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
         </p>
       )}
       {preview && !preview.blocked && preview.note && (
-        <p style={{ background: "#fff4e0", padding: 8, borderRadius: 6 }}>{preview.note}</p>
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>{preview.note}</p>
       )}
       {preview && !preview.blocked && preview.needsConfirm && (
         <label style={{ display: "block", margin: "8px 0" }}>
@@ -2692,9 +2692,9 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
         </label>
       )}
       {inEdit && date <= (ctx.latest?.date ?? "") && (
-        <p style={{ color: "#555" }}>Zmena neovplyvní oficiálny cieľ, kým neurobíte nové vyhodnotenie.</p>
+        <p style={{ color: "var(--muted)" }}>Zmena neovplyvní oficiálny cieľ, kým neurobíte nové vyhodnotenie.</p>
       )}
-      {err && <p style={{ color: "#8a0000" }}>{err}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>{inEdit ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
       {inEdit && <button onClick={resetForm} style={{ ...btn, marginLeft: 8 }}>Zrušiť úpravu</button>}
 
@@ -2712,25 +2712,25 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
         <input aria-label="Od dátumu" type="date" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
         <input aria-label="Do dátumu" type="date" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
       </div>
-      <p style={{ fontSize: "0.9rem", color: "#555" }}>
+      <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
         Súčet zobrazených transakcií: {(Object.keys(totals) as TransactionType[]).length === 0
           ? "žiadne transakcie"
           : (Object.keys(totals) as TransactionType[]).map((t) => `${TYPE_LABEL[t]} ${eur(totals[t] ?? 0)}`).join(" · ")}
       </p>
       {Object.keys(categoryTotals).length > 0 && (
-        <p style={{ fontSize: "0.9rem", color: "#555" }}>
+        <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
           Výdavky podľa kategórie: {Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]).map(([c, v]) => `${c} ${eurExact(v)}`).join(" · ")}
         </p>
       )}
       {undo && (
-        <p style={{ background: "#f4f1e8", padding: 8, borderRadius: 6 }}>
+        <p style={{ background: "var(--banner)", padding: 8, borderRadius: 6 }}>
           Transakcia bola zmazaná. <button onClick={restore} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Vrátiť späť</button>
         </p>
       )}
       <ul style={{ paddingLeft: 0, listStyle: "none" }}>
-        {list.length === 0 && <li style={{ color: "#555" }}>Zatiaľ žiadne.</li>}
+        {list.length === 0 && <li style={{ color: "var(--muted)" }}>Zatiaľ žiadne.</li>}
         {list.map((t) => (
-          <li key={t.id} style={{ borderBottom: "1px solid #ddd", padding: "6px 0", display: "flex", justifyContent: "space-between", gap: 8 }}>
+          <li key={t.id} style={{ borderBottom: "1px solid var(--border-soft)", padding: "6px 0", display: "flex", justifyContent: "space-between", gap: 8 }}>
             <span>
               {t.date} · {TYPE_LABEL[t.type]} · {eur(t.amountCents)}
               {t.source ? ` (${SOURCE_LABEL[t.source]})` : ""}
@@ -2845,14 +2845,14 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
 
   return (
     <section>
-      <p style={{ color: "#555" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu. Súbor sa stiahne do priečinka Stiahnuté (alebo do priečinka, ktorý nastavil prehliadač).</p>
+      <p style={{ color: "var(--muted)" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu. Súbor sa stiahne do priečinka Stiahnuté (alebo do priečinka, ktorý nastavil prehliadač).</p>
       <button onClick={exportBackup} style={btn}>Exportovať zálohu</button>
       <label style={{ display: "block", margin: "16px 0 8px" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Obnovenie zo zálohy</span>
       </label>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <button type="button" onClick={() => fileRef.current?.click()} style={btn}>Vybrať súbor zálohy</button>
-        <span style={{ fontSize: "0.9rem", color: "#555" }}>{fileName || "Nie je vybraný žiadny súbor"}</span>
+        <span style={{ fontSize: "0.9rem", color: "var(--muted)" }}>{fileName || "Nie je vybraný žiadny súbor"}</span>
         <input
           ref={fileRef}
           type="file"
@@ -2867,9 +2867,9 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
           }}
         />
       </div>
-      {errors.length > 0 && <ul style={{ color: "#8a0000" }}>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>}
+      {errors.length > 0 && <ul style={{ color: "var(--danger)" }}>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>}
       {preview && (
-        <div style={{ border: "1px solid #ccc", padding: 12, borderRadius: 6 }}>
+        <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6 }}>
           <p>
             Záloha z {preview.exportedAt.slice(0, 10)}: {preview.counts.transactions} transakcií, {preview.counts.snapshots} vyhodnotení.
           </p>
@@ -2915,7 +2915,7 @@ function Field(props: { label: string; value: NumIn | string; onChange: (v: any)
         style={inp}
       />
       {props.hint && (
-        <span style={{ display: "flex", gap: 8, alignItems: "center", fontSize: "0.85rem", color: "#555" }}>
+        <span style={{ display: "flex", gap: 8, alignItems: "center", fontSize: "0.85rem", color: "var(--muted)" }}>
           {props.hint}
           {props.onReset && props.changed && (
             <button type="button" onClick={props.onReset} style={{ ...btn, padding: "2px 8px", fontSize: "0.85rem", marginTop: 0 }}>
