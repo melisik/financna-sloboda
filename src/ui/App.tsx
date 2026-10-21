@@ -860,6 +860,24 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
       <p style={{ color: "var(--muted)" }}>
         Hodnota je tvoj odhad, nie trhová cena. Do kapitálu K sa počíta len nehnuteľnosť, ktorú prenajímaš; vlastné bývanie sa zobrazí zvlášť.
       </p>
+      {(properties.length > 0 || assets.length > 0) && (() => {
+        // Súhrn: čo sa počíta do K a čo je mimo K (D-093, D-058). Čistá hodnota ako v K.
+        const inK = properties.filter((p) => p.mode === "prenajom").reduce((sum, p) => sum + netPropertyValueCents(p), 0);
+        const outK = properties.filter((p) => p.mode === "vlastne_byvanie").reduce((sum, p) => sum + netPropertyValueCents(p), 0);
+        const unset = properties.filter((p) => p.mode === "nezadane").reduce((sum, p) => sum + netPropertyValueCents(p), 0);
+        const assetsTotal = assets.reduce((sum, a) => sum + a.valueCents, 0);
+        const monthly = properties.reduce((sum, p) => sum + monthlyCostsCents(p), 0);
+        return (
+          <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 12 }}>
+            <p style={{ margin: "4px 0" }}>Do K sa počíta: <strong>{eur(inK)}</strong> (prenajímané nehnuteľnosti, čistá hodnota)</p>
+            <p style={{ margin: "4px 0" }}>
+              Mimo K: vlastné bývanie {eur(outK)}, automobily a práva {eur(assetsTotal)}
+              {properties.some((p) => p.mode === "nezadane") ? `, nezadaný režim ${eur(unset)}` : ""}
+            </p>
+            {monthly > 0 && <p style={{ margin: "4px 0" }}>Mesačné náklady na nehnuteľnosti spolu: <strong>{eur(monthly)}</strong></p>}
+          </div>
+        );
+      })()}
       {properties.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna nehnuteľnosť.</p>}
       {properties.map((p) => {
         const net = netPropertyValueCents(p);
@@ -887,11 +905,11 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
               {net < 0 && <span> (hypotéka presahuje odhad)</span>}
             </p>
             <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
-              {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta; zobrazí sa zvlášť."}
+              {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta."}
             </p>
             {confirmId === p.id ? (
               <div>
-                <p>Naozaj zmazať túto nehnuteľnosť?</p>
+                <p>Naozaj zmazať nehnuteľnosť „{p.name || "Nehnuteľnosť"}“?</p>
                 <button onClick={() => remove(p.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
                 <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
               </div>
@@ -957,7 +975,7 @@ function AssetSection({ repo, assets, today, onSaved }: { repo: Repository; asse
           <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Do K sa zatiaľ nepočíta.</p>
           {confirmId === a.id ? (
             <div>
-              <p>Naozaj zmazať toto aktívum?</p>
+              <p>Naozaj zmazať aktívum „{a.name}“?</p>
               <button onClick={() => remove(a.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>

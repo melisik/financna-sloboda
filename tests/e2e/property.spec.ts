@@ -34,11 +34,12 @@ test.describe("karta majetku (Fáza 2)", () => {
     await expect(page.locator("section#majetok")).toBeVisible();
     await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Do K sa počíta ako čistá hodnota.");
 
-    // Zmena režimu na vlastné bývanie: mimo K, zobrazí sa zvlášť.
+    // Zmena režimu na vlastné bývanie: mimo K a v súhrne nad zoznamom.
     await page.getByRole("button", { name: "Upraviť" }).click();
     await page.getByLabel("Režim").selectOption("vlastne_byvanie");
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
-    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Do K sa nepočíta; zobrazí sa zvlášť.");
+    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Do K sa nepočíta.");
+    await expect(page.locator("#majetok")).toContainText(/Mimo K: vlastné bývanie/);
 
     // Zmazanie s potvrdením.
     await page.getByRole("button", { name: "Zmazať" }).click();
