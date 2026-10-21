@@ -22,10 +22,10 @@ test.describe("zabudnutý výdavok (D-123)", () => {
     await page.getByLabel("Zdroj úhrady").selectOption("z_investicii");
     await page.getByLabel("Suma (€)").fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("výdavok · 150 €")).toBeVisible();
+    await expect(page.getByText("výdavok · 150,00 €")).toBeVisible();
 
     await goTo(page, "prehlad");
     await page.getByText("Podrobnosti").click();
-    await expect(page.locator("section#prehlad")).toContainText("Kapitál: investície 309 850 €");
+    await expect(page.locator("section#prehlad")).toContainText("Kapitál: investície 309 850,00 €");
   });
 });

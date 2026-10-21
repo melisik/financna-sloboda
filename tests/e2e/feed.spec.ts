@@ -13,7 +13,7 @@ test.describe("import súboru integračnej služby (D-112)", () => {
     await expect(page.getByText(/Položiek: 2\./)).toBeVisible();
     await page.getByRole("button", { name: "Importovať" }).click();
     await expect(page.getByText("starobný dôchodok (výhľad)")).toBeVisible();
-    await expect(page.getByText("Zdroj: Integračná služba (syntetické), získané 2026-10-19")).toHaveCount(2);
+    await expect(page.getByText("Zdroj: Integračná služba (syntetické), získané 19.10.2026")).toHaveCount(2);
 
     // Opätovný import toho istého zdroja nesmie zdvojiť položky.
     await page.getByLabel("Súbor od integračnej služby").setInputFiles(feed);

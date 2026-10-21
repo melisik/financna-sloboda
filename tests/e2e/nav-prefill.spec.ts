@@ -33,7 +33,7 @@ test.describe("navigácia a predvyplnenie vyhodnotenia", () => {
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
     await page.getByLabel("Suma (€)").fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("sporenie (do hotovosti) · 250 €")).toBeVisible();
+    await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 
     // Nové vyhodnotenie je predvyplnené: hotovosť 20 250 €, investície bez zmeny
     await goTo(page, "vyhodnotenie");

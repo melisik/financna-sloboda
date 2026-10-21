@@ -21,18 +21,18 @@ test.describe("pravidelné výdavky (D-124)", () => {
     await page.getByLabel("Suma ročne (€)").fill("120");
     await page.getByRole("button", { name: "Uložiť výdavok" }).click();
 
-    await expect(page.getByText("Spolu za mesiac: 22 €")).toBeVisible();
-    await expect(page.locator("section#pravidelne-vydavky li", { hasText: "predplatné a služby: 12 €" })).toBeVisible();
-    await expect(page.locator("section#pravidelne-vydavky li", { hasText: "iné: 10 €" })).toBeVisible();
+    await expect(page.getByText("Spolu za mesiac: 22,00 €")).toBeVisible();
+    await expect(page.locator("section#pravidelne-vydavky li", { hasText: "predplatné a služby: 12,00 €" })).toBeVisible();
+    await expect(page.locator("section#pravidelne-vydavky li", { hasText: "iné: 10,00 €" })).toBeVisible();
 
     await page.reload();
     await goTo(page, "pravidelne-vydavky");
-    await expect(page.getByText("Spolu za mesiac: 22 €")).toBeVisible();
+    await expect(page.getByText("Spolu za mesiac: 22,00 €")).toBeVisible();
 
     const card = page.locator("section#pravidelne-vydavky div", { hasText: "Poistka domácnosti" }).last();
     await card.getByRole("button", { name: "Zmazať", exact: true }).click();
     await card.getByRole("button", { name: "Zmazať", exact: true }).click();
-    await expect(page.getByText("Spolu za mesiac: 12 €")).toBeVisible();
+    await expect(page.getByText("Spolu za mesiac: 12,00 €")).toBeVisible();
   });
 
   test("pravidelný výdavok sa ráta do minutého za mesiac v rozpočte kategórie", async ({ page }) => {
@@ -43,11 +43,11 @@ test.describe("pravidelné výdavky (D-124)", () => {
     await page.getByLabel("Kategória pravidelného výdavku").selectOption("jedlo");
     await page.getByLabel("Suma mesačne (€)").fill("100");
     await page.getByRole("button", { name: "Uložiť výdavok" }).click();
-    await expect(page.getByText("Spolu za mesiac: 100 €")).toBeVisible();
+    await expect(page.getByText("Spolu za mesiac: 100,00 €")).toBeVisible();
 
     await goTo(page, "rozpocet");
     await page.getByLabel("jedlo: limit (€)").fill("300");
     await page.getByRole("button", { name: "Uložiť rozpočet" }).click();
-    await expect(page.getByText("minuté tento mesiac 100 € (z toho pravidelné 100 €); zostáva 200 €")).toBeVisible();
+    await expect(page.getByText("minuté tento mesiac 100,00 € (z toho pravidelné 100,00 €); zostáva 200,00 €")).toBeVisible();
   });
 });

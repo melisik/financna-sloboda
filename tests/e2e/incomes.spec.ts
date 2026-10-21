@@ -12,9 +12,9 @@ test.describe("sekcia Príjmy (D-102)", () => {
     await page.getByLabel("Názov (napr. mzda)").fill("mzda syntetická");
     await page.getByLabel("Suma mesačne (€)").fill("1200");
     await page.getByLabel("Deň v mesiaci (nepovinné)").fill("15");
-    await page.getByLabel("Od (RRRR-MM-DD)").fill("2025-01-01");
+    await page.getByLabel("Od", { exact: true }).fill("2025-01-01");
     await page.getByRole("button", { name: "Uložiť príjem" }).click();
-    await expect(page.getByText(/Mesačný príjem:\s*1\D*200 €/)).toBeVisible();
+    await expect(page.getByText(/Mesačný príjem:\s*1\D*200,00 €/)).toBeVisible();
 
     // Nepravidelná sociálna dávka: zobrazí sa zvlášť a do mesačného súčtu sa neráta.
     await page.getByRole("button", { name: "Pridať pravidelný príjem" }).click();
@@ -22,10 +22,10 @@ test.describe("sekcia Príjmy (D-102)", () => {
     await page.getByLabel("Druh").selectOption("socialna_davka");
     await page.getByLabel("Frekvencia").selectOption("nepravidelne");
     await page.getByLabel("Suma (€)").fill("300");
-    await page.getByLabel("Dátum (RRRR-MM-DD)").fill("2026-10-05");
+    await page.getByLabel("Dátum", { exact: true }).fill("2026-10-05");
     await page.getByRole("button", { name: "Uložiť príjem" }).click();
-    await expect(page.getByText(/Mesačný príjem:\s*1\D*200 €/)).toBeVisible();
-    await expect(page.getByText(/Nepravidelné príjmy[^:]*:\s*300 €/)).toBeVisible();
+    await expect(page.getByText(/Mesačný príjem:\s*1\D*200,00 €/)).toBeVisible();
+    await expect(page.getByText(/Nepravidelné príjmy[^:]*:\s*300,00 €/)).toBeVisible();
 
     await page.reload();
     await goTo(page, "prijmy");

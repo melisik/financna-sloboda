@@ -11,9 +11,9 @@ test("výdavok 600 € je označený „nad prahom“, výdavok 10 € nie", asy
   await goTo(page, "nova-transakcia");
   await page.getByLabel("Suma (€)").fill("10");
   await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-  await expect(page.getByText("výdavok · 10 € (z hotovosti)").first()).toBeVisible();
+  await expect(page.getByText("výdavok · 10,00 € (z hotovosti)").first()).toBeVisible();
   await page.getByLabel("Suma (€)").fill("600");
   await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-  await expect(page.getByText("výdavok · 600 € (z hotovosti) · nad prahom").first()).toBeVisible();
-  await expect(page.getByText("výdavok · 10 € (z hotovosti) · nad prahom")).toHaveCount(0);
+  await expect(page.getByText("výdavok · 600,00 € (z hotovosti) · nad prahom").first()).toBeVisible();
+  await expect(page.getByText("výdavok · 10,00 € (z hotovosti) · nad prahom")).toHaveCount(0);
 });

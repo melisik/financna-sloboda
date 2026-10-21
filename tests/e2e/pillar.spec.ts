@@ -13,8 +13,8 @@ test.describe("tretí pilier v Investíciách (D-105)", () => {
     await page.getByLabel("Mesačný vklad (€, nepovinné)").fill("100");
     await page.getByRole("button", { name: "Uložiť položku" }).click();
 
-    await expect(page.getByText("Spolu: 5 000 €")).toBeVisible();
-    await expect(page.getByText(/Mesačné vklady do tretieho piliera a iných položiek:\s*100 €/)).toBeVisible();
-    await expect(page.locator("#investicie div", { hasText: "účet syntetický" }).last()).toContainText("Stav účtu: 5 000 €");
+    await expect(page.getByText("Spolu: 5 000,00 €")).toBeVisible();
+    await expect(page.getByText(/Mesačné vklady do tretieho piliera a iných položiek:\s*100,00 €/)).toBeVisible();
+    await expect(page.locator("#investicie div", { hasText: "účet syntetický" }).last()).toContainText("Stav účtu: 5 000,00 €");
   });
 });

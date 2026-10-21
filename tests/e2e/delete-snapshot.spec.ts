@@ -31,16 +31,16 @@ test.describe("zmazanie vyhodnotenia", () => {
 
     // Zmazanie 01.07. len po potvrdení.
     await goTo(page, "vyhodnotenie");
-    const card = page.locator("section#vyhodnotenie div", { hasText: "2026-07-01" }).last();
+    const card = page.locator("section#vyhodnotenie div", { hasText: "01.07.2026" }).last();
     await card.getByRole("button", { name: "Zmazať", exact: true }).click();
-    await expect(card).toContainText("Naozaj zmazať vyhodnotenie z 2026-07-01?");
+    await expect(card).toContainText("Naozaj zmazať vyhodnotenie z 01.07.2026?");
     await page.getByRole("button", { name: "Zmazať vyhodnotenie" }).click();
-    await expect(page.locator("section#vyhodnotenie strong", { hasText: "2026-07-01" })).toHaveCount(0);
-    await expect(page.locator("section#vyhodnotenie strong", { hasText: "2026-01-01" })).toHaveCount(1);
+    await expect(page.locator("section#vyhodnotenie strong", { hasText: "01.07.2026" })).toHaveCount(0);
+    await expect(page.locator("section#vyhodnotenie strong", { hasText: "01.01.2026" })).toHaveCount(1);
 
     await goTo(page, "rocny-prehlad");
-    await expect(page.locator("section#rocny-prehlad strong", { hasText: "2026-07-01" })).toHaveCount(0);
-    await expect(page.locator("section#rocny-prehlad strong", { hasText: "2026-01-01" })).toHaveCount(1);
+    await expect(page.locator("section#rocny-prehlad strong", { hasText: "01.07.2026" })).toHaveCount(0);
+    await expect(page.locator("section#rocny-prehlad strong", { hasText: "01.01.2026" })).toHaveCount(1);
   });
 
   test("automatické vyhodnotenie sa nedá zmazať tlačidlom", async ({ page }) => {

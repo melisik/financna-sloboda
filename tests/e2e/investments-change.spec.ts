@@ -17,7 +17,7 @@ test.describe("investície: zmena a rozpis", () => {
     await page.getByLabel("Počet kusov").fill("10");
     await page.getByLabel("Cena za kus (v mene položky)").fill("20");
     await page.getByRole("button", { name: "Uložiť položku" }).click();
-    await expect(page.getByText("Spolu: 200 €")).toBeVisible();
+    await expect(page.getByText("Spolu: 200,00 €")).toBeVisible();
 
     await goTo(page, "vyhodnotenie");
     await expect(page.getByText("Investície sa zmenili od posledného vyhodnotenia.")).toBeVisible();
@@ -32,7 +32,7 @@ test.describe("investície: staré ocenenie", () => {
     await page.getByLabel("Názov alebo ticker").fill("starý ETF");
     await page.getByLabel("Počet kusov").fill("1");
     await page.getByLabel("Cena za kus (v mene položky)").fill("100");
-    await page.getByLabel("Dátum ocenenia (RRRR-MM-DD)").fill("2026-01-01");
+    await page.getByLabel("Dátum ocenenia").fill("2026-01-01");
     await page.getByRole("button", { name: "Uložiť položku" }).click();
     await expect(page.getByText(/Staré ocenenie \(viac ako 3 mesiace\): starý ETF/)).toBeVisible();
   });

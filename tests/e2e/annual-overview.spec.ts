@@ -30,18 +30,18 @@ test.describe("Ročný prehľad", () => {
     await expect(page.locator("section#prehlad", { hasText: "Dátum cieľa:" })).toBeVisible();
 
     await goTo(page, "rocny-prehlad");
-    const first = page.locator("section#rocny-prehlad div", { hasText: "2026-01-01" }).last();
-    await expect(first).toContainText(/K: 300\D?000 €/);
+    const first = page.locator("section#rocny-prehlad div", { hasText: "01.01.2026" }).last();
+    await expect(first).toContainText(/K: 300\D?000,00 €/);
     await expect(first).not.toContainText("Zmena K:");
 
-    const second = page.locator("section#rocny-prehlad div", { hasText: "2026-07-01" }).last();
-    await expect(second).toContainText(/K: 400\D?000 €/);
-    await expect(second).toContainText(/Zmena K: \+100\D?000 €/);
+    const second = page.locator("section#rocny-prehlad div", { hasText: "01.07.2026" }).last();
+    await expect(second).toContainText(/K: 400\D?000,00 €/);
+    await expect(second).toContainText(/Zmena K: \+100\D?000,00 €/);
     await expect(second).toContainText(/Zmena dátumu cieľa: .*skôr/);
 
     // Auto-vyhodnotenie (D-116) vychádza z najnovšieho ručného stavu 400 000 €, nie zo staršieho 300 000 €.
     const auto = page.locator("section#rocny-prehlad div", { hasText: "automaticky" }).last();
-    await expect(auto).toContainText(/K: 40\d\D?\d{3} €/);
+    await expect(auto).toContainText(/K: 40\d\D?\d{3},\d{2} €/);
   });
 
   test("prepísanie ručného vyhodnotenia prepočíta auto-riadok (D-116)", async ({ page }) => {
@@ -81,10 +81,10 @@ test.describe("Ročný prehľad", () => {
     await expect(page.locator("section#prehlad", { hasText: "Dátum cieľa:" })).toBeVisible();
 
     await goTo(page, "rocny-prehlad");
-    const second = page.locator("section#rocny-prehlad div", { hasText: "2026-07-01" }).last();
-    await expect(second).toContainText(/K: 420\D?000 €/);
+    const second = page.locator("section#rocny-prehlad div", { hasText: "01.07.2026" }).last();
+    await expect(second).toContainText(/K: 420\D?000,00 €/);
     const auto = page.locator("section#rocny-prehlad div", { hasText: "automaticky" }).last();
-    await expect(auto).toContainText(/K: 42\d\D?\d{3} €/);
+    await expect(auto).toContainText(/K: 42\d\D?\d{3},\d{2} €/);
   });
 
   test("bez vyhodnotení sa zobrazí výzva", async ({ page }) => {

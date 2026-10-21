@@ -24,7 +24,7 @@ test.describe("ročný prehľad: rozpis a súhrn", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
     await goTo(page, "rocny-prehlad");
-    await expect(page.getByText(/z toho sporenie 10 €/)).toBeVisible();
-    await expect(page.getByText(/Sporenie: 10 €/)).toBeVisible();
+    await expect(page.getByText(/z toho sporenie 10,00 €/)).toBeVisible();
+    await expect(page.getByText(/Sporenie: 10,00 €/)).toBeVisible();
   });
 });

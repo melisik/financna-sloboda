@@ -15,7 +15,7 @@ test.describe("majetok a hypotéka", () => {
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
     await page.getByLabel("Režim").selectOption("prenajom");
     await page.getByLabel("Odhad hodnoty (€)").fill("300000");
-    await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByLabel("Dátum odhadu").fill("2026-10-01");
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
 
     await goTo(page, "vyhodnotenie");
@@ -34,7 +34,7 @@ test.describe("majetok a hypotéka", () => {
     await page.getByLabel("Názov (nepovinné)").fill("hypotéka test");
     await page.getByLabel("Režim").selectOption("vlastne_byvanie");
     await page.getByLabel("Odhad hodnoty (€)").fill("300000");
-    await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByLabel("Dátum odhadu").fill("2026-10-01");
     await page.getByLabel("Zostatok hypotéky (€)").fill("1000");
     await page.getByLabel("Zostatok platí k (dátum)").fill(since);
     await page.getByLabel("Úroková sadzba hypotéky (% p. a.)").fill("3.6");
@@ -42,6 +42,6 @@ test.describe("majetok a hypotéka", () => {
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
 
     const card = page.locator("#majetok div", { hasText: "hypotéka test" }).last();
-    await expect(card).toContainText(/Hypotéka: \d{1,3} €/);
+    await expect(card).toContainText(/Hypotéka: \d[\d\s\u00a0]*,\d{2} €/);
   });
 });

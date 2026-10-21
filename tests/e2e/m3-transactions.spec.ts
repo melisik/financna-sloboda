@@ -33,7 +33,7 @@ test.describe("M3 – zadanie transakcií", () => {
     taps += 1;
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     taps += 1;
-    await expect(page.getByText("výdavok · 150 €").first()).toBeVisible();
+    await expect(page.getByText("výdavok · 150,00 €").first()).toBeVisible();
     const elapsedMs = Date.now() - start;
     expect(taps).toBeLessThanOrEqual(5);
     expect(elapsedMs).toBeLessThan(20_000);
@@ -43,18 +43,18 @@ test.describe("M3 – zadanie transakcií", () => {
     await setupGoalAndEvaluation(page);
     await page.getByLabel("Suma (€)").fill("50");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("výdavok · 50 € (z hotovosti)").first()).toBeVisible();
+    await expect(page.getByText("výdavok · 50,00 € (z hotovosti)").first()).toBeVisible();
     await expect(page.getByText("pod prahom")).toHaveCount(0);
     await page.getByLabel("Suma (€)").fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("výdavok · 150 € (z hotovosti) · nad prahom").first()).toBeVisible();
+    await expect(page.getByText("výdavok · 150,00 € (z hotovosti) · nad prahom").first()).toBeVisible();
   });
 
   test("prázdna alebo nulová suma sa neuloží a zobrazí chybu", async ({ page }) => {
     await setupGoalAndEvaluation(page);
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("Suma musí byť kladná.")).toBeVisible();
-    await expect(page.getByText(/výdavok · 0 €/)).toHaveCount(0);
+    await expect(page.getByText(/výdavok · 0,00 €/)).toHaveCount(0);
   });
 
   test("filter typu zobrazí len vybraný typ", async ({ page }) => {
@@ -62,13 +62,13 @@ test.describe("M3 – zadanie transakcií", () => {
     await page.getByLabel("Suma (€)").fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     // Počkaj, kým sa prvá transakcia uloží; inak jej dokončenie vymaže sumu druhej.
-    await expect(page.getByText("výdavok · 150 €").first()).toBeVisible();
+    await expect(page.getByText("výdavok · 150,00 €").first()).toBeVisible();
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
     await page.getByLabel("Suma (€)").fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("sporenie (do hotovosti) · 250 €").first()).toBeVisible();
+    await expect(page.getByText("sporenie (do hotovosti) · 250,00 €").first()).toBeVisible();
     await page.getByLabel("Filter typu").selectOption("sporenie");
-    await expect(page.getByText("sporenie (do hotovosti) · 250 €").first()).toBeVisible();
-    await expect(page.getByText("výdavok · 150 €")).toHaveCount(0);
+    await expect(page.getByText("sporenie (do hotovosti) · 250,00 €").first()).toBeVisible();
+    await expect(page.getByText("výdavok · 150,00 €")).toHaveCount(0);
   });
 });

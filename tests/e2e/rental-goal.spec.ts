@@ -30,7 +30,7 @@ test.describe("dátum cieľa pri prenájme (FR-02a)", () => {
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
     await page.getByLabel("Režim").selectOption("prenajom");
     await page.getByLabel("Odhad hodnoty (€)").fill("300000");
-    await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByLabel("Dátum odhadu").fill("2026-10-01");
     await page.getByLabel("Zostatok hypotéky (€)").fill("200000");
     await page.getByLabel("Mesačný nájom (€, nepovinné)").fill("1200");
     await page.getByLabel("Úroková sadzba hypotéky (% p. a.)").fill("3");

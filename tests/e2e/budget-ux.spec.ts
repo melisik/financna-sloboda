@@ -24,7 +24,7 @@ test.describe("rozpočet: použiteľnosť", () => {
     await page.getByLabel("zábava: limit (€)").fill("50");
     await page.getByRole("button", { name: "Uložiť rozpočet" }).click();
     await expect(page.getByText("Rozpočet je uložený.")).toBeVisible();
-    await expect(page.getByText(/Plán spolu: 150 €/)).toBeVisible();
+    await expect(page.getByText(/Plán spolu: 150,00 €/)).toBeVisible();
     await expect(page.getByText("Zatiaľ nie je nastavený žiadny limit.")).toHaveCount(0);
 
     await goTo(page, "nova-transakcia");
@@ -39,6 +39,6 @@ test.describe("rozpočet: použiteľnosť", () => {
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await goTo(page, "rozpocet");
-    await expect(page.getByText("Prekročené o 40 €.")).toBeVisible();
+    await expect(page.getByText("Prekročené o 40,00 €.")).toBeVisible();
   });
 });

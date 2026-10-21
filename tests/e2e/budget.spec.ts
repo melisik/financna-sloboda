@@ -21,9 +21,9 @@ test.describe("rozpočet kategórií (D-106)", () => {
     await page.getByLabel("Suma (€)").fill("120");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("výdavok · 120 €").first()).toBeVisible();
+    await expect(page.getByText("výdavok · 120,00 €").first()).toBeVisible();
 
     await goTo(page, "rozpocet");
-    await expect(page.getByText(/minuté tento mesiac 120 €; zostáva 180 €/)).toBeVisible();
+    await expect(page.getByText(/minuté tento mesiac 120,00 €; zostáva 180,00 €/)).toBeVisible();
   });
 });

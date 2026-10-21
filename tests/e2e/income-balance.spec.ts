@@ -22,11 +22,11 @@ test.describe("príjmy: rozdiel a upozornenie", () => {
     await page.getByRole("button", { name: "Pridať pravidelný príjem" }).click();
     await page.getByLabel("Názov (napr. mzda)").fill("Mzda test");
     await page.getByLabel("Suma mesačne (€)").fill("1000");
-    await page.getByLabel("Od (RRRR-MM-DD)").fill("2026-01-01");
+    await page.getByLabel("Od", { exact: true }).fill("2026-01-01");
     await page.getByRole("button", { name: "Uložiť príjem" }).click();
 
     await expect(page.getByText("Nie je zadaný žiadny platný pravidelný príjem.")).toHaveCount(0);
-    await expect(page.getByText(/Rozdiel: \+960 €/)).toBeVisible();
+    await expect(page.getByText(/Rozdiel: \+960,00 €/)).toBeVisible();
 
     const card = page.locator("section#prijmy div", { hasText: "Mzda test" }).last();
     await card.getByRole("button", { name: "Zmazať", exact: true }).click();

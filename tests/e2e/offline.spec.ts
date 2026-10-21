@@ -26,20 +26,20 @@ test.describe("PWA a offline režim (M5)", () => {
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
     await page.getByLabel("Suma (€)").fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("sporenie (do hotovosti) · 250 €")).toBeVisible();
+    await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 
     // Offline: načítanie aj dáta musia zostať.
     await context.setOffline(true);
     await page.reload();
     await expect(page.getByRole("heading", { name: "Finančná sloboda" })).toBeVisible();
     await goTo(page, "nova-transakcia");
-    await expect(page.getByText("sporenie (do hotovosti) · 250 €")).toBeVisible();
+    await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 
     // Offline zápis: nová transakcia sa uloží a zobrazí.
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
     await page.getByLabel("Suma (€)").fill("100");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("sporenie (do hotovosti) · 100 €")).toBeVisible();
+    await expect(page.getByText("sporenie (do hotovosti) · 100,00 €")).toBeVisible();
 
     // Sieťový test súkromia: žiadna požiadavka mimo vlastného pôvodu (07 §7).
     expect(foreign, `Cudzie požiadavky: ${foreign.join(", ")}`).toEqual([]);

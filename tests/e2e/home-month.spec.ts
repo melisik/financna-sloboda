@@ -23,7 +23,7 @@ test.describe("Prehľad: tento mesiac", () => {
     await page.getByLabel("Hodnota investícií (€)").fill("300000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("1000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
-    await expect(page.locator("section#vyhodnotenie div", { hasText: "2026-01-01" }).last()).toContainText("K: 30");
+    await expect(page.locator("section#vyhodnotenie div", { hasText: "01.01.2026" }).last()).toContainText("K: 30");
 
     const add = async (amount: string, category?: string) => {
       await goTo(page, "nova-transakcia");
@@ -38,8 +38,8 @@ test.describe("Prehľad: tento mesiac", () => {
     await goTo(page, "prehlad");
     await expect(page.getByText(/Plnenie plánu: 47 %/)).toBeVisible();
     await page.getByText("Rozpis výdavkov", { exact: true }).click();
-    await expect(page.getByText(/Nevyhnutné: 40\D?00 €|Nevyhnutné: 40 €/)).toBeVisible();
-    await expect(page.getByText(/Nie nevyhnutné: 30 € \(38 % minutého\)/)).toBeVisible();
-    await expect(page.getByText(/Ostatné a nezaradené: 10 €/)).toBeVisible();
+    await expect(page.getByText(/Nevyhnutné: 40\D?00,00 €|Nevyhnutné: 40,00 €/)).toBeVisible();
+    await expect(page.getByText(/Nie nevyhnutné: 30,00 € \(38 % minutého\)/)).toBeVisible();
+    await expect(page.getByText(/Ostatné a nezaradené: 10,00 €/)).toBeVisible();
   });
 });

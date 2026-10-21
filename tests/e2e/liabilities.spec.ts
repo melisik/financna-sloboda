@@ -17,7 +17,7 @@ test.describe("sekcia Záväzky (D-103)", () => {
 
     const card = page.locator("#zavazky div", { hasText: "úver syntetický" }).last();
     await expect(card.locator("dl")).toContainText(/Úrok za mesiac\D*90/);
-    await expect(page.getByText(/Dlh spolu:\s*12\D*000 €/)).toBeVisible();
+    await expect(page.getByText(/Dlh spolu:\s*12\D*000,00 €/)).toBeVisible();
 
     await page.reload();
     await goTo(page, "zavazky");
@@ -60,6 +60,6 @@ test.describe("sekcia Záväzky (D-103)", () => {
     await page.getByLabel("Zostatok dlhu (€)").fill("0");
     await page.getByRole("button", { name: "Uložiť záväzok" }).click();
     await expect(page.locator("#zavazky div", { hasText: "úver syntetický" }).last()).toContainText("Splatené. Nerátajú sa do mesačných výdavkov.");
-    await expect(page.getByText(/Dlh spolu:\s*0 €/)).toBeVisible();
+    await expect(page.getByText(/Dlh spolu:\s*0,00 €/)).toBeVisible();
   });
 });

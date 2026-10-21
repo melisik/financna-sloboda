@@ -14,7 +14,7 @@ test.describe("Dane (FR-24, FR-25)", () => {
 
     await goTo(page, "dane");
     const unset = page.locator("section#dane div", { hasText: "Nezadané" }).last();
-    await expect(unset).toContainText(/Hodnota investícií v režime: 1\D?000 €/);
+    await expect(unset).toContainText(/Hodnota investícií v režime: 1\D?000,00 €/);
     await expect(unset).toContainText("Zadaj daňový režim");
 
     await goTo(page, "investicie");
@@ -24,7 +24,7 @@ test.describe("Dane (FR-24, FR-25)", () => {
 
     await goTo(page, "dane");
     const taxed = page.locator("section#dane div", { hasText: "Zdanené" }).last();
-    await expect(taxed).toContainText(/Hodnota investícií v režime: 1\D?000 €/);
+    await expect(taxed).toContainText(/Hodnota investícií v režime: 1\D?000,00 €/);
     await expect(taxed).toContainText("čaká na overenie pravidiel");
     await expect(page.locator("section#dane")).toContainText("neoverené");
   });

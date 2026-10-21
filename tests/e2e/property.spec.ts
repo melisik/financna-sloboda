@@ -12,7 +12,7 @@ test.describe("karta majetku (Fáza 2)", () => {
     await page.getByLabel("Názov (nepovinné)").fill("byt – syntetický");
     await page.getByLabel("Režim").selectOption("prenajom");
     await page.getByLabel("Odhad hodnoty (€)").fill("300000");
-    await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByLabel("Dátum odhadu").fill("2026-10-01");
     await page.getByLabel("Zostatok hypotéky (€)").fill("150000");
     await page.getByLabel("Mesačný nájom (€, nepovinné)").fill("900");
     await page.getByLabel("Úroková sadzba hypotéky (% p. a.)").fill("3.6");
@@ -21,7 +21,7 @@ test.describe("karta majetku (Fáza 2)", () => {
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
 
     const card = page.locator("#majetok div", { hasText: "byt – syntetický" }).last();
-    await expect(card).toContainText(/Čistá hodnota:\s*150\D?000 €/);
+    await expect(card).toContainText(/Čistá hodnota:\s*150\D?000,00 €/);
     await expect(card).toContainText("Do K sa počíta ako čistá hodnota.");
     await expect(card.locator("dl")).toContainText(/Nájom\D*900/);
     await expect(card.locator("dl")).toContainText(/Splátka hypotéky\D*800/);
@@ -62,16 +62,16 @@ test.describe("karta majetku (Fáza 2)", () => {
     await page.getByRole("button", { name: "Pridať: automobil" }).click();
     await page.getByLabel("Názov (napr. značka a rok, alebo podiel)").fill("auto – syntetické 2019");
     await page.getByLabel("Odhad hodnoty (€)").fill("12000");
-    await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByLabel("Dátum odhadu").fill("2026-10-01");
     await page.getByRole("button", { name: "Uložiť", exact: true }).click();
     const car = page.locator("#majetok div", { hasText: "auto – syntetické 2019" }).last();
-    await expect(car).toContainText("Odhad: 12 000 €");
+    await expect(car).toContainText("Odhad: 12 000,00 €");
     await expect(car).toContainText("Do K sa zatiaľ nepočíta.");
 
     await page.getByRole("button", { name: "Pridať: ocenitelné právo" }).click();
     await page.getByLabel("Názov (napr. značka a rok, alebo podiel)").fill("podiel – syntetický");
     await page.getByLabel("Odhad hodnoty (€)").fill("5000");
-    await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByLabel("Dátum odhadu").fill("2026-10-01");
     await page.getByRole("button", { name: "Uložiť", exact: true }).click();
     await expect(page.locator("#majetok div", { hasText: "podiel – syntetický" }).last()).toContainText("Ocenitelné právo");
 
