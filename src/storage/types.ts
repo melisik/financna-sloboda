@@ -75,6 +75,7 @@ export interface Property {
   valueCents: number; // odhad hodnoty, nie trhová cena (FR-21, D-080)
   valueDate: string; // dátum odhadu, YYYY-MM-DD (D-089)
   mortgageBalanceCents: number; // zostatok hypotéky; 0 ak nie je
+  balanceDate?: string; // dátum, ku ktorému platí zostatok, YYYY-MM-DD; od neho sa splácanie počíta automaticky (D-137)
   monthlyRentCents?: number; // mesačný nájom (FR-23), len pri režime prenájom
   monthlyPaymentCents?: number; // mesačná splátka hypotéky podľa zmluvy (FR-22, D-084)
   mortgageRate?: number; // úroková sadzba p. a., napr. 0.036; bez hodnoty = 0 (FR-22)

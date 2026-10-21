@@ -35,3 +35,18 @@ export function valueIsStale(valueDate: string, today: string): boolean {
   const cutoff = `${String(y - 1).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
   return valueDate < cutoff;
 }
+
+/** Bývanie v rozpočte (D-137): splátky hypoték mínus nájom z prenajímaných nehnuteľností. */
+export function housingFlowCents(list: Property[]): number {
+  return list.reduce((sum, p) => {
+    const payment = p.mortgageBalanceCents > 0 ? p.monthlyPaymentCents ?? 0 : 0;
+    const rent = p.mode === "prenajom" ? p.monthlyRentCents ?? 0 : 0;
+    return sum + payment - rent;
+  }, 0);
+}
+
+/** Zmenila sa nehnuteľnosť počítaná do K (prenájom) po danom čase? Upozornenie pri vyhodnotení (D-137). */
+export function propertyChangedSince(list: Property[], isoTime: string): boolean {
+  return list.some((p) => p.mode === "prenajom" && p.updatedAt > isoTime);
+}
+

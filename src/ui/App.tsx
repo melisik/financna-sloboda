@@ -14,7 +14,8 @@ import { goalDateText } from "../domain/goalText";
 import { formatImpactOutcome, plural, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { annualOverview, yearlySummary, type OverviewSettings } from "../domain/annualOverview";
 import { monthlySaving } from "../domain/saving";
-import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../domain/property";
+import { housingFlowCents, monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
+import { amortizeMortgage } from "../domain/mortgage";
 import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
@@ -204,6 +205,19 @@ export function App() {
     if (snap) void repo.addSnapshot(snap).then(reload).catch(() => undefined);
   }, [repo, data]);
 
+  // Automatické splácanie hypotéky (D-137): za uplynulé mesiace sa zostatok zníži o istinu; po uložení sa znova načíta.
+  useEffect(() => {
+    if (!repo || !data) return;
+    const today = todayIso();
+    const now = new Date().toISOString();
+    const updates = data.properties.flatMap((p) => {
+      const upd = amortizeMortgage(p, today);
+      return upd ? [{ ...p, ...upd, updatedAt: now }] : [];
+    });
+    if (updates.length === 0) return;
+    void Promise.all(updates.map((p) => repo.saveProperty(p))).then(reload).catch(() => undefined);
+  }, [repo, data]);
+
   if (isIosBrowser() && !isStandalone()) return <Shell><IosInstallGate /></Shell>;
   if (error) return <Shell><p style={{ color: "var(--danger)" }}>{error}</p></Shell>;
   if (!repo || !data) return <Shell><p>Načítavam údaje…</p></Shell>;
@@ -263,7 +277,7 @@ export function App() {
       )}
       {section === "vyhodnotenie" && (
         <Section id="vyhodnotenie" title="Vyhodnotenie">
-          <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}-${data.investments.length}`} repo={repo} latest={ctx.latest} capital={ctx.capital} derivedInvCents={data.investments.length ? investmentsTotalCents(data.investments) : null} snapshots={data.snapshots} onSaved={reload} />
+          <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}-${data.investments.length}`} repo={repo} latest={ctx.latest} capital={ctx.capital} derivedInvCents={data.investments.length ? investmentsTotalCents(data.investments) : null} snapshots={data.snapshots} properties={data.properties} onSaved={reload} />
         </Section>
       )}
       {section === "majetok" && (
@@ -274,7 +288,7 @@ export function App() {
       {section === "rozpocet" && (
         <Section id="rozpocet" title="Rozpočet">
           {budgetFlash && <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, color: "var(--ok)" }}>{budgetFlash}</p>}
-          <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} recurring={data.recurringExpenses} today={todayIso()} onSaved={() => { reload(); setBudgetFlash("Rozpočet je uložený."); }} />
+          <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} recurring={data.recurringExpenses} properties={data.properties} today={todayIso()} onSaved={() => { reload(); setBudgetFlash("Rozpočet je uložený."); }} />
         </Section>
       )}
       {section === "prijmy" && (
@@ -735,6 +749,11 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       : null;
   return (
     <div>
+      {ctx.latest && propertyChangedSince(data.properties, ctx.latest.createdAt) && (
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+          Majetok sa zmenil od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.
+        </p>
+      )}
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
           Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.
@@ -797,7 +816,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
 
 /** Výdavky tohto mesiaca: plnenie mesačného plánu a rozpis na nevyhnutné a nie nevyhnutné (D-131). */
 function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; today: string; thresholdCents: number }) {
-  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents);
+  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents, data.properties);
   const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
   const ending = data.recurringExpenses.filter((e) => endingSoon(e, today));
   const over = s.percent !== null && s.percent > 100;
@@ -1064,6 +1083,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const [rate, setRate] = useState<NumIn>(initial?.mortgageRate !== undefined ? Number((initial.mortgageRate * 100).toFixed(6)) : "");
   const [payment, setPayment] = useState<NumIn>(initial?.monthlyPaymentCents !== undefined ? initial.monthlyPaymentCents / 100 : "");
   const [otherCosts, setOtherCosts] = useState<NumIn>(initial?.monthlyOtherCostsCents !== undefined ? initial.monthlyOtherCostsCents / 100 : "");
+  const [balanceDate, setBalanceDate] = useState(initial?.balanceDate ?? today);
   const [err, setErr] = useState<string | null>(null);
 
   const save = async () => {
@@ -1074,6 +1094,10 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
     if (dateErr.length) return setErr(dateErr[0]);
     const m = mortgage === "" ? 0 : asNum(mortgage);
     if (Number.isNaN(m) || m < 0) return setErr("Zostatok hypotéky musí byť číslo 0 alebo viac.");
+    if (m > 0) {
+      const bErr = checkDate(balanceDate, today, "dátum zostatku hypotéky");
+      if (bErr.length) return setErr(bErr[0]);
+    }
     const r = mode === "prenajom" && rent !== "" ? asNum(rent) : undefined;
     if (r !== undefined && (Number.isNaN(r) || r < 0)) return setErr("Nájom musí byť číslo 0 alebo viac.");
     const rt = rate === "" ? 0 : asNum(rate);
@@ -1090,6 +1114,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       valueCents: cents(asNum(value)),
       valueDate,
       mortgageBalanceCents: cents(m),
+      ...(m > 0 ? { balanceDate } : {}),
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
       ...(trimmed ? { name: trimmed } : {}),
@@ -1121,6 +1146,9 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <Field label="Odhad hodnoty (€)" value={value} onChange={setValue} />
       <Field label="Dátum odhadu (RRRR-MM-DD)" value={valueDate} type="text" onChange={setValueDate} />
       <Field label="Zostatok hypotéky (€)" value={mortgage} onChange={setMortgage} hint="0, ak hypotéku nemáš" />
+      {typeof mortgage === "number" && mortgage > 0 && (
+        <Field label="Zostatok platí k (dátum)" value={balanceDate} type="date" max={today} onChange={setBalanceDate} hint="nechaj dnešný dátum, ak si zostatok práve zistil; od tohto dátumu sa každý mesiac automaticky znižuje o istinu" />
+      )}
       <Field label="Úroková sadzba hypotéky (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak hypotéku nemáš" />
       <Field label="Mesačná splátka hypotéky (€)" value={payment} onChange={setPayment} hint="0, ak hypotéku nemáš" />
       <Field label="Ostatné mesačné náklady (€)" value={otherCosts} onChange={setOtherCosts} hint="údržba, poistenie, poplatky; 0, ak nie sú" />
@@ -2169,7 +2197,7 @@ function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repositor
   );
 }
 
-function BudgetSection({ repo, budgets, transactions, recurring, today, onSaved }: { repo: Repository; budgets: Budget[]; transactions: Transaction[]; recurring: RecurringExpense[]; today: string; onSaved: () => void }) {
+function BudgetSection({ repo, budgets, transactions, recurring, properties, today, onSaved }: { repo: Repository; budgets: Budget[]; transactions: Transaction[]; recurring: RecurringExpense[]; properties: Property[]; today: string; onSaved: () => void }) {
   const [limits, setLimits] = useState<Record<string, NumIn>>(() =>
     Object.fromEntries(BUDGET_CATEGORIES.map((c) => {
       const b = budgets.find((x) => x.category === c);
@@ -2178,7 +2206,7 @@ function BudgetSection({ repo, budgets, transactions, recurring, today, onSaved 
   );
   const [err, setErr] = useState<string | null>(null);
   const unassigned = spentInMonthCents(transactions, null, today);
-  const plan = monthSummary(transactions, budgets, recurring, today, 0);
+  const plan = monthSummary(transactions, budgets, recurring, today, 0, properties);
 
   const save = async () => {
     try {
@@ -2217,7 +2245,9 @@ function BudgetSection({ repo, budgets, transactions, recurring, today, onSaved 
         const b = budgets.find((x) => x.category === c);
         // Pravidelné výdavky (D-124) sa rátajú do minutého za mesiac spolu s transakciami v kategórii.
         const rec = recurringByCat[c] ?? 0;
-        const spent = spentInMonthCents(transactions, c, today) + rec;
+        // Bývanie zahŕňa splátky hypoték mínus nájom (D-137); mimo bývania sa to nerátа.
+        const housing = c === "bývanie" ? housingFlowCents(properties) : 0;
+        const spent = spentInMonthCents(transactions, c, today) + rec + housing;
         const st = budgetStatus(b, spent);
         const recText = rec > 0 ? ` (z toho pravidelné ${eur(rec)})` : "";
         const hint = st && !st.over
@@ -2445,7 +2475,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
 }
 
 /** derivedInvCents: súčet položiek v sekcii Investície; ak existuje, suma sa odvodzuje, nie zadáva (D-101). */
-function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, onSaved }: { repo: Repository; latest: Snapshot | null; capital: Capital; derivedInvCents: number | null; snapshots: Snapshot[]; onSaved: () => void }) {
+function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, properties, onSaved }: { repo: Repository; latest: Snapshot | null; capital: Capital; derivedInvCents: number | null; snapshots: Snapshot[]; properties: Property[]; onSaved: () => void }) {
   const [date, setDate] = useState(todayIso());
   // N-04 (D-096): predvyplní K z posledného stavu plus sporenie a investície od D_L.
   const [inv, setInv] = useState<NumIn>(latest ? capital.inv / 100 : "");
@@ -2520,6 +2550,9 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, on
         {latest ? `Posledné vyhodnotenie: ${latest.date}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
       <p style={{ color: "var(--muted)" }}>Mesačné vyhodnotenie sa vytvára automaticky. Tu ho zadáš len na opravu. Dátum cieľa sa mení až pri vyhodnotení.</p>
+      {latest && propertyChangedSince(properties, latest.createdAt) && (
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Majetok sa zmenil od posledného vyhodnotenia. Nové vyhodnotenie zohľadní aj túto zmenu.</p>
+      )}
       {editingDate && <p style={{ background: "var(--banner)", padding: 8, borderRadius: 6 }}>Upravuješ vyhodnotenie z {editingDate}. Uložením sa prepíše.</p>}
       <Field label="Dátum vyhodnotenia" value={date} type="date" max={todayIso()} onChange={setDate} />
       {derivedInvCents === null ? (

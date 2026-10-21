@@ -1,0 +1,47 @@
+import { expect, test } from "@playwright/test";
+import { goTo, openApp } from "./helpers";
+
+// Majetok: upozornenie po zmene nehnuteľnosti v K a automatické splácanie hypotéky (D-137). Syntetické hodnoty.
+test.describe("majetok a hypotéka", () => {
+  test("zmena nájomnej nehnuteľnosti po vyhodnotení sa oznámi vo Vyhodnotení", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "vyhodnotenie");
+    await page.getByLabel("Dátum vyhodnotenia", { exact: true }).fill("2026-01-01");
+    await page.getByLabel("Hodnota investícií (€)").fill("300000");
+    await page.getByLabel("Nasporená suma, hotovosť (€)").fill("0");
+    await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
+
+    await goTo(page, "majetok");
+    await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await page.getByLabel("Režim").selectOption("prenajom");
+    await page.getByLabel("Odhad hodnoty (€)").fill("300000");
+    await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
+
+    await goTo(page, "vyhodnotenie");
+    await expect(page.getByText("Majetok sa zmenil od posledného vyhodnotenia.")).toBeVisible();
+  });
+
+  test("hypotéka sa automaticky splatí za uplynulé mesiace", async ({ page }) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 2);
+    d.setDate(1);
+    const since = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+
+    await openApp(page);
+    await goTo(page, "majetok");
+    await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await page.getByLabel("Názov (nepovinné)").fill("hypotéka test");
+    await page.getByLabel("Režim").selectOption("vlastne_byvanie");
+    await page.getByLabel("Odhad hodnoty (€)").fill("300000");
+    await page.getByLabel("Dátum odhadu (RRRR-MM-DD)").fill("2026-10-01");
+    await page.getByLabel("Zostatok hypotéky (€)").fill("1000");
+    await page.getByLabel("Zostatok platí k (dátum)").fill(since);
+    await page.getByLabel("Úroková sadzba hypotéky (% p. a.)").fill("3.6");
+    await page.getByLabel("Mesačná splátka hypotéky (€)").fill("500");
+    await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
+
+    const card = page.locator("#majetok div", { hasText: "hypotéka test" }).last();
+    await expect(card).toContainText(/Hypotéka: \d{1,3} €/);
+  });
+});

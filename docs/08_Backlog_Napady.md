@@ -45,3 +45,5 @@ Personas v `docs/01_Personas.md` sú zatiaľ len zakladateľ (fáza 1) a fáza 2
 - **N-11** Porovnanie výdavkov v kategóriách s predchádzajúcim rokom.
 - **N-12** Scenár veľkého výdavku (napr. auto): ukáže dopad na cieľ bez zápisu do transakcií.
 - **N-13** Pripomienka ročnej kontroly nastavení (inflácia, rezerva, miera výberu).
+
+- **N-14 Súhrnný majetok (odložené, D-137):** spoločný súhrn všetkého majetku. Automobily a ocenitelné práva sa odkladajú, lebo sú skôr zahraničný aspekt.

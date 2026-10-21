@@ -65,7 +65,8 @@ export function validateSnapshot(s: unknown, today: string, label = "vyhodnoteni
 export function validateProperty(p: unknown, today: string, label = "nehnuteľnosť"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "createdAt", "updatedAt"], label);
+  if (o.balanceDate !== undefined) errors.push(...checkDate(o.balanceDate, today, `${label}: dátum zostatku`));
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (o.name !== undefined && (typeof o.name !== "string" || o.name.length > 80)) errors.push(`${label}: názov max 80 znakov`);
   if (!(PROPERTY_MODES as readonly unknown[]).includes(o.mode)) errors.push(`${label}: režim musí byť z katalógu`);

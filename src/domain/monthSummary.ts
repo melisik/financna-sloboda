@@ -1,5 +1,6 @@
-import type { Budget, BudgetCategory, RecurringExpense, Transaction } from "../storage/types";
+import type { Budget, BudgetCategory, Property, RecurringExpense, Transaction } from "../storage/types";
 import { spentInMonthCents } from "./budget";
+import { housingFlowCents } from "./property";
 import { monthlyRecurringByCategory } from "./recurring";
 
 /** Zatriedenie výdavku: nevyhnutný, nie nevyhnutný, alebo ostatný (iné). Návrh na potvrdenie (D-131). */
@@ -36,9 +37,12 @@ export function monthSummary(
   recurring: RecurringExpense[],
   today: string,
   thresholdCents: number,
+  properties: Property[] = [],
 ): MonthSummary {
   const recurringByCat = monthlyRecurringByCategory(recurring, today);
-  const spentIn = (c: BudgetCategory) => spentInMonthCents(transactions, c, today) + (recurringByCat[c] ?? 0);
+  const housing = housingFlowCents(properties);
+  const spentIn = (c: BudgetCategory) =>
+    spentInMonthCents(transactions, c, today) + (recurringByCat[c] ?? 0) + (c === "bývanie" ? housing : 0);
 
   const byNecessity: Record<Necessity, number> = { nevyhnutne: 0, nie_nevyhnutne: 0, ostatne: 0 };
   for (const c of Object.keys(NECESSITY) as BudgetCategory[]) byNecessity[NECESSITY[c]] += spentIn(c);
