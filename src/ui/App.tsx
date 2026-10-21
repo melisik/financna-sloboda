@@ -3172,7 +3172,6 @@ function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo
   const [preview, setPreview] = useState<{ data: AppData; counts: { transactions: number; snapshots: number }; exportedAt: string } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
-  const [backupFirst, setBackupFirst] = useState(false);
 
   const exportBackup = async () => {
     const r = await exportBackupFile(data);
@@ -3199,18 +3198,12 @@ function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo
       setErrors([...res.errors.map(plainBackupError), "Nič sa nezmenilo."]);
       return;
     }
-    setBackupFirst(true); // D-134: pred importom sa ponúkne uloženie aktuálnych dát
     setPreview({ data: res.data!, counts: res.counts!, exportedAt: (json as { exportedAt: string }).exportedAt });
   };
 
   const confirmImport = async () => {
     if (!preview) return;
     try {
-      if (backupFirst) { // D-078: záloha len na výslovné zaškrtnutie; bez uloženej zálohy sa dáta nenahradia
-        const r = await exportBackupFile(data);
-        if (r.result === "cancelled") return setStatus("Import zrušený: záloha nie je uložená, dáta sa nezmenili.");
-        onExported(r.exportedAt);
-      }
       await repo.replaceAll(preview.data);
     } catch {
       setErrors([STORAGE_ERROR]);
@@ -3256,12 +3249,7 @@ function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo
           <p>Záloha z {preview.exportedAt.slice(0, 10)} obsahuje: {summarizeData(preview.data)}.</p>
           <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Teraz v zariadení: {summarizeData(data)}.</p>
           <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong></p>
-          <label style={{ display: "block", margin: "8px 0" }}>
-            <input type="checkbox" checked={backupFirst} onChange={(e) => setBackupFirst(e.target.checked)} />{" "}
-            Pred importom stiahnuť zálohu aktuálnych dát
-          </label>
-          {backupFirst && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Najprv sa uloží záloha aktuálnych dát: na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne. Až potom sa dáta nahradia. Ak uloženie zrušíš, dáta sa nezmenia.</p>}
-          {!backupFirst && <p style={{ color: "var(--danger)", fontSize: "0.9rem" }}>Bez zálohy sa aktuálne dáta nenávratne prepíšu.</p>}
+          <p style={{ color: "var(--danger)", fontSize: "0.9rem" }}>Aktuálne dáta sa nenávratne prepíšu. Ak ich chceš zachovať, najprv ulož zálohu tlačidlom „Exportovať zálohu“ hore.</p>
           <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}
           <button onClick={() => setPreview(null)} style={btn}>Zrušiť</button>
         </div>

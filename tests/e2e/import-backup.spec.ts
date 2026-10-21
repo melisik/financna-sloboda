@@ -17,21 +17,22 @@ test.describe("import zálohy – D-078, D-134", () => {
     return (await download.path())!;
   }
 
-  test("záloha je predvolene zaškrtnutá a náhľad ukazuje obsah zálohy aj aktuálnych dát", async ({ page }) => {
+  test("náhľad ukazuje obsah zálohy aj aktuálnych dát a bez zaškrtávania varuje pred prepísaním", async ({ page }) => {
     const backupPath = await prepareBackup(page);
     await page.getByLabel("Súbor zálohy").setInputFiles(backupPath);
     await expect(page.getByText("Import nahradí všetky aktuálne dáta")).toBeVisible();
-    await expect(page.getByLabel("Pred importom stiahnuť zálohu aktuálnych dát")).toBeChecked();
-    await expect(page.getByText("Najprv sa uloží záloha aktuálnych dát")).toBeVisible();
+    await expect(page.getByLabel("Pred importom stiahnuť zálohu aktuálnych dát")).toHaveCount(0);
+    await expect(page.getByText("Aktuálne dáta sa nenávratne prepíšu.")).toBeVisible();
     await expect(page.getByText(/Záloha z .* obsahuje: transakcií 0, vyhodnotení 1, /)).toBeVisible();
     await expect(page.getByText(/Teraz v zariadení: transakcií 0, vyhodnotení 1, /)).toBeVisible();
   });
 
-  test("bez zaškrtnutia sa pri importe záloha nestiahne a ukáže sa varovanie", async ({ page }) => {
+  test("import nevynucuje sťahovanie zálohy; zálohu stiahne až tlačidlo Exportovať zálohu", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "zaloha");
     const backupPath = await prepareBackup(page);
     await page.getByLabel("Súbor zálohy").setInputFiles(backupPath);
-    await page.getByLabel("Pred importom stiahnuť zálohu aktuálnych dát").uncheck();
-    await expect(page.getByText("Bez zálohy sa aktuálne dáta nenávratne prepíšu.")).toBeVisible();
+    await expect(page.getByText("Aktuálne dáta sa nenávratne prepíšu.")).toBeVisible();
 
     let downloads = 0;
     page.on("download", () => {
@@ -41,18 +42,11 @@ test.describe("import zálohy – D-078, D-134", () => {
     await expect(page.getByText("Dáta boli nahradené zálohou.")).toBeVisible();
     await page.waitForTimeout(500);
     expect(downloads).toBe(0);
-  });
 
-  test("so zaškrtnutím (predvolene) sa záloha stiahne pred nahradením", async ({ page }) => {
-    const backupPath = await prepareBackup(page);
-    await page.getByLabel("Súbor zálohy").setInputFiles(backupPath);
-
-    const [download] = await Promise.all([
+    await Promise.all([
       page.waitForEvent("download"),
-      page.getByRole("button", { name: "Nahradiť dáta zálohou" }).click(),
+      page.getByRole("button", { name: "Exportovať zálohu" }).click(),
     ]);
-    expect(download.suggestedFilename()).toMatch(/^financna-sloboda-zaloha-\d{4}-\d{2}-\d{2}\.json$/);
-    await expect(page.getByText("Dáta boli nahradené zálohou.")).toBeVisible();
   });
 
   test("posledná záloha sa zobrazí v sekcii a chybný súbor dostane slovenskú správu", async ({ page }) => {
