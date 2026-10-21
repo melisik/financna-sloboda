@@ -27,3 +27,21 @@
 
 ## N-06 Viac kapitálových typov a daňových režimov v jednom modeli
 - Spojí N-01 a N-02: každý typ kapitálu má vlastný režim (zhodnotenie, dane, pravidlá výberu). Architektonický nápad na fázu 2, nie na MVP.
+
+## Návrhy z 2026-10-21 (stav: návrh, nie rozhodnutie)
+
+### Účty a rodinné zdieľanie
+- **N-07 Účty:** prihlásenie účtom, rodinné zdieľanie, sekcia podľa prihláseného používateľa (vrátane dieťaťa podľa kognitívnych schopností). **Konflikt:** D-119 (bez servera a bez účtov), D-009 a D-020 (bez servera). Vyžaduje nové rozhodnutie zakladateľa a zmenu týchto rozhodnutí. Pôvodne súvisí s rodinnou verziou (D-114, D-115, až po pilote).
+
+### Zobrazenie podľa životnej etapy (N-08)
+Personas v `docs/01_Personas.md` sú zatiaľ len zakladateľ (fáza 1) a fáza 2 je nedefinovaná. Návrhy treba najprv zapísať ako persony a potom rozhodnúť, ktoré patria do MVP.
+- **Dieťa alebo dorast:** jednoduchý režim s jedným údajom („koľko mám do konca mesiaca“); cieľ s postupom a odhadom dátumu; rodičovský režim (rodič vidí výdavky len po súhlase dieťaťa; súvisí s D-114); kategórie pre študenta (školské potreby, záujmy, predplatné).
+- **Dospelý v produktívnom veku:** pohľad „Kam ide moja mzda“ (rozpis príjmu na výdavky, sporenie a rezervu); porovnanie plánu s realitou za posledné tri mesiace; upozornenia na predplatné a splátky; režim „dovolenka“ alebo „rodičovská“ s nižším príjmom bez zmeny cieľa.
+- **Dôchodca:** hlavný pohľad „koľko mesačne vyberiem a ako dlho to vydrží“ (z K a výhľadu, D-110); pravidelné príjmy oproti pravidelným výdavkom, bez porovnania s cieľom; veľké písmo a jednoduchší panel (M6); upozornenie na zmenu dôchodku alebo dávky; režim zdieľania pre blízkeho len na čítanie.
+
+### Ďalšie nápady
+- **N-09** Prepínač zobrazenia podľa etapy v Nastaveniach (výber, čo je na Prehľade).
+- **N-10** Týždenný súhrn na export alebo odoslanie mailom, bez dát v cloude.
+- **N-11** Porovnanie výdavkov v kategóriách s predchádzajúcim rokom.
+- **N-12** Scenár veľkého výdavku (napr. auto): ukáže dopad na cieľ bez zápisu do transakcií.
+- **N-13** Pripomienka ročnej kontroly nastavení (inflácia, rezerva, miera výberu).
