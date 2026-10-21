@@ -16,6 +16,7 @@ import { annualOverview, yearlySummary, type OverviewSettings } from "../domain/
 import { monthlySaving } from "../domain/saving";
 import { housingFlowCents, monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
 import { amortizeLoan, amortizeMortgage, applyExtraPayment } from "../domain/mortgage";
+import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../app/feedback";
 import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, staleValuationNames, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
@@ -682,6 +683,20 @@ function Section({ id, title, children }: { id: SectionId; title: string; childr
   );
 }
 
+/** Nahlásenie pripomienky (D-149): tester si vyberie GitHub, alebo formulár bez účtu. */
+function Feedback() {
+  const [open, setOpen] = useState(false);
+  if (!open) return <button onClick={() => setOpen(true)} style={{ ...btn, marginTop: 16 }}>Nahlásiť pripomienku</button>;
+  return (
+    <div style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+      <p>Vyber, ako pripomienku pošleš. Nepíš čísla účtov ani osobné údaje.</p>
+      <a href={feedbackIssueUrl()} target="_blank" rel="noopener noreferrer" style={btn}>Mám účet na GitHube</a>{" "}
+      <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" style={btn}>Nemám účet</a>{" "}
+      <button onClick={() => setOpen(false)} style={btn}>Zrušiť</button>
+    </div>
+  );
+}
+
 function Shell({ children, nav }: { children: React.ReactNode; nav?: SectionId }) {
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
@@ -692,6 +707,7 @@ function Shell({ children, nav }: { children: React.ReactNode; nav?: SectionId }
       <p style={{ color: "var(--muted)" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
       {nav && <Nav active={nav} />}
       {children}
+      <Feedback />
     </main>
   );
 }
