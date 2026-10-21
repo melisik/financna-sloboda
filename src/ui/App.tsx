@@ -3260,6 +3260,7 @@ function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo
             <input type="checkbox" checked={backupFirst} onChange={(e) => setBackupFirst(e.target.checked)} />{" "}
             Pred importom stiahnuť zálohu aktuálnych dát
           </label>
+          {backupFirst && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Najprv sa uloží záloha aktuálnych dát: na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne. Až potom sa dáta nahradia. Ak uloženie zrušíš, dáta sa nezmenia.</p>}
           {!backupFirst && <p style={{ color: "var(--danger)", fontSize: "0.9rem" }}>Bez zálohy sa aktuálne dáta nenávratne prepíšu.</p>}
           <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}
           <button onClick={() => setPreview(null)} style={btn}>Zrušiť</button>

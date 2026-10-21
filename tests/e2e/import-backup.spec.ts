@@ -22,6 +22,7 @@ test.describe("import zálohy – D-078, D-134", () => {
     await page.getByLabel("Súbor zálohy").setInputFiles(backupPath);
     await expect(page.getByText("Import nahradí všetky aktuálne dáta")).toBeVisible();
     await expect(page.getByLabel("Pred importom stiahnuť zálohu aktuálnych dát")).toBeChecked();
+    await expect(page.getByText("Najprv sa uloží záloha aktuálnych dát")).toBeVisible();
     await expect(page.getByText(/Záloha z .* obsahuje: transakcií 0, vyhodnotení 1, /)).toBeVisible();
     await expect(page.getByText(/Teraz v zariadení: transakcií 0, vyhodnotení 1, /)).toBeVisible();
   });
