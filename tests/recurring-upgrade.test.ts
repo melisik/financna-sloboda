@@ -22,9 +22,10 @@ describe("ročný súčet pravidelných výdavkov", () => {
 });
 
 describe("koniec platnosti do 30 dní", () => {
-  it("upozorní, ak koniec je v najbližších 30 dňoch (vrátane dneška)", () => {
+  it("upozorní, ak koniec je v najbližších 30 dňoch, nie dnes", () => {
     expect(endingSoon(ending, TODAY)).toBe(true);
-    expect(endingSoon({ ...ending, endDate: TODAY }, TODAY)).toBe(true);
+    expect(endingSoon({ ...ending, endDate: "2026-10-22" }, TODAY)).toBe(true);
+    expect(endingSoon({ ...ending, endDate: TODAY }, TODAY)).toBe(false);
   });
 
   it("bez konca, ďaleko v budúcnosti alebo už skončené sa neupozorní", () => {

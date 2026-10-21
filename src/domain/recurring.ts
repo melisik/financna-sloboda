@@ -31,11 +31,11 @@ export function annualRecurringTotalCents(list: RecurringExpense[], today: strin
     .reduce((sum, e) => sum + (e.frequency === "mesacne" ? e.amountCents * 12 : e.amountCents), 0);
 }
 
-/** Koniec platnosti do daného počtu dní od dneška (vrátane dneška). Upozornenie pre predplatné. */
+/** Koniec platnosti do daného počtu dní od dneška. Dnešný koniec sa nepočíta: položka ukončená tlačidlom je zámer. */
 export function endingSoon(e: RecurringExpense, today: string, days = 30): boolean {
   if (e.endDate === undefined || !isRecurringActive(e, today)) return false;
   const left = Math.round((Date.UTC(...dateParts(e.endDate)) - Date.UTC(...dateParts(today))) / 86_400_000);
-  return left >= 0 && left <= days;
+  return left >= 1 && left <= days;
 }
 
 function dateParts(iso: string): [number, number, number] {
