@@ -248,7 +248,8 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
   else o.snapshots.forEach((s, i) => errors.push(...validateSnapshot(s, today, `vyhodnotenie ${i + 1}`)));
   if (!Array.isArray(o.properties)) errors.push("záloha: properties musí byť pole");
   else o.properties.forEach((p, i) => errors.push(...validateProperty(p, today, `nehnuteľnosť ${i + 1}`)));
-  const ids = (arr: unknown[]) => arr.map((x) => (x as { id?: unknown })?.id);
+  // Chýbajúce pole nesmie zhodiť overenie; chybu už hlási kontrola poľa vyššie.
+  const ids = (arr: unknown) => (Array.isArray(arr) ? arr : []).map((x) => (x as { id?: unknown })?.id);
   if (!Array.isArray(o.assets)) errors.push("záloha: assets musí byť pole");
   else o.assets.forEach((a, i) => errors.push(...validateAsset(a, today, `aktívum ${i + 1}`)));
   const propertyList = Array.isArray(o.properties) ? (o.properties as unknown[]) : [];

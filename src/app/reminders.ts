@@ -21,3 +21,10 @@ export function backupOverdue(lastExportIso: string | null, todayIso: string, da
   const b = Date.UTC(...(todayIso.split("-").map(Number) as [number, number, number]));
   return (b - a) / 86_400_000 > days;
 }
+
+/** Počet dní od dátumu (YYYY-MM-DD alebo ISO) do dneška; 0 = dnes. */
+export function daysSince(iso: string, todayIso: string): number {
+  const a = Date.UTC(...(iso.slice(0, 10).split("-").map(Number) as [number, number, number]));
+  const b = Date.UTC(...(todayIso.split("-").map(Number) as [number, number, number]));
+  return Math.round((b - a) / 86_400_000);
+}

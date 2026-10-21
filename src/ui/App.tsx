@@ -7,7 +7,7 @@ import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
 import { expenseTotalsByCategory, filterHistory, totalsByType } from "../app/history";
-import { backupOverdue, reviewOverdue } from "../app/reminders";
+import { backupOverdue, daysSince, reviewOverdue } from "../app/reminders";
 import { targetAmountCents } from "../domain/goal";
 import { goalDisplay } from "../domain/goalDisplay";
 import { goalDateText } from "../domain/goalText";
@@ -322,7 +322,7 @@ export function App() {
       )}
       {section === "zaloha" && (
         <Section id="zaloha" title="Záloha">
-          <BackupSection repo={repo} data={data} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
+          <BackupSection repo={repo} data={data} lastExport={lastExport} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
         </Section>
       )}
     </Shell>
@@ -2895,7 +2895,39 @@ async function exportBackupFile(data: AppData): Promise<{ result: "shared" | "do
   return { result: "downloaded", exportedAt: nowIso };
 }
 
-function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository; data: AppData; onChanged: () => void; onExported: (iso: string) => void }) {
+/** Stručný obsah dát pre porovnanie pred importom (D-134). */
+function summarizeData(d: AppData): string {
+  return [
+    `transakcií ${d.transactions.length}`,
+    `vyhodnotení ${d.snapshots.length}`,
+    `majetok ${d.properties.length + d.assets.length}`,
+    `investície ${d.investments.length}`,
+    `záväzky ${d.liabilities.length}`,
+    `príjmy ${d.incomes.length}`,
+    `rozpočty ${d.budgets.length}`,
+    `pravidelné výdavky ${d.recurringExpenses.length}`,
+    `položky skladu ${d.stockItems.length}`,
+    `recepty ${d.recipes.length}`,
+    `nastavenia ${d.settings ? "áno" : "nie"}`,
+  ].join(", ");
+}
+
+/** Preloží technické chyby z overenia zálohy do slovenčiny (bez interných názvov polí). */
+function plainBackupError(e: string): string {
+  const field = /^záloha: (\w+) musí byť pole$/.exec(e);
+  if (field) return `Súbor nemá správne pole „${field[1]}“.`;
+  return e;
+}
+
+function lastExportText(iso: string, today: string): string {
+  const days = daysSince(iso, today);
+  const date = iso.slice(0, 10);
+  if (days <= 0) return `${date} (dnes)`;
+  if (days === 1) return `${date} (včera)`;
+  return `${date} (pred ${days} dňami)`;
+}
+
+function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo: Repository; data: AppData; lastExport: string | null; onChanged: () => void; onExported: (iso: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
   const [preview, setPreview] = useState<{ data: AppData; counts: { transactions: number; snapshots: number }; exportedAt: string } | null>(null);
@@ -2908,8 +2940,8 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
     if (r.result === "cancelled") return setStatus("Export bol zrušený. Záloha nie je uložená.");
     onExported(r.exportedAt);
     setStatus(r.result === "shared"
-      ? "Záloha je uložená podľa tvojho výberu. Obsahuje citlivé finančné údaje: neukladaj ju do verejných priečinkov."
-      : "Záloha sa stiahla. Obsahuje citlivé finančné údaje: neukladaj ju do verejných priečinkov.");
+      ? "Záloha je uložená podľa tvojho výberu. Obsahuje citlivé finančné údaje vrátane čísel dokladov: neukladaj ju do verejných priečinkov."
+      : "Záloha sa stiahla. Obsahuje citlivé finančné údaje vrátane čísel dokladov: neukladaj ju do verejných priečinkov.");
   };
 
   const onFile = async (file: File) => {
@@ -2925,10 +2957,10 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
     }
     const res = parseBackup(json, todayIso());
     if (!res.ok) {
-      setErrors([...res.errors, "Nič sa nezmenilo."]);
+      setErrors([...res.errors.map(plainBackupError), "Nič sa nezmenilo."]);
       return;
     }
-    setBackupFirst(false);
+    setBackupFirst(true); // D-134: pred importom sa ponúkne uloženie aktuálnych dát
     setPreview({ data: res.data!, counts: res.counts!, exportedAt: (json as { exportedAt: string }).exportedAt });
   };
 
@@ -2952,8 +2984,13 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
 
   return (
     <section>
-      <p style={{ color: "var(--muted)" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu. Súbor sa stiahne do priečinka Stiahnuté (alebo do priečinka, ktorý nastavil prehliadač).</p>
+      <p style={{ color: "var(--muted)" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu. Záloha obsahuje aj čísla dokladov, preto ju chráň.</p>
+      <p>Posledná záloha: <strong>{lastExport ? lastExportText(lastExport, todayIso()) : "zatiaľ žiadna"}</strong></p>
+      {backupOverdue(lastExport, todayIso()) && (
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Záloha je staršia ako 7 dní alebo ešte nebola urobená. Odporúčame novú zálohu.</p>
+      )}
       <button onClick={exportBackup} style={btn}>Exportovať zálohu</button>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne do priečinka Stiahnuté.</p>
       <label style={{ display: "block", margin: "16px 0 8px" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Obnovenie zo zálohy</span>
       </label>
@@ -2977,14 +3014,14 @@ function BackupSection({ repo, data, onChanged, onExported }: { repo: Repository
       {errors.length > 0 && <ul style={{ color: "var(--danger)" }}>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>}
       {preview && (
         <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6 }}>
-          <p>
-            Záloha z {preview.exportedAt.slice(0, 10)}: {preview.counts.transactions} transakcií, {preview.counts.snapshots} vyhodnotení.
-          </p>
+          <p>Záloha z {preview.exportedAt.slice(0, 10)} obsahuje: {summarizeData(preview.data)}.</p>
+          <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Teraz v zariadení: {summarizeData(data)}.</p>
           <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong></p>
           <label style={{ display: "block", margin: "8px 0" }}>
             <input type="checkbox" checked={backupFirst} onChange={(e) => setBackupFirst(e.target.checked)} />{" "}
             Pred importom stiahnuť zálohu aktuálnych dát
           </label>
+          {!backupFirst && <p style={{ color: "var(--danger)", fontSize: "0.9rem" }}>Bez zálohy sa aktuálne dáta nenávratne prepíšu.</p>}
           <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}
           <button onClick={() => setPreview(null)} style={btn}>Zrušiť</button>
         </div>
