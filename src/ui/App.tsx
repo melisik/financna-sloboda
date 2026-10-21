@@ -136,6 +136,7 @@ export function App() {
   const [data, setData] = useState<AppData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastExport, setLastExport] = useState<string | null>(null);
+  const [settingsFlash, setSettingsFlash] = useState<string | null>(null);
   // Lokálny PIN (D-119): pinSet = PIN je zapnutý; locked = appka čaká na odomknutie.
   const [pinSet, setPinSet] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -311,7 +312,8 @@ export function App() {
       )}
       {section === "nastavenia" && (
         <Section id="nastavenia" title="Nastavenia">
-          <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={reload} />
+          {settingsFlash && <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, color: "var(--ok)" }}>{settingsFlash}</p>}
+          <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={() => { reload(); setSettingsFlash("Nastavenia sú uložené."); }} />
           <section style={{ marginTop: 16 }}>
             <h3 style={{ fontSize: "1rem" }}>Sprievodca</h3>
             <p style={{ color: "var(--muted)" }}>Prejdi sprievodcu znova. Údaje sa predvyplnia a nič sa nevymaže.</p>
