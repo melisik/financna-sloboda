@@ -56,6 +56,38 @@ test.describe("majetok a hypotéka", () => {
     await expect(card).toContainText("skrátený termín");
   });
 
+  test("mimoriadna splátka: prázdna suma sa pomenuje, riadok ukáže termín a splátku sa dá vrátiť", async ({ page }) => {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    await openApp(page);
+    await goTo(page, "majetok");
+    await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await page.getByLabel("Názov (nepovinné)").fill("Vrátenie test");
+    await page.getByLabel("Režim").selectOption("vlastne_byvanie");
+    await page.getByLabel("Odhad hodnoty (€)").fill("300000");
+    await page.getByLabel("Dátum odhadu").fill("2026-10-01");
+    await page.getByLabel("Zostatok hypotéky (€)").fill("1000");
+    await page.getByLabel("Zostatok platí k (dátum)").fill(today);
+    await page.getByLabel("Mesačná splátka hypotéky (€)").fill("500");
+    await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
+
+    const card = page.locator("#majetok div", { hasText: "Vrátenie test" }).last();
+    await expect(card).toContainText("Pri tejto splátke sa zostatok splatí za 2 mesiacov.");
+    await card.locator("summary", { hasText: "Mimoriadna splátka hypotéky" }).click();
+    await card.getByLabel("Dátum splátky").fill(today);
+    await expect(card.getByText("Zadaj sumu mimoriadnej splátky.")).toBeVisible();
+    await expect(card.getByText("Splátka sa nedá znížiť")).toHaveCount(0);
+    await card.getByLabel("Suma (€)").fill("200");
+    await card.getByRole("button", { name: "Zapísať mimoriadnu splátku" }).click();
+    await expect(card).toContainText("Hypotéka: 800,00 €");
+
+    await card.getByRole("button", { name: "Vrátiť poslednú mimoriadnu splátku" }).click();
+    await card.getByRole("button", { name: "Potvrdiť vrátenie" }).click();
+    await expect(card).toContainText("Hypotéka: 1 000,00 €");
+    await expect(card).toContainText("Splátka hypotéky");
+    await expect(card.getByText(/Mimoriadne splátky:/)).toHaveCount(0);
+  });
+
   test("hypotéka sa automaticky splatí za uplynulé mesiace", async ({ page }) => {
     const d = new Date();
     d.setMonth(d.getMonth() - 2);

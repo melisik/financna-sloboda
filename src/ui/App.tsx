@@ -15,7 +15,7 @@ import { formatImpactOutcome, plural, UNREACHABLE_IMPACT_TEXT } from "../domain/
 import { annualOverview, yearlySummary, type OverviewSettings } from "../domain/annualOverview";
 import { monthlySaving } from "../domain/saving";
 import { housingFlowCents, monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
-import { amortizeLoan, amortizeMortgage, applyExtraPayment } from "../domain/mortgage";
+import { amortizeLoan, amortizeMortgage, applyExtraPayment, remainingMonths } from "../domain/mortgage";
 import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../app/feedback";
 import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, staleValuationNames, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "../domain/liabilities";
@@ -969,6 +969,14 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
             <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
               {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta."}
             </p>
+            {p.mortgageBalanceCents > 0 && (p.monthlyPaymentCents ?? 0) > 0 && (
+              <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+                {(() => {
+                  const months = remainingMonths(p.mortgageBalanceCents, p.mortgageRate ?? 0, p.monthlyPaymentCents ?? 0);
+                  return months === null ? "Splátka nepokrýva úrok, zostatok nekleslo." : `Pri tejto splátke sa zostatok splatí za ${months} mesiacov.`;
+                })()}
+              </p>
+            )}
             {p.mortgageBalanceCents > 0 && (
               <details style={{ margin: "8px 0" }}>
                 <summary>Mimoriadna splátka hypotéky</summary>
@@ -980,6 +988,7 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
                 Mimoriadne splátky: {(p.extraPayments ?? []).map((e) => `${dateSk(e.date)} ${eur(e.amountCents)} (${EXTRA_PAYMENT_LABEL[e.mode]})`).join("; ")}
               </p>
             )}
+            <ExtraPaymentUndo repo={repo} property={p} onDone={onSaved} />
             {confirmId === p.id ? (
               <div>
                 <p>Naozaj zmazať nehnuteľnosť „{p.name || "Nehnuteľnosť"}“?</p>
@@ -1132,6 +1141,47 @@ const EXTRA_PAYMENT_LABEL: Record<ExtraPaymentMode, string> = {
   skratit_termin: "skrátený termín",
 };
 
+/** Vrátenie poslednej mimoriadnej splátky (D-145): obnoví zostatok a splátku pred ňou. Záznamy bez uložených hodnôt sa vrátiť nedajú. */
+function ExtraPaymentUndo({ repo, property, onDone }: { repo: Repository; property: Property; onDone: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const list = property.extraPayments ?? [];
+  const last = list[list.length - 1];
+  if (!last) return null;
+  if (last.balanceBeforeCents === undefined || last.monthlyPaymentBeforeCents === undefined) {
+    return <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Poslednú splátku nie je možné vrátiť automaticky. Zostatok a splátku uprav v Upraviť.</p>;
+  }
+  const undo = async () => {
+    try {
+      await repo.saveProperty({
+        ...property,
+        mortgageBalanceCents: last.balanceBeforeCents as number,
+        monthlyPaymentCents: last.monthlyPaymentBeforeCents as number,
+        extraPayments: list.slice(0, -1),
+        updatedAt: new Date().toISOString(),
+      });
+      setConfirming(false);
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+  return (
+    <div style={{ margin: "4px 0" }}>
+      {confirming ? (
+        <div>
+          <p>Naozaj vrátiť splátku z {dateSk(last.date)} ({eur(last.amountCents)})? Zostatok a splátka sa vrátia na hodnoty pred ňou.</p>
+          <button onClick={undo} style={btn}>Potvrdiť vrátenie</button>{" "}
+          <button onClick={() => setConfirming(false)} style={btn}>Zrušiť</button>
+        </div>
+      ) : (
+        <button onClick={() => setConfirming(true)} style={btn}>Vrátiť poslednú mimoriadnu splátku</button>
+      )}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
+    </div>
+  );
+}
+
 /** Mimoriadna splátka hypotéky (N-15, D-145): najprv náhľad, čo sa stane, potom zápis. */
 function ExtraPaymentForm({ repo, property, today, onDone }: { repo: Repository; property: Property; today: string; onDone: () => void }) {
   const [date, setDate] = useState(today);
@@ -1144,7 +1194,8 @@ function ExtraPaymentForm({ repo, property, today, onDone }: { repo: Repository;
   const preview = amountCents > 0 && amountCents <= property.mortgageBalanceCents ? applyExtraPayment(property, amountCents, mode) : null;
   const oldPayment = eur(property.monthlyPaymentCents ?? 0);
   let description: string | null = null;
-  if (amountCents > property.mortgageBalanceCents) description = "Suma je vyššia ako zostatok hypotéky.";
+  if (amountCents === 0) description = "Zadaj sumu mimoriadnej splátky.";
+  else if (amountCents > property.mortgageBalanceCents) description = "Suma je vyššia ako zostatok hypotéky.";
   else if (preview === null) description = "Splátka sa nedá znížiť, lebo nepokrýva úrok. Zvoľ skrátenie termínu.";
   else if (mode === "znizit_splatku") description = `Zostatok po splátke: ${eur(preview.mortgageBalanceCents)}. Nová splátka: ${eur(preview.monthlyPaymentCents)} (bola ${oldPayment}), termín ostane ${preview.monthsAfter ?? "?"} mesiacov.`;
   else if (preview.monthsBefore === null) description = `Zostatok po splátke: ${eur(preview.mortgageBalanceCents)}. Splátka ostane ${eur(preview.monthlyPaymentCents)}.`;
@@ -1164,7 +1215,7 @@ function ExtraPaymentForm({ repo, property, today, onDone }: { repo: Repository;
         ...property,
         mortgageBalanceCents: result.mortgageBalanceCents,
         monthlyPaymentCents: result.monthlyPaymentCents,
-        extraPayments: [...(property.extraPayments ?? []), { id: uid(), date, amountCents, mode }],
+        extraPayments: [...(property.extraPayments ?? []), { id: uid(), date, amountCents, mode, balanceBeforeCents: property.mortgageBalanceCents, monthlyPaymentBeforeCents: property.monthlyPaymentCents ?? 0 }],
         updatedAt: new Date().toISOString(),
       });
       onDone();

@@ -75,6 +75,8 @@ export interface ExtraPayment {
   date: string; // YYYY-MM-DD, v rozsahu od dátumu zostatku po dnes
   amountCents: number; // kladné
   mode: ExtraPaymentMode;
+  balanceBeforeCents?: number; // zostatok pred splátkou; umožní vrátiť poslednú splátku
+  monthlyPaymentBeforeCents?: number; // splátka pred splátkou
 }
 export type PropertyMode = (typeof PROPERTY_MODES)[number];
 

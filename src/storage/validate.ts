@@ -65,7 +65,10 @@ export function validateSnapshot(s: unknown, today: string, label = "vyhodnoteni
 export function validateExtraPayment(x: unknown, today: string, label = "mimoriadna splátka"): string[] {
   if (typeof x !== "object" || x === null || Array.isArray(x)) return [`${label}: musí byť objekt`];
   const o = x as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "date", "amountCents", "mode"], label);
+  const errors = unknownKeys(o, ["id", "date", "amountCents", "mode", "balanceBeforeCents", "monthlyPaymentBeforeCents"], label);
+  for (const key of ["balanceBeforeCents", "monthlyPaymentBeforeCents"] as const) {
+    if (o[key] !== undefined && (typeof o[key] !== "number" || !Number.isInteger(o[key]) || (o[key] as number) < 0)) errors.push(`${label}: ${key} musí byť celé číslo ≥ 0`);
+  }
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   errors.push(...checkDate(o.date, today, `${label}: dátum`));
   if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť celé číslo väčšie ako 0`);
