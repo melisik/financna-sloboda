@@ -41,6 +41,6 @@ describe("mesačný prehľad výdavkov", () => {
   });
 
   it("každá kategória má zatriedenie", () => {
-    expect(Object.keys(NECESSITY)).toHaveLength(9);
+    expect(Object.keys(NECESSITY)).toHaveLength(12);
   });
 });

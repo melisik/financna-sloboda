@@ -7,13 +7,16 @@ export type Necessity = "nevyhnutne" | "nie_nevyhnutne" | "ostatne";
 
 export const NECESSITY: Record<BudgetCategory, Necessity> = {
   "bývanie": "nevyhnutne",
+  "dom a energie": "nevyhnutne",
   "jedlo": "nevyhnutne",
   "doprava": "nevyhnutne",
   "zdravie": "nevyhnutne",
   "deti a vzdelávanie": "nevyhnutne",
   "oblečenie": "nie_nevyhnutne",
   "zábava": "nie_nevyhnutne",
+  "voľný čas a dovolenka": "nie_nevyhnutne",
   "predplatné a služby": "nie_nevyhnutne",
+  "dôchodok": "nevyhnutne",
   "iné": "ostatne",
 };
 

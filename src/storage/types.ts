@@ -7,7 +7,7 @@ export const SOURCES = ["z_prijmu", "z_hotovosti", "z_investicii"] as const;
 export type Source = (typeof SOURCES)[number];
 
 /** Kategórie výdavkov pre rozpočet (D-106). Zoznam je návrh a overí sa pred spustením pre používateľov. */
-export const BUDGET_CATEGORIES = ["bývanie", "jedlo", "doprava", "zdravie", "deti a vzdelávanie", "oblečenie", "zábava", "predplatné a služby", "iné"] as const;
+export const BUDGET_CATEGORIES = ["bývanie", "dom a energie", "jedlo", "doprava", "zdravie", "deti a vzdelávanie", "oblečenie", "zábava", "voľný čas a dovolenka", "predplatné a služby", "dôchodok", "iné"] as const;
 export type BudgetCategory = (typeof BUDGET_CATEGORIES)[number];
 
 export interface Budget {
