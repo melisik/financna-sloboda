@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { backupOverdue, reviewOverdue } from "../src/app/reminders";
+import { backupOverdue, settingsCheckOverdue, reviewOverdue } from "../src/app/reminders";
 
 describe("pripomienka vyhodnotenia (FR-10)", () => {
   it("v tom istom mesiaci nie je pripomienka", () => {
@@ -28,5 +28,14 @@ describe("pripomienka zálohy (FR-19, D-035)", () => {
   });
   it("exportované pred viac ako 7 dňami: pripomienka", () => {
     expect(backupOverdue("2026-10-06", "2026-10-14")).toBe(true);
+  });
+});
+
+describe("pripomienka kontroly nastavení (N-13, D-151)", () => {
+  it("bez dátumu kontroly alebo starší ako rok sa pripomenie; čerstvá kontrola nie", () => {
+    expect(settingsCheckOverdue(undefined, "2026-10-21")).toBe(true);
+    expect(settingsCheckOverdue("2025-10-21T10:00:00.000Z", "2026-10-21")).toBe(false);
+    expect(settingsCheckOverdue("2025-10-20T10:00:00.000Z", "2026-10-21")).toBe(true);
+    expect(settingsCheckOverdue("2026-10-01T10:00:00.000Z", "2026-10-21")).toBe(false);
   });
 });

@@ -7,7 +7,7 @@ import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
 import { capitalWithFlags, reserveBalance } from "../app/ledger";
 import { expenseTotalsByCategory, filterHistory, totalsByType } from "../app/history";
-import { backupOverdue, daysSince, reviewOverdue } from "../app/reminders";
+import { backupOverdue, daysSince, reviewOverdue, settingsCheckOverdue } from "../app/reminders";
 import { targetAmountCents } from "../domain/goal";
 import { goalDisplay } from "../domain/goalDisplay";
 import { goalDateText } from "../domain/goalText";
@@ -434,6 +434,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
         feesRate: 0,
         reserveCents: rec.reserveCents,
         thresholdCents: rec.thresholdCents,
+        checkedAt: new Date().toISOString(),
       });
       // Vyhodnotenie na dnešok sa prepíše, nie zdvojí (rovnaké pravidlo ako vo Vyhodnotení).
       const sameDay = (await repo.getData()).snapshots.find((x) => x.date === todayIso());
@@ -793,6 +794,11 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
           Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.
+        </p>
+      )}
+      {data.settings !== null && settingsCheckOverdue(data.settings.checkedAt, today) && (
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+          Nastavenia sa ešte neoverili alebo sú staršie ako rok. Skontroluj infláciu, rezervu a mieru výberu v sekcii Nastavenia.
         </p>
       )}
       {(data.snapshots.length > 0 || data.transactions.length > 0 || data.settings !== null) && backupOverdue(lastExport, today) && (
@@ -2684,6 +2690,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
         thresholdCents: cents(thr),
         ...(v.savingInv === "" ? {} : { savingInvCents: cents(v.savingInv) }),
         ...(v.savingCash === "" ? {} : { savingCashCents: cents(v.savingCash) }),
+        checkedAt: new Date().toISOString(),
       });
       onSaved();
     } catch {

@@ -22,6 +22,12 @@ export function backupOverdue(lastExportIso: string | null, todayIso: string, da
   return (b - a) / 86_400_000 > days;
 }
 
+/** Nastavenia sa nekontrolovali viac ako rok alebo nikdy (N-13, D-151). */
+export function settingsCheckOverdue(checkedAtIso: string | undefined, todayIso: string, days = 365): boolean {
+  if (!checkedAtIso) return true;
+  return daysSince(checkedAtIso, todayIso) > days;
+}
+
 /** Počet dní od dátumu (YYYY-MM-DD alebo ISO) do dneška; 0 = dnes. */
 export function daysSince(iso: string, todayIso: string): number {
   const a = Date.UTC(...(iso.slice(0, 10).split("-").map(Number) as [number, number, number]));

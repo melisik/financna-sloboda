@@ -61,6 +61,7 @@ export interface Settings {
   savingCashCents?: number; // m_cash, rovnako
   feesRate?: number; // poplatky p. a., napr. 0.005; bez hodnoty = 0 (D-064)
   lastReviewDate?: string; // D_L
+  checkedAt?: string; // kedy sa nastavenia naposledy uložili (ISO); pripomienka ročnej kontroly (N-13, D-151)
 }
 
 /** Režim nehnuteľnosti (FR-20, D-093). „nezadane“ je predvolené a do K sa nepočíta. */
