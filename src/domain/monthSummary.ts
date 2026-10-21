@@ -1,4 +1,5 @@
-import type { Budget, BudgetCategory, Property, RecurringExpense, Transaction } from "../storage/types";
+import type { Budget, BudgetCategory, Liability, Property, RecurringExpense, Transaction } from "../storage/types";
+import { activeLiabilityPaymentCents } from "./liabilities";
 import { spentInMonthCents } from "./budget";
 import { housingFlowCents } from "./property";
 import { monthlyRecurringByCategory } from "./recurring";
@@ -28,6 +29,7 @@ export interface MonthSummary {
   byNecessity: Record<Necessity, number>; // minuté v zatriedených kategóriách vrátane pravidelných
   unassignedCents: number; // výdavky bez kategórie
   overThresholdCount: number; // výdavky tohto mesiaca nad prahom
+  liabilitiesCents: number; // splátky platných úverov a kariet (sú v nevyhnutných)
 }
 
 /** Mesačný prehľad výdavkov pre Prehľad: plnenie plánu a rozpis podľa nevyhnutnosti (D-131). */
@@ -38,6 +40,7 @@ export function monthSummary(
   today: string,
   thresholdCents: number,
   properties: Property[] = [],
+  liabilities: Liability[] = [],
 ): MonthSummary {
   const recurringByCat = monthlyRecurringByCategory(recurring, today);
   const housing = housingFlowCents(properties);
@@ -46,6 +49,8 @@ export function monthSummary(
 
   const byNecessity: Record<Necessity, number> = { nevyhnutne: 0, nie_nevyhnutne: 0, ostatne: 0 };
   for (const c of Object.keys(NECESSITY) as BudgetCategory[]) byNecessity[NECESSITY[c]] += spentIn(c);
+  const liabilitiesCents = activeLiabilityPaymentCents(liabilities, today);
+  byNecessity.nevyhnutne += liabilitiesCents;
 
   const planCents = budgets.reduce((sum, b) => sum + b.limitCents, 0);
   const plannedSpentCents = budgets.reduce((sum, b) => sum + spentIn(b.category), 0);
@@ -60,6 +65,7 @@ export function monthSummary(
     percent: planCents > 0 ? Math.round((plannedSpentCents / planCents) * 100) : null,
     byNecessity,
     unassignedCents: spentInMonthCents(transactions, null, today),
+    liabilitiesCents,
     overThresholdCount,
   };
 }

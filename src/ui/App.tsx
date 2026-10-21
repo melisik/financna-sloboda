@@ -15,9 +15,9 @@ import { formatImpactOutcome, plural, UNREACHABLE_IMPACT_TEXT } from "../domain/
 import { annualOverview, yearlySummary, type OverviewSettings } from "../domain/annualOverview";
 import { monthlySaving } from "../domain/saving";
 import { housingFlowCents, monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
-import { amortizeMortgage } from "../domain/mortgage";
+import { amortizeLoan, amortizeMortgage } from "../domain/mortgage";
 import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, staleValuationNames, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
-import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
+import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
@@ -210,12 +210,20 @@ export function App() {
     if (!repo || !data) return;
     const today = todayIso();
     const now = new Date().toISOString();
-    const updates = data.properties.flatMap((p) => {
+    const propertyUpdates = data.properties.flatMap((p) => {
       const upd = amortizeMortgage(p, today);
       return upd ? [{ ...p, ...upd, updatedAt: now }] : [];
     });
-    if (updates.length === 0) return;
-    void Promise.all(updates.map((p) => repo.saveProperty(p))).then(reload).catch(() => undefined);
+    // Úvery a kreditky (D-140) sa splácajú rovnako ako hypotéka.
+    const liabilityUpdates = data.liabilities.flatMap((l) => {
+      const upd = amortizeLoan(l.balanceCents, l.rate, l.monthlyPaymentCents, l.balanceDate, today);
+      return upd ? [{ ...l, balanceCents: upd.balanceCents, balanceDate: upd.balanceDate, updatedAt: now }] : [];
+    });
+    if (propertyUpdates.length === 0 && liabilityUpdates.length === 0) return;
+    void Promise.all([
+      ...propertyUpdates.map((p) => repo.saveProperty(p)),
+      ...liabilityUpdates.map((l) => repo.saveLiability(l)),
+    ]).then(reload).catch(() => undefined);
   }, [repo, data]);
 
   if (isIosBrowser() && !isStandalone()) return <Shell><IosInstallGate /></Shell>;
@@ -821,7 +829,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
 
 /** Výdavky tohto mesiaca: plnenie mesačného plánu a rozpis na nevyhnutné a nie nevyhnutné (D-131). */
 function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; today: string; thresholdCents: number }) {
-  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents, data.properties);
+  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents, data.properties, data.liabilities);
   const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
   const income = monthlyIncomeCents(data.incomes, today);
   const ending = data.recurringExpenses.filter((e) => endingSoon(e, today));
@@ -848,6 +856,7 @@ function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; to
         <summary style={{ cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Rozpis výdavkov</summary>
         <ul style={{ paddingLeft: 20 }}>
           <li>Nevyhnutné: {eur(s.byNecessity.nevyhnutne)}</li>
+          {s.liabilitiesCents > 0 && <li>Splátky úverov a kariet: {eur(s.liabilitiesCents)}</li>}
           <li>Nie nevyhnutné: {eur(s.byNecessity.nie_nevyhnutne)}{spent > 0 ? ` (${Math.round((100 * s.byNecessity.nie_nevyhnutne) / spent)} % minutého)` : ""}</li>
           <li>Ostatné a nezaradené: {eur(s.byNecessity.ostatne + s.unassignedCents)}</li>
           <li>Výdavky nad prahom: {s.overThresholdCount}</li>
@@ -1405,9 +1414,14 @@ function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: Reposit
             <dt>Úrok za mesiac</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(liabilityInterestCents(l))}</dd>
           </dl>
           {l.endDate && <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Koniec: {l.endDate}</p>}
+          {!liabilityIsActive(l, today) && (
+            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+              {l.balanceCents <= 0 ? "Splatené. Nerátajú sa do mesačných výdavkov." : `Skončené k ${l.endDate}. Nerátajú sa do mesačných výdavkov.`}
+            </p>
+          )}
           {confirmId === l.id ? (
             <div>
-              <p>Naozaj zmazať tento záväzok?</p>
+              <p>Naozaj zmazať záväzok „{l.name}“?</p>
               <button onClick={() => remove(l.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>
@@ -1443,6 +1457,7 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
   const [rate, setRate] = useState<NumIn>(initial ? Number((initial.rate * 100).toFixed(6)) : "");
   const [payment, setPayment] = useState<NumIn>(initial ? initial.monthlyPaymentCents / 100 : "");
   const [endDate, setEndDate] = useState(initial?.endDate ?? "");
+  const [balanceDate, setBalanceDate] = useState(initial?.balanceDate ?? today);
   const [err, setErr] = useState<string | null>(null);
 
   const save = async () => {
@@ -1451,6 +1466,10 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
     if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
     const b = asNum(balance);
     if (Number.isNaN(b) || b < 0) return setErr("Vyplň zostatok dlhu (0 alebo viac).");
+    if (b > 0) {
+      const balanceErr = checkDate(balanceDate, today, "dátum zostatku");
+      if (balanceErr.length) return setErr(balanceErr[0]);
+    }
     const r = rate === "" ? 0 : asNum(rate);
     if (Number.isNaN(r) || r < 0 || r >= 100) return setErr("Úroková sadzba musí byť od 0 do menej ako 100 %.");
     const pay = payment === "" ? 0 : asNum(payment);
@@ -1468,6 +1487,7 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       balanceCents: cents(b),
       rate: r / 100,
       monthlyPaymentCents: cents(pay),
+      ...(b > 0 ? { balanceDate } : {}),
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
       ...(endDate.trim() !== "" ? { endDate: endDate.trim() } : {}),
@@ -1493,6 +1513,9 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
         </select>
       </label>
       <Field label="Zostatok dlhu (€)" value={balance} onChange={setBalance} />
+      {typeof balance === "number" && balance > 0 && (
+        <Field label="Zostatok platí k (dátum)" value={balanceDate} type="date" max={today} onChange={setBalanceDate} hint="od tohto dátumu sa každý mesiac automaticky znižuje o istinu" />
+      )}
       <Field label="Úroková sadzba (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak úrok nie je" />
       <Field label="Splátka mesačne (€)" value={payment} onChange={setPayment} hint="0, ak splátku nemáš" />
       <Field label="Koniec (RRRR-MM-DD, nepovinné)" value={endDate} type="text" onChange={setEndDate} />
@@ -1520,7 +1543,7 @@ const INCOME_FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
 /** Pravidelné príjmy (D-102): len zobrazenie. Sporenie m sa mení až podľa zostatku pri vyhodnotení. */
 /** Príjem a minuté tento mesiac: rozdiel ukazuje, kam ide mzda. Nájom je v bývaní (D-137), nie v príjmoch. */
 function IncomeBalance({ income, data, today }: { income: number; data: AppData; today: string }) {
-  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, 0, data.properties);
+  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, 0, data.properties, data.liabilities);
   const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
   const diff = income - spent;
   return (

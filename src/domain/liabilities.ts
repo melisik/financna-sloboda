@@ -16,3 +16,14 @@ export function liabilitiesTotals(list: Liability[]): { debtCents: number; month
     { debtCents: 0, monthlyPaymentCents: 0, monthlyInterestCents: 0 },
   );
 }
+
+/** Záväzok je platný dnes: má zostatok a koniec (ak je) nie je v minulosti (D-140). */
+export function liabilityIsActive(l: Liability, today: string): boolean {
+  return l.balanceCents > 0 && (l.endDate === undefined || l.endDate >= today);
+}
+
+/** Mesačné splátky platných záväzkov v centoch; do nevyhnutných výdavkov v prehľade (D-140). */
+export function activeLiabilityPaymentCents(list: Liability[], today: string): number {
+  return list.filter((l) => liabilityIsActive(l, today)).reduce((sum, l) => sum + l.monthlyPaymentCents, 0);
+}
+

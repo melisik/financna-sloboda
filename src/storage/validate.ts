@@ -116,7 +116,8 @@ export function validatePosition(p: unknown, today: string, label = "položka"):
 export function validateLiability(l: unknown, today: string, label = "záväzok"): string[] {
   if (typeof l !== "object" || l === null || Array.isArray(l)) return [`${label}: musí byť objekt`];
   const o = l as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "kind", "balanceCents", "rate", "monthlyPaymentCents", "endDate", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "kind", "balanceCents", "rate", "monthlyPaymentCents", "endDate", "balanceDate", "createdAt", "updatedAt"], label);
+  if (o.balanceDate !== undefined) errors.push(...checkDate(o.balanceDate, today, `${label}: dátum zostatku`));
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
   if (!(LIABILITY_KINDS as readonly unknown[]).includes(o.kind)) errors.push(`${label}: druh musí byť z katalógu`);

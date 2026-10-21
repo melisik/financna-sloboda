@@ -136,6 +136,7 @@ export interface Liability {
   rate: number; // úroková sadzba p. a., napr. 0.089; 0 ak nie je
   monthlyPaymentCents: number; // mesačná splátka podľa zmluvy
   endDate?: string; // predpokladaný koniec, YYYY-MM-DD; môže byť v budúcnosti
+  balanceDate?: string; // dátum, ku ktorému platí zostatok; od neho sa splácanie počíta automaticky (D-140)
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
