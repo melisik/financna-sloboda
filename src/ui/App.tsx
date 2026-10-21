@@ -18,6 +18,7 @@ import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } 
 import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
+import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
 import { PHASE2_ENABLED, visibleSections } from "../app/features";
@@ -237,7 +238,8 @@ export function App() {
             <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
             <ol style={{ paddingLeft: 20 }}>
               <li><strong>Prvé nastavenie:</strong> pri prvom spustení zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
-              <li><strong>Vyhodnotenie:</strong> na konci mesiaca zadaj hodnotu investícií a hotovosť. Dátum cieľa sa mení len po vyhodnotení.</li>
+              <li><strong>Vyhodnotenie:</strong> mesačné vyhodnotenie vzniká automaticky. Ručne ho zadáš len na opravu. Dátum cieľa sa mení len po vyhodnotení.</li>
+              <li><strong>Rozpočet:</strong> limity na kategórie sú mesačný plán. Prehľad ukáže plnenie a rozpis na nevyhnutné a nie nevyhnutné výdavky.</li>
               <li><strong>Transakcie:</strong> zapisuj sporenie, investície a výdavky. Výdavok nad prah sa zvýrazní.</li>
               <li><strong>Záloha:</strong> pravidelne exportuj zálohu. Dáta sú len v tomto zariadení; neukladaj ju do verejných priečinkov.</li>
               <li><strong>Obnova:</strong> import nahradí všetky dáta a vyžaduje potvrdenie.</li>
@@ -713,6 +715,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
           Záloha ešte nebola exportovaná alebo je staršia ako 7 dní. Dáta sú len v tomto zariadení.
         </p>
       )}
+      <MonthSpendingBlock data={data} today={today} thresholdCents={ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents} />
       {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v <a href="#nastavenia">Nastaveniach</a>; ostatné hodnoty sú predvolené.</p>}
       {(ctx.negative.cash || ctx.negative.inv) && (
         <p style={{ background: "var(--err-bg)", padding: 8, borderRadius: 6 }}>
@@ -758,6 +761,42 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid var(--border-strong)", borderRadius: 4 }}>
         Pridať transakciu
       </a>
+    </div>
+  );
+}
+
+/** Výdavky tohto mesiaca: plnenie mesačného plánu a rozpis na nevyhnutné a nie nevyhnutné (D-131). */
+function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; today: string; thresholdCents: number }) {
+  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents);
+  const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
+  const ending = data.recurringExpenses.filter((e) => endingSoon(e, today));
+  const over = s.percent !== null && s.percent > 100;
+  return (
+    <div style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 12, marginBottom: 12, background: "var(--surface)" }}>
+      <p style={{ margin: 0 }}><strong>Tento mesiac</strong></p>
+      {s.percent !== null ? (
+        <p style={{ margin: "4px 0", color: over ? "var(--danger)" : undefined }}>
+          Plnenie plánu: <strong>{s.percent} %</strong> ({eur(s.plannedSpentCents)} z {eur(s.planCents)})
+        </p>
+      ) : (
+        <p style={{ margin: "4px 0", color: "var(--muted)" }}>
+          Mesačný plán nie je nastavený. Limity nastavíš v <a href="#rozpocet">Rozpočte</a>. Minuté tento mesiac: {eur(spent)}.
+        </p>
+      )}
+      <details>
+        <summary style={{ cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Rozpis výdavkov</summary>
+        <ul style={{ paddingLeft: 20 }}>
+          <li>Nevyhnutné: {eur(s.byNecessity.nevyhnutne)}</li>
+          <li>Nie nevyhnutné: {eur(s.byNecessity.nie_nevyhnutne)}{spent > 0 ? ` (${Math.round((100 * s.byNecessity.nie_nevyhnutne) / spent)} % minutého)` : ""}</li>
+          <li>Ostatné a nezaradené: {eur(s.byNecessity.ostatne + s.unassignedCents)}</li>
+          <li>Výdavky nad prahom: {s.overThresholdCount}</li>
+        </ul>
+      </details>
+      {ending.length > 0 && (
+        <p style={{ margin: "8px 0 0", background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "0.9rem" }}>
+          Koniec platnosti do 30 dní: {ending.map((e) => e.name).join(", ")}. <a href="#pravidelne-vydavky">Pozrieť</a>
+        </p>
+      )}
     </div>
   );
 }
