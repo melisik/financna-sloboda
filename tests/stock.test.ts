@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysUntil, expiringItems, stockStatus } from "../src/domain/stock";
+import { daysUntil, expiringItems, sortForList, stockStatus } from "../src/domain/stock";
 import { parseBackup } from "../src/storage/backup";
 import { validateStockItem } from "../src/storage/validate";
 import type { StockItem } from "../src/storage/types";
@@ -27,6 +27,19 @@ describe("sklad potravín", () => {
 
   it("upozornenia obsahujú prešlé a blížiace sa položky, najskôr končiace hore", () => {
     expect(expiringItems([later, milk, rice, bread], "2026-10-20").map((i) => i.name)).toEqual(["chlieb", "mlieko"]);
+  });
+
+  it("položka, ktorá došla (množstvo 0), sa neupozorní ani keď jej dátum prešiel", () => {
+    expect(expiringItems([{ ...bread, quantity: 0 }], "2026-10-20")).toEqual([]);
+  });
+
+  it("zoznam: prešlé, blížiace sa, v poriadku, bez dátumu a nakoniec došlo; v skupine skorší dátum prvý", () => {
+    const gone = { ...base, id: "e", name: "jogurt", expiryDate: "2026-10-15" };
+    const dateless = { ...base, id: "f", name: "soľ" };
+    const empty = { ...base, id: "g", name: "cukor", quantity: 0, expiryDate: "2026-10-15" };
+    const sooner = { ...base, id: "h", name: "maslo", expiryDate: "2026-10-22" };
+    const names = sortForList([empty, dateless, later, sooner, rice, milk, gone, bread], "2026-10-20").map((i) => i.name);
+    expect(names).toEqual(["jogurt", "chlieb", "mlieko", "maslo", "konzerva", "ryža", "soľ", "cukor"]);
   });
 
   it("validácia odmietne jednotku mimo katalógu a neplatný dátum", () => {

@@ -20,12 +20,26 @@ export function stockStatus(item: StockItem, today: string): StockStatus {
   return "v_poriadku";
 }
 
-/** Položky, ktorých dátum spotreby je prešlý alebo sa blíži; najskôr končiace hore. */
+/** Položky, ktorých dátum spotreby je prešlý alebo sa blíži; najskôr končiace hore. Položky, ktoré došli, sa nerátajú. */
 export function expiringItems(items: StockItem[], today: string): StockItem[] {
   return items
     .filter((i) => {
+      if (i.quantity === 0) return false;
       const s = stockStatus(i, today);
       return s === "prešlo" || s === "blizi_sa";
     })
     .sort((a, b) => (a.expiryDate ?? "").localeCompare(b.expiryDate ?? ""));
+}
+
+const LIST_RANK: Record<StockStatus, number> = { "prešlo": 0, "blizi_sa": 1, "v_poriadku": 2, "bez_datumu": 3 };
+
+/**
+ * Poradie v zozname skladu: najskôr prešlé, potom blížiace sa, v poriadku a bez dátumu;
+ * položky s nulovým množstvom (došlo) sú na konci. Medzi rovnakými sa berie skorší dátum a potom názov.
+ */
+export function sortForList(items: StockItem[], today: string): StockItem[] {
+  const rank = (i: StockItem) => (i.quantity === 0 ? 4 : LIST_RANK[stockStatus(i, today)]);
+  return [...items].sort((a, b) =>
+    rank(a) - rank(b) || (a.expiryDate ?? "").localeCompare(b.expiryDate ?? "") || a.name.localeCompare(b.name, "sk"),
+  );
 }

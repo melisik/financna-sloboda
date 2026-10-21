@@ -171,6 +171,7 @@ export function validateRecipe(r: unknown, label = "recept"): string[] {
       else if (seen.has(x.stockItemId)) errors.push(`${label}: rovnaká surovina je dvakrát`);
       else seen.add(x.stockItemId);
       if (typeof x.quantity !== "number" || !(x.quantity > 0)) errors.push(`${label}: množstvo suroviny musí byť kladné číslo`);
+      if (x.stockName !== undefined && typeof x.stockName !== "string") errors.push(`${label}: názov suroviny musí byť text`);
     }
   }
   if (typeof o.createdAt !== "string" || typeof o.updatedAt !== "string") errors.push(`${label}: chýba čas vytvorenia alebo úpravy`);

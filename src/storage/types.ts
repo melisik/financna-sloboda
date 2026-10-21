@@ -199,6 +199,7 @@ export interface StockItem {
 export interface RecipeIngredient {
   stockItemId: string;
   quantity: number; // kladné
+  stockName?: string; // názov suroviny pri uložení receptu; pomenuje ju hlásenie, keď položka skladu zmizne
 }
 
 /** Recept: názov a suroviny. Uvarenie odpočíta suroviny zo skladu (D-127). */

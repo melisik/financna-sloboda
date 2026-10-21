@@ -29,7 +29,12 @@ describe("uvarenie receptu", () => {
     expect(res).toEqual({ ok: false, problems: ["ryža: chýba 100 g"] });
   });
 
-  it("surovina, ktorá už nie je v sklade, sa nahlási", () => {
+  it("surovina, ktorá už nie je v sklade, sa nahlási aj s názvom uloženým v recepte", () => {
+    const gone: Recipe = { ...porridge, ingredients: [{ stockItemId: "x", quantity: 1, stockName: "špagety" }] };
+    expect(cookRecipe(gone, stock, NOW)).toEqual({ ok: false, problems: ["„špagety“ už nie je v sklade"] });
+  });
+
+  it("staršia surovina bez uloženého názvu sa nahlási všeobecne", () => {
     const gone: Recipe = { ...porridge, ingredients: [{ stockItemId: "x", quantity: 1 }] };
     expect(cookRecipe(gone, stock, NOW)).toEqual({ ok: false, problems: ["Niektorá surovina už nie je v sklade"] });
   });
@@ -53,6 +58,8 @@ describe("validácia a záloha receptov", () => {
     expect(validateRecipe({ ...porridge, ingredients: [] }).length).toBeGreaterThan(0);
     expect(validateRecipe({ ...porridge, name: "  " }).length).toBeGreaterThan(0);
     expect(validateRecipe({ ...porridge, ingredients: [{ stockItemId: "m", quantity: 0 }] }).length).toBeGreaterThan(0);
+    expect(validateRecipe({ ...porridge, ingredients: [{ stockItemId: "m", quantity: 1, stockName: "mlieko" }] })).toEqual([]);
+    expect(validateRecipe({ ...porridge, ingredients: [{ stockItemId: "m", quantity: 1, stockName: 5 }] }).join(" ")).toMatch(/názov suroviny/);
   });
 
   it("export a import zachová recepty a staršia záloha ich načíta prázdne", () => {

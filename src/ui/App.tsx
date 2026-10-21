@@ -23,7 +23,7 @@ import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
 import { PHASE2_ENABLED, visibleSections } from "../app/features";
-import { daysUntil, expiringItems, stockStatus } from "../domain/stock";
+import { daysUntil, expiringItems, sortForList, stockStatus } from "../domain/stock";
 import { findExpiryDate, findProductName } from "../domain/scan";
 import { cookRecipe } from "../domain/recipe";
 import { readQrFromImage } from "../app/receiptScan";
@@ -1959,6 +1959,9 @@ function StockSection({ repo, items, recipes, today, onSaved }: { repo: Reposito
   const [err, setErr] = useState<string | null>(null);
   const warnings = expiringItems(items, today);
 
+  // Recept, ktorý používa položku, sa po jej zmazaní nedá uvariť; preto sa to ukáže pri potvrdení.
+  const usedIn = (id: string) => recipes.filter((r) => r.ingredients.some((ing) => ing.stockItemId === id)).map((r) => r.name);
+
   const remove = async (id: string) => {
     try {
       await repo.deleteStockItem(id);
@@ -1972,7 +1975,7 @@ function StockSection({ repo, items, recipes, today, onSaved }: { repo: Reposito
 
   return (
     <section>
-      <p style={{ color: "var(--muted)" }}>Potraviny doma a ich dátum spotreby. Množstvo a dátum zadávate ručne.</p>
+      <p style={{ color: "var(--muted)" }}>Potraviny doma a ich dátum spotreby. Názov a dátum môžete doplniť z fotky obalu; množstvo zadajte ručne.</p>
       {warnings.length > 0 && (
         <div style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, marginBottom: 12 }}>
           <strong>Pozor:</strong>
@@ -1982,10 +1985,10 @@ function StockSection({ repo, items, recipes, today, onSaved }: { repo: Reposito
         </div>
       )}
       {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané položky skladu.</p>}
-      {items.map((i) => (
+      {sortForList(items, today).map((i) => (
         <div key={i.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{i.name}</strong></p>
-          <p style={{ margin: "4px 0" }}>{i.quantity} {i.unit}</p>
+          <p style={{ margin: "4px 0" }}>{i.quantity} {i.unit}{i.quantity === 0 ? " · došlo" : ""}</p>
           <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
             {i.expiryDate ? `Spotrebovať do ${i.expiryDate} (${dniText(daysUntil(today, i.expiryDate))})` : "Bez dátumu spotreby"}
             {i.expiryDate ? <>{" · "}{STOCK_STATUS_TEXT[stockStatus(i, today)]}</> : null}
@@ -1993,6 +1996,9 @@ function StockSection({ repo, items, recipes, today, onSaved }: { repo: Reposito
           {confirmId === i.id ? (
             <div>
               <p>Naozaj zmazať položku „{i.name}“?</p>
+              {usedIn(i.id).length > 0 && (
+                <p style={{ fontSize: "0.9rem" }}>Používa ju recept: {usedIn(i.id).join(", ")}. Po zmazaní bude recept hlásiť chýbajúcu surovinu.</p>
+              )}
               <button onClick={() => remove(i.id)} style={btn}>Zmazať</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>
@@ -2008,7 +2014,6 @@ function StockSection({ repo, items, recipes, today, onSaved }: { repo: Reposito
         <StockForm
           repo={repo}
           initial={editing === "new" ? null : editing}
-          today={today}
           onDone={() => { setEditing(null); onSaved(); }}
           onCancel={() => setEditing(null)}
         />
@@ -2021,21 +2026,41 @@ function StockSection({ repo, items, recipes, today, onSaved }: { repo: Reposito
   );
 }
 
+// Množstvo v desatinnej čiarke, ako ho píše slovenský text.
+const qtyText = (n: number) => String(n).replace(".", ",");
+
 function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; recipes: Recipe[]; stock: StockItem[]; onSaved: () => void }) {
   const [editing, setEditing] = useState<Recipe | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  // Uvarenie odpočíta suroviny len vtedy, keď všetky stačia (D-127).
-  const cook = async (r: Recipe) => {
+  const [pending, setPending] = useState<Recipe | null>(null);
+  const blockedText = (r: Recipe, problems: string[]) => `Recept „${r.name}“ sa neodpočítal, sklad ostáva bez zmeny. ${problems.join("; ")}.`;
+
+  // Uvarenie odpočíta suroviny len vtedy, keď všetky stačia (D-127). Najprv sa ukáže, čo sa odpočíta; sklad sa zmení až po potvrdení.
+  const askCook = (r: Recipe) => {
     const res = cookRecipe(r, stock, new Date().toISOString());
     if (!res.ok) {
-      setResult({ ok: false, text: `Recept „${r.name}“ sa neodpočítal, sklad ostáva bez zmeny. ${res.problems.join("; ")}.` });
+      setPending(null);
+      setResult({ ok: false, text: blockedText(r, res.problems) });
+      return;
+    }
+    setResult(null);
+    setPending(r);
+  };
+
+  const confirmCook = async (r: Recipe) => {
+    // Sklad sa mohol zmeniť od náhľadu, preto sa množstvá overia znova.
+    const res = cookRecipe(r, stock, new Date().toISOString());
+    if (!res.ok) {
+      setPending(null);
+      setResult({ ok: false, text: blockedText(r, res.problems) });
       return;
     }
     try {
       await repo.applyStockChanges(res.changed);
+      setPending(null);
       setResult({ ok: true, text: `Uvarené: „${r.name}“. Suroviny sú odpočítané zo skladu.` });
       setErr(null);
       onSaved();
@@ -2047,6 +2072,7 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
   const remove = async (id: string) => {
     try {
       await repo.deleteRecipe(id);
+      setPending(null);
       setConfirmId(null);
       setResult(null);
       setErr(null);
@@ -2067,7 +2093,7 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
           <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "0.9rem" }}>
             {r.ingredients.map((ing: RecipeIngredient) => {
               const item = stock.find((s) => s.id === ing.stockItemId);
-              return <li key={ing.stockItemId}>{item ? `${item.name}: ${ing.quantity} ${item.unit}` : "surovina už nie je v sklade"}</li>;
+              return <li key={ing.stockItemId}>{item ? `${item.name}: ${ing.quantity} ${item.unit}` : `${ing.stockName ?? "Surovina"} už nie je v sklade, upravte recept`}</li>;
             })}
           </ul>
           {confirmId === r.id ? (
@@ -2078,13 +2104,26 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
             </div>
           ) : (
             <>
-              <button onClick={() => cook(r)} style={btn}>Uvariť</button>{" "}
+              <button onClick={() => askCook(r)} style={btn}>Uvariť</button>{" "}
               <button onClick={() => setEditing(r)} style={btn}>Upraviť</button>{" "}
               <button onClick={() => setConfirmId(r.id)} style={btn}>Zmazať</button>
             </>
           )}
         </div>
       ))}
+      {pending && (
+        <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+          <p style={{ margin: 0 }}><strong>Uvariť „{pending.name}“?</strong> Zo skladu sa odpočíta:</p>
+          <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "0.9rem" }}>
+            {pending.ingredients.map((ing) => {
+              const item = stock.find((s) => s.id === ing.stockItemId);
+              return <li key={ing.stockItemId}>{`${item?.name ?? ing.stockName ?? "surovina"}: −${qtyText(ing.quantity)} ${item?.unit ?? ""}`}</li>;
+            })}
+          </ul>
+          <button onClick={() => confirmCook(pending)} style={btn}>Odpočítať zo skladu</button>{" "}
+          <button onClick={() => setPending(null)} style={btn}>Zrušiť</button>
+        </div>
+      )}
       {result && <p style={{ color: result.ok ? "var(--ok)" : "var(--danger)" }}>{result.text}</p>}
       {editing ? (
         <RecipeForm
@@ -2111,6 +2150,11 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
 
   const updateRow = (n: number, patch: Partial<{ stockItemId: string; quantity: NumIn }>) =>
     setRows((prev) => prev.map((r, i) => (i === n ? { ...r, ...patch } : r)));
+  // Jednotka vybranej suroviny, aby bolo jasné, v akom množstve sa odpočíta.
+  const unitOf = (id: string) => {
+    const unit = stock.find((s) => s.id === id)?.unit;
+    return unit ? ` (${unit})` : "";
+  };
 
   const save = async () => {
     const trimmed = name.trim();
@@ -2121,7 +2165,7 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
       const q = asNum(row.quantity);
       if (row.stockItemId === "" || Number.isNaN(q) || !(q > 0)) return setErr("Každá surovina potrebuje položku skladu a množstvo väčšie ako 0.");
       if (ingredients.some((i) => i.stockItemId === row.stockItemId)) return setErr("Rovnaká surovina je v recepte dvakrát.");
-      ingredients.push({ stockItemId: row.stockItemId, quantity: q });
+      ingredients.push({ stockItemId: row.stockItemId, quantity: q, stockName: stock.find((s) => s.id === row.stockItemId)?.name });
     }
     const now = new Date().toISOString();
     try {
@@ -2147,7 +2191,7 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
             </select>
           </label>
           <label style={{ flex: "1 1 90px" }}>
-            <span style={{ display: "block", fontSize: "0.9rem" }}>Množstvo</span>
+            <span style={{ display: "block", fontSize: "0.9rem" }}>Množstvo{unitOf(row.stockItemId)}</span>
             <input
               type="number"
               step="any"
@@ -2171,11 +2215,12 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
   );
 }
 
-function StockForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: StockItem | null; today: string; onDone: () => void; onCancel: () => void }) {
+function StockForm({ repo, initial, onDone, onCancel }: { repo: Repository; initial: StockItem | null; onDone: () => void; onCancel: () => void }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? "");
   const [unit, setUnit] = useState<StockUnit>(initial?.unit ?? "ks");
-  const [expiry, setExpiry] = useState(initial ? initial.expiryDate ?? "" : today);
+  // Dátum spotreby sa nepredvypĺňa: prázdne pole znamená položku bez dátumu (skener ho môže doplniť).
+  const [expiry, setExpiry] = useState(initial?.expiryDate ?? "");
   const [err, setErr] = useState<string | null>(null);
   const [scanMsg, setScanMsg] = useState<string | null>(null);
   const [ocrText, setOcrText] = useState<string | null>(null);

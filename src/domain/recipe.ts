@@ -11,14 +11,19 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
  */
 export function cookRecipe(recipe: Recipe, stock: StockItem[], now: string): CookResult {
   const needed = new Map<string, number>();
-  for (const ing of recipe.ingredients) needed.set(ing.stockItemId, (needed.get(ing.stockItemId) ?? 0) + ing.quantity);
+  const names = new Map<string, string | undefined>();
+  for (const ing of recipe.ingredients) {
+    needed.set(ing.stockItemId, (needed.get(ing.stockItemId) ?? 0) + ing.quantity);
+    names.set(ing.stockItemId, ing.stockName);
+  }
 
   const problems: string[] = [];
   const changed: StockItem[] = [];
   for (const [stockItemId, qty] of needed) {
     const item = stock.find((s) => s.id === stockItemId);
     if (!item) {
-      problems.push("Niektorá surovina už nie je v sklade");
+      const name = names.get(stockItemId);
+      problems.push(name ? `„${name}“ už nie je v sklade` : "Niektorá surovina už nie je v sklade");
       continue;
     }
     const missing = round2(qty - item.quantity);
