@@ -18,7 +18,7 @@ import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } 
 import { investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
-import { isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
+import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
 import { PHASE2_ENABLED, visibleSections } from "../app/features";
 import { daysUntil, expiringItems, stockStatus } from "../domain/stock";
@@ -1591,7 +1591,19 @@ function RecurringSection({ repo, items, today, onSaved }: { repo: Repository; i
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const total = monthlyRecurringTotalCents(items, today);
+  const annual = annualRecurringTotalCents(items, today);
   const byCat = monthlyRecurringByCategory(items, today);
+
+  // Ukončenie bez mazania: koniec platnosti sa nastaví na dnešok a história ostane (D-124).
+  const endNow = async (e: RecurringExpense) => {
+    try {
+      await repo.saveRecurringExpense({ ...e, endDate: today, updatedAt: new Date().toISOString() });
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
 
   const remove = async (id: string) => {
     try {
@@ -1607,7 +1619,7 @@ function RecurringSection({ repo, items, today, onSaved }: { repo: Repository; i
   return (
     <section>
       <p style={{ color: "var(--muted)" }}>Predplatné, poistky a paušály. Iba zobrazenie: nemenia Kapitál, dátum cieľa ani sporenie.</p>
-      <p>Spolu za mesiac: <strong>{eur(total)}</strong></p>
+      <p>Spolu za mesiac: <strong>{eur(total)}</strong> · za rok: <strong>{eur(annual)}</strong></p>
       {Object.keys(byCat).length > 0 && (
         <ul style={{ paddingLeft: 20 }}>
           {Object.entries(byCat).map(([c, v]) => <li key={c}>{c}: {eur(v ?? 0)}</li>)}
@@ -1624,6 +1636,9 @@ function RecurringSection({ repo, items, today, onSaved }: { repo: Repository; i
           <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
             Od {e.startDate}{e.endDate ? `, do ${e.endDate}` : ""}{isRecurringActive(e, today) ? "" : " · dnes neplatí"}
           </p>
+          {endingSoon(e, today) && (
+            <p style={{ margin: "4px 0", color: "var(--danger)", fontSize: "0.9rem" }}>Koniec platnosti o menej ako 30 dní. Ak sa platba obnoví, upravte koniec.</p>
+          )}
           {confirmId === e.id ? (
             <div>
               <p>Naozaj zmazať pravidelný výdavok „{e.name}“?</p>
@@ -1633,6 +1648,9 @@ function RecurringSection({ repo, items, today, onSaved }: { repo: Repository; i
           ) : (
             <>
               <button onClick={() => setEditing(e)} style={btn}>Upraviť</button>{" "}
+              {isRecurringActive(e, today) && (e.endDate === undefined || e.endDate > today) && (
+                <button onClick={() => endNow(e)} style={btn}>Ukončiť od zajtra</button>
+              )}{" "}
               <button onClick={() => setConfirmId(e.id)} style={btn}>Zmazať</button>
             </>
           )}

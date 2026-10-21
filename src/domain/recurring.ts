@@ -23,3 +23,22 @@ export function monthlyRecurringByCategory(list: RecurringExpense[], today: stri
   }
   return out;
 }
+
+/** Súčet platných pravidelných výdavkov za rok (mesačné × 12, ročné ako sú). Iba zobrazenie (D-124). */
+export function annualRecurringTotalCents(list: RecurringExpense[], today: string): number {
+  return list
+    .filter((e) => isRecurringActive(e, today))
+    .reduce((sum, e) => sum + (e.frequency === "mesacne" ? e.amountCents * 12 : e.amountCents), 0);
+}
+
+/** Koniec platnosti do daného počtu dní od dneška (vrátane dneška). Upozornenie pre predplatné. */
+export function endingSoon(e: RecurringExpense, today: string, days = 30): boolean {
+  if (e.endDate === undefined || !isRecurringActive(e, today)) return false;
+  const left = Math.round((Date.UTC(...dateParts(e.endDate)) - Date.UTC(...dateParts(today))) / 86_400_000);
+  return left >= 0 && left <= days;
+}
+
+function dateParts(iso: string): [number, number, number] {
+  const [y, m, d] = iso.split("-").map(Number);
+  return [y, m - 1, d];
+}
