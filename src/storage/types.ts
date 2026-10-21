@@ -65,6 +65,17 @@ export interface Settings {
 
 /** Režim nehnuteľnosti (FR-20, D-093). „nezadane“ je predvolené a do K sa nepočíta. */
 export const PROPERTY_MODES = ["vlastne_byvanie", "prenajom", "nezadane"] as const;
+
+/** Mimoriadna splátka hypotéky (N-15, D-145): zníži splátku, alebo skráti termín (splátka ostane). */
+export const EXTRA_PAYMENT_MODES = ["znizit_splatku", "skratit_termin"] as const;
+export type ExtraPaymentMode = (typeof EXTRA_PAYMENT_MODES)[number];
+
+export interface ExtraPayment {
+  id: string;
+  date: string; // YYYY-MM-DD, v rozsahu od dátumu zostatku po dnes
+  amountCents: number; // kladné
+  mode: ExtraPaymentMode;
+}
 export type PropertyMode = (typeof PROPERTY_MODES)[number];
 
 /** Nehnuteľnosť v karte majetku (FR-20 až FR-22, návrh docs/11_Karta_majetku.md). */
@@ -80,6 +91,7 @@ export interface Property {
   monthlyPaymentCents?: number; // mesačná splátka hypotéky podľa zmluvy (FR-22, D-084)
   mortgageRate?: number; // úroková sadzba p. a., napr. 0.036; bez hodnoty = 0 (FR-22)
   monthlyOtherCostsCents?: number; // ostatné mesačné náklady: údržba, poistenie, poplatky
+  extraPayments?: ExtraPayment[]; // mimoriadne splátky hypotéky (N-15, D-145)
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, amortizeMortgage, fullMonthsBetween } from "../src/domain/mortgage";
+import { addMonths, amortizeMortgage, applyExtraPayment, fullMonthsBetween, paymentForMonths, remainingMonths } from "../src/domain/mortgage";
+import { validateProperty } from "../src/storage/validate";
 import { housingFlowCents, propertyChangedSince } from "../src/domain/property";
 import { monthSummary } from "../src/domain/monthSummary";
 import type { Property } from "../src/storage/types";
@@ -56,5 +57,44 @@ describe("bývanie v rozpočte a zmena majetku", () => {
     expect(propertyChangedSince([rental], "2026-10-01T09:00:00Z")).toBe(true);
     expect(propertyChangedSince([rental], "2026-10-01T11:00:00Z")).toBe(false);
     expect(propertyChangedSince([{ ...rental, mode: "vlastne_byvanie" }], "2026-10-01T09:00:00Z")).toBe(false);
+  });
+});
+
+describe("mimoriadna splátka hypotéky (N-15, D-145)", () => {
+  const TODAY = "2026-10-21";
+  const mortgage = { mortgageBalanceCents: 10_000_000, mortgageRate: 0.036, monthlyPaymentCents: 50_000 };
+
+  it("počet mesiacov sa počíta zo zostatku, sadzby a splátky; splátka bez úroku nikdy nesplatí", () => {
+    expect(remainingMonths(100_000, 0, 50_000)).toBe(2);
+    expect(remainingMonths(0, 0.036, 50_000)).toBe(0);
+    expect(remainingMonths(10_000_000, 0.12, 50_000)).toBeNull();
+    expect(remainingMonths(100_000, 0, 0)).toBeNull();
+  });
+
+  it("zníženie splátky zachová termín: nová splátka splatí zostatok za rovnaký počet mesiacov", () => {
+    const before = remainingMonths(mortgage.mortgageBalanceCents, mortgage.mortgageRate, mortgage.monthlyPaymentCents)!;
+    const r = applyExtraPayment(mortgage, 1_000_000, "znizit_splatku")!;
+    expect(r.mortgageBalanceCents).toBe(9_000_000);
+    expect(r.monthsBefore).toBe(before);
+    expect(r.monthlyPaymentCents).toBeLessThan(mortgage.monthlyPaymentCents);
+    expect(r.monthsAfter!).toBeLessThanOrEqual(before);
+    expect(r.monthsAfter!).toBeGreaterThanOrEqual(before - 1);
+    expect(paymentForMonths(9_000_000, 0.036, 3)).toBeGreaterThan(0);
+  });
+
+  it("skrátenie termínu nechá splátku a skráti termín", () => {
+    const r = applyExtraPayment({ mortgageBalanceCents: 100_000, mortgageRate: 0, monthlyPaymentCents: 50_000 }, 60_000, "skratit_termin")!;
+    expect(r).toEqual({ mortgageBalanceCents: 40_000, monthlyPaymentCents: 50_000, monthsBefore: 2, monthsAfter: 1 });
+  });
+
+  it("zníženie splátky, ktorá nepokrýva úrok, sa odmietne", () => {
+    expect(applyExtraPayment({ mortgageBalanceCents: 10_000_000, mortgageRate: 0.12, monthlyPaymentCents: 50_000 }, 100_000, "znizit_splatku")).toBeNull();
+  });
+
+  it("validácia odmietne mimoriadnu splátku s nulovou sumou alebo neznámym režimom", () => {
+    const base = { id: "h", mode: "vlastne_byvanie", valueCents: 30_000_000, valueDate: "2026-10-01", mortgageBalanceCents: 100_000, balanceDate: "2026-10-01", createdAt: "x", updatedAt: "x" };
+    expect(validateProperty({ ...base, extraPayments: [{ id: "e", date: TODAY, amountCents: 1000, mode: "znizit_splatku" }] }, TODAY)).toEqual([]);
+    expect(validateProperty({ ...base, extraPayments: [{ id: "e", date: TODAY, amountCents: 0, mode: "znizit_splatku" }] }, TODAY).join(" ")).toMatch(/suma musí byť/);
+    expect(validateProperty({ ...base, extraPayments: [{ id: "e", date: TODAY, amountCents: 1000, mode: "iny" }] }, TODAY).join(" ")).toMatch(/režim/);
   });
 });

@@ -21,6 +21,8 @@ jobs:
       - run: npm ci
       - run: npm test
       # D-142: verejná zostava obsahuje Fázu 2 (rozhodnutie zakladateľa).
+      # Testovacia záloha má dátumy v aktuálnom mesiaci (pri každom nasadení).
+      - run: node scripts/make-test-backup.mjs
       - run: npm run build
         env:
           VITE_PHASE2: "1"

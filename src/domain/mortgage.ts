@@ -1,4 +1,4 @@
-import type { Property } from "../storage/types";
+import type { ExtraPaymentMode, Property } from "../storage/types";
 
 /** Plné mesiace od dátumu from do dátumu to (oba RRRR-MM-DD). Neskorší deň v mesiaci musí byť dosiahnutý. */
 export function fullMonthsBetween(from: string, to: string): number {
@@ -33,6 +33,45 @@ export function amortizeLoan(balanceCents: number, rate: number, paymentCents: n
     balance -= paymentCents - interest;
   }
   return { balanceCents: Math.max(0, balance), balanceDate: addMonths(balanceDate, months) };
+}
+
+/**
+ * Počet mesiacov, za ktoré sa zostatok pri danej splátke splatí. Null, ak splátka nepokryje úrok
+ * (zostatok by nikdy neklesol) alebo nie je zadaná.
+ */
+export function remainingMonths(balanceCents: number, rate: number, paymentCents: number): number | null {
+  if (balanceCents <= 0) return 0;
+  if (paymentCents <= 0) return null;
+  if (rate === 0) return Math.ceil(balanceCents / paymentCents);
+  const r = rate / 12;
+  if (paymentCents <= balanceCents * r) return null;
+  return Math.ceil(-Math.log(1 - (r * balanceCents) / paymentCents) / Math.log(1 + r));
+}
+
+/** Splátka, ktorá splatí zostatok za presne n mesiacov (zaokrúhlená nahor na cent). */
+export function paymentForMonths(balanceCents: number, rate: number, months: number): number {
+  if (balanceCents <= 0) return 0;
+  if (rate === 0) return Math.ceil(balanceCents / months);
+  const r = rate / 12;
+  return Math.ceil((balanceCents * r) / (1 - Math.pow(1 + r, -months)));
+}
+
+/**
+ * Mimoriadna splátka hypotéky (N-15, D-145). Suma sa odpočíta od zostatku.
+ * „znizit_splatku“: termín ostane, splátka sa prepočíta; „skratit_termin“: splátka ostane, termín sa skráti.
+ * Vráti null, ak sa splátka nedá znížiť (nepokrýva úrok).
+ */
+export function applyExtraPayment(p: Pick<Property, "mortgageBalanceCents" | "mortgageRate" | "monthlyPaymentCents">, amountCents: number, mode: ExtraPaymentMode): { mortgageBalanceCents: number; monthlyPaymentCents: number; monthsBefore: number | null; monthsAfter: number | null } | null {
+  const rate = p.mortgageRate ?? 0;
+  const payment = p.monthlyPaymentCents ?? 0;
+  const balance = Math.max(0, p.mortgageBalanceCents - amountCents);
+  const monthsBefore = remainingMonths(p.mortgageBalanceCents, rate, payment);
+  let newPayment = payment;
+  if (mode === "znizit_splatku") {
+    if (monthsBefore === null || monthsBefore === 0) return null;
+    newPayment = Math.min(payment, paymentForMonths(balance, rate, monthsBefore));
+  }
+  return { mortgageBalanceCents: balance, monthlyPaymentCents: newPayment, monthsBefore, monthsAfter: remainingMonths(balance, rate, newPayment) };
 }
 
 /** Automatické splácanie hypotéky (D-137). */

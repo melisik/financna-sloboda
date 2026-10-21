@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
@@ -15,7 +15,7 @@ import { formatImpactOutcome, plural, UNREACHABLE_IMPACT_TEXT } from "../domain/
 import { annualOverview, yearlySummary, type OverviewSettings } from "../domain/annualOverview";
 import { monthlySaving } from "../domain/saving";
 import { housingFlowCents, monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
-import { amortizeLoan, amortizeMortgage } from "../domain/mortgage";
+import { amortizeLoan, amortizeMortgage, applyExtraPayment } from "../domain/mortgage";
 import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, staleValuationNames, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
@@ -953,6 +953,17 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
             <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
               {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta."}
             </p>
+            {p.mortgageBalanceCents > 0 && (
+              <details style={{ margin: "8px 0" }}>
+                <summary>Mimoriadna splátka hypotéky</summary>
+                <ExtraPaymentForm key={(p.extraPayments ?? []).length} repo={repo} property={p} today={today} onDone={onSaved} />
+              </details>
+            )}
+            {(p.extraPayments ?? []).length > 0 && (
+              <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+                Mimoriadne splátky: {(p.extraPayments ?? []).map((e) => `${dateSk(e.date)} ${eur(e.amountCents)} (${EXTRA_PAYMENT_LABEL[e.mode]})`).join("; ")}
+              </p>
+            )}
             {confirmId === p.id ? (
               <div>
                 <p>Naozaj zmazať nehnuteľnosť „{p.name || "Nehnuteľnosť"}“?</p>
@@ -1096,6 +1107,72 @@ function AssetForm({ repo, kind, initial, today, onDone, onCancel }: { repo: Rep
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
+    </div>
+  );
+}
+
+const EXTRA_PAYMENT_LABEL: Record<ExtraPaymentMode, string> = {
+  znizit_splatku: "znížená splátka",
+  skratit_termin: "skrátený termín",
+};
+
+/** Mimoriadna splátka hypotéky (N-15, D-145): najprv náhľad, čo sa stane, potom zápis. */
+function ExtraPaymentForm({ repo, property, today, onDone }: { repo: Repository; property: Property; today: string; onDone: () => void }) {
+  const [date, setDate] = useState(today);
+  const [amount, setAmount] = useState<NumIn>("");
+  const [mode, setMode] = useState<ExtraPaymentMode>("znizit_splatku");
+  const [err, setErr] = useState<string | null>(null);
+
+  const amountValue = asNum(amount);
+  const amountCents = Number.isFinite(amountValue) && amountValue > 0 ? cents(amountValue) : 0;
+  const preview = amountCents > 0 && amountCents <= property.mortgageBalanceCents ? applyExtraPayment(property, amountCents, mode) : null;
+  const oldPayment = eur(property.monthlyPaymentCents ?? 0);
+  let description: string | null = null;
+  if (amountCents > property.mortgageBalanceCents) description = "Suma je vyššia ako zostatok hypotéky.";
+  else if (preview === null) description = "Splátka sa nedá znížiť, lebo nepokrýva úrok. Zvoľ skrátenie termínu.";
+  else if (mode === "znizit_splatku") description = `Zostatok po splátke: ${eur(preview.mortgageBalanceCents)}. Nová splátka: ${eur(preview.monthlyPaymentCents)} (bola ${oldPayment}), termín ostane ${preview.monthsAfter ?? "?"} mesiacov.`;
+  else if (preview.monthsBefore === null) description = `Zostatok po splátke: ${eur(preview.mortgageBalanceCents)}. Splátka ostane ${eur(preview.monthlyPaymentCents)}.`;
+  else description = `Zostatok po splátke: ${eur(preview.mortgageBalanceCents)}. Splátka ostane ${eur(preview.monthlyPaymentCents)}; termín sa skráti z ${preview.monthsBefore} na ${preview.monthsAfter ?? "?"} mesiacov.`;
+
+  const save = async () => {
+    if (!property.balanceDate) return setErr("Najprv v úprave nehnuteľnosti nastav dátum, ku ktorému platí zostatok.");
+    const dErr = checkDate(date, today, "dátum splátky");
+    if (dErr.length) return setErr(dErr[0]);
+    if (date < property.balanceDate) return setErr(`Dátum musí byť od ${dateSk(property.balanceDate)}, keď platí zostatok.`);
+    if (amountCents <= 0) return setErr("Vyplň sumu väčšiu ako 0.");
+    if (amountCents > property.mortgageBalanceCents) return setErr("Suma je vyššia ako zostatok hypotéky.");
+    const result = applyExtraPayment(property, amountCents, mode);
+    if (!result) return setErr("Splátka sa nedá znížiť, lebo nepokrýva úrok. Zvoľ skrátenie termínu.");
+    try {
+      await repo.saveProperty({
+        ...property,
+        mortgageBalanceCents: result.mortgageBalanceCents,
+        monthlyPaymentCents: result.monthlyPaymentCents,
+        extraPayments: [...(property.extraPayments ?? []), { id: uid(), date, amountCents, mode }],
+        updatedAt: new Date().toISOString(),
+      });
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, marginTop: 8, background: "var(--surface)" }}>
+      <Field label="Dátum splátky" value={date} type="date" max={today} onChange={setDate} />
+      <Field label="Suma (€)" value={amount} onChange={setAmount} />
+      <fieldset style={{ border: 0, padding: 0, margin: "8px 0" }}>
+        <legend style={{ fontSize: "0.9rem" }}>Čo sa má zmeniť</legend>
+        {EXTRA_PAYMENT_MODES.map((m) => (
+          <label key={m} style={{ display: "block", margin: "4px 0" }}>
+            <input type="radio" name={`mimoriadna-${property.id}`} checked={mode === m} onChange={() => setMode(m)} />{" "}
+            {m === "znizit_splatku" ? "Znížiť splátku (termín ostane)" : "Skrátiť termín (splátka ostane)"}
+          </label>
+        ))}
+      </fieldset>
+      {description && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{description}</p>}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
+      <button onClick={save} style={btn}>Zapísať mimoriadnu splátku</button>
     </div>
   );
 }

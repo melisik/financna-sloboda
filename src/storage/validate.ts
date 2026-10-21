@@ -1,5 +1,5 @@
 import { isReceiptId } from "../domain/receipt";
-import { ASSET_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Recipe, type ReceiptItem, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Recipe, type ReceiptItem, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -62,11 +62,26 @@ export function validateSnapshot(s: unknown, today: string, label = "vyhodnoteni
   return errors;
 }
 
+export function validateExtraPayment(x: unknown, today: string, label = "mimoriadna splátka"): string[] {
+  if (typeof x !== "object" || x === null || Array.isArray(x)) return [`${label}: musí byť objekt`];
+  const o = x as Record<string, unknown>;
+  const errors = unknownKeys(o, ["id", "date", "amountCents", "mode"], label);
+  if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
+  errors.push(...checkDate(o.date, today, `${label}: dátum`));
+  if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť celé číslo väčšie ako 0`);
+  if (!(EXTRA_PAYMENT_MODES as readonly unknown[]).includes(o.mode)) errors.push(`${label}: režim musí byť z katalógu`);
+  return errors;
+}
+
 export function validateProperty(p: unknown, today: string, label = "nehnuteľnosť"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "extraPayments", "createdAt", "updatedAt"], label);
   if (o.balanceDate !== undefined) errors.push(...checkDate(o.balanceDate, today, `${label}: dátum zostatku`));
+  if (o.extraPayments !== undefined) {
+    if (!Array.isArray(o.extraPayments)) errors.push(`${label}: mimoriadne splátky musia byť zoznam`);
+    else o.extraPayments.forEach((x, n) => errors.push(...validateExtraPayment(x, today, `${label}: mimoriadna splátka ${n + 1}`)));
+  }
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (o.name !== undefined && (typeof o.name !== "string" || o.name.length > 80)) errors.push(`${label}: názov max 80 znakov`);
   if (!(PROPERTY_MODES as readonly unknown[]).includes(o.mode)) errors.push(`${label}: režim musí byť z katalógu`);

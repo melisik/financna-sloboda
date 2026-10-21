@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { parseBackup } from "../src/storage/backup";
 
 // Testovacia záloha z Návodu (syntetické dáta) musí sa načítať v aktuálnej schéme.
-const TODAY = "2026-10-21";
+const TODAY = new Date().toISOString().slice(0, 10); // záloha sa pri nasadení posúva na aktuálny mesiac
 
 describe("testovacia záloha", () => {
   it("načíta sa v aktuálnej schéme a obsahuje dáta na ukážku", () => {

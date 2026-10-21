@@ -22,7 +22,7 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await page.getByRole("button", { name: "Nahradiť dáta zálohou" }).click();
     await expect(page.getByText("Dáta boli nahradené zálohou.")).toBeVisible();
     await goTo(page, "prehlad");
-    await expect(page.locator("p", { hasText: "Posledné vyhodnotenie:" }).first()).toContainText("30.09.2026");
+    await expect(page.locator("p", { hasText: "Posledné vyhodnotenie:" }).first()).toContainText(/\d{2}\.\d{2}\.\d{4}/);
     await expect(page.locator("p", { hasText: "Dátum cieľa:" }).first()).toBeVisible();
   });
 
