@@ -9,6 +9,7 @@ import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { NextStep } from "../../ui/kit/NextStep";
 
 /** Vyhodnotenie (FR-05, D-116, D-121): ručné vyhodnotenie a kontrola stavu investícií a hotovosti; zmazanie. Feature „vyhodnotenie“ (docs/23). */
 
@@ -88,6 +89,7 @@ export function SnapshotSection({ repo, latest, capital, derivedInvCents, snapsh
         {latest ? `Posledné vyhodnotenie: ${dateSk(latest.date)}.` : "Zatiaľ nebolo vyhodnotenie. Dátum cieľa sa zobrazí až po ňom."}
       </p>
       <p style={{ color: "var(--muted)" }}>Mesačné vyhodnotenie sa vytvára automaticky. Tu ho zadáš len na opravu. Dátum cieľa sa mení až pri vyhodnotení.</p>
+      {latest && <p style={{ color: "var(--muted)" }}>Dátum cieľa a stav uvidíš na Prehľade. <NextStep to="prehlad">Prehľad</NextStep></p>}
       {staleValuationNames(positions, todayIso()).length > 0 && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Ocenenie niektorých investícií je staršie ako 3 mesiace. Suma vo vyhodnotení môže byť zastaraná.</p>
       )}

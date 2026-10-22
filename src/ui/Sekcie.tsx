@@ -4,6 +4,7 @@ import type { Ctx } from "../domain/context";
 import { investmentsTotalCents } from "../domain/investments";
 import { PHASE2_ENABLED } from "../app/features";
 import { Section, btn } from "./kit/controls";
+import { NextStep } from "./kit/NextStep";
 import { todayIso } from "./kit/format";
 import { ModulesBlock, useModules } from "./Moduly";
 import type { SectionId } from "./Navigacia";
@@ -135,7 +136,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "nastavenia":
       return (
         <Section id="nastavenia" title="Nastavenia">
-          {settingsFlash && <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, color: "var(--ok)" }}>{settingsFlash}</p>}
+          {settingsFlash && <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, color: "var(--ok)" }}>{settingsFlash} <NextStep to="prehlad">Prehľad</NextStep></p>}
           <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={() => { reload(); setSettingsFlash("Nastavenia sú uložené."); }} />
           <ModulesBlock />
           <section style={{ marginTop: 16 }}>

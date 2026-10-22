@@ -46,4 +46,21 @@
 Klepnutie na skupinu otvorí jej prvú viditeľnú sekciu. Sekcia z inej skupiny sa dosiahne dvoma klepnutiami. Skupina s jednou sekciou sa otvorí jedným klepnutím.
 
 ## 5. Otvorené
-- Kandidáti z kapitoly 3 zatiaľ nie sú zavedené; rozhodnúť, ktoré sa spravia.
+- Kandidáti z kapitoly 3, ktoré ešte nie sú zavedené: Pravidelné výdavky → Rozpočet, návrat z detailov na Prehľad, Sklad a Ročný prehľad.
+
+## 6. Podmienené odkazy na ďalší krok (D-206)
+Skryté tlačidlá (`NextStep`, `src/ui/kit/NextStep.tsx`) sa zobrazia len vtedy, keď dáta ukazujú, že ich používateľ potrebuje.
+
+| Obrazovka | Podmienka | Odkaz |
+|---|---|---|
+| Majetok | aspoň jedna nehnuteľnosť | Dane a tlačivo |
+| Majetok | aspoň jedna nehnuteľnosť s hypotékou | Záväzky (úver, kreditná karta) |
+| Dane | žiadna nehnuteľnosť | Majetok (tlačivo potrebuje nehnuteľnosť) |
+| Dane | žiadna položka investícií | Investície (daňový režim sa zadáva pri položkách) |
+| Investície | aspoň jedna položka | Vyhodnotenie (súčet ide do vyhodnotenia) |
+| Transakcie | výdavok s kategóriou, ktorá má limit | Rozpočet |
+| Vyhodnotenie | existuje uložené vyhodnotenie | Prehľad (dátum cieľa) |
+| Nastavenia | po uložení nastavení | Prehľad |
+
+Pravidlo: odkaz sa nezobrazuje, ak cieľ je už vyplnený. Napríklad Dane neponúknu Majetok, keď nehnuteľnosť existuje.
+Overené v `tests/e2e/flow-links.spec.ts`.

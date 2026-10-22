@@ -10,6 +10,7 @@ import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { NextStep } from "../../ui/kit/NextStep";
 
 /** Majetok (Fáza 2, D-080 až D-158): nehnuteľnosti, hypotéka, prenájom, mimoriadne splátky a ďalšie aktíva. Feature „majetok“ (docs/23). */
 
@@ -160,6 +161,13 @@ export function PropertySection({ repo, properties, assets, today, onSaved }: { 
           </div>
         );
       })}
+      {properties.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          <p style={{ color: "var(--muted)" }}>Údaje z nehnuteľností sa použijú v tlačive 17-dp-md.</p>
+          <NextStep to="dane">Dane a tlačivo</NextStep>
+          {properties.some((p) => p.mortgageBalanceCents > 0) && <NextStep to="zavazky">Záväzky (úver, kreditná karta)</NextStep>}
+        </div>
+      )}
       {editing !== null ? (
         <PropertyForm
           key={editing === "new" ? "new" : editing.id}

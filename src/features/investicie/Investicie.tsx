@@ -8,6 +8,7 @@ import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { NextStep } from "../../ui/kit/NextStep";
 
 /** Investície (D-101, D-105): ručné položky a ich ocenenie; súčet sa použije vo Vyhodnotení. Feature „investicie“ (docs/23). */
 
@@ -52,6 +53,9 @@ export function InvestmentSection({ repo, positions, today, onSaved }: { repo: R
         </p>
       )}
       {positions.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna položka. Vo <a href="#vyhodnotenie">Vyhodnotení</a> sa suma zadáva ručne.</p>}
+      {positions.length > 0 && (
+        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Súčet položiek je hodnota investícií vo Vyhodnotení. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>
+      )}
       {positions.length > 0 && (
         <p style={{ fontSize: "1.05rem" }}>Spolu: <strong>{eur(investmentsTotalCents(positions))}</strong></p>
       )}

@@ -10,6 +10,7 @@ import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { saveBlobFile } from "../../ui/kit/files";
 import { Field, btn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { NextStep } from "../../ui/kit/NextStep";
 import { fillTaxFormPdf } from "./taxFormPdf";
 
 /** Dane (FR-24, FR-25, D-104, D-159, D-161): daňový rámec investícií, evidencia psov a tlačivo 17-dp-md. Feature „dane“ (docs/23). */
@@ -108,6 +109,7 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
       <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
         Vyplní sa z údajov o nehnuteľnostiach a psoch (oddiel III, IV a V tlačiva). Údaje daňovníka a ďalšie polia doplníte v PDF.
       </p>
+      {properties.length === 0 && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Pre tlačivo treba aspoň jednu nehnuteľnosť. <NextStep to="majetok">Majetok</NextStep></p>}
       <button onClick={run} disabled={busy} style={btn}>{busy ? "Vypĺňam…" : "Vyplniť tlačivo (PDF)"}</button>
       {notes.length > 0 && (
         <ul style={{ paddingLeft: 20, fontSize: "0.9rem" }}>
@@ -220,6 +222,9 @@ export function TaxSection({ positions }: { positions: Position[] }) {
           </p>
         </div>
       ))}
+      {positions.length === 0 && (
+        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Daňový režim zadáš pri položkách investícií. <NextStep to="investicie">Investície</NextStep></p>
+      )}
     </section>
   );
 }

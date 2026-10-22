@@ -16,6 +16,7 @@ import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, inp, type NumIn, btnDanger, btnPrimary } from "../../ui/kit/controls";
+import { NextStep } from "../../ui/kit/NextStep";
 import { ReceiptCamera } from "../../ui/ReceiptCamera";
 import { readQrFromImage } from "../../ui/receiptScan";
 
@@ -272,6 +273,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         </label>
       )}
       {type === "vydavok" && (
+        <>
         <label style={{ display: "block", margin: "8px 0" }}>
           <span style={{ display: "block", fontSize: "0.9rem" }}>Kategória (nepovinná)</span>
           <select aria-label="Kategória" value={category} onChange={(e) => setCategory(e.target.value as BudgetCategory | "")} style={inp}>
@@ -279,6 +281,10 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
             {BUDGET_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </label>
+        {category !== "" && data.budgets.some((b) => b.category === category) && (
+          <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Limit v kategórii {category}: {eur(data.budgets.find((b) => b.category === category)?.limitCents ?? 0)}. <NextStep to="rozpocet">Rozpočet</NextStep></p>
+        )}
+        </>
       )}
       <Field label="Suma (€)" value={amount} onChange={setAmount} />
       <Field label="Dátum" value={date} type="date" max={todayIso()} onChange={setDate} />
