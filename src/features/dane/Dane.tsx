@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Repository } from "../../storage/repository";
 import { DOG_KEEPING_PLACES, DOG_PURPOSES, type Dog, type DogKeepingPlace, type DogPurpose, type Position, type Property } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
@@ -8,7 +8,7 @@ import { TAX_CATALOG, taxScenario } from "../../domain/tax";
 import { dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { saveBlobFile } from "../../ui/kit/files";
+import { saveBlobFile, type SaveResult } from "../../ui/kit/files";
 import { Field, btn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
 import { fillTaxFormPdf } from "./taxFormPdf";
@@ -77,21 +77,35 @@ export function DogSection({ repo, dogs, today, onSaved }: { repo: Repository; d
   );
 }
 
-/** Vyplnenie tlačiva 17-dp-md z údajov o nehnuteľnostiach a psoch (D-161). PDF sa uloží alebo zdieľa; nič sa neodosiela. */
+/** Vyplnenie tlačiva 17-dp-md z údajov o nehnuteľnostiach a psoch (D-161, D-208). PDF sa uloží alebo zdieľa; nič sa neodosiela. */
 export function TaxFormBlock({ properties, dogs, today }: { properties: Property[]; dogs: Dog[]; today: string }) {
   const [busy, setBusy] = useState(false);
   const [notes, setNotes] = useState<string[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{ name: string; how: SaveResult } | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  // Bez nehnuteľnosti a psa by tlačivo ostalo prázdne, preto sa nevypĺňa (D-208).
+  const empty = properties.length === 0 && dogs.length === 0;
+
+  // Náhľad sa uvoľní, keď vznikne nový, a keď sa sekcia zavrie.
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview);
+  }, [preview]);
 
   const run = async () => {
     setBusy(true);
     setErr(null);
+    setSaved(null);
     try {
       const fields = buildTaxFormFields(properties, dogs, today);
       const res = await fetch(TAX_FORM_PATH);
       if (!res.ok) throw new Error("tlačivo sa nenašlo");
       const out = await fillTaxFormPdf(new Uint8Array(await res.arrayBuffer()), fields);
-      await saveBlobFile(`priznanie-17-dp-md-${today}.pdf`, new Blob([new Uint8Array(out.bytes)], { type: "application/pdf" }));
+      const name = `priznanie-17-dp-md-${today}.pdf`;
+      const blob = new Blob([new Uint8Array(out.bytes)], { type: "application/pdf" });
+      setPreview(URL.createObjectURL(blob));
+      const how = await saveBlobFile(name, blob);
+      setSaved({ name, how });
       setNotes([
         ...(out.tooLong.length > 0 ? [`Tieto údaje sa do tlačiva nezmestili, doplňte ich v PDF ručne: ${out.tooLong.join(", ")}.`] : []),
         ...fields.notes,
@@ -109,8 +123,26 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
       <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
         Vyplní sa z údajov o nehnuteľnostiach a psoch (oddiel III, IV a V tlačiva). Údaje daňovníka a ďalšie polia doplníte v PDF.
       </p>
-      {properties.length === 0 && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Pre tlačivo treba aspoň jednu nehnuteľnosť. <NextStep to="majetok">Majetok</NextStep></p>}
-      <button onClick={run} disabled={busy} style={btn}>{busy ? "Vypĺňam…" : "Vyplniť tlačivo (PDF)"}</button>
+      {empty && (
+        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+          Najprv pridaj nehnuteľnosť v Majetku alebo psa vyššie. Bez nich by tlačivo zostalo prázdne. <NextStep to="majetok">Majetok</NextStep>
+        </p>
+      )}
+      <button onClick={run} disabled={busy || empty} style={btnPrimary}>{busy ? "Vypĺňam…" : "Vyplniť tlačivo (PDF)"}</button>
+      {saved && (
+        <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, marginTop: 8 }}>
+          {saved.how === "cancelled"
+            ? "Súbor sa neuložil. Ak ho chceš, klepni na Vyplniť tlačivo znova."
+            : saved.how === "shared"
+              ? `Tlačivo je uložené cez zdieľací list ako ${saved.name}.`
+              : `Tlačivo je uložené ako ${saved.name}. Nájdeš ho v Stiahnutých súboroch prehliadača (v Edge a Chrome: Ctrl+J).`}
+        </p>
+      )}
+      {preview && (
+        <p style={{ marginTop: 8 }}>
+          <a href={preview} target="_blank" rel="noopener noreferrer" style={btn}>Otvoriť vyplnené PDF</a>
+        </p>
+      )}
       {notes.length > 0 && (
         <ul style={{ paddingLeft: 20, fontSize: "0.9rem" }}>
           {notes.map((n, i) => <li key={i}>{n}</li>)}
