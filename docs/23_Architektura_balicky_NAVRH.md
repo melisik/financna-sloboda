@@ -10,7 +10,7 @@ Zmerané v repozitári (2026-10-22, vetva `claude/phase2-property-card`):
 
 | Časť | Stav | Poznámka |
 |---|---|---|
-| `src/domain/` | 29 súborov, čisté funkcie | 22 importuje `storage/types`; 12 importuje iné doménové súbory |
+| `src/domain/` | 31 súborov, čisté funkcie | 22 importuje `storage/types`; 12 importuje iné doménové súbory |
 | `src/storage/` | typy, validácia, záloha, IndexedDB | `validate.ts` importuje `domain/receipt` (smer je v poriadku) |
 | `src/app/` | pomocné moduly (PIN, OCR, sken, spätná väzba, reminders, moduly) | väčšina je bez závislostí na UI |
 | `src/ui/App.tsx` | **4 132 riadkov, 44 komponentov** | všetky sekcie, formuláre aj formátovanie v jednom súbore |
@@ -124,7 +124,7 @@ Dnešný architektonický test pokrýva len prvý riadok tabuľky z jednej stran
 - Výpočty (`core/finance`) sa dajú testovať a použiť bez prehliadača a bez úložiska. Dnešné golden testy by sa presunuli bez úprav.
 - Jedna sekcia sa dá upraviť bez čítania celého `App.tsx`. Menší diff pri review.
 - Moduly z D-162 majú pevné hranice: vypnutá feature sa nedotýka ostatných.
-- Ťažké závislosti (OCR, tesseract, jsQR, pdf-lib) sa dajú načítať len vo features, ktoré ich potrebujú (dnes už sú dynamicky načítané, ale nie vo všetkých prípadoch).
+- Ťažké závislosti (OCR, jsQR, pdf-lib) sa dajú načítať len vo features, ktoré ich potrebujú. Dnes sa načítavajú dynamicky (`import()`) v `App.tsx`, `ReceiptCamera.tsx`, `receiptScan.ts` a `taxFormPdf.ts`; zámer je zachovať to pri presune.
 
 **Náklady a riziká**
 - **Veľký počet presunov.** `App.tsx` má 4 132 riadkov. Presun je mechanický, ale veľký. Treba ho robiť po jednom feature a po každom kroku mať zelené všetky testy (288 unit, 296 E2E).
@@ -136,7 +136,7 @@ Dnešný architektonický test pokrýva len prvý riadok tabuľky z jednej stran
 Každý krok je samostatný commit so zelenými testami.
 
 1. **Typy do `core/model`** (pravidlo `docs/05` §3). Najväčší prínos pre čistotu domény, bez zmeny správania. Úprava importov v 22 súboroch.
-2. **`core/finance` ako priečinok s pravidlom** (zatiaľ bez samostatného balíčka). Presun 29 súborov, test závislostí rozšírený na všetky smery.
+2. **`core/finance` ako priečinok s pravidlom** (zatiaľ bez samostatného balíčka). Presun 31 súborov, test závislostí rozšírený na všetky smery.
 3. **`ui-kit`:** `Field`, `Section`, `btn`, formátovanie. Malé, mechanické, bez rizika.
 4. **Features, po jednom:** začať s najmenej previazanými (`zaloha`, `zamok`, `sklad`, `dane`), potom `doklady`, `investicie`, `zavazky`, `prijmy`, `rozpocet`, `majetok`, `transakcie`, `vyhodnotenie`, `prehlad`, nakoniec `sprievodca` a `app`.
 5. **Samostatné balíčky v npm workspaces** (`packages/core`, `packages/ui-kit`), len ak je reálna potreba použiť ich mimo tejto aplikácie.
