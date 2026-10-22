@@ -9,7 +9,7 @@ import { rentalRow11, rentalTotalsForYear, rentalYears } from "../../domain/rent
 import { cents, dateSk, eur, monthYear, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Majetok (Fáza 2, D-080 až D-158): nehnuteľnosti, hypotéka, prenájom, mimoriadne splátky a ďalšie aktíva. Feature „majetok“ (docs/23). */
 
@@ -148,13 +148,13 @@ export function PropertySection({ repo, properties, assets, today, onSaved }: { 
             {confirmId === p.id ? (
               <div>
                 <p>Naozaj zmazať nehnuteľnosť „{p.name || "Nehnuteľnosť"}“?</p>
-                <button onClick={() => remove(p.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+                <button onClick={() => remove(p.id)} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
                 <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
               </div>
             ) : (
               <div>
                 <button onClick={() => { setEditing(p); setErr(null); }} style={btn}>Upraviť</button>{" "}
-                <button onClick={() => setConfirmId(p.id)} style={btn}>Zmazať</button>
+                <button onClick={() => setConfirmId(p.id)} style={btnDanger}>Zmazať</button>
               </div>
             )}
           </div>
@@ -170,7 +170,7 @@ export function PropertySection({ repo, properties, assets, today, onSaved }: { 
           onCancel={() => setEditing(null)}
         />
       ) : (
-        <button onClick={() => setEditing("new")} style={btn}>Pridať nehnuteľnosť</button>
+        <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať nehnuteľnosť</button>
       )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <AssetSection repo={repo} assets={assets} today={today} onSaved={onSaved} />
@@ -214,13 +214,13 @@ function AssetSection({ repo, assets, today, onSaved }: { repo: Repository; asse
           {confirmId === a.id ? (
             <div>
               <p>Naozaj zmazať aktívum „{a.name}“?</p>
-              <button onClick={() => remove(a.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+              <button onClick={() => remove(a.id)} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>
           ) : (
             <div>
               <button onClick={() => { setEditing(a); setErr(null); }} style={btn}>Upraviť</button>{" "}
-              <button onClick={() => setConfirmId(a.id)} style={btn}>Zmazať</button>
+              <button onClick={() => setConfirmId(a.id)} style={btnDanger}>Zmazať</button>
             </div>
           )}
         </div>
@@ -286,7 +286,7 @@ function AssetForm({ repo, kind, initial, today, onDone, onCancel }: { repo: Rep
       <Field label="Odhad hodnoty (€)" value={value} onChange={setValue} />
       <Field label="Dátum odhadu" value={valueDate} type="date" max={today} onChange={setValueDate} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť</button>{" "}
+      <button onClick={save} style={btnPrimary}>Uložiť</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );
@@ -354,11 +354,11 @@ function RentalLedger({ repo, property, today, onDone }: { repo: Repository; pro
             {dateSk(e.date)} · {e.kind === "prijem" ? "príjem" : "výdavok"} · {eur(e.amountCents)}{e.note ? ` (${e.note})` : ""}{" "}
             {confirmId === e.id ? (
               <>
-                <button onClick={() => save((list) => list.filter((x) => x.id !== e.id))} style={btn}>Potvrdiť zmazanie</button>{" "}
+                <button onClick={() => save((list) => list.filter((x) => x.id !== e.id))} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
                 <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
               </>
             ) : (
-              <button onClick={() => setConfirmId(e.id)} style={btn}>Zmazať</button>
+              <button onClick={() => setConfirmId(e.id)} style={btnDanger}>Zmazať</button>
             )}
           </li>
         ))}
@@ -374,7 +374,7 @@ function RentalLedger({ repo, property, today, onDone }: { repo: Repository; pro
       <Field label="Suma (€) – prenájom" value={amount} onChange={setAmount} />
       <Field label="Poznámka (nepovinné)" value={note} type="text" onChange={setNote} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={add} style={btn}>Pridať záznam</button>
+      <button onClick={add} style={btnPrimary}>Pridať záznam</button>
     </div>
   );
 }
@@ -408,11 +408,11 @@ function ExtraPaymentUndo({ repo, property, onDone }: { repo: Repository; proper
         {confirming ? (
           <div>
             <p>Naozaj zmazať záznam z {dateSk(last.date)} ({eur(last.amountCents)})? Zostatok a splátka sa nezmenia.</p>
-            <button onClick={removeRecord} style={btn}>Potvrdiť zmazanie záznamu</button>{" "}
+            <button onClick={removeRecord} style={btnDanger}>Potvrdiť zmazanie záznamu</button>{" "}
             <button onClick={() => setConfirming(false)} style={btn}>Zrušiť</button>
           </div>
         ) : (
-          <button onClick={() => setConfirming(true)} style={btn}>Zmazať záznam z histórie</button>
+          <button onClick={() => setConfirming(true)} style={btnDanger}>Zmazať záznam z histórie</button>
         )}
         {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       </div>
@@ -641,7 +641,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <Field label="Ostatné mesačné náklady (€)" value={otherCosts} onChange={setOtherCosts} hint="údržba, poistenie, poplatky; 0, ak nie sú" />
       {mode === "prenajom" && <Field label="Mesačný nájom (€, nepovinné)" value={rent} onChange={setRent} />}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť nehnuteľnosť</button>{" "}
+      <button onClick={save} style={btnPrimary}>Uložiť nehnuteľnosť</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );

@@ -7,7 +7,7 @@ import { paymentBelowInterest } from "../../domain/mortgage";
 import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Záväzky okrem hypotéky (D-103, D-140): úvery a kreditné karty. Hypotéka je v Majetku. Feature „zavazky“ (docs/23). */
 
@@ -68,13 +68,13 @@ export function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: 
           {confirmId === l.id ? (
             <div>
               <p>Naozaj zmazať záväzok „{l.name}“?</p>
-              <button onClick={() => remove(l.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+              <button onClick={() => remove(l.id)} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>
           ) : (
             <div>
               <button onClick={() => { setEditing(l); setErr(null); }} style={btn}>Upraviť</button>{" "}
-              <button onClick={() => setConfirmId(l.id)} style={btn}>Zmazať</button>
+              <button onClick={() => setConfirmId(l.id)} style={btnDanger}>Zmazať</button>
             </div>
           )}
         </div>
@@ -89,7 +89,7 @@ export function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: 
           onCancel={() => setEditing(null)}
         />
       ) : (
-        <button onClick={() => setEditing("new")} style={btn}>Pridať záväzok</button>
+        <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať záväzok</button>
       )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
@@ -175,7 +175,7 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       )}
       <Field label="Koniec (nepovinné)" value={endDate} type="date" onChange={setEndDate} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť záväzok</button>{" "}
+      <button onClick={save} style={btnPrimary}>Uložiť záväzok</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );

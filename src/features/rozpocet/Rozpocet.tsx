@@ -7,7 +7,7 @@ import { monthlyRecurringByCategory } from "../../domain/recurring";
 import { housingFlowCents } from "../../domain/property";
 import { cents, eur, todayIso } from "../../ui/kit/format";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, inp, type NumIn, btnPrimary } from "../../ui/kit/controls";
 
 /** Rozpočet kategórií (D-106): mesačný limit a čo sa za aktuálny mesiac minulo. Prázdny limit = bez rozpočtu. */
 
@@ -81,7 +81,7 @@ export function BudgetSection({ repo, budgets, transactions, recurring, properti
       })}
       <p style={{ color: "var(--muted)" }}>Výdavky bez kategórie tento mesiac: {eur(unassigned)}</p>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť rozpočet</button>
+      <button onClick={save} style={btnPrimary}>Uložiť rozpočet</button>
     </section>
   );
 }

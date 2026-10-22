@@ -9,7 +9,7 @@ import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../../storage/feed";
 import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Pravidelné príjmy (D-102): zoznam, výhľad a rozdiel oproti výdavkom tohto mesiaca. Feature „prijmy“ (docs/23). */
 
@@ -163,13 +163,13 @@ export function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: R
             {confirmId === i.id ? (
               <div>
                 <p>Naozaj zmazať príjem „{i.name}“?</p>
-                <button onClick={() => remove(i.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+                <button onClick={() => remove(i.id)} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
                 <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
               </div>
             ) : (
               <div>
                 <button onClick={() => { setEditing(i); setErr(null); }} style={btn}>Upraviť</button>{" "}
-                <button onClick={() => setConfirmId(i.id)} style={btn}>Zmazať</button>
+                <button onClick={() => setConfirmId(i.id)} style={btnDanger}>Zmazať</button>
               </div>
             )}
           </div>
@@ -185,7 +185,7 @@ export function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: R
           onCancel={() => setEditing(null)}
         />
       ) : (
-        <button onClick={() => setEditing("new")} style={btn}>Pridať pravidelný príjem</button>
+        <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať pravidelný príjem</button>
       )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
@@ -259,7 +259,7 @@ function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Reposito
       <Field label={frequency === "mesacne" ? "Od" : "Dátum"} value={startDate} type="date" onChange={setStartDate} />
       {frequency === "mesacne" && <Field label="Do (nepovinné)" value={endDate} type="date" onChange={setEndDate} hint="bez hodnoty príjem trvá" />}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť príjem</button>{" "}
+      <button onClick={save} style={btnPrimary}>Uložiť príjem</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );

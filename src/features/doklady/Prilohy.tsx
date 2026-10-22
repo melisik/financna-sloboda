@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Repository } from "../../storage/repository";
 import type { Attachment } from "../../storage/types";
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES } from "../../storage/types";
-import { btn } from "../../ui/kit/controls";
+import { btn, btnDanger } from "../../ui/kit/controls";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 
@@ -64,11 +64,11 @@ export function AttachmentsBlock({ repo, transactionId }: { repo: Repository; tr
             <button onClick={() => open(a)} style={btn}>Otvoriť</button>{" "}
             {confirmId === a.id ? (
               <>
-                <button onClick={() => remove(a.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+                <button onClick={() => remove(a.id)} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
                 <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
               </>
             ) : (
-              <button onClick={() => setConfirmId(a.id)} style={btn}>Zmazať prílohu</button>
+              <button onClick={() => setConfirmId(a.id)} style={btnDanger}>Zmazať prílohu</button>
             )}
           </li>
         ))}

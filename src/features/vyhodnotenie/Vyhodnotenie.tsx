@@ -8,7 +8,7 @@ import { propertyChangedSince } from "../../domain/property";
 import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Vyhodnotenie (FR-05, D-116, D-121): ručné vyhodnotenie a kontrola stavu investícií a hotovosti; zmazanie. Feature „vyhodnotenie“ (docs/23). */
 
@@ -120,7 +120,7 @@ export function SnapshotSection({ repo, latest, capital, derivedInvCents, snapsh
           <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
         </div>
       )}
-      <button onClick={save} style={btn}>Uložiť vyhodnotenie</button>
+      <button onClick={save} style={btnPrimary}>Uložiť vyhodnotenie</button>
 
       <h3 style={{ fontSize: "1rem", marginTop: 24 }}>Uložené vyhodnotenia</h3>
       {snapshots.length === 0 && <p>Zatiaľ nie sú uložené vyhodnotenia.</p>}
@@ -133,13 +133,13 @@ export function SnapshotSection({ repo, latest, capital, derivedInvCents, snapsh
           ) : deleteId === s.id ? (
             <div>
               <p>Naozaj zmazať vyhodnotenie z {dateSk(s.date)}? Ak chceš mať kópiu, najprv stiahni zálohu v sekcii Záloha.</p>
-              <button onClick={() => remove(s.id)} style={btn}>Zmazať vyhodnotenie</button>{" "}
+              <button onClick={() => remove(s.id)} style={btnDanger}>Zmazať vyhodnotenie</button>{" "}
               <button onClick={() => setDeleteId(null)} style={btn}>Zrušiť</button>
             </div>
           ) : (
             <>
               <button onClick={() => startEdit(s)} style={btn}>Upraviť</button>{" "}
-              <button onClick={() => setDeleteId(s.id)} style={btn}>Zmazať</button>
+              <button onClick={() => setDeleteId(s.id)} style={btnDanger}>Zmazať</button>
             </>
           )}
         </div>

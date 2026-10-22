@@ -6,7 +6,7 @@ import { encodeAttachment } from "../../storage/attachments";
 import { daysSince } from "../../domain/dates";
 import { backupOverdue } from "../../domain/reminders";
 import { dateSk, todayIso } from "../../ui/kit/format";
-import { btn } from "../../ui/kit/controls";
+import { btn, btnPrimary } from "../../ui/kit/controls";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 
 /** Záloha a obnova (FR-17, FR-18): export, import s náhľadom, pomocné texty. Feature „zaloha“ (docs/23). */
@@ -128,7 +128,7 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
       {backupOverdue(lastExport, todayIso()) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Záloha je staršia ako 7 dní alebo ešte nebola urobená. Odporúčame novú zálohu.</p>
       )}
-      <button onClick={exportBackup} style={btn}>Exportovať zálohu</button>
+      <button onClick={exportBackup} style={btnPrimary}>Exportovať zálohu</button>
       <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne do priečinka Stiahnuté.</p>
       <label style={{ display: "block", margin: "16px 0 8px" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Obnovenie zo zálohy</span>

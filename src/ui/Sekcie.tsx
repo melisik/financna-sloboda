@@ -56,7 +56,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
               <NavodBlock />
             </div>
             {PHASE2_ENABLED && (
-              <aside style={{ flex: "0 0 260px", maxWidth: "100%", background: "var(--surface)", padding: 12, borderRadius: 8 }}>
+              <aside style={{ flex: "1 1 260px", maxWidth: "100%", background: "var(--surface)", padding: 12, borderRadius: 8 }}>
                 <ModulesBlock style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }} />
               </aside>
             )}

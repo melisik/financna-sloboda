@@ -15,7 +15,7 @@ import { recommendedSettings } from "../../domain/recommendations";
 import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, inp, type NumIn, btnDanger, btnPrimary } from "../../ui/kit/controls";
 import { ReceiptCamera } from "../../ui/ReceiptCamera";
 import { readQrFromImage } from "../../ui/receiptScan";
 
@@ -365,7 +365,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         <p style={{ color: "var(--muted)" }}>Zmena neovplyvní oficiálny cieľ, kým neurobíte nové vyhodnotenie.</p>
       )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>{inEdit ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
+      <button onClick={save} style={btnPrimary}>{inEdit ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
       {inEdit && <button onClick={resetForm} style={{ ...btn, marginLeft: 8 }}>Zrušiť úpravu</button>}
 
       <h3 style={{ fontSize: "1rem", marginTop: 24 }}>História</h3>
@@ -416,11 +416,11 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
               {confirmDeleteId === t.id ? (
                 <>
                   <span>Naozaj zmazať?</span>
-                  <button onClick={() => { setConfirmDeleteId(null); void remove(t.id); }} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>
+                  <button onClick={() => { setConfirmDeleteId(null); void remove(t.id); }} style={{ ...btnDanger, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>
                   <button onClick={() => setConfirmDeleteId(null)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Zrušiť</button>
                 </>
               ) : (
-                <button onClick={() => setConfirmDeleteId(t.id)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>
+                <button onClick={() => setConfirmDeleteId(t.id)} style={{ ...btnDanger, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>
               )}
             </span>
           </li>

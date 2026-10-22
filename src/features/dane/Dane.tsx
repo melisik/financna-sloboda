@@ -9,7 +9,7 @@ import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { saveBlobFile } from "../../ui/kit/files";
-import { Field, asNum, btn, inp, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { fillTaxFormPdf } from "./taxFormPdf";
 
 /** Dane (FR-24, FR-25, D-104, D-159, D-161): daňový rámec investícií, evidencia psov a tlačivo 17-dp-md. Feature „dane“ (docs/23). */
@@ -48,13 +48,13 @@ export function DogSection({ repo, dogs, today, onSaved }: { repo: Repository; d
           {confirmId === d.id ? (
             <div>
               <p>Naozaj zmazať psa „{d.name || "bez mena"}“?</p>
-              <button onClick={() => remove(d.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+              <button onClick={() => remove(d.id)} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>
           ) : (
             <div>
               <button onClick={() => { setEditing(d); setErr(null); }} style={btn}>Upraviť</button>{" "}
-              <button onClick={() => setConfirmId(d.id)} style={btn}>Zmazať</button>
+              <button onClick={() => setConfirmId(d.id)} style={btnDanger}>Zmazať</button>
             </div>
           )}
         </div>
@@ -69,7 +69,7 @@ export function DogSection({ repo, dogs, today, onSaved }: { repo: Repository; d
           onCancel={() => setEditing(null)}
         />
       ) : (
-        <button onClick={() => setEditing("new")} style={btn}>Pridať psa</button>
+        <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať psa</button>
       )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
@@ -196,7 +196,7 @@ function DogForm({ repo, initial, today, onDone, onCancel }: { repo: Repository;
       <Field label="Dátum vzniku daňovej povinnosti" value={startDate} type="date" max={today} onChange={setStartDate} />
       <Field label="Dátum zániku daňovej povinnosti (nepovinné)" value={endDate} type="date" onChange={setEndDate} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť psa</button>{" "}
+      <button onClick={save} style={btnPrimary}>Uložiť psa</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );
@@ -207,7 +207,7 @@ export function TaxSection({ positions }: { positions: Position[] }) {
   const lines = taxScenario(positions);
   return (
     <section>
-      <p style={{ color: "var(--muted)" }}>Hlavný výpočet ostáva nominálny (D-077). Daňový scenár je samostatný a zatiaľ nemá čísla po dani: pravidlá ešte nie sú overené (D-104).</p>
+      <p style={{ color: "var(--muted)" }}>Hlavný výpočet ostáva nominálny. Daňový scenár je samostatný a zatiaľ nemá čísla po dani: pravidlá ešte nie sú overené.</p>
       {lines.map((l) => (
         <div key={l.regime} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{l.label}</strong></p>

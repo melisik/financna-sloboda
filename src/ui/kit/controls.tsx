@@ -7,7 +7,16 @@ export const asNum = (x: NumIn) => (x === "" ? NaN : x);
 
 export const inp: CSSProperties = { width: "100%", padding: "8px", fontSize: "1rem", boxSizing: "border-box" };
 
-export const btn: CSSProperties = { padding: "8px 14px", fontSize: "1rem", marginTop: 8 };
+/** Tlačidlo: rámik, text s väčším písmom a výška aspoň 44 px (dotyková plocha). */
+export const btn: CSSProperties = {
+  minHeight: 44, padding: "8px 14px", fontSize: "1rem", fontWeight: 600, marginTop: 8,
+  border: "1px solid var(--border-strong)", borderRadius: 6, background: "var(--surface)", color: "var(--text)",
+  textDecoration: "none", cursor: "pointer",
+};
+/** Hlavná akcia obrazovky (uloženie, pridanie). */
+export const btnPrimary: CSSProperties = { ...btn, background: "var(--primary-bg)", color: "var(--primary-text)", borderColor: "var(--primary-bg)" };
+/** Zmazanie: červený rámik a text. Pred zmazaním sa vždy pýta potvrdenie. */
+export const btnDanger: CSSProperties = { ...btn, color: "var(--danger)", borderColor: "var(--danger)" };
 
 export function Field(props: { label: string; value: NumIn | string; onChange: (v: any) => void; step?: number; type?: string; inputMode?: "numeric" | "text"; max?: string; hint?: string; onReset?: () => void; changed?: boolean }) {
   const textual = props.type === "text" || props.type === "date" || props.type === "password";

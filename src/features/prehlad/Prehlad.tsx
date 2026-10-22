@@ -14,7 +14,7 @@ import { recommendedSettings } from "../../domain/recommendations";
 import { positionsChangedSince } from "../../domain/investments";
 import { propertyChangedSince } from "../../domain/property";
 import { cents, dateSk, eur, monthYear, pctText, todayIso } from "../../ui/kit/format";
-import { btn } from "../../ui/kit/controls";
+import { btn, btnPrimary } from "../../ui/kit/controls";
 import { saveTextFile } from "../../ui/kit/files";
 
 /** Prehľad (domovská obrazovka): mesačný prehľad, týždenný súhrn a pripomienky. Feature „prehlad“ (docs/23). */
@@ -136,7 +136,7 @@ function WeeklySummaryBlock({ transactions, today, thresholdCents }: { transacti
     <div style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 12, marginBottom: 12, background: "var(--surface)" }}>
       <p style={{ margin: 0 }}><strong>Týždenný súhrn</strong></p>
       <p style={{ margin: "4px 0" }}>{dateSk(s.fromIso)} – {dateSk(s.toIso)}: výdavky spolu <strong>{eur(s.totalCents)}</strong>, zápisov {s.count}.</p>
-      <button onClick={save} style={btn}>Uložiť týždenný súhrn</button>
+      <button onClick={save} style={btnPrimary}>Uložiť týždenný súhrn</button>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </div>
   );

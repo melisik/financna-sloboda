@@ -6,7 +6,7 @@ import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurr
 import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Pravidelné výdavky (D-124): zoznam, súčet za mesiac a podľa kategórie, ukončenie. Iba zobrazenie výpočtov. Feature „pravidelne“ (docs/23). */
 
@@ -72,7 +72,7 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
           {confirmId === e.id ? (
             <div>
               <p>Naozaj zmazať pravidelný výdavok „{e.name}“?</p>
-              <button onClick={() => remove(e.id)} style={btn}>Zmazať</button>{" "}
+              <button onClick={() => remove(e.id)} style={btnDanger}>Zmazať</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>
           ) : (
@@ -81,7 +81,7 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
               {isRecurringActive(e, today) && (e.endDate === undefined || e.endDate > today) && (
                 <button onClick={() => endNow(e)} style={btn}>Ukončiť od zajtra</button>
               )}{" "}
-              <button onClick={() => setConfirmId(e.id)} style={btn}>Zmazať</button>
+              <button onClick={() => setConfirmId(e.id)} style={btnDanger}>Zmazať</button>
             </>
           )}
         </div>
@@ -95,7 +95,7 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
           onCancel={() => setEditing(null)}
         />
       ) : (
-        <button onClick={() => setEditing("new")} style={btn}>Pridať pravidelný výdavok</button>
+        <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať pravidelný výdavok</button>
       )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
@@ -164,7 +164,7 @@ function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       <Field label="Od" value={startDate} type="date" onChange={setStartDate} />
       <Field label="Do (nepovinné)" value={endDate} type="date" onChange={setEndDate} hint="bez hodnoty trvá" />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť výdavok</button>{" "}
+      <button onClick={save} style={btnPrimary}>Uložiť výdavok</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );

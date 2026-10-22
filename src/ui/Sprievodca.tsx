@@ -6,7 +6,7 @@ import { scenarioDateText } from "../domain/scenario";
 import { cents, monthYear, todayIso } from "./kit/format";
 import { uid } from "./kit/ids";
 import { STORAGE_ERROR } from "./kit/messages";
-import { Field, asNum, btn, type NumIn } from "./kit/controls";
+import { Field, asNum, btn, type NumIn, btnPrimary } from "./kit/controls";
 import { PHASE2_ENABLED } from "../app/features";
 import { writeModuleChoice } from "../app/modules";
 import { exportBackupFile } from "../features/zaloha/BackupSection";
@@ -157,7 +157,7 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
           <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} hint="súčet účtov a cenných papierov, napr. stav v aplikácii banky alebo brokera; 0, ak nemáš" />
           <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} hint="zostatok na bežnom účte a v peňaženke; 0, ak nemáš" />
           {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-          <button onClick={saveAll} disabled={busy} style={btn}>Uložiť a zobraziť dátum</button>
+          <button onClick={saveAll} disabled={busy} style={btnPrimary}>Uložiť a zobraziť dátum</button>
           {nav}
         </>
       )}

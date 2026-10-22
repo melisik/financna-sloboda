@@ -4,7 +4,7 @@ import type { Settings } from "../../storage/types";
 import { recommendedSettings } from "../../domain/recommendations";
 import { cents, eur } from "../../ui/kit/format";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, differs, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, differs, type NumIn, btnPrimary } from "../../ui/kit/controls";
 
 /** Nastavenia výpočtu (FR-13, D-049, D-118): cieľové výdavky, miera výberu, výnos, rezerva a prah. Feature „nastavenia“ (docs/23). */
 
@@ -95,7 +95,7 @@ export function SettingsSection({ repo, settings, derived, onSaved }: { repo: Re
       <Field label="Mesačné sporenie do hotovosti (€), prázdne = odvodené" value={v.savingCash} onChange={(x) => setV({ ...v, savingCash: x })}
         hint={`prázdne = počíta sa zo zapísaných transakcií: ${eur(derived.cash)} mesačne`} changed={differs(v.savingCash, null)} onReset={() => setV({ ...v, savingCash: "" })} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť nastavenia</button>
+      <button onClick={save} style={btnPrimary}>Uložiť nastavenia</button>
     </section>
   );
 }

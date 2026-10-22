@@ -7,7 +7,7 @@ import { TAX_CATALOG } from "../../domain/tax";
 import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Investície (D-101, D-105): ručné položky a ich ocenenie; súčet sa použije vo Vyhodnotení. Feature „investicie“ (docs/23). */
 
@@ -81,13 +81,13 @@ export function InvestmentSection({ repo, positions, today, onSaved }: { repo: R
           {confirmId === p.id ? (
             <div>
               <p>Naozaj zmazať položku „{p.name}“?</p>
-              <button onClick={() => remove(p.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+              <button onClick={() => remove(p.id)} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>
           ) : (
             <div>
               <button onClick={() => { setEditing(p); setErr(null); }} style={btn}>Upraviť</button>{" "}
-              <button onClick={() => setConfirmId(p.id)} style={btn}>Zmazať</button>
+              <button onClick={() => setConfirmId(p.id)} style={btnDanger}>Zmazať</button>
             </div>
           )}
         </div>
@@ -102,7 +102,7 @@ export function InvestmentSection({ repo, positions, today, onSaved }: { repo: R
           onCancel={() => setEditing(null)}
         />
       ) : (
-        <button onClick={() => setEditing("new")} style={btn}>Pridať položku</button>
+        <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať položku</button>
       )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
@@ -196,7 +196,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
         </select>
       </label>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť položku</button>{" "}
+      <button onClick={save} style={btnPrimary}>Uložiť položku</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );

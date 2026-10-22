@@ -8,7 +8,7 @@ import { cookRecipe } from "../../domain/recipe";
 import { cents, dateSk, todayIso } from "../../ui/kit/format";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { uid } from "../../ui/kit/ids";
-import { Field, asNum, btn, inp, type NumIn } from "../../ui/kit/controls";
+import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Sklad potravín a recepty (D-127, D-141, D-155): položky, dátumy spotreby, uvarenie a skener obalu. Feature „sklad“ (docs/23). */
 
@@ -73,13 +73,13 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
               {usedIn(i.id).length > 0 && (
                 <p style={{ fontSize: "0.9rem" }}>Používa ju recept: {usedIn(i.id).join(", ")}. Po zmazaní bude recept hlásiť chýbajúcu surovinu.</p>
               )}
-              <button onClick={() => remove(i.id)} style={btn}>Zmazať</button>{" "}
+              <button onClick={() => remove(i.id)} style={btnDanger}>Zmazať</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>
           ) : (
             <>
               <button onClick={() => setEditing(i)} style={btn}>Upraviť</button>{" "}
-              <button onClick={() => setConfirmId(i.id)} style={btn}>Zmazať</button>
+              <button onClick={() => setConfirmId(i.id)} style={btnDanger}>Zmazať</button>
             </>
           )}
         </div>
@@ -92,7 +92,7 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
           onCancel={() => setEditing(null)}
         />
       ) : (
-        <button onClick={() => setEditing("new")} style={btn}>Pridať položku skladu</button>
+        <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať položku skladu</button>
       )}
       <RecipesBlock repo={repo} recipes={recipes} stock={items} onSaved={onSaved} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
@@ -173,14 +173,14 @@ export function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Reposito
           {confirmId === r.id ? (
             <div>
               <p>Naozaj zmazať recept „{r.name}“?</p>
-              <button onClick={() => remove(r.id)} style={btn}>Zmazať</button>{" "}
+              <button onClick={() => remove(r.id)} style={btnDanger}>Zmazať</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
             </div>
           ) : (
             <>
               <button onClick={() => askCook(r)} style={btn}>Uvariť</button>{" "}
               <button onClick={() => setEditing(r)} style={btn}>Upraviť</button>{" "}
-              <button onClick={() => setConfirmId(r.id)} style={btn}>Zmazať</button>
+              <button onClick={() => setConfirmId(r.id)} style={btnDanger}>Zmazať</button>
             </>
           )}
         </div>
@@ -208,7 +208,7 @@ export function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Reposito
           onCancel={() => setEditing(null)}
         />
       ) : (
-        <button onClick={() => setEditing("new")} style={btn}>Pridať recept</button>
+        <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať recept</button>
       )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </div>
@@ -282,7 +282,7 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
       <button onClick={() => setRows((prev) => [...prev, { stockItemId: "", quantity: "" }])} style={btn} disabled={stock.length === 0}>Pridať surovinu</button>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <div>
-        <button onClick={save} style={btn}>Uložiť recept</button>{" "}
+        <button onClick={save} style={btnPrimary}>Uložiť recept</button>{" "}
         <button onClick={onCancel} style={btn}>Zrušiť</button>
       </div>
     </div>
@@ -370,7 +370,7 @@ function StockForm({ repo, initial, onDone, onCancel }: { repo: Repository; init
       </label>
       <Field label="Dátum spotreby (nepovinné, bez dátumu nechajte prázdne)" value={expiry} type="date" onChange={setExpiry} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť položku</button>{" "}
+      <button onClick={save} style={btnPrimary}>Uložiť položku</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );
