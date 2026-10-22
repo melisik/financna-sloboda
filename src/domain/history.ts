@@ -1,4 +1,4 @@
-import type { BudgetCategory, Transaction, TransactionType } from "../storage/types";
+import type { BudgetCategory, Transaction, TransactionType } from "./model/entities";
 
 export interface HistoryFilter {
   type?: TransactionType; // undefined = všetky typy

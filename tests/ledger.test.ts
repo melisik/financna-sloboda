@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capitalWithFlags, currentCapital, reserveBalance } from "../src/app/ledger";
+import { capitalWithFlags, currentCapital, reserveBalance } from "../src/domain/ledger";
 import type { Snapshot, Transaction } from "../src/storage/types";
 
 const eur = (x: number) => x * 100;

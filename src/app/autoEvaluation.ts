@@ -1,6 +1,6 @@
 import { monthlyRate } from "../domain/goal";
 import type { Snapshot, Transaction } from "../storage/types";
-import { capitalWithFlags } from "./ledger";
+import { capitalWithFlags } from "../domain/ledger";
 
 /** Posledný deň predchádzajúceho mesiaca k dnešku (YYYY-MM-DD). Napr. 2026-11-02 → 2026-10-31. */
 export function lastCompletedMonthEnd(today: string): string {

@@ -1,5 +1,5 @@
-import { isAfterEvaluation, type Capital } from "../domain/capital";
-import type { Snapshot, Transaction } from "../storage/types";
+import { isAfterEvaluation, type Capital } from "./capital";
+import type { Snapshot, Transaction } from "./model/entities";
 
 /**
  * Kapitál = posledné vyhodnotenie + transakcie po jeho zadaní (FR-04, FR-05, D-024, D-121).
@@ -20,7 +20,7 @@ export function currentCapital(snapshot: Snapshot | null, transactions: Transact
  * Ako currentCapital, ale hlási, či sa niektorá zložka dostala pod 0 (R2).
  * Záporný stav znamená nekonzistentné zadanie (napr. výdavok nad stav); UI ho musí ukázať, nie skryť.
  */
-export { isAfterEvaluation } from "../domain/capital";
+export { isAfterEvaluation } from "./capital";
 
 export type Shortfall = { inv: number; cash: number };
 

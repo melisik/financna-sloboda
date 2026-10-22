@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { expenseTotalsByCategory, filterHistory, totalsByType } from "../src/app/history";
+import { expenseTotalsByCategory, filterHistory, totalsByType } from "../src/domain/history";
 import { recommendedReserveCents, recommendedSettings } from "../src/domain/recommendations";
 import type { Transaction } from "../src/storage/types";
 

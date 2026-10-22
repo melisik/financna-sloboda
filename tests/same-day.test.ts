@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capitalWithFlags, isAfterEvaluation } from "../src/app/ledger";
+import { capitalWithFlags, isAfterEvaluation } from "../src/domain/ledger";
 import type { Snapshot, Transaction } from "../src/storage/types";
 
 // Pravidlo D-121: transakcia v deň vyhodnotenia sa počíta, ak bola zadaná po ňom. Syntetické hodnoty.
