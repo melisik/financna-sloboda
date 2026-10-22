@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { AppData, Transaction } from "../../storage/types";
 import type { Ctx } from "../../domain/context";
 import { scenarioDateText } from "../../domain/scenario";
-import { backupOverdue, reviewOverdue, settingsCheckOverdue } from "../../domain/reminders";
+import { backupOverdue, monthEndApproaching, reviewOverdue, settingsCheckOverdue } from "../../domain/reminders";
 import { monthSummary } from "../../domain/monthSummary";
 import { monthlyIncomeCents } from "../../domain/income";
 import { endingSoon } from "../../domain/recurring";
@@ -35,6 +35,11 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       {ctx.latest && propertyChangedSince(data.properties, ctx.latest.createdAt) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
           Majetok sa zmenil od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.
+        </p>
+      )}
+      {!reviewOverdue(ctx.latest?.date ?? null, today) && monthEndApproaching(ctx.latest?.date ?? null, today) && (
+        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+          Koniec mesiaca sa blíži. Vyhodnotenie za tento mesiac urob do konca mesiaca.
         </p>
       )}
       {reviewOverdue(ctx.latest?.date ?? null, today) && (

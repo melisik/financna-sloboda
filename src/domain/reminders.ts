@@ -15,6 +15,18 @@ export function reviewOverdue(lastReviewIso: string | null, todayIso: string): b
   return idx(todayIso) - idx(lastReviewIso) >= 2;
 }
 
+/** Okno pred koncom mesiaca, v ktorom sa upozorní na chýbajúce vyhodnotenie tohto mesiaca (D-107). Predpoklad: posledné 3 dni (D-227). */
+export const MONTH_END_WINDOW_DAYS = 3;
+
+/** Blíži sa koniec mesiaca a vyhodnotenie za tento mesiac ešte nie je (D-107, D-227). Prvé vyhodnotenie rieši výzva (L6). */
+export function monthEndApproaching(lastReviewIso: string | null, todayIso: string, windowDays = MONTH_END_WINDOW_DAYS): boolean {
+  if (!lastReviewIso) return false;
+  if (lastReviewIso.slice(0, 7) === todayIso.slice(0, 7)) return false;
+  const [y, m, d] = todayIso.split("-").map(Number);
+  const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return d > lastDay - windowDays;
+}
+
 /** Záloha chýba viac ako 7 dní alebo nikdy (FR-19, D-035). */
 export function backupOverdue(lastExportIso: string | null, todayIso: string, days = 7): boolean {
   if (!lastExportIso) return true;
