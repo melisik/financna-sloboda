@@ -21,6 +21,7 @@ import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, s
 import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { futureOutlook } from "../domain/outlook";
+import { weeklySummary } from "../domain/weekly";
 import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
@@ -811,6 +812,7 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
         </p>
       )}
       <MonthSpendingBlock data={data} today={today} thresholdCents={ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents} />
+      <WeeklySummaryBlock transactions={data.transactions} today={today} thresholdCents={ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents} />
       {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v <a href="#nastavenia">Nastaveniach</a>; ostatné hodnoty sú predvolené.</p>}
       {(ctx.negative.cash || ctx.negative.inv) && (
         <p style={{ background: "var(--err-bg)", padding: 8, borderRadius: 6 }}>
@@ -861,6 +863,62 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
 }
 
 /** Výdavky tohto mesiaca: plnenie mesačného plánu a rozpis na nevyhnutné a nie nevyhnutné (D-131). */
+/** Uloženie textového súboru: zdieľací list na iPhone, inak stiahnutie. Súhrn sa nikam neodosiela. */
+async function saveTextFile(name: string, text: string): Promise<void> {
+  const file = new File([text], name, { type: "text/plain" });
+  if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: name });
+      return;
+    } catch (err) {
+      if ((err as { name?: string })?.name === "AbortError") return;
+    }
+  }
+  const url = URL.createObjectURL(file);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Týždenný súhrn výdavkov (N-10): posledných 7 dní, uložiť ako textový súbor. */
+function WeeklySummaryBlock({ transactions, today, thresholdCents }: { transactions: Transaction[]; today: string; thresholdCents: number }) {
+  const [err, setErr] = useState<string | null>(null);
+  const s = weeklySummary(transactions, today, thresholdCents);
+  const save = async () => {
+    const lines = [
+      "Týždenný súhrn výdavkov",
+      `Obdobie: ${dateSk(s.fromIso)} – ${dateSk(s.toIso)}`,
+      `Výdavky spolu: ${eur(s.totalCents)}`,
+      `Počet zápisov: ${s.count}`,
+      `Nad prahom: ${s.overThresholdCount}`,
+      "",
+      "Podľa kategórií:",
+      ...(s.byCategory.length === 0 ? ["(žiadne výdavky)"] : s.byCategory.map((c) => `- ${c.category}: ${eur(c.cents)}`)),
+      "",
+      "Súhrn je len prehľad zadaných údajov, nie finančné poradenstvo.",
+      "Obsahuje finančné údaje: neukladaj ho do verejných priečinkov.",
+    ];
+    try {
+      await saveTextFile(`financna-sloboda-tyzden-${today}.txt`, lines.join("\n"));
+      setErr(null);
+    } catch {
+      setErr("Súhrn sa nepodarilo uložiť. Skús to znova.");
+    }
+  };
+  return (
+    <div style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 12, marginBottom: 12, background: "var(--surface)" }}>
+      <p style={{ margin: 0 }}><strong>Týždenný súhrn</strong></p>
+      <p style={{ margin: "4px 0" }}>{dateSk(s.fromIso)} – {dateSk(s.toIso)}: výdavky spolu <strong>{eur(s.totalCents)}</strong>, zápisov {s.count}.</p>
+      <button onClick={save} style={btn}>Uložiť týždenný súhrn</button>
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
+    </div>
+  );
+}
+
 function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; today: string; thresholdCents: number }) {
   const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents, data.properties, data.liabilities);
   const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
@@ -1159,7 +1217,31 @@ function ExtraPaymentUndo({ repo, property, onDone }: { repo: Repository; proper
   const last = list[list.length - 1];
   if (!last) return null;
   if (last.balanceBeforeCents === undefined || last.monthlyPaymentBeforeCents === undefined) {
-    return <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Poslednú splátku nie je možné vrátiť automaticky. Zostatok a splátku uprav v Upraviť.</p>;
+    // Záznam z obdobia pred opravou: nevieme, aké hodnoty boli pred ním, preto sa len odstráni z histórie.
+    const removeRecord = async () => {
+      try {
+        await repo.saveProperty({ ...property, extraPayments: list.slice(0, -1), updatedAt: new Date().toISOString() });
+        setConfirming(false);
+        onDone();
+      } catch {
+        setErr(STORAGE_ERROR);
+      }
+    };
+    return (
+      <div style={{ margin: "4px 0" }}>
+        <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>Poslednú splátku nie je možné vrátiť automaticky. Zostatok a splátku uprav v Upraviť.</p>
+        {confirming ? (
+          <div>
+            <p>Naozaj zmazať záznam z {dateSk(last.date)} ({eur(last.amountCents)})? Zostatok a splátka sa nezmenia.</p>
+            <button onClick={removeRecord} style={btn}>Potvrdiť zmazanie záznamu</button>{" "}
+            <button onClick={() => setConfirming(false)} style={btn}>Zrušiť</button>
+          </div>
+        ) : (
+          <button onClick={() => setConfirming(true)} style={btn}>Zmazať záznam z histórie</button>
+        )}
+        {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
+      </div>
+    );
   }
   const undo = async () => {
     try {
