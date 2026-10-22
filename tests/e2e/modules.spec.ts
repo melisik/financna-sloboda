@@ -42,4 +42,16 @@ test.describe("moduly (D-162)", () => {
     await expect(page.locator("section#majetok").getByRole("button", { name: "Pridať psa" })).toHaveCount(0);
     await expect(page.locator("section#majetok").getByRole("button", { name: "Vyplniť tlačivo (PDF)" })).toHaveCount(0);
   });
+
+  test("moduly sú v Prehľade vpravo na širokej obrazovke a pod obsahom na telefóne", async ({ page }) => {
+    await openApp(page);
+    const moduly = page.getByRole("region", { name: "Moduly" });
+    await expect(moduly).toBeVisible();
+    const navod = await page.locator("section#prehlad details#navod").boundingBox();
+    const box = await moduly.boundingBox();
+    expect(navod && box).toBeTruthy();
+    const width = page.viewportSize()?.width ?? 0;
+    if (width >= 700) expect(box!.x).toBeGreaterThan(navod!.x + navod!.width - 1);
+    else expect(box!.y).toBeGreaterThan(navod!.y);
+  });
 });

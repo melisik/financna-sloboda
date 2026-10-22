@@ -179,12 +179,12 @@ function ModuleCheckboxes({ selected, onChange }: { selected: string[]; onChange
 }
 
 /** Nastavenia → Moduly. Vypnutie skryje sekcie; údaje ostanú a výpočty sa nemenia (D-162). */
-function ModulesBlock() {
+function ModulesBlock({ style }: { style?: React.CSSProperties }) {
   const { choice, setChoice } = useModules();
   if (!PHASE2_ENABLED) return null;
   const selected = choice ?? OPTIONAL_MODULES.map((m) => m.id);
   return (
-    <section aria-label="Moduly" style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+    <section aria-label="Moduly" style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12, ...style }}>
       <h3 style={{ fontSize: "1.05rem" }}>Moduly</h3>
       <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
         Vypnutá sekcia sa skryje. Údaje v nej ostanú uložené a výpočty v appke sa nemenia.
@@ -334,25 +334,34 @@ function AppContent() {
     <Shell nav={section}>
       {section === "prehlad" && (
         <Section id="prehlad" title="Prehľad">
-          <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
-          <details id="navod" style={{ marginTop: 16, background: "var(--surface)", padding: 12, borderRadius: 8 }}>
-            <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
-            <ol style={{ paddingLeft: 20 }}>
-              <li><strong>Prvé nastavenie:</strong> pri prvom spustení zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
-              <li><strong>Vyhodnotenie:</strong> mesačné vyhodnotenie vzniká automaticky. Ručne ho zadáš len na opravu. Dátum cieľa sa mení len po vyhodnotení.</li>
-              <li><strong>Rozpočet:</strong> limity na kategórie sú mesačný plán. Prehľad ukáže plnenie a rozpis na nevyhnutné a nie nevyhnutné výdavky.</li>
-              <li><strong>Transakcie:</strong> zapisuj sporenie, investície a výdavky. Výdavok nad prah sa zvýrazní.</li>
-              <li><strong>Záloha:</strong> pravidelne exportuj zálohu. Dáta sú len v tomto zariadení; neukladaj ju do verejných priečinkov.</li>
-              <li><strong>Obnova:</strong> import nahradí všetky dáta a vyžaduje potvrdenie.</li>
-            </ol>
-            <p>
-              <strong>Ako testovať:</strong> stiahnite testovaciu zálohu nižšie a importujte ju v sekcii Záloha. Skúste pridať výdavok s kategóriou, zadať vyhodnotenie, exportovať zálohu a znova ju importovať. Pripomienky pošlite autorovi spôsobom, ktorý ste dostali.
-            </p>
-            <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
-              Výpočty sú odhady podľa zadaných predpokladov, nie finančné poradenstvo.
-              Testovacie dáta (syntetické): <a href="./testovacia-zaloha.json" download>stiahnuť testovaciu zálohu</a>, potom ju importuj v sekcii Záloha.
-            </p>
-          </details>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "flex-start" }}>
+            <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+              <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
+              <details id="navod" style={{ marginTop: 16, background: "var(--surface)", padding: 12, borderRadius: 8 }}>
+                <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
+                <ol style={{ paddingLeft: 20 }}>
+                  <li><strong>Prvé nastavenie:</strong> pri prvom spustení zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
+                  <li><strong>Vyhodnotenie:</strong> mesačné vyhodnotenie vzniká automaticky. Ručne ho zadáš len na opravu. Dátum cieľa sa mení len po vyhodnotení.</li>
+                  <li><strong>Rozpočet:</strong> limity na kategórie sú mesačný plán. Prehľad ukáže plnenie a rozpis na nevyhnutné a nie nevyhnutné výdavky.</li>
+                  <li><strong>Transakcie:</strong> zapisuj sporenie, investície a výdavky. Výdavok nad prah sa zvýrazní.</li>
+                  <li><strong>Záloha:</strong> pravidelne exportuj zálohu. Dáta sú len v tomto zariadení; neukladaj ju do verejných priečinkov.</li>
+                  <li><strong>Obnova:</strong> import nahradí všetky dáta a vyžaduje potvrdenie.</li>
+                </ol>
+                <p>
+                  <strong>Ako testovať:</strong> stiahnite testovaciu zálohu nižšie a importujte ju v sekcii Záloha. Skúste pridať výdavok s kategóriou, zadať vyhodnotenie, exportovať zálohu a znova ju importovať. Pripomienky pošlite autorovi spôsobom, ktorý ste dostali.
+                </p>
+                <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
+                  Výpočty sú odhady podľa zadaných predpokladov, nie finančné poradenstvo.
+                  Testovacie dáta (syntetické): <a href="./testovacia-zaloha.json" download>stiahnuť testovaciu zálohu</a>, potom ju importuj v sekcii Záloha.
+                </p>
+              </details>
+            </div>
+            {PHASE2_ENABLED && (
+              <aside style={{ flex: "0 0 260px", maxWidth: "100%", background: "var(--surface)", padding: 12, borderRadius: 8 }}>
+                <ModulesBlock style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }} />
+              </aside>
+            )}
+          </div>
         </Section>
       )}
       {section === "nova-transakcia" && (
