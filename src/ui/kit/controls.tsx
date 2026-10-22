@@ -48,3 +48,10 @@ export function Section({ id, title, children }: { id: string; title: string; ch
     </section>
   );
 }
+
+/** Hodnota poľa sa líši od východiskovej (FR-13): tlačidlo „vrátiť“ sa ukáže len vtedy. */
+export function differs(value: NumIn | string, defaultValue: number | null): boolean {
+  if (value === "" || Number.isNaN(value as number)) return false; // nezadané: výzva je v nápovede, nie tlačidlo
+  if (defaultValue === null) return true; // prepísané pole bez východiskovej hodnoty
+  return Math.abs(Number(value) - defaultValue) > 1e-9;
+}
