@@ -1,5 +1,5 @@
 import { Nav, type SectionId } from "./Navigacia";
-import { FeedbackBlock } from "../features/spatna-vazba/Feedback";
+import { FeedbackBlock } from "../features/spatna-vazba/SpatnaVazba";
 import { isIosOtherBrowser } from "../app/ios";
 
 /** Rám stránky: nadpis, skúšobné upozornenie, horný panel a spätná väzba. iOS brána (D-053, D-168) je tu, lebo ju používa rám. */
