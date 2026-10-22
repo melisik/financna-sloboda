@@ -6,7 +6,7 @@ Hotové v tejto vetve:
 - Krok 1: entity a číselníky sú v `src/domain/model/entities.ts`; `storage/types.ts` ich znovu exportuje.
 - Krok 2: doména (výpočty) importuje len vlastné súbory a nikdy úložisko, aplikáciu ani UI (`tests/architecture.test.ts`).
 - Krok 3: spoločné prvky sú v `src/ui/kit/` (`format.ts`, `controls.tsx`, D-173); kit nesmie importovať doménu, úložisko ani sekcie (`tests/architecture.test.ts`).
-- Krok 4: features hotové: záloha (`src/features/zaloha/`, D-174), zámok (`src/features/zamok/`, D-175), sklad (`src/features/sklad/`, D-176). Pravidlo: feature neimportuje `src/app`, `App` ani iné features.
+- Krok 4: features hotové: záloha (`src/features/zaloha/`, D-174), zámok (`src/features/zamok/`, D-175), sklad (`src/features/sklad/`, D-176), dane (`src/features/dane/`, D-177). Pravidlo: feature neimportuje `src/app`, `App` ani iné features.
 
 Zmena oproti návrhu: výpočty ostávajú v `src/domain/` (nie `core/finance/`), aby sa nepremenovalo 31 súborov naraz (D-172). Kroky 4–5 (sekcie do features/, samostatné balíky) čakajú na samostatné schválenie.
 

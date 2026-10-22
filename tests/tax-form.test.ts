@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { PDFDocument, PDFTextField } from "pdf-lib";
 import { buildTaxFormFields } from "../src/domain/taxForm";
-import { fillTaxFormPdf } from "../src/app/taxFormPdf";
+import { fillTaxFormPdf } from "../src/features/dane/taxFormPdf";
 import type { Dog, Property } from "../src/storage/types";
 
 // Vyplnenie tlačiva 17-dp-md (D-161). Syntetické hodnoty; tlačivo je z public/tlaciva/.

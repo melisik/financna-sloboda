@@ -1,4 +1,4 @@
-import type { TaxFormFields } from "../domain/taxForm";
+import type { TaxFormFields } from "../../domain/taxForm";
 
 /**
  * Vyplnenie editovateľného tlačiva 17-dp-md (D-161). Knižnica sa načíta až pri použití.
