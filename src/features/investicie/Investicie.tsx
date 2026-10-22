@@ -51,7 +51,7 @@ export function InvestmentSection({ repo, positions, today, onSaved }: { repo: R
           Staré ocenenie (viac ako 3 mesiace): {staleValuationNames(positions, today).join(", ")}. Over cenu a aktualizuj položku.
         </p>
       )}
-      {positions.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna položka. Vo Vyhodnotení sa suma zadáva ručne.</p>}
+      {positions.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna položka. Vo <a href="#vyhodnotenie">Vyhodnotení</a> sa suma zadáva ručne.</p>}
       {positions.length > 0 && (
         <p style={{ fontSize: "1.05rem" }}>Spolu: <strong>{eur(investmentsTotalCents(positions))}</strong></p>
       )}

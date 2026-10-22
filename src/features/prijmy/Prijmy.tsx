@@ -119,7 +119,7 @@ export function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: R
   return (
     <section>
       <p style={{ color: "var(--muted)" }}>
-        Tu len vidíš, koľko pravidelne prichádza. Sporenie sa mení až podľa zostatku na konci mesiaca, pri vyhodnotení. Nájom z nehnuteľnosti eviduj v Majetku, aby sa nerátal dvakrát.
+        Tu len vidíš, koľko pravidelne prichádza. Sporenie sa mení až podľa zostatku na konci mesiaca, pri vyhodnotení. Nájom z nehnuteľnosti eviduj v <a href="#majetok">Majetku</a>, aby sa nerátal dvakrát.
       </p>
       <div style={{ border: "1px dashed var(--border-dashed)", padding: 12, borderRadius: 6, marginBottom: 12 }}>
         <label style={{ display: "block" }}>

@@ -38,7 +38,7 @@ export function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: 
 
   return (
     <section>
-      <p style={{ color: "var(--muted)" }}>Hypotéku evidujte v sekcii Majetok. Tu sú ostatné dlhy: úver, kreditná karta, leasing.</p>
+      <p style={{ color: "var(--muted)" }}>Hypotéku evidujte v sekcii <a href="#majetok">Majetok</a>. Tu sú ostatné dlhy: úver, kreditná karta, leasing.</p>
       {liabilities.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny záväzok.</p>}
       {liabilities.length > 0 && (
         <p style={{ fontSize: "1.05rem" }}>

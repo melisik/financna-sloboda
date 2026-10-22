@@ -44,7 +44,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       )}
       {data.settings !== null && settingsCheckOverdue(data.settings.checkedAt, today) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
-          Nastavenia sa ešte neoverili alebo sú staršie ako rok. Skontroluj infláciu, rezervu a mieru výberu v sekcii Nastavenia.
+          Nastavenia sa ešte neoverili alebo sú staršie ako rok. Skontroluj infláciu, rezervu a mieru výberu v sekcii <a href="#nastavenia">Nastavenia</a>.
         </p>
       )}
       {(data.snapshots.length > 0 || data.transactions.length > 0 || data.settings !== null) && backupOverdue(lastExport, today) && (
@@ -71,7 +71,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
           {ctx.latest.auto && (
             <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
               Vyhodnotenie vzniklo automaticky z transakcií.
-              {data.investments.length === 0 && " Investície sú odhad z výnosu r, kým ich neupravíš v sekcii Investície."}
+              {data.investments.length === 0 && <> Investície sú odhad z výnosu r, kým ich neupravíš v sekcii <a href="#investicie">Investície</a>.</>}
             </p>
           )}
           {ctx.longHorizon && (

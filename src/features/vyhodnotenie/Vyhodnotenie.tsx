@@ -102,7 +102,7 @@ export function SnapshotSection({ repo, latest, capital, derivedInvCents, snapsh
       {derivedInvCents === null ? (
         <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} />
       ) : (
-        <p>Hodnota investícií: <strong>{eur(derivedInvCents)}</strong> (súčet položiek v sekcii Investície)</p>
+        <p>Hodnota investícií: <strong>{eur(derivedInvCents)}</strong> (súčet položiek v sekcii <a href="#investicie">Investície</a>)</p>
       )}
       <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
@@ -132,7 +132,7 @@ export function SnapshotSection({ repo, latest, capital, derivedInvCents, snapsh
             <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Automatické vyhodnotenie sa vytvorí znova z ručných údajov.</p>
           ) : deleteId === s.id ? (
             <div>
-              <p>Naozaj zmazať vyhodnotenie z {dateSk(s.date)}? Ak chceš mať kópiu, najprv stiahni zálohu v sekcii Záloha.</p>
+              <p>Naozaj zmazať vyhodnotenie z {dateSk(s.date)}? Ak chceš mať kópiu, najprv stiahni zálohu v sekcii <a href="#zaloha">Záloha</a>.</p>
               <button onClick={() => remove(s.id)} style={btnDanger}>Zmazať vyhodnotenie</button>{" "}
               <button onClick={() => setDeleteId(null)} style={btn}>Zrušiť</button>
             </div>
