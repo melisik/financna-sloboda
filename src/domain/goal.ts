@@ -11,7 +11,8 @@ export function targetAmountCents(annualExpensesCents: number, withdrawalRate: n
 
 /** Mesačná sadzba z ročnej reálnej: i = (1 + r)^(1/12) − 1 (FR-02). */
 export function monthlyRate(annualRate: number): number {
-  return Math.pow(1 + annualRate, 1 / 12) - 1;
+  // expm1/log1p zachovajú presnosť pri malých sadzbách (invariant monotónnosti v r, docs/07 oddiel 4).
+  return Math.expm1(Math.log1p(annualRate) / 12);
 }
 
 /**
@@ -31,10 +32,9 @@ export function monthsToTarget(
   if (capitalCents >= targetCents) return 0;
   const i = monthlyRate(annualRate);
   if (capitalCents * i + monthlySavingCents === 0) return null;
-  if (annualRate === 0) return monthlySavingCents > 0 ? (targetCents - capitalCents) / monthlySavingCents : null;
-  const n =
-    Math.log((targetCents * i + monthlySavingCents) / (capitalCents * i + monthlySavingCents)) /
-    Math.log(1 + i);
+  if (i === 0) return monthlySavingCents > 0 ? (targetCents - capitalCents) / monthlySavingCents : null;
+  // (T·i + m) / (K·i + m) = 1 + (T − K)·i / (K·i + m): tvar log1p je presný aj pre veľmi malé i.
+  const n = Math.log1p(((targetCents - capitalCents) * i) / (capitalCents * i + monthlySavingCents)) / Math.log1p(i);
   // Záporné sporenie môže cieľ urobiť nedosiahnuteľným: log nekladného pomeru dá NaN alebo záporný čas (nález 5).
   return n >= 0 ? n : null;
 }

@@ -16,7 +16,7 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 
 ## 2. Úrovne testov
 1. **Jednotkové (Vitest)** – čisté funkcie v `domain/` (FR-01 až FR-05, FR-07, FR-08). Cieľ: všetky vetvy výpočtov pokryté [predpoklad].
-2. **Property-based (fast-check)** – invarianty z oddielu 4. **Stav (2026-10-14): nie je zavedené** (fast-check nie je v závislostiach); invarianty sú zatiaľ len špecifikácia.
+2. **Property-based (fast-check)** – invarianty z oddielu 4. **Stav (2026-10-22): zavedené** (D-222, `tests/invariants.property.test.ts`, fast-check 4.10.2).
 3. **Porovnávacie** – uzavretý vzorec vs. mesačná simulácia (oddiel 3; simulácia zatiaľ nie je spustená, doplní sa v M1).
 4. **Úložisko (Vitest + fake-indexeddb)** – CRUD, migrácie, import/export, atomicita.
 5. **Komponentové (React Testing Library)** – **stav (2026-10-14): nie je zavedené**; formuláre a texty sa zatiaľ overujú len cez Playwright E2E.
@@ -95,7 +95,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 **Tolerancia:** porovnávame celé mesiace po `ceil(n − 1e-6)`; interné hodnoty n sa porovnávajú s presnosťou 1e-6.
 
 ## 4. Invarianty (property-based testy)
-**Stav (2026-10-14): nie sú implementované** (pozri oddiel 2, bod 2). Nižšie je špecifikácia.
+**Stav (2026-10-22): implementované** (D-222, `tests/invariants.property.test.ts`). Nenulové sadzby pod 1e-12 sú mimo rozsahu testov. Monotónnosť v r sa overuje na celých mesiacoch, ako ich používa dátum cieľa.
 
 Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10], T ∈ [1 000; 10 000 000]):
 - **Hraničná podmienka:** pre n = `monthsToTarget(...)` platí K_uzavretý(⌈n − 1e-6⌉ − 1) < T ≤ K_uzavretý(⌈n − 1e-6⌉), kde K_uzavretý(k) = K·(1+i)^k + m·((1+i)^k − 1)/i je kapitál po k mesiacoch (D-024) pre i > 0; pre i = 0 (r = 0) je K_uzavretý(k) = K + m·k. Property test pokrýva r = 0 samostatne (K2). Toto je presnejšie než porovnanie so simuláciou a zachytí chybu v zaokrúhľovaní.
