@@ -39,10 +39,18 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 - **Viac parciel:** appka uvedie všetky, oddelené čiarkou. Tlačivo 17-dp-md má na parcely obmedzené miesto, preto môže byť potrebné doplniť ich v PDF ručne.
 
 ## 6. Overenie pred vydaním návodu
+
+**TODO (stav 2026-10-22):**
+1. **Čiastočný výpis:** overiť, či portál ponúka výpis len pre vlastníka alebo byt, a ako sa volá (zakladateľ).
+2. **Výber bytu:** overiť na reálnom LV s viacerými bytmi, ktorý byt sa načíta. Test robiť lokálne a osobné údaje nedávať do repozitára ani do chatu (zakladateľ).
+3. **Pravidlo menovateľa (D-219):** overiť na ďalšom reálnom LV, či sa plocha pri zaokrúhlenom menovateli nedoplní a pri nezaokrúhlenom sa zobrazí v m².
+4. **Slovenské názvy v dialógu ukladania** („Webová stránka, kompletná“, „Webová stránka, úplne“) sú predpoklad. Potvrdiť, alebo z návodu vypustiť.
+
+Podrobný zoznam overení:
 - [ ] Prejsť celý postup na skutočnom portáli (kroky 1–3). Ctrl+S funguje v Edge aj Chrome; texty v dialógu ukladania potvrdené screenshotmi: Chrome „Webpage, Complete (*.htm;*.html)“, Edge „Webpage, complete (*.htm;*.html)“. Položka Save page as… v Chrome potvrdená. Slovenské názvy zatiaľ neoverené.
 - [x] Zistiť, či je výpis na portáli dostupný bez registrácie: áno (overené zakladateľom 2026-10-22).
 - [x] Zistiť, či výpis na portáli stojí poplatok: nestojí (overené zakladateľom 2026-10-22).
-- [ ] Overiť, že HTML z portálu má rovnakú štruktúru ako vzor v `tests/fixtures/lv-synthetic.html`.
+- [x] Overiť, že HTML z portálu má rovnakú štruktúru ako vzor v `tests/fixtures/lv-synthetic.html`: áno, reálny výpis sa spracoval správne.
 - [ ] Overiť, či portál ponúka čiastočný výpis len pre vlastníka alebo byt, a ako sa volá.
 - [ ] Overiť výber bytu na výpise s viacerými bytmi (`tests/fixtures/lv-synthetic-viac-bytov.html` je len syntetický vzor). UX potvrdené zakladateľom: vlastník vyberie, ktorý byt sa načíta; parsovanie na reálnom výpise ostáva neoverené.
 - [ ] Overiť pravidlo menovateľa (D-219) na inom reálnom LV: pri zaokrúhlenom menovateli (násobok 100) plocha chýba; pri nezaokrúhlenom sa zobrazí v m² (čitateľ / 100).
