@@ -1,7 +1,7 @@
 import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, type RentalEntry, type RentalEntryKind, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, type RentalEntry, type RentalEntryKind, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type Liability, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { isValidPin, makePinRecord } from "../features/zamok/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
@@ -17,14 +17,13 @@ import { monthlySaving } from "../domain/saving";
 import { housingFlowCents, monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
 import { amortizeLoan, amortizeMortgage, applyExtraPayment, remainingMonths } from "../domain/mortgage";
 import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../app/feedback";
-import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, staleValuationNames, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
+import { investmentsTotalCents, positionsChangedSince, staleValuationNames } from "../domain/investments";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { futureOutlook } from "../domain/outlook";
 import { rentalRow11, rentalTotalsForYear, rentalYears } from "../domain/rental";
 import { weeklySummary } from "../domain/weekly";
 import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
-import { TAX_CATALOG } from "../domain/tax";
 import { PHASE2_ENABLED } from "../app/features";
 import { MONTHS, cents, dateSk, eur, monthYear, todayIso } from "./kit/format";
 import { uid } from "./kit/ids";
@@ -35,6 +34,7 @@ import { BackupSection, exportBackupFile } from "../features/zaloha/BackupSectio
 import { LockScreen, PinSection } from "../features/zamok/Lock";
 import { DogSection, TaxFormBlock, TaxSection } from "../features/dane/Dane";
 import { LiabilitySection } from "../features/zavazky/Zavazky";
+import { InvestmentSection } from "../features/investicie/Investicie";
 import { Field, Section, asNum, btn, inp, type NumIn } from "./kit/controls";
 import { isIosOtherBrowser, isIosSafari } from "../app/ios";
 import { CORE_SECTION_IDS, OPTIONAL_MODULES, readModuleChoice, visibleSectionIds, writeModuleChoice } from "../app/modules";
@@ -1629,196 +1629,6 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   );
 }
 
-const INVESTMENT_KIND_LABEL: Record<InvestmentKind, string> = {
-  akcie: "Akcie",
-  etf: "ETF",
-  fond: "Podielový fond",
-  dlhopisy: "Dlhopisy",
-  krypto: "Kryptomeny",
-  zlato_komodity: "Zlato a komodity",
-  sporiaci_ucet: "Sporiaci účet alebo termínovaný vklad",
-  treti_pilier: "Tretí pilier",
-  dochodkove_sporenie: "Dôchodkové sporenie (2. pilier)",
-  ine: "Iné",
-};
-
-/** Sekcia Investície (D-101, možnosť A): ručné položky; súčet sa použije vo Vyhodnotení. */
-function InvestmentSection({ repo, positions, today, onSaved }: { repo: Repository; positions: Position[]; today: string; onSaved: () => void }) {
-  const [editing, setEditing] = useState<Position | "new" | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-
-  const remove = async (id: string) => {
-    try {
-      await repo.deletePosition(id);
-      setConfirmId(null);
-      setErr(null);
-      onSaved();
-    } catch {
-      setErr(STORAGE_ERROR);
-    }
-  };
-
-  return (
-    <section>
-      <p style={{ color: "var(--muted)" }}>
-        Zadávaš počet kusov, cenu a kurz k euru. Hodnota v eurách sa počíta v telefóne; nič sa neposiela von. Suma investícií vo Vyhodnotení je súčtom týchto položiek.
-      </p>
-      {staleValuationNames(positions, today).length > 0 && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
-          Staré ocenenie (viac ako 3 mesiace): {staleValuationNames(positions, today).join(", ")}. Over cenu a aktualizuj položku.
-        </p>
-      )}
-      {positions.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna položka. Vo Vyhodnotení sa suma zadáva ručne.</p>}
-      {positions.length > 0 && (
-        <p style={{ fontSize: "1.05rem" }}>Spolu: <strong>{eur(investmentsTotalCents(positions))}</strong></p>
-      )}
-      {positions.length > 0 && (
-        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
-          {Object.entries(investmentsByKindCents(positions)).map(([k, v]) => `${INVESTMENT_KIND_LABEL[k as Position["kind"]]} ${eur(v ?? 0)}`).join(" · ")}
-        </p>
-      )}
-      {monthlyContributionsTotalCents(positions) > 0 && (
-        <p style={{ color: "var(--muted)" }}>Mesačné vklady do tretieho piliera a iných položiek: {eur(monthlyContributionsTotalCents(positions))} (len zobrazenie)</p>
-      )}
-      {positions.map((p) => (
-        <div key={p.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
-          <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}</p>
-          {(BALANCE_INVESTMENT_KINDS as readonly string[]).includes(p.kind) ? (
-            <p style={{ margin: "4px 0" }}>
-              Stav účtu: {eur(positionValueCents(p))}
-              {p.monthlyContributionCents ? `, vklad ${eur(p.monthlyContributionCents)} mesačne` : ""}
-            </p>
-          ) : (
-            <p style={{ margin: "4px 0" }}>
-              {String(p.quantity)} ks × {String(p.unitPrice)} {p.currency}
-              {p.currency !== "EUR" && <span> (kurz {String(p.fxToEur)})</span>}
-            </p>
-          )}
-          <p style={{ margin: "4px 0" }}>Hodnota: <strong>{eur(positionValueCents(p))}</strong> (k {dateSk(p.valueDate)})</p>
-          {confirmId === p.id ? (
-            <div>
-              <p>Naozaj zmazať položku „{p.name}“?</p>
-              <button onClick={() => remove(p.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
-              <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
-            </div>
-          ) : (
-            <div>
-              <button onClick={() => { setEditing(p); setErr(null); }} style={btn}>Upraviť</button>{" "}
-              <button onClick={() => setConfirmId(p.id)} style={btn}>Zmazať</button>
-            </div>
-          )}
-        </div>
-      ))}
-      {editing !== null ? (
-        <InvestmentForm
-          key={editing === "new" ? "new" : editing.id}
-          repo={repo}
-          initial={editing === "new" ? null : editing}
-          today={today}
-          onDone={() => { setEditing(null); onSaved(); }}
-          onCancel={() => setEditing(null)}
-        />
-      ) : (
-        <button onClick={() => setEditing("new")} style={btn}>Pridať položku</button>
-      )}
-      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-    </section>
-  );
-}
-
-function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: Position | null; today: string; onDone: () => void; onCancel: () => void }) {
-  const [name, setName] = useState(initial?.name ?? "");
-  const [kind, setKind] = useState<InvestmentKind>(initial?.kind ?? "etf");
-  const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? "");
-  const [unitPrice, setUnitPrice] = useState<NumIn>(initial?.unitPrice ?? "");
-  const [currency, setCurrency] = useState(initial?.currency ?? "EUR");
-  const [fx, setFx] = useState<NumIn>(initial && initial.currency !== "EUR" ? initial.fxToEur : "");
-  const [contribution, setContribution] = useState<NumIn>(initial?.monthlyContributionCents !== undefined ? initial.monthlyContributionCents / 100 : "");
-  const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
-  const [taxRegime, setTaxRegime] = useState<TaxRegime>(initial?.taxRegime ?? "nezadane");
-  const [err, setErr] = useState<string | null>(null);
-  const balance = (BALANCE_INVESTMENT_KINDS as readonly string[]).includes(kind);
-  const code = balance ? "EUR" : currency.trim().toUpperCase();
-  const isEur = code === "EUR";
-
-  const save = async () => {
-    const trimmed = name.trim();
-    if (trimmed.length === 0) return setErr("Vyplň názov.");
-    if (trimmed.length > 80) return setErr("Názov môže mať najviac 80 znakov.");
-    // Účet (stav účtu): počet kusov je 1 a cena je stav účtu.
-    const q = balance ? 1 : asNum(quantity);
-    if (Number.isNaN(q) || !(q > 0)) return setErr("Vyplň počet kusov (väčší ako 0).");
-    const price = asNum(unitPrice);
-    if (Number.isNaN(price) || price < 0) return setErr(balance ? "Vyplň aktuálny stav účtu (0 alebo viac)." : "Vyplň cenu za kus (0 alebo viac).");
-    if (!/^[A-Z]{3}$/.test(code)) return setErr("Mena musí byť trojpísmenový kód, napr. EUR alebo USD.");
-    const rate = isEur ? 1 : asNum(fx);
-    if (Number.isNaN(rate) || !(rate > 0)) return setErr("Vyplň kurz k euru (väčší ako 0).");
-    const vklad = balance && contribution !== "" ? asNum(contribution) : 0;
-    if (Number.isNaN(vklad) || vklad < 0) return setErr("Mesačný vklad musí byť číslo 0 alebo viac.");
-    const dateErr = checkDate(valueDate, today, "dátum ocenenia");
-    if (dateErr.length) return setErr(dateErr[0]);
-    const now = new Date().toISOString();
-    const position: Position = {
-      id: initial?.id ?? uid(),
-      name: trimmed,
-      kind,
-      quantity: q,
-      unitPrice: price,
-      currency: code,
-      fxToEur: rate,
-      valueDate,
-      createdAt: initial?.createdAt ?? now,
-      updatedAt: now,
-      ...(balance && vklad > 0 ? { monthlyContributionCents: cents(vklad) } : {}),
-      taxRegime,
-    };
-    try {
-      await repo.savePosition(position);
-      onDone();
-    } catch {
-      setErr(STORAGE_ERROR);
-    }
-  };
-
-  return (
-    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku" : "Nová položka"}</h4>
-      <Field label={balance ? "Názov účtu" : "Názov alebo ticker"} value={name} type="text" onChange={setName} />
-      <label style={{ display: "block", marginBottom: 8 }}>
-        Druh
-        <select value={kind} onChange={(e) => setKind(e.target.value as InvestmentKind)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
-          {INVESTMENT_KINDS.map((k) => (
-            <option key={k} value={k}>{INVESTMENT_KIND_LABEL[k]}</option>
-          ))}
-        </select>
-      </label>
-      {balance ? (
-        <>
-          <Field label="Aktuálny stav účtu (€)" value={unitPrice} onChange={setUnitPrice} />
-          <Field label="Mesačný vklad (€, nepovinné)" value={contribution} onChange={setContribution} hint="len na zobrazenie; sporenie sa mení pri vyhodnotení" />
-        </>
-      ) : (
-        <>
-          <Field label="Počet kusov" value={quantity} step={0.0001} onChange={setQuantity} />
-          <Field label="Cena za kus (v mene položky)" value={unitPrice} step={0.0001} onChange={setUnitPrice} />
-          <Field label="Mena (napr. EUR, USD)" value={currency} type="text" onChange={setCurrency} />
-          {!isEur && <Field label="Kurz: koľko € za 1 jednotku meny" value={fx} step={0.0001} onChange={setFx} hint="zadaj kurz v deň ocenenia" />}
-        </>
-      )}
-      <Field label="Dátum ocenenia" value={valueDate} type="date" max={today} onChange={setValueDate} />
-      <label style={{ display: "block", marginBottom: 8 }}>
-        Daňový režim (zatiaľ bez výpočtu, FR-24)
-        <select aria-label="Daňový režim investície" value={taxRegime} onChange={(e) => setTaxRegime(e.target.value as TaxRegime)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
-          {TAX_REGIMES.map((r) => <option key={r} value={r}>{TAX_CATALOG[r].label}</option>)}
-        </select>
-      </label>
-      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť položku</button>{" "}
-      <button onClick={onCancel} style={btn}>Zrušiť</button>
-    </div>
-  );
-}
 
 const INCOME_KIND_LABEL: Record<IncomeKind, string> = {
   mzda: "Mzda",
