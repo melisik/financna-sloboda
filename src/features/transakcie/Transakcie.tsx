@@ -401,7 +401,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         {list.length === 0 && <li style={{ color: "var(--muted)" }}>Zatiaľ žiadne.</li>}
         {list.map((t) => (
           <Fragment key={t.id}>
-          <li style={{ borderBottom: "1px solid var(--border-soft)", padding: "6px 0", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+          <li style={{ borderBottom: "1px solid var(--border-soft)", padding: "6px 0", display: "flex", flexDirection: "column", gap: 6 }}>
             <span>
               {dateSk(t.date)} · {TYPE_LABEL[t.type]} · {eur(t.amountCents)}
               {t.source ? ` (${SOURCE_LABEL[t.source]})` : ""}
@@ -410,7 +410,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
               {t.receiptId ? " · doklad" : ""}
               {t.receiptItems && t.receiptItems.length > 0 ? ` · položiek: ${t.receiptItems.length}` : ""}
             </span>
-            <span style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <span style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-start" }}>
               {t.type === "vydavok" && <button onClick={() => setOpenAttId(openAttId === t.id ? null : t.id)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Prílohy</button>}
               <button onClick={() => startEdit(t)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Upraviť</button>
               {confirmDeleteId === t.id ? (
