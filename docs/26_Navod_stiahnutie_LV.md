@@ -1,6 +1,6 @@
 # 26 – Návod: ako získať list vlastníctva a nahrať ho do appky
 
-> Stav: 2026-10-22, vetva `claude/phase2-property-card`. Návod je pripravený, ale ešte nebol prejdený celý od začiatku na skutočnom portáli. Názvy volieb sa môžu líšiť podľa prehliadača. Overiť treba postupom z kapitoly 5.
+> Stav: 2026-10-22, vetva `claude/phase2-property-card`. Overené zakladateľom na skutočnom portáli: výpis je dostupný bez registrácie. Neoverené zostáva: poplatok, názvy volieb v Ctrl+S (môžu sa líšiť podľa prehliadača), výber bytu na reálnom LV s viacerými bytmi a prah 10 000 na inom LV. Postup overenia je v kapitole 6.
 > Súvisí s D-209 (vloženie textu), D-211 (HTML), D-212 (podlahová plocha) a `docs/25`.
 
 ## 1. Prečo HTML a nie PDF
@@ -11,7 +11,7 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 - Prehliadač (Edge alebo Chrome) a internet na otvorenie katastrálneho portálu.
 
 ## 3. Postup
-1. Otvor katastrálny portál a vyhľadaj list vlastníctva podľa čísla LV a katastrálneho územia. Portál môže vyžadovať prihlásenie alebo poplatok; over si podmienky priamo na portáli.
+1. Otvor katastrálny portál a vyhľadaj list vlastníctva podľa čísla LV a katastrálneho územia. Výpis je dostupný bez registrácie (overené 2026-10-22). Poplatok nie je overený; over si podmienky priamo na portáli.
 2. Otvor výpis z listu vlastníctva, aby sa zobrazil celý (nie len jeho časť). Výpis sa načítava na stránke.
 3. Ulož stránku: stlač **Ctrl+S** (Mac: Cmd+S).
    - V Edge zvoľ **Webová stránka, úplne** (v angličtine „Webpage, complete“).
@@ -41,7 +41,9 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 
 ## 6. Overenie pred vydaním návodu
 - [ ] Prejsť celý postup na skutočnom portáli (kroky 1–3) a potvrdiť názvy volieb v Edge a Chrome.
-- [ ] Zistiť, či je výpis na portáli dostupný bez registrácie alebo poplatku.
+- [x] Zistiť, či je výpis na portáli dostupný bez registrácie: áno (overené zakladateľom 2026-10-22).
+- [ ] Zistiť, či výpis na portáli stojí poplatok.
 - [ ] Overiť, že HTML z portálu má rovnakú štruktúru ako vzor v `tests/fixtures/lv-synthetic.html`.
 - [ ] Overiť, či portál ponúka čiastočný výpis len pre vlastníka alebo byt, a ako sa volá.
 - [ ] Overiť výber bytu na výpise s viacerými bytmi (`tests/fixtures/lv-synthetic-viac-bytov.html` je len syntetický vzor).
+- [ ] Overiť prah 10 000 (D-212) na inom LV s nezaokrúhleným podielom: plocha sa má zobraziť, len ak menovateľ je aspoň 10 000.
