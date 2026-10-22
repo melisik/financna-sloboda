@@ -1,7 +1,7 @@
 import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, type RentalEntry, type RentalEntryKind, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, type RecurringExpense, type RecurringFrequency, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type Liability, type Position, type Property, type PropertyMode, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, type RentalEntry, type RentalEntryKind, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, type RecurringExpense, type RecurringFrequency, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type BudgetCategory, type Liability, type Position, type Property, type PropertyMode, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { isValidPin, makePinRecord } from "../features/zamok/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
@@ -14,7 +14,7 @@ import { goalDateText } from "../domain/goalText";
 import { formatImpactOutcome, plural, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
 import { annualOverview, yearlySummary, type OverviewSettings } from "../domain/annualOverview";
 import { monthlySaving } from "../domain/saving";
-import { housingFlowCents, monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
+import { monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
 import { amortizeLoan, amortizeMortgage, applyExtraPayment, remainingMonths } from "../domain/mortgage";
 import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../app/feedback";
 import { investmentsTotalCents, positionsChangedSince, staleValuationNames } from "../domain/investments";
@@ -35,6 +35,7 @@ import { DogSection, TaxFormBlock, TaxSection } from "../features/dane/Dane";
 import { LiabilitySection } from "../features/zavazky/Zavazky";
 import { InvestmentSection } from "../features/investicie/Investicie";
 import { IncomeSection } from "../features/prijmy/Prijmy";
+import { BudgetSection } from "../features/rozpocet/Rozpocet";
 import { Field, Section, asNum, btn, inp, type NumIn } from "./kit/controls";
 import { isIosOtherBrowser, isIosSafari } from "../app/ios";
 import { CORE_SECTION_IDS, OPTIONAL_MODULES, readModuleChoice, visibleSectionIds, writeModuleChoice } from "../app/modules";
@@ -46,7 +47,6 @@ import type { Recipe, RecipeIngredient, Attachment } from "../storage/types";
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES } from "../storage/types";
 import { encodeAttachment } from "../storage/attachments";
 import { autoSnapshot } from "../app/autoEvaluation";
-import { budgetStatus, spentInMonthCents } from "../domain/budget";
 import { recommendedSettings } from "../domain/recommendations";
 import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
 import { goalMonths, impactWithRentals, rentalsFor, type Rental } from "../domain/rentalGoal";
@@ -1630,7 +1630,6 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
 
 
 
-/** Rozpočet kategórií (D-106): mesačný limit a čo sa za aktuálny mesiac minulo. Prázdny limit = bez rozpočtu. */
 const RECURRING_FREQUENCY_LABEL: Record<RecurringFrequency, string> = {
   mesacne: "mesačne",
   rocne: "ročne",
@@ -1793,80 +1792,6 @@ function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
 
 
 
-function BudgetSection({ repo, budgets, transactions, recurring, properties, today, onSaved }: { repo: Repository; budgets: Budget[]; transactions: Transaction[]; recurring: RecurringExpense[]; properties: Property[]; today: string; onSaved: () => void }) {
-  const [limits, setLimits] = useState<Record<string, NumIn>>(() =>
-    Object.fromEntries(BUDGET_CATEGORIES.map((c) => {
-      const b = budgets.find((x) => x.category === c);
-      return [c, b ? b.limitCents / 100 : ""];
-    })),
-  );
-  const [err, setErr] = useState<string | null>(null);
-  const unassigned = spentInMonthCents(transactions, null, today);
-  const plan = monthSummary(transactions, budgets, recurring, today, 0, properties);
-
-  const save = async () => {
-    try {
-      for (const c of BUDGET_CATEGORIES) {
-        const v = limits[c];
-        const existing = budgets.find((b) => b.category === c);
-        if (v === "" || v === undefined) {
-          if (existing) await repo.deleteBudget(c);
-          continue;
-        }
-        const n = asNum(v);
-        if (Number.isNaN(n) || n <= 0) return setErr(`Limit pre kategóriu „${c}“ musí byť kladný, alebo prázdny.`);
-        await repo.saveBudget({ id: c, category: c, limitCents: cents(n), updatedAt: new Date().toISOString() });
-      }
-      setErr(null);
-      onSaved();
-    } catch {
-      setErr(STORAGE_ERROR);
-    }
-  };
-
-  const recurringByCat = monthlyRecurringByCategory(recurring, today);
-  return (
-    <section>
-      <p style={{ color: "var(--muted)" }}>
-        Mesačný limit pre kategóriu. Rozpočet je plán, nie povinnosť: vyplň len kategórie, ktoré chceš sledovať. Prázdny limit znamená bez rozpočtu. Zoznam kategórií je návrh.
-      </p>
-      {budgets.length === 0 && <p>Zatiaľ nie je nastavený žiadny limit.</p>}
-      {plan.planCents > 0 && (
-        <p>
-          <strong>Plán spolu: {eur(plan.planCents)}</strong> · minuté v kategóriách s limitom: {eur(plan.plannedSpentCents)}
-          {plan.percent !== null ? ` (${plan.percent} %)` : ""}
-        </p>
-      )}
-      {BUDGET_CATEGORIES.map((c) => {
-        const b = budgets.find((x) => x.category === c);
-        // Pravidelné výdavky (D-124) sa rátajú do minutého za mesiac spolu s transakciami v kategórii.
-        const rec = recurringByCat[c] ?? 0;
-        // Bývanie zahŕňa splátky hypoték mínus nájom (D-137); mimo bývania sa to nerátа.
-        const housing = c === "bývanie" ? housingFlowCents(properties) : 0;
-        const spent = spentInMonthCents(transactions, c, today) + rec + housing;
-        const st = budgetStatus(b, spent);
-        const recText = rec > 0 ? ` (z toho pravidelné ${eur(rec)})` : "";
-        const hint = st && !st.over
-          ? `minuté tento mesiac ${eur(spent)}${recText}; zostáva ${eur(st.remainingCents)}`
-          : `minuté tento mesiac ${eur(spent)}${recText}`;
-        return (
-          <div key={c}>
-            <Field
-              label={`${c}: limit (€)`}
-              value={limits[c] ?? ""}
-              onChange={(v) => setLimits({ ...limits, [c]: v })}
-              hint={hint}
-            />
-            {st?.over && <p style={{ color: "var(--danger)", fontSize: "0.9rem", margin: "4px 0" }}>Prekročené o {eur(st.remainingCents)}.</p>}
-          </div>
-        );
-      })}
-      <p style={{ color: "var(--muted)" }}>Výdavky bez kategórie tento mesiac: {eur(unassigned)}</p>
-      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btn}>Uložiť rozpočet</button>
-    </section>
-  );
-}
 
 
 
