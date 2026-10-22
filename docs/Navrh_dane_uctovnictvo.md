@@ -31,3 +31,32 @@ Potrebné pravidlá z overeného zdroja: odpisové skupiny a doby odpisovania, m
 ## 6. Navrhovaný postup
 - **Teraz:** len údaje z bodu 2 (režim, dátumy, obstarávacia cena, výdavky a príjmy z prenájmu) a upozornenia na termíny. Bez daňových čísel.
 - **Po overení:** výpočty z bodu 3 a dane z investícií (D-104), každý s odkazom na zdroj.
+
+## 7. Odpovede zakladateľa (2026-10-22) a stav
+
+1. **Rozsah evidencie:** len prenájom vlastných nehnuteľností. Podnikanie na iné entity sa do appky nedáva.
+2. **Výpočty:** áno, ale až po overení zdroja (D-104).
+   - Miestne dane (daň z nehnuteľností): priznanie sa podáva pri vzniku a zániku. Appka pripraví podklady a odkaz na oficiálnu stránku, údaje sa nahrajú tam.
+   - Daň z príjmu z prenájmu: odkaz na portál Finančnej správy, vyplnenie tam. Neskôr možno pripraviť XML z podkladov a nahrať ho cez integráciu.
+3. **Overenie pravidiel:** priamo zo zdrojov Finančnej správy, alebo overenie zakladateľom, alebo nájdenie relevantného zdroja.
+
+**Krok 1 (zapracované, D-156):** pri nehnuteľnosti pribudli nepovinné údaje: dátum obstarania, obstarávacia cena a pri prenájme dátum začiatku prenájmu. Sú to údaje z dokumentov, nie daňové čísla.
+
+**Krok 2 (nezapracované):** výpočty a odkazy na portály čakajú na overenie zdroja.
+
+## 8. Stav overenia zdrojov (2026-10-22)
+
+Vyhľadávanie našlo tieto zdroje. Pri každom je uvedené, čo sa podarilo overiť.
+
+| Zdroj | Čo tvrdí | Stav |
+|---|---|---|
+| slovensko.sk, Daň z nehnuteľností (https://www.slovensko.sk/sk/zivotne-situacie/zivotna-situacia/_dan-z-nehnutelnosti) | vznik a zánik povinnosti, priznanie do 31. januára, správca dane je obec | **nenačítané** (z vyhľadávania, nie zo stránky) |
+| podpora.financnasprava.sk, 800764 (príjmy z prenájmu, § 6 ods. 3) | vymedzenie príjmov z prenájmu | **nenačítané** (prostredie nemá prístup) |
+| články advokátskej kancelárie (ddadsstornala.sk) | sadzba 19 %, oslobodenie 500 € | **neoverené**, tretia strana, nepoužiť bez primárneho zdroja |
+
+Dôvod: z prostredia vývoja nie je prístup na stránky Finančnej správy ani slovensko.sk (DNS). Overenie musí urobiť zakladateľ alebo overovateľ s prístupom k týmto stránkam. Kým nebude overené, appka nezobrazuje žiadne sadzby, sumy ani termíny.
+
+**Čo treba overiť (zoznam pre zakladateľa):**
+- Daň z nehnuteľností: vznik a zánik, termín priznania, či sa priznanie podáva len pri vzniku a zániku, odkaz na správcu dane (obec).
+- Daň z príjmu z prenájmu: vymedzenie, sadzba, hranica oslobodenia, výdavky, odkaz na portál.
+- Registrácia na daňovom úrade pri prenájme časti bytu (vrátane oddelenej vstupu a služieb).

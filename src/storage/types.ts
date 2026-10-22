@@ -95,6 +95,9 @@ export interface Property {
   mortgageRate?: number; // úroková sadzba p. a., napr. 0.036; bez hodnoty = 0 (FR-22)
   monthlyOtherCostsCents?: number; // ostatné mesačné náklady: údržba, poistenie, poplatky
   extraPayments?: ExtraPayment[]; // mimoriadne splátky hypotéky (N-15, D-145)
+  acquisitionDate?: string; // dátum obstarania, YYYY-MM-DD (evidencia pre dane, D-156)
+  acquisitionCostCents?: number; // obstarávacia cena v centoch (evidencia pre dane, D-156)
+  rentalStartDate?: string; // dátum začiatku prenájmu, len pri režime prenájom (D-156)
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }

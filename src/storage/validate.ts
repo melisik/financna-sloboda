@@ -79,8 +79,11 @@ export function validateExtraPayment(x: unknown, today: string, label = "mimoria
 export function validateProperty(p: unknown, today: string, label = "nehnuteľnosť"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "extraPayments", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "extraPayments", "acquisitionDate", "acquisitionCostCents", "rentalStartDate", "createdAt", "updatedAt"], label);
   if (o.balanceDate !== undefined) errors.push(...checkDate(o.balanceDate, today, `${label}: dátum zostatku`));
+  if (o.acquisitionDate !== undefined) errors.push(...checkDate(o.acquisitionDate, today, `${label}: dátum obstarania`));
+  if (o.rentalStartDate !== undefined) errors.push(...checkDate(o.rentalStartDate, today, `${label}: dátum začiatku prenájmu`));
+  if (o.acquisitionCostCents !== undefined && !isCents(o.acquisitionCostCents)) errors.push(`${label}: obstarávacia cena musí byť celé číslo ≥ 0`);
   if (o.extraPayments !== undefined) {
     if (!Array.isArray(o.extraPayments)) errors.push(`${label}: mimoriadne splátky musia byť zoznam`);
     else o.extraPayments.forEach((x, n) => errors.push(...validateExtraPayment(x, today, `${label}: mimoriadna splátka ${n + 1}`)));

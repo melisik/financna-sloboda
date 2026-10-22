@@ -1016,6 +1016,14 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
           <div key={p.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
             <p style={{ margin: 0 }}><strong>{p.name || "Nehnuteľnosť"}</strong> · {PROPERTY_MODE_LABEL[p.mode]}</p>
             <p style={{ margin: "4px 0" }}>Odhad: {eur(p.valueCents)} (k {dateSk(p.valueDate)})</p>
+            {(p.acquisitionDate || p.acquisitionCostCents !== undefined) && (
+              <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+                Obstarané{p.acquisitionDate ? ` ${dateSk(p.acquisitionDate)}` : ""}{p.acquisitionCostCents !== undefined ? ` za ${eur(p.acquisitionCostCents)}` : ""} (evidencia pre dane)
+              </p>
+            )}
+            {p.mode === "prenajom" && p.rentalStartDate && (
+              <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Prenájom od {dateSk(p.rentalStartDate)}</p>
+            )}
             {stale && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
             <p style={{ margin: "4px 0" }}>Hypotéka: {eur(p.mortgageBalanceCents)}</p>
             <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
@@ -1347,10 +1355,23 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const [payment, setPayment] = useState<NumIn>(initial?.monthlyPaymentCents !== undefined ? initial.monthlyPaymentCents / 100 : "");
   const [otherCosts, setOtherCosts] = useState<NumIn>(initial?.monthlyOtherCostsCents !== undefined ? initial.monthlyOtherCostsCents / 100 : "");
   const [balanceDate, setBalanceDate] = useState(initial?.balanceDate ?? today);
+  const [acqDate, setAcqDate] = useState(initial?.acquisitionDate ?? "");
+  const [acqCost, setAcqCost] = useState<NumIn>(initial?.acquisitionCostCents !== undefined ? initial.acquisitionCostCents / 100 : "");
+  const [rentalStart, setRentalStart] = useState(initial?.rentalStartDate ?? "");
   const [err, setErr] = useState<string | null>(null);
 
   const save = async () => {
     if (name.trim().length > 80) return setErr("Názov môže mať najviac 80 znakov.");
+    if (acqDate !== "") {
+      const aErr = checkDate(acqDate, today, "dátum obstarania");
+      if (aErr.length) return setErr(aErr[0]);
+    }
+    const ac = acqCost === "" ? undefined : asNum(acqCost);
+    if (ac !== undefined && (Number.isNaN(ac) || ac < 0)) return setErr("Obstarávacia cena musí byť číslo 0 alebo viac.");
+    if (mode === "prenajom" && rentalStart !== "") {
+      const rErr = checkDate(rentalStart, today, "dátum začiatku prenájmu");
+      if (rErr.length) return setErr(rErr[0]);
+    }
     if (Number.isNaN(asNum(value))) return setErr("Vyplň odhad hodnoty.");
     if (asNum(value) < 0) return setErr("Odhad hodnoty nesmie byť záporný.");
     const dateErr = checkDate(valueDate, today, "dátum odhadu");
@@ -1385,6 +1406,9 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       ...(pay > 0 ? { monthlyPaymentCents: cents(pay) } : {}),
       ...(rt > 0 ? { mortgageRate: rt / 100 } : {}),
       ...(other > 0 ? { monthlyOtherCostsCents: cents(other) } : {}),
+      ...(acqDate !== "" ? { acquisitionDate: acqDate } : {}),
+      ...(ac !== undefined ? { acquisitionCostCents: cents(ac) } : {}),
+      ...(mode === "prenajom" && rentalStart !== "" ? { rentalStartDate: rentalStart } : {}),
     };
     try {
       await repo.saveProperty(property);
@@ -1408,6 +1432,9 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       </label>
       <Field label="Odhad hodnoty (€)" value={value} onChange={setValue} />
       <Field label="Dátum odhadu" value={valueDate} type="date" max={today} onChange={setValueDate} />
+      <Field label="Dátum obstarania (nepovinné)" value={acqDate} type="date" max={today} onChange={setAcqDate} hint="evidencia pre dane; nepočíta sa" />
+      <Field label="Obstarávacia cena (€, nepovinné)" value={acqCost} onChange={setAcqCost} hint="cena pri kúpe, nie odhad; nepočíta sa" />
+      {mode === "prenajom" && <Field label="Dátum začiatku prenájmu (nepovinné)" value={rentalStart} type="date" max={today} onChange={setRentalStart} />}
       <Field label="Zostatok hypotéky (€)" value={mortgage} onChange={setMortgage} hint="0, ak hypotéku nemáš" />
       {typeof mortgage === "number" && mortgage > 0 && (
         <Field label="Zostatok platí k (dátum)" value={balanceDate} type="date" max={today} onChange={setBalanceDate} hint="nechaj dnešný dátum, ak si zostatok práve zistil; od tohto dátumu sa každý mesiac automaticky znižuje o istinu" />

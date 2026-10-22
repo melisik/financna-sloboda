@@ -98,3 +98,13 @@ describe("mimoriadna splátka hypotéky (N-15, D-145)", () => {
     expect(validateProperty({ ...base, extraPayments: [{ id: "e", date: TODAY, amountCents: 1000, mode: "iny" }] }, TODAY).join(" ")).toMatch(/režim/);
   });
 });
+
+describe("evidencia nehnuteľnosti pre dane (D-156)", () => {
+  it("dátum obstarania, obstarávacia cena a dátum prenájmu sa validujú", () => {
+    const base = { id: "h", mode: "prenajom", valueCents: 30_000_000, valueDate: "2026-10-01", mortgageBalanceCents: 0, createdAt: "x", updatedAt: "x" };
+    expect(validateProperty({ ...base, acquisitionDate: "2015-06-01", acquisitionCostCents: 15_000_000, rentalStartDate: "2016-01-01" }, "2026-10-22")).toEqual([]);
+    expect(validateProperty({ ...base, acquisitionDate: "2015-02-30" }, "2026-10-22").join(" ")).toMatch(/dátum obstarania/);
+    expect(validateProperty({ ...base, acquisitionCostCents: -5 }, "2026-10-22").join(" ")).toMatch(/obstarávacia cena/);
+    expect(validateProperty({ ...base, rentalStartDate: "2099-01-01" }, "2026-10-22").join(" ")).toMatch(/dátum začiatku prenájmu/);
+  });
+});
