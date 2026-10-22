@@ -10,6 +10,8 @@ export type LvFields = {
   flatNumber?: string;
   taxObjectKind?: "dom" | "byt";
   hasPledge: boolean;
+  /** Záložné právo v prospech ostatných vlastníkov bytov (nie hypotéka, D-211). */
+  pledgeForOwners: boolean;
   found: string[];
 };
 
@@ -37,7 +39,7 @@ const BUILDING_RE = /\bsúp(?:isn[^\s:]*|\.)?[^\S\n]*(?:č\.|čísl[^\s:]*)?[^\S
 
 export function parseLvText(raw: string): LvFields {
   const text = raw.replace(/\r/g, "");
-  const out: LvFields = { hasPledge: /záložn/i.test(text), found: [] };
+  const out: LvFields = { hasPledge: /záložn/i.test(text), pledgeForOwners: /ostatn\S*\s+vlastn/i.test(text), found: [] };
   out.taxMunicipality = lineValue(text, /^[^\S\n]*Obec[^\S\n]*:[^\S\n]*(.+)$/im);
   out.cadastralArea = lineValue(text, /Katastrálne[^\S\n]+územie[^\S\n]*:[^\S\n]*(.+)$/im);
   const parcels = allValues(text, PARCEL_RE);

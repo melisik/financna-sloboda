@@ -10,7 +10,8 @@ import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
-import { parseLvText } from "../../domain/listVlastnictva";
+import { parseLvText, type LvFields } from "../../domain/listVlastnictva";
+import { parseLvHtml } from "./lvHtml";
 import { NextStep } from "../../ui/kit/NextStep";
 
 /** Majetok (Fáza 2, D-080 až D-158): nehnuteľnosti, hypotéka, prenájom, mimoriadne splátky a ďalšie aktíva. Feature „majetok“ (docs/23). */
@@ -540,15 +541,13 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const [parcel, setParcel] = useState(initial?.parcelNumber ?? "");
   const [building, setBuilding] = useState(initial?.buildingNumber ?? "");
   const [flat, setFlat] = useState(initial?.flatNumber ?? "");
-  // Predvyplnenie z textu listu vlastníctva (D-209): text sa po použití vymaže a neukladá sa.
+  // Predvyplnenie z listu vlastníctva (D-209, D-211): text alebo uložená HTML stránka; nič sa neukladá.
   const [lvText, setLvText] = useState("");
   const [lvNote, setLvNote] = useState<string | null>(null);
-  const [lvPledge, setLvPledge] = useState(false);
-  const fillFromLv = () => {
-    const f = parseLvText(lvText);
-    setLvText("");
-    setLvPledge(f.hasPledge);
-    if (f.found.length === 0) return setLvNote("V texte sme nenašli údaje pre daň. Skontroluj, že si vložil celý text listu vlastníctva.");
+  const [lvPledge, setLvPledge] = useState<"none" | "mortgage" | "owners">("none");
+  const applyLv = (f: LvFields) => {
+    setLvPledge(f.pledgeForOwners ? "owners" : f.hasPledge ? "mortgage" : "none");
+    if (f.found.length === 0) return setLvNote("V texte sme nenašli údaje pre daň. Skontroluj, že si vložil celý text alebo celú stránku listu vlastníctva.");
     if (f.taxMunicipality) setTaxMuni(f.taxMunicipality);
     if (f.cadastralArea) setCadastral(f.cadastralArea);
     if (f.parcelNumber) setParcel(f.parcelNumber);
@@ -556,6 +555,14 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
     if (f.flatNumber) setFlat(f.flatNumber);
     if (f.taxObjectKind) setTaxKind(f.taxObjectKind);
     setLvNote(`Doplnené: ${f.found.join(", ")}. Skontroluj údaje a ulož nehnuteľnosť.`);
+  };
+  const fillFromText = () => {
+    const f = /<(?:table|td|html)\b/i.test(lvText) ? parseLvHtml(lvText) : parseLvText(lvText);
+    setLvText("");
+    applyLv(f);
+  };
+  const fillFromFile = (file: File) => {
+    void file.text().then((html) => applyLv(parseLvHtml(html)));
   };
   const [floorArea, setFloorArea] = useState<NumIn>(initial?.floorAreaSqm !== undefined ? initial.floorAreaSqm : "");
   const [err, setErr] = useState<string | null>(null);
@@ -647,14 +654,32 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <details style={{ marginBottom: 12 }}>
         <summary style={{ cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Predvyplniť z listu vlastníctva</summary>
         <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
-          Skopíruj text z listu vlastníctva (PDF) a vlož ho sem. Appka doplní údaje pre daň. Text sa neukladá a vlastníkov ani číslo LV appka neberie.
+          Skopíruj text z listu vlastníctva a vlož ho sem, alebo nahraj uloženú stránku listu (HTML). Appka doplní údaje pre daň. Text sa neukladá a vlastníkov ani číslo LV appka neberie.
         </p>
         <textarea aria-label="Text z listu vlastníctva" value={lvText} onChange={(e) => setLvText(e.target.value)} rows={6} style={{ width: "100%", boxSizing: "border-box", fontSize: "1rem" }} />
-        <button type="button" onClick={fillFromLv} disabled={lvText.trim() === ""} style={btn}>Predvyplniť z textu</button>
+        <button type="button" onClick={fillFromText} disabled={lvText.trim() === ""} style={btn}>Predvyplniť z textu</button>
+        <label style={{ display: "block", margin: "8px 0" }}>
+          <span style={{ display: "block", fontSize: "0.9rem" }}>Alebo nahraj uloženú stránku listu (HTML)</span>
+          <input
+            type="file"
+            accept=".html,.htm,text/html"
+            aria-label="Nahrať uloženú stránku listu vlastníctva"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) fillFromFile(file);
+              e.target.value = "";
+            }}
+          />
+        </label>
         {lvNote && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{lvNote}</p>}
-        {lvPledge && (
+        {lvPledge === "mortgage" && (
           <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
             V liste je záložné právo. Ak máš hypotéku, zadaj jej zostatok nižšie. Hypotéku appka nevytvára sama.
+          </p>
+        )}
+        {lvPledge === "owners" && (
+          <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+            V liste je záložné právo v prospech ostatných vlastníkov bytov. Nie je to hypotéka.
           </p>
         )}
       </details>
