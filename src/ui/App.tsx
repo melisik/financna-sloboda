@@ -22,7 +22,9 @@ import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "..
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { futureOutlook } from "../domain/outlook";
 import { rentalRow11, rentalTotalsForYear, rentalYears } from "../domain/rental";
-import { activeDogCount } from "../domain/dogs";
+import { DOG_PLACE_LABEL, DOG_PURPOSE_LABEL, activeDogCount } from "../domain/dogs";
+import { TAX_FORM_PATH, buildTaxFormFields } from "../domain/taxForm";
+import { fillTaxFormPdf } from "../app/taxFormPdf";
 import { weeklySummary } from "../domain/weekly";
 import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
@@ -303,6 +305,7 @@ export function App() {
         <Section id="majetok" title="Majetok">
           <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} />
           <DogSection repo={repo} dogs={data.dogs} today={todayIso()} onSaved={reload} />
+          <TaxFormBlock properties={data.properties} dogs={data.dogs} today={todayIso()} />
         </Section>
       )}
       {section === "rozpocet" && (
@@ -870,7 +873,12 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
 /** Výdavky tohto mesiaca: plnenie mesačného plánu a rozpis na nevyhnutné a nie nevyhnutné (D-131). */
 /** Uloženie textového súboru: zdieľací list na iPhone, inak stiahnutie. Súhrn sa nikam neodosiela. */
 async function saveTextFile(name: string, text: string): Promise<void> {
-  const file = new File([text], name, { type: "text/plain" });
+  return saveBlobFile(name, new Blob([text], { type: "text/plain" }));
+}
+
+/** Uloženie súboru: zdieľací list na iPhone, inak stiahnutie (D-161). */
+async function saveBlobFile(name: string, blob: Blob): Promise<void> {
+  const file = new File([blob], name, { type: blob.type });
   if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: name });
@@ -974,13 +982,6 @@ const PROPERTY_MODE_LABEL: Record<PropertyMode, string> = {
 };
 
 /** Karta majetku (Fáza 2, návrh docs/11_Karta_majetku.md): nehnuteľnosť a jej čistá hodnota. */
-const DOG_PLACE_LABEL: Record<DogKeepingPlace, string> = {
-  byt: "byt",
-  rodinny_dom: "rodinný dom",
-  objekt_podnikanie: "objekt na podnikanie",
-  ina_stavba: "iná stavba",
-};
-const DOG_PURPOSE_LABEL: Record<DogPurpose, string> = { domaci: "domáci", sluzobny: "služobný", zvlastny: "zvláštny" };
 
 /** Evidencia psov pre daň za psa (D-159): podklad pre tlačivo 17-dp-md, oddiel V. Sadzbu určuje obec; appka ju nepočíta. */
 function DogSection({ repo, dogs, today, onSaved }: { repo: Repository; dogs: Dog[]; today: string; onSaved: () => void }) {
@@ -1038,6 +1039,49 @@ function DogSection({ repo, dogs, today, onSaved }: { repo: Repository; dogs: Do
         />
       ) : (
         <button onClick={() => setEditing("new")} style={btn}>Pridať psa</button>
+      )}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
+    </section>
+  );
+}
+
+/** Vyplnenie tlačiva 17-dp-md z údajov o nehnuteľnostiach a psoch (D-161). PDF sa uloží alebo zdieľa; nič sa neodosiela. */
+function TaxFormBlock({ properties, dogs, today }: { properties: Property[]; dogs: Dog[]; today: string }) {
+  const [busy, setBusy] = useState(false);
+  const [notes, setNotes] = useState<string[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+
+  const run = async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const fields = buildTaxFormFields(properties, dogs, today);
+      const res = await fetch(TAX_FORM_PATH);
+      if (!res.ok) throw new Error("tlačivo sa nenašlo");
+      const out = await fillTaxFormPdf(new Uint8Array(await res.arrayBuffer()), fields);
+      await saveBlobFile(`priznanie-17-dp-md-${today}.pdf`, new Blob([new Uint8Array(out.bytes)], { type: "application/pdf" }));
+      setNotes([
+        ...(out.tooLong.length > 0 ? [`Tieto údaje sa do tlačiva nezmestili, doplňte ich v PDF ručne: ${out.tooLong.join(", ")}.`] : []),
+        ...fields.notes,
+      ]);
+    } catch {
+      setErr("Tlačivo sa nepodarilo vyplniť. Skús to znova.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section aria-label="Tlačivo 17-dp-md" style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+      <h3 style={{ fontSize: "1.05rem" }}>Tlačivo 17-dp-md</h3>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+        Vyplní sa z údajov o nehnuteľnostiach a psoch (oddiel III, IV a V tlačiva). Údaje daňovníka a ďalšie polia doplníte v PDF.
+      </p>
+      <button onClick={run} disabled={busy} style={btn}>{busy ? "Vypĺňam…" : "Vyplniť tlačivo (PDF)"}</button>
+      {notes.length > 0 && (
+        <ul style={{ paddingLeft: 20, fontSize: "0.9rem" }}>
+          {notes.map((n, i) => <li key={i}>{n}</li>)}
+        </ul>
       )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
@@ -1628,6 +1672,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const [acqDate, setAcqDate] = useState(initial?.acquisitionDate ?? "");
   const [acqCost, setAcqCost] = useState<NumIn>(initial?.acquisitionCostCents !== undefined ? initial.acquisitionCostCents / 100 : "");
   const [rentalStart, setRentalStart] = useState(initial?.rentalStartDate ?? "");
+  const [taxKind, setTaxKind] = useState<"" | "dom" | "byt">(initial?.taxObjectKind ?? "");
   const [taxMuni, setTaxMuni] = useState(initial?.taxMunicipality ?? "");
   const [cadastral, setCadastral] = useState(initial?.cadastralArea ?? "");
   const [parcel, setParcel] = useState(initial?.parcelNumber ?? "");
@@ -1687,6 +1732,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       ...(acqDate !== "" ? { acquisitionDate: acqDate } : {}),
       ...(ac !== undefined ? { acquisitionCostCents: cents(ac) } : {}),
       ...(mode === "prenajom" && rentalStart !== "" ? { rentalStartDate: rentalStart } : {}),
+      ...(taxKind !== "" ? { taxObjectKind: taxKind } : {}),
       ...(taxMuni.trim() ? { taxMunicipality: taxMuni.trim() } : {}),
       ...(cadastral.trim() ? { cadastralArea: cadastral.trim() } : {}),
       ...(parcel.trim() ? { parcelNumber: parcel.trim() } : {}),
@@ -1719,6 +1765,14 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <Field label="Dátum obstarania (nepovinné)" value={acqDate} type="date" max={today} onChange={setAcqDate} hint="evidencia pre dane; nepočíta sa" />
       <Field label="Obstarávacia cena (€, nepovinné)" value={acqCost} onChange={setAcqCost} hint="cena pri kúpe, nie odhad; nepočíta sa" />
       {mode === "prenajom" && <Field label="Dátum začiatku prenájmu (nepovinné)" value={rentalStart} type="date" max={today} onChange={setRentalStart} />}
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Druh objektu pre daň (nepovinné)
+        <select aria-label="Druh objektu pre daň" value={taxKind} onChange={(e) => setTaxKind(e.target.value as "" | "dom" | "byt")} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          <option value="">nezadané</option>
+          <option value="dom">stavba na bývanie (dom)</option>
+          <option value="byt">byt</option>
+        </select>
+      </label>
       <Field label="Obec (pre daň z nehnuteľností, nepovinné)" value={taxMuni} type="text" onChange={setTaxMuni} />
       <Field label="Katastrálne územie (nepovinné)" value={cadastral} type="text" onChange={setCadastral} />
       <Field label="Číslo parcely (nepovinné)" value={parcel} type="text" onChange={setParcel} />
