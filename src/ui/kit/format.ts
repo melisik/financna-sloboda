@@ -18,3 +18,6 @@ export const monthYear = (iso: string) => {
   const [y, m] = iso.split("-").map(Number);
   return `${MONTHS[m - 1]} ${y}`;
 };
+
+/** Percentá s desatinnou čiarkou (napr. 3,7 %). */
+export const pctText = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;

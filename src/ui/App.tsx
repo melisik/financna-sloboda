@@ -1,30 +1,25 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { STOCK_UNITS, type StockItem, type StockUnit, type AppData, type BudgetCategory, type Property, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { STOCK_UNITS, type StockItem, type StockUnit, type AppData, type BudgetCategory, type Property, type Snapshot, type Source, type TransactionType } from "../storage/types";
 import { isValidPin, makePinRecord } from "../features/zamok/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
-import { backupOverdue, reviewOverdue, settingsCheckOverdue } from "../domain/reminders";
 import { targetAmountCents } from "../domain/goal";
 import { goalDisplay } from "../domain/goalDisplay";
 import { goalDateText } from "../domain/goalText";
-import { formatImpactOutcome, plural, UNREACHABLE_IMPACT_TEXT } from "../domain/impact";
+import { plural } from "../domain/impact";
 import { annualOverview, yearlySummary, type OverviewSettings } from "../domain/annualOverview";
 import { monthlySaving } from "../domain/saving";
-import { propertyChangedSince } from "../domain/property";
 import { amortizeLoan, amortizeMortgage } from "../domain/mortgage";
 import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../app/feedback";
-import { investmentsTotalCents, positionsChangedSince } from "../domain/investments";
-import { monthlyIncomeCents } from "../domain/income";
-import { weeklySummary } from "../domain/weekly";
-import { monthSummary } from "../domain/monthSummary";
-import { endingSoon } from "../domain/recurring";
+import { investmentsTotalCents } from "../domain/investments";
 import { PHASE2_ENABLED } from "../app/features";
 import { makeCtx, type Ctx } from "../domain/context";
+import { scenarioDateText } from "../domain/scenario";
 import { MONTHS, cents, dateSk, eur, monthYear, todayIso } from "./kit/format";
 import { uid } from "./kit/ids";
 import { RecipesBlock, StockSection } from "../features/sklad/Sklad";
-import { saveBlobFile, saveTextFile } from "./kit/files";
+import { saveBlobFile } from "./kit/files";
 import { STORAGE_ERROR } from "./kit/messages";
 import { BackupSection, exportBackupFile } from "../features/zaloha/BackupSection";
 import { LockScreen, PinSection } from "../features/zamok/Lock";
@@ -33,6 +28,7 @@ import { LiabilitySection } from "../features/zavazky/Zavazky";
 import { TransactionSection } from "../features/transakcie/Transakcie";
 import { SnapshotSection } from "../features/vyhodnotenie/Vyhodnotenie";
 import { SettingsSection } from "../features/nastavenia/Nastavenia";
+import { HomeSection } from "../features/prehlad/Prehlad";
 import { InvestmentSection } from "../features/investicie/Investicie";
 import { IncomeSection } from "../features/prijmy/Prijmy";
 import { BudgetSection } from "../features/rozpocet/Rozpocet";
@@ -46,8 +42,8 @@ import { parseReceiptItems } from "../domain/receiptItems";
 import type { Recipe, RecipeIngredient, Attachment } from "../storage/types";
 import { autoSnapshot } from "../app/autoEvaluation";
 import { recommendedSettings } from "../domain/recommendations";
-import { LONG_HORIZON_MONTHS, netRealReturn, nominalFromReal, RETURN_ASSUMPTIONS } from "../domain/assumptions";
-import { goalMonths, impactWithRentals, rentalsFor, type Rental } from "../domain/rentalGoal";
+import { LONG_HORIZON_MONTHS, netRealReturn } from "../domain/assumptions";
+import { goalMonths, rentalsFor, type Rental } from "../domain/rentalGoal";
 import {
   payFromCash,
   payFromInvestments,
@@ -59,16 +55,7 @@ import {
 
 
 /** Kontext vypočítaný raz pre všetky sekcie. */
-const pctText = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
 
-/** Dátum cieľa pre danú mieru výnosu (FR-02, FR-03). */
-function scenarioText(ctx: Ctx, rate: number, capital: Capital = ctx.capital): string {
-  if (!ctx.latest || ctx.target === null) return "—";
-  const g = goalMonths(capital, ctx.mInv, ctx.mCash, rate, ctx.target, ctx.rentals);
-  if (g.kind === "cash_exhausted") return `Hotovosť by sa vyčerpala v mesiaci ${g.month}; dátum sa nezobrazuje.`;
-  const display = goalDisplay(g.kind === "months" ? g.months : null, ctx.latest.date, todayIso());
-  return goalDateText(display, ctx.mInv + ctx.mCash === 0, monthYear);
-}
 
 const SKIP_FIRST_SETUP_KEY = "fs-skip-first-setup";
 
@@ -263,7 +250,7 @@ function AppContent() {
         <Section id="prehlad" title="Prehľad">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "flex-start" }}>
             <div style={{ flex: "1 1 320px", minWidth: 0 }}>
-              <HomeSection data={data} ctx={ctx} lastExport={lastExport} />
+              <HomeSection data={data} ctx={ctx} lastExport={lastExport} incomeVisible={visible.has("prijmy")} />
               <details id="navod" style={{ marginTop: 16, background: "var(--surface)", padding: 12, borderRadius: 8 }}>
                 <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
                 <ol style={{ paddingLeft: 20 }}>
@@ -449,7 +436,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
       await repo.addManualSnapshot({ id: sameDay?.id ?? uid(), date: todayIso(), investmentsCents: cents(invVal), cashCents: cents(cashVal), createdAt: new Date().toISOString() });
       const fresh = await repo.getData();
       const c = makeCtx(fresh);
-      setResult(scenarioText(c, c.realReturn));
+      setResult(scenarioDateText(c, c.realReturn, todayIso(), monthYear));
       go(4);
     } catch {
       setErr(STORAGE_ERROR);
@@ -771,172 +758,6 @@ function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) {
   );
 }
 
-function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastExport: string | null }) {
-  const today = todayIso();
-  const pending =
-    ctx.latest && ctx.target !== null && ctx.settings
-      ? impactWithRentals({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target, ctx.rentals)
-      : null;
-  return (
-    <div>
-      {ctx.latest && positionsChangedSince(data.investments, ctx.latest.createdAt) && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
-          Investície sa zmenili od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.
-        </p>
-      )}
-      {ctx.latest && propertyChangedSince(data.properties, ctx.latest.createdAt) && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
-          Majetok sa zmenil od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.
-        </p>
-      )}
-      {reviewOverdue(ctx.latest?.date ?? null, today) && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
-          Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.
-        </p>
-      )}
-      {data.settings !== null && settingsCheckOverdue(data.settings.checkedAt, today) && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
-          Nastavenia sa ešte neoverili alebo sú staršie ako rok. Skontroluj infláciu, rezervu a mieru výberu v sekcii Nastavenia.
-        </p>
-      )}
-      {(data.snapshots.length > 0 || data.transactions.length > 0 || data.settings !== null) && backupOverdue(lastExport, today) && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
-          Záloha ešte nebola exportovaná alebo je staršia ako 7 dní. Dáta sú len v tomto zariadení.
-        </p>
-      )}
-      <MonthSpendingBlock data={data} today={today} thresholdCents={ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents} />
-      <WeeklySummaryBlock transactions={data.transactions} today={today} thresholdCents={ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents} />
-      {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v <a href="#nastavenia">Nastaveniach</a>; ostatné hodnoty sú predvolené.</p>}
-      {(ctx.negative.cash || ctx.negative.inv) && (
-        <p style={{ background: "var(--err-bg)", padding: 8, borderRadius: 6 }}>
-          Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení.
-          {ctx.shortfall.inv > 0 && <> Prečerpanie investícií: <strong>{eur(ctx.shortfall.inv)}</strong>. Do hodnoty K sa nezapočíta.</>}
-          {ctx.shortfall.cash > 0 && <> Prečerpanie hotovosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do hodnoty K sa nezapočíta.</>}
-        </p>
-      )}
-      {ctx.latest && ctx.target !== null ? (
-        <>
-          <p>Dátum cieľa: <strong>{scenarioText(ctx, ctx.realReturn)}</strong></p>
-          <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
-            Posledné vyhodnotenie: <strong>{dateSk(ctx.latest.date)}</strong>. Dátum sa zmení až po ďalšom vyhodnotení.
-          </p>
-          {ctx.latest.auto && (
-            <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
-              Vyhodnotenie vzniklo automaticky z transakcií.
-              {data.investments.length === 0 && " Investície sú odhad z výnosu r, kým ich neupravíš v sekcii Investície."}
-            </p>
-          )}
-          {ctx.longHorizon && (
-            <p style={{ fontSize: "0.9rem", background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
-              Pri dlhom horizonte (viac ako 20 rokov) je predpoklad výnosu menej istý; výsledok je v dnešných eurách.
-            </p>
-          )}
-          <details style={{ marginTop: 8 }}>
-            <summary style={{ cursor: "pointer", minHeight: 44, display: "inline-flex", alignItems: "center", padding: "8px 14px", border: "1px solid var(--muted)", borderRadius: 6, background: "var(--surface)", listStyle: "none" }}>Podrobnosti ▾</summary>
-            <p>
-              Rozsah dátumu: od {scenarioText(ctx, ctx.realReturn + 0.02)} do {scenarioText(ctx, Math.max(0, ctx.realReturn - 0.02))} (opatrný – základný – optimistický).
-            </p>
-            <p>
-              Výnos: {pctText(ctx.realReturn)} reálne po poplatkoch, nominálne ≈ {pctText(nominalFromReal(ctx.realReturn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 % (predpoklad).
-            </p>
-            <p>Kapitál: investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}. Rezerva: {eur(ctx.reserve)}.</p>
-            <p>
-              Predbežný dopad posledných transakcií:{" "}
-              <strong>{pending === null ? UNREACHABLE_IMPACT_TEXT : formatImpactOutcome(pending)}</strong>
-            </p>
-            <p style={{ color: "var(--muted)" }}>Transakcií: {data.transactions.length}</p>
-          </details>
-        </>
-      ) : (
-        <p>{ctx.latest ? "" : <>Urob prvé vyhodnotenie vo <a href="#vyhodnotenie">Vyhodnotení</a>. Dátum cieľa sa zobrazí po ňom.</>}</p>
-      )}
-      <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid var(--border-strong)", borderRadius: 4 }}>
-        Pridať transakciu
-      </a>
-    </div>
-  );
-}
-
-/** Výdavky tohto mesiaca: plnenie mesačného plánu a rozpis na nevyhnutné a nie nevyhnutné (D-131). */
-
-/** Týždenný súhrn výdavkov (N-10): posledných 7 dní, uložiť ako textový súbor. */
-function WeeklySummaryBlock({ transactions, today, thresholdCents }: { transactions: Transaction[]; today: string; thresholdCents: number }) {
-  const [err, setErr] = useState<string | null>(null);
-  const s = weeklySummary(transactions, today, thresholdCents);
-  const save = async () => {
-    const lines = [
-      "Týždenný súhrn výdavkov",
-      `Obdobie: ${dateSk(s.fromIso)} – ${dateSk(s.toIso)}`,
-      `Výdavky spolu: ${eur(s.totalCents)}`,
-      `Počet zápisov: ${s.count}`,
-      `Nad prahom: ${s.overThresholdCount}`,
-      "",
-      "Podľa kategórií:",
-      ...(s.byCategory.length === 0 ? ["(žiadne výdavky)"] : s.byCategory.map((c) => `- ${c.category}: ${eur(c.cents)}`)),
-      "",
-      "Súhrn je len prehľad zadaných údajov, nie finančné poradenstvo.",
-      "Obsahuje finančné údaje: neukladaj ho do verejných priečinkov.",
-    ];
-    try {
-      await saveTextFile(`financna-sloboda-tyzden-${today}.txt`, lines.join("\n"));
-      setErr(null);
-    } catch {
-      setErr("Súhrn sa nepodarilo uložiť. Skús to znova.");
-    }
-  };
-  return (
-    <div style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 12, marginBottom: 12, background: "var(--surface)" }}>
-      <p style={{ margin: 0 }}><strong>Týždenný súhrn</strong></p>
-      <p style={{ margin: "4px 0" }}>{dateSk(s.fromIso)} – {dateSk(s.toIso)}: výdavky spolu <strong>{eur(s.totalCents)}</strong>, zápisov {s.count}.</p>
-      <button onClick={save} style={btn}>Uložiť týždenný súhrn</button>
-      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-    </div>
-  );
-}
-
-function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; today: string; thresholdCents: number }) {
-  const { visible } = useModules();
-  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents, data.properties, data.liabilities);
-  const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
-  const income = monthlyIncomeCents(data.incomes, today);
-  const ending = data.recurringExpenses.filter((e) => endingSoon(e, today));
-  const over = s.percent !== null && s.percent > 100;
-  return (
-    <div style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 12, marginBottom: 12, background: "var(--surface)" }}>
-      <p style={{ margin: 0 }}><strong>Tento mesiac</strong></p>
-      {s.percent !== null ? (
-        <p style={{ margin: "4px 0", color: over ? "var(--danger)" : undefined }}>
-          Plnenie plánu: <strong>{s.percent} %</strong> ({eur(s.plannedSpentCents)} z {eur(s.planCents)})
-        </p>
-      ) : (
-        <p style={{ margin: "4px 0", color: "var(--muted)" }}>
-          Mesačný plán nie je nastavený. Limity nastavíš v <a href="#rozpocet">Rozpočte</a>. 
-          Minuté tento mesiac: {eur(spent)}.
-        </p>
-      )}
-      {visible.has("prijmy") && (
-        <p style={{ margin: "4px 0" }}>
-          Príjem: <strong>{eur(income)}</strong> · rozdiel: <strong>{income - spent >= 0 ? "+" : "−"}{eur(Math.abs(income - spent))}</strong>
-        </p>
-      )}
-      <details>
-        <summary style={{ cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Rozpis výdavkov</summary>
-        <ul style={{ paddingLeft: 20 }}>
-          <li>Nevyhnutné: {eur(s.byNecessity.nevyhnutne)}</li>
-          {s.liabilitiesCents > 0 && <li>Splátky úverov a kariet: {eur(s.liabilitiesCents)}</li>}
-          <li>Nie nevyhnutné: {eur(s.byNecessity.nie_nevyhnutne)}{spent > 0 ? ` (${Math.round((100 * s.byNecessity.nie_nevyhnutne) / spent)} % minutého)` : ""}</li>
-          <li>Ostatné a nezaradené: {eur(s.byNecessity.ostatne + s.unassignedCents)}</li>
-          <li>Výdavky nad prahom: {s.overThresholdCount}</li>
-        </ul>
-      </details>
-      {ending.length > 0 && (
-        <p style={{ margin: "8px 0 0", background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "0.9rem" }}>
-          Koniec platnosti do 30 dní: {ending.map((e) => e.name).join(", ")}. <a href="#pravidelne-vydavky">Pozrieť</a>
-        </p>
-      )}
-    </div>
-  );
-}
 
 
 
