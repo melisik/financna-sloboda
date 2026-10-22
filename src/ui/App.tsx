@@ -736,13 +736,13 @@ function Nav({ active }: { active: SectionId }) {
   const { visible } = useModules();
   return (
     <div style={{ position: "sticky", top: 0, background: "var(--surface)", zIndex: 1, borderBottom: "1px solid var(--border-soft)" }}>
-      <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexWrap: "wrap", gap: 0, padding: "4px 0" }}>
+      <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "8px 0" }}>
         {NAV.filter((n) => visible.has(n.id)).map((n) => (
           <a
             key={n.id}
             href={`#${n.id}`}
             aria-current={n.id === active ? "page" : undefined}
-            style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 6px", color: "inherit", whiteSpace: "nowrap", flex: "0 0 auto", fontSize: "0.9rem", fontWeight: n.id === active ? 700 : 400, textDecoration: n.id === active ? "underline" : "none" }}
+            style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 12px", borderRadius: 999, border: "1px solid var(--border-soft)", background: n.id === active ? "var(--ok-bg)" : "var(--surface)", color: "inherit", whiteSpace: "nowrap", fontSize: "0.9rem", fontWeight: n.id === active ? 700 : 400, textDecoration: "none" }}
           >
             {n.label}
           </a>
@@ -755,8 +755,8 @@ function Nav({ active }: { active: SectionId }) {
 /** Nadpis a obsah jednej sekcie (zobrazuje sa samostatne). */
 function Section({ id, title, children }: { id: SectionId; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} style={{ background: "var(--page)", padding: 12, borderRadius: 8, marginBottom: 8 }}>
-      <h2 style={{ fontSize: "1.2rem", marginTop: 0 }}>{title}</h2>
+    <section id={id} style={{ background: "var(--page)", padding: 16, borderRadius: 8, marginBottom: 12 }}>
+      <h2 style={{ fontSize: "1.25rem", marginTop: 0, marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid var(--border-soft)" }}>{title}</h2>
       {children}
     </section>
   );
