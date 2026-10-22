@@ -2,34 +2,15 @@ import { useEffect, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
 import type { AppData } from "../storage/types";
-import { investmentsTotalCents } from "../domain/investments";
-import { PHASE2_ENABLED } from "../app/features";
 import { makeCtx } from "../domain/context";
-import { todayIso } from "./kit/format";
-import { StockSection } from "../features/sklad/Sklad";
-import { BackupSection } from "../features/zaloha/BackupSection";
-import { LockScreen, PinSection } from "../features/zamok/Lock";
-import { DogSection, TaxFormBlock, TaxSection } from "../features/dane/Dane";
-import { LiabilitySection } from "../features/zavazky/Zavazky";
-import { TransactionSection } from "../features/transakcie/Transakcie";
-import { AttachmentsBlock } from "../features/doklady/Prilohy";
-import { SnapshotSection } from "../features/vyhodnotenie/Vyhodnotenie";
-import { SettingsSection } from "../features/nastavenia/Nastavenia";
-import { HomeSection } from "../features/prehlad/Prehlad";
-import { NavodBlock } from "../features/prehlad/Navod";
-import { RocnyPrehladSection } from "../features/rocny-prehlad/RocnyPrehlad";
+import { LockScreen } from "../features/zamok/Lock";
 import { FirstSetup } from "./Sprievodca";
-import { ModulesBlock, ModulesProvider, useModules } from "./Moduly";
+import { ModulesProvider, useModules } from "./Moduly";
 import { useSection } from "./Navigacia";
 import { IosInstallGate, Shell, isStandalone } from "./Shell";
-import { InvestmentSection } from "../features/investicie/Investicie";
-import { IncomeSection } from "../features/prijmy/Prijmy";
-import { BudgetSection } from "../features/rozpocet/Rozpocet";
-import { PropertySection } from "../features/majetok/Majetok";
-import { RecurringSection } from "../features/pravidelne/Pravidelne";
-import { Section, btn } from "./kit/controls";
 import { isIosSafari } from "../app/ios";
 import { useAutomaticUpdates } from "./useAutomaticUpdates";
+import { SectionView } from "./Sekcie";
 
 /** Kontext vypočítaný raz pre všetky sekcie. */
 
@@ -134,97 +115,24 @@ function AppContent() {
   }
   return (
     <Shell nav={section}>
-      {section === "prehlad" && (
-        <Section id="prehlad" title="Prehľad">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "flex-start" }}>
-            <div style={{ flex: "1 1 320px", minWidth: 0 }}>
-              <HomeSection data={data} ctx={ctx} lastExport={lastExport} incomeVisible={visible.has("prijmy")} />
-              <NavodBlock />
-            </div>
-            {PHASE2_ENABLED && (
-              <aside style={{ flex: "0 0 260px", maxWidth: "100%", background: "var(--surface)", padding: 12, borderRadius: 8 }}>
-                <ModulesBlock style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }} />
-              </aside>
-            )}
-          </div>
-        </Section>
-      )}
-      {section === "nova-transakcia" && (
-        <Section id="nova-transakcia" title="Transakcie">
-          <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} renderAttachments={(id) => <AttachmentsBlock repo={repo} transactionId={id} />} />
-        </Section>
-      )}
-      {section === "vyhodnotenie" && (
-        <Section id="vyhodnotenie" title="Vyhodnotenie">
-          <SnapshotSection key={`${ctx.latest?.id ?? "none"}-${ctx.capital.inv}-${ctx.capital.cash}-${data.investments.length}`} repo={repo} latest={ctx.latest} capital={ctx.capital} derivedInvCents={data.investments.length ? investmentsTotalCents(data.investments) : null} snapshots={data.snapshots} properties={data.properties} positions={data.investments} onSaved={reload} />
-        </Section>
-      )}
-      {section === "majetok" && (
-        <Section id="majetok" title="Majetok">
-          <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} />
-        </Section>
-      )}
-      {section === "rozpocet" && (
-        <Section id="rozpocet" title="Rozpočet">
-          {budgetFlash && <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, color: "var(--ok)" }}>{budgetFlash}</p>}
-          <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} recurring={data.recurringExpenses} properties={data.properties} today={todayIso()} onSaved={() => { reload(); setBudgetFlash("Rozpočet je uložený."); }} />
-        </Section>
-      )}
-      {section === "prijmy" && (
-        <Section id="prijmy" title="Príjmy">
-          <IncomeSection repo={repo} incomes={data.incomes} data={data} today={todayIso()} onSaved={reload} />
-        </Section>
-      )}
-      {section === "zavazky" && (
-        <Section id="zavazky" title="Záväzky">
-          <LiabilitySection repo={repo} liabilities={data.liabilities} today={todayIso()} onSaved={reload} />
-        </Section>
-      )}
-      {section === "investicie" && (
-        <Section id="investicie" title="Investície">
-          <InvestmentSection repo={repo} positions={data.investments} today={todayIso()} onSaved={reload} />
-        </Section>
-      )}
-      {section === "pravidelne-vydavky" && (
-        <Section id="pravidelne-vydavky" title="Pravidelné výdavky">
-          <RecurringSection repo={repo} items={data.recurringExpenses} today={todayIso()} onSaved={reload} />
-        </Section>
-      )}
-      {section === "dane" && (
-        <Section id="dane" title="Dane">
-          <TaxSection positions={data.investments} />
-          <DogSection repo={repo} dogs={data.dogs} today={todayIso()} onSaved={reload} />
-          <TaxFormBlock properties={data.properties} dogs={data.dogs} today={todayIso()} />
-        </Section>
-      )}
-      {section === "sklad" && (
-        <Section id="sklad" title="Sklad">
-          <StockSection repo={repo} items={data.stockItems} recipes={data.recipes} today={todayIso()} onSaved={reload} />
-        </Section>
-      )}
-      {section === "rocny-prehlad" && (
-        <Section id="rocny-prehlad" title="Ročný prehľad">
-          <RocnyPrehladSection data={data} ctx={ctx} />
-        </Section>
-      )}
-      {section === "nastavenia" && (
-        <Section id="nastavenia" title="Nastavenia">
-          {settingsFlash && <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, color: "var(--ok)" }}>{settingsFlash}</p>}
-          <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={() => { reload(); setSettingsFlash("Nastavenia sú uložené."); }} />
-          <ModulesBlock />
-          <section style={{ marginTop: 16 }}>
-            <h3 style={{ fontSize: "1rem" }}>Sprievodca</h3>
-            <p style={{ color: "var(--muted)" }}>Prejdi sprievodcu znova. Údaje sa predvyplnia a nič sa nevymaže.</p>
-            <button onClick={() => setWizardOpen(true)} style={btn}>Spustiť sprievodcu znova</button>
-          </section>
-          <PinSection repo={repo} pinSet={pinSet} onChanged={(on) => setPinSet(on)} onLock={() => setLocked(true)} />
-        </Section>
-      )}
-      {section === "zaloha" && (
-        <Section id="zaloha" title="Záloha">
-          <BackupSection repo={repo} data={data} lastExport={lastExport} onChanged={reload} onExported={async (iso) => { await repo.setMeta("lastExportAt", iso); setLastExport(iso); }} />
-        </Section>
-      )}
+      <SectionView
+        key={section}
+        section={section}
+        repo={repo}
+        data={data}
+        ctx={ctx}
+        reload={reload}
+        lastExport={lastExport}
+        setLastExport={setLastExport}
+        budgetFlash={budgetFlash}
+        setBudgetFlash={setBudgetFlash}
+        settingsFlash={settingsFlash}
+        setSettingsFlash={setSettingsFlash}
+        pinSet={pinSet}
+        setPinSet={setPinSet}
+        setLocked={setLocked}
+        setWizardOpen={setWizardOpen}
+      />
     </Shell>
   );
 }
