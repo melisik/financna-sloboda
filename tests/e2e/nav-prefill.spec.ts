@@ -1,19 +1,17 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, navTo, openApp } from "./helpers";
 
 // D-095: navigácia medzi sekciami; D-096 (N-04): vyhodnotenie sa predvyplní z aktuálneho kapitálu.
 test.describe("navigácia a predvyplnenie vyhodnotenia", () => {
-  test("horný panel obsahuje sekcie a odkazy menia kotvu", async ({ page }) => {
+  test("horný panel obsahuje skupiny a odkazy menia kotvu", async ({ page }) => {
     await openApp(page);
     const nav = page.getByRole("navigation", { name: "Hlavná navigácia" });
-    for (const label of ["Prehľad", "Vyhodnotenie", "Transakcie", "Nastavenia", "Záloha"]) {
-      await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
-    }
-    await nav.getByRole("link", { name: "Vyhodnotenie" }).click();
+    await expect(nav.getByRole("button", { name: "Plán a výsledky", exact: true })).toBeVisible();
+    await navTo(page, "vyhodnotenie");
     await expect(page).toHaveURL(/#vyhodnotenie$/);
     await expect(page.locator("section#vyhodnotenie")).toBeVisible();
     await expect(page.locator("section#prehlad")).toHaveCount(0);
-    await nav.getByRole("link", { name: "Záloha" }).click();
+    await navTo(page, "zaloha");
     await expect(page).toHaveURL(/#zaloha$/);
     await expect(page.locator("section#zaloha")).toBeVisible();
   });

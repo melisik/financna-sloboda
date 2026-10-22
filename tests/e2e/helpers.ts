@@ -1,11 +1,28 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { groupOf } from "../../src/app/navigation";
 
 export type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "dane" | "sklad" | "rocny-prehlad" | "nastavenia" | "zaloha";
 
-/** Prepne na sekciu kliknutím v hornom paneli (všetky sekcie sú v paneli, D-170). */
+/**
+ * Prepne na sekciu cez horný panel (D-205). Sekcia je odkaz len v aktívnej skupine,
+ * preto sa najprv klikne na jej skupinu; skupina s jednou sekciou sa otvorí už klepnutím na ňu.
+ */
+export async function navTo(page: Page, id: SectionId) {
+  const nav = page.getByRole("navigation", { name: "Hlavná navigácia" });
+  const link = nav.locator(`a[href="#${id}"]`);
+  if (!(await link.isVisible())) {
+    await nav.getByRole("button", { name: groupOf(id).label, exact: true }).click();
+    // Druhý riadok sa vykreslí až po klepnutí. Ak je sekcia v skupine jediná viditeľná, otvorí sa už klepnutím na skupinu.
+    const shown = await link.waitFor({ state: "visible", timeout: 1000 }).then(() => true, () => false);
+    if (!shown) return;
+  }
+  await link.click();
+}
+
+/** Prepne na sekciu cez horný panel a overí, že sa zobrazila. */
 export async function goTo(page: Page, id: SectionId) {
-  await page.getByRole("navigation", { name: "Hlavná navigácia" }).locator(`a[href="#${id}"]`).click();
+  await navTo(page, id);
   await expect(page.locator(`section#${id}`)).toBeVisible();
 }
 

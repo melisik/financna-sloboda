@@ -1,26 +1,11 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
+import { NAV_GROUPS, SECTION_LABELS, type SectionId } from "../app/navigation";
 import { useModules } from "./Moduly";
 
+export type { SectionId } from "../app/navigation";
+
 /** Navigácia: zoznam sekcií, výber podľa kotvy v adrese a horný panel (D-170). Je vo vrstve ui, nie vo features: pozná všetky sekcie. */
-
-export type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "dane" | "sklad" | "rocny-prehlad" | "nastavenia" | "zaloha";
-
-const NAV: { id: SectionId; label: string }[] = [
-  { id: "prehlad", label: "Prehľad" },
-  { id: "nova-transakcia", label: "Transakcie" },
-  { id: "prijmy", label: "Príjmy" },
-  { id: "rozpocet", label: "Rozpočet" },
-  { id: "vyhodnotenie", label: "Vyhodnotenie" },
-  { id: "majetok", label: "Majetok" },
-  { id: "zavazky", label: "Záväzky" },
-  { id: "investicie", label: "Investície" },
-  { id: "pravidelne-vydavky", label: "Pravidelné výdavky" },
-  { id: "dane", label: "Dane" },
-  { id: "sklad", label: "Sklad" },
-  { id: "rocny-prehlad", label: "Ročný prehľad" },
-  { id: "nastavenia", label: "Nastavenia" },
-  { id: "zaloha", label: "Záloha" },
-];
 
 /** Sekcia z kotvy v adrese; bez platnej kotvy ide na Prehľad. */
 function sectionFromHash(visible: Set<string>): SectionId {
@@ -43,22 +28,43 @@ export function useSection(visible: Set<string>): SectionId {
   return visible.has(section) ? section : "prehlad";
 }
 
-/** Horný panel: všetky viditeľné sekcie naraz; ak sa nezmestia do riadku, zalomia sa do ďalšieho (D-170). Dotyková plocha aspoň 44 px. */
+/** Horný panel (D-170, D-205): päť skupín v prvom riadku, sekcie vybranej skupiny v druhom. Dotyková plocha aspoň 44 px. */
 export function Nav({ active }: { active: SectionId }) {
   const { visible } = useModules();
+  const groups = NAV_GROUPS.map((g) => ({ ...g, shown: g.sections.filter((id) => visible.has(id)) })).filter((g) => g.shown.length > 0);
+  const activeGroup = groups.find((g) => g.sections.includes(active));
+  const chip = (on: boolean): CSSProperties => ({
+    minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 12px", borderRadius: 999, border: "1px solid var(--border-soft)",
+    background: on ? "var(--ok-bg)" : "var(--surface)", color: "inherit", whiteSpace: "nowrap", fontSize: "0.9rem", fontWeight: on ? 700 : 400,
+    textDecoration: "none", cursor: "pointer",
+  });
   return (
     <div style={{ position: "sticky", top: 0, background: "var(--surface)", zIndex: 1, borderBottom: "1px solid var(--border-soft)" }}>
-      <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "8px 0" }}>
-        {NAV.filter((n) => visible.has(n.id)).map((n) => (
-          <a
-            key={n.id}
-            href={`#${n.id}`}
-            aria-current={n.id === active ? "page" : undefined}
-            style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 12px", borderRadius: 999, border: "1px solid var(--border-soft)", background: n.id === active ? "var(--ok-bg)" : "var(--surface)", color: "inherit", whiteSpace: "nowrap", fontSize: "0.9rem", fontWeight: n.id === active ? 700 : 400, textDecoration: "none" }}
-          >
-            {n.label}
-          </a>
-        ))}
+      <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexDirection: "column", gap: 6, padding: "8px 0" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              aria-pressed={g === activeGroup}
+              onClick={() => {
+                if (g !== activeGroup) window.location.hash = g.shown[0];
+              }}
+              style={chip(g === activeGroup)}
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
+        {activeGroup && activeGroup.shown.length > 1 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {activeGroup.shown.map((id) => (
+              <a key={id} href={`#${id}`} aria-current={id === active ? "page" : undefined} style={chip(id === active)}>
+                {SECTION_LABELS[id]}
+              </a>
+            ))}
+          </div>
+        )}
       </nav>
     </div>
   );

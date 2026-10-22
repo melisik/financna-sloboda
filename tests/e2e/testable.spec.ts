@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import path from "node:path";
-import { goTo, openApp } from "./helpers";
+import { goTo, navTo, openApp } from "./helpers";
 
 // M7 (návod v appke) a príprava na pilot: testovacia záloha (syntetické dáta) sa dá stiahnuť a importovať.
 test.describe("testovateľnosť: návod a testovacia záloha", () => {
@@ -30,7 +30,7 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await openApp(page);
     await expect(page.getByText("Záloha ešte nebola exportovaná")).toHaveCount(0);
-    await expect(page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("link")).toHaveCount(14);
+    await expect(page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("button")).toHaveCount(5);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
   });
@@ -56,7 +56,7 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await goTo(page, "vyhodnotenie");
     await expect(page.locator("section#prehlad")).toHaveCount(0);
     await expect(page.getByLabel("Hodnota investícií (€)")).toBeVisible();
-    await page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("link", { name: "Prehľad", exact: true }).click();
+    await navTo(page, "prehlad");
     await expect(page.locator("section#prehlad")).toBeVisible();
   });
 

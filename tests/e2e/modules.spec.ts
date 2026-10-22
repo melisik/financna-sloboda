@@ -11,7 +11,7 @@ test.describe("moduly (D-162)", () => {
 
     const nav = page.getByRole("navigation", { name: "Hlavná navigácia" });
     await expect(nav.locator('a[href="#investicie"]')).toHaveCount(0);
-    await expect(nav.locator('a[href="#dane"]')).toBeVisible();
+    await expect(nav.getByRole("button", { name: "Majetok a zásoby", exact: true })).toBeVisible();
 
     await page.reload();
     await goTo(page, "nastavenia");
