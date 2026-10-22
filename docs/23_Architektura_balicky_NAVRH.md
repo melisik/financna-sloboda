@@ -10,6 +10,7 @@ Hotové v tejto vetve:
 - Navigácia (D-191): `SectionId`, zoznam sekcií, výber z kotvy a horný panel sú v `src/ui/Navigacia.tsx`. `Shell` a iOS brána sú v `src/ui/Shell.tsx` (D-194); `App.tsx` má 267 riadkov.
 - Spätná väzba (D-192): tlačidlo a odkazy (`FeedbackBlock`) a pomocník `feedback.ts` sú v `src/features/spatna-vazba/`. Pomocník sa presunul z `src/app/`, lebo feature nesmie importovať `/app/`.
 - Doklady (D-195): prílohy sú v `src/features/doklady/`; kamera a sken QR sú v `src/ui/`. `App.tsx` má 268 riadkov.
+- Automatika (D-196): automatické vyhodnotenie a splácanie sú v `src/ui/useAutomaticUpdates.ts`. `App.tsx` má 230 riadkov; zostáva routing.
 
 Zmena oproti návrhu: výpočty ostávajú v `src/domain/` (nie `core/finance/`), aby sa nepremenovalo 31 súborov naraz (D-172). Kroky 4–5 (sekcie do features/, samostatné balíky) čakajú na samostatné schválenie.
 
