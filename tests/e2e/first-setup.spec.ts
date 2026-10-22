@@ -13,13 +13,14 @@ test.describe("sprievodca prvým nastavením (FR-12, D-117)", () => {
     await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
     await page.getByRole("button", { name: "Pokračovať" }).click();
 
-    // Miera výberu je nepovinná: prázdne pole použije východiskovú hodnotu.
+    // Miera výberu je nepovinná: prázdne pole použije východiskovú hodnotu, ktorá je na tlačidle.
     await expect(page.getByRole("heading", { name: "Koľko z kapitálu ročne vyberieš?" })).toBeVisible();
-    await page.getByRole("button", { name: "Pokračovať" }).click();
+    await expect(page.getByText("Miera výberu je podiel kapitálu, ktorý ročne minieš.")).toBeVisible();
+    await page.getByRole("button", { name: /Nechať \d+,\d %/ }).click();
 
     await page.getByLabel("Hodnota investícií (€)").fill("100000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
-    await page.getByRole("button", { name: "Uložiť a pokračovať" }).click();
+    await page.getByRole("button", { name: "Uložiť a zobraziť dátum" }).click();
 
     await expect(page.getByRole("heading", { name: "Ulož si zálohu" })).toBeVisible();
     await page.getByRole("button", { name: "Pokračovať" }).click();
@@ -49,10 +50,10 @@ test.describe("sprievodca prvým nastavením (FR-12, D-117)", () => {
     await page.getByRole("button", { name: "Pokračovať" }).click();
     await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
     await page.getByRole("button", { name: "Pokračovať" }).click();
-    await page.getByRole("button", { name: "Pokračovať" }).click();
+    await page.getByRole("button", { name: /Nechať \d+,\d %/ }).click();
     await page.getByLabel("Hodnota investícií (€)").fill("100000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
-    await page.getByRole("button", { name: "Uložiť a pokračovať" }).click();
+    await page.getByRole("button", { name: "Uložiť a zobraziť dátum" }).click();
     await page.getByRole("button", { name: "Pokračovať" }).click();
     await page.getByLabel("Nový PIN (4 až 6 číslic)").fill("1234");
     await page.getByLabel("Zopakuj PIN").fill("1234");
@@ -69,5 +70,18 @@ test.describe("sprievodca prvým nastavením (FR-12, D-117)", () => {
     await page.getByLabel("PIN").fill("1234");
     await page.getByRole("button", { name: "Odomknúť" }).click();
     await expect(page.locator("section#prehlad")).toBeVisible();
+  });
+});
+
+test.describe("sprievodca: priebeh a návod (docs/20)", () => {
+  test("rozpracovaný krok sa po obnovení stránky vráti a pri preskočení je odkaz na návod", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Pokračovať" }).click();
+    await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
+    await page.getByRole("button", { name: "Pokračovať" }).click();
+    await expect(page.getByRole("heading", { name: "Koľko z kapitálu ročne vyberieš?" })).toBeVisible();
+    await expect(page.getByText("Návod nájdeš v sekcii Prehľad")).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Koľko z kapitálu ročne vyberieš?" })).toBeVisible();
   });
 });

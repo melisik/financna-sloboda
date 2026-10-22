@@ -478,9 +478,12 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
   };
 
   const nav = (
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-      {step > 0 && step < 6 && <button onClick={() => go(step - 1)} style={btn}>Späť</button>}
-      <button onClick={onSkip} style={btn}>{rerun ? "Zavrieť sprievodcu" : "Preskočiť na hlavnú stránku"}</button>
+    <div style={{ marginTop: 12 }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {step > 0 && step < 6 && <button onClick={() => go(step - 1)} style={btn}>Späť</button>}
+        <button onClick={onSkip} style={btn}>{rerun ? "Zavrieť sprievodcu" : "Preskočiť na hlavnú stránku"}</button>
+      </div>
+      {!rerun && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Návod nájdeš v sekcii Prehľad, dole pod „Návod“.</p>}
     </div>
   );
 
@@ -509,9 +512,9 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
       {step === 2 && (
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Koľko z kapitálu ročne vyberieš?</h2>
-          <p style={{ color: "var(--muted)" }}>Ak nevieš, nechaj prázdne. Použije sa východisková hodnota {(rec.withdrawalRate * 100).toFixed(1).replace(".", ",")} %.</p>
+          <p style={{ color: "var(--muted)" }}>Miera výberu je podiel kapitálu, ktorý ročne minieš. Ak nevieš, nechaj ju prázdnu: použije sa východisková hodnota {(rec.withdrawalRate * 100).toFixed(1).replace(".", ",")} %.</p>
           <Field label="Miera výberu (%)" value={withdrawal} step={0.1} onChange={setWithdrawal} />
-          <button onClick={() => go(3)} style={btn}>Pokračovať</button>
+          <button onClick={() => go(3)} style={btn}>{withdrawal === "" ? `Nechať ${(rec.withdrawalRate * 100).toFixed(1).replace(".", ",")} %` : "Pokračovať"}</button>
           {nav}
         </>
       )}
@@ -519,10 +522,10 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Koľko máš dnes?</h2>
           <p style={{ color: "var(--muted)" }}>Investície sú súčet účtov a cenných papierov. Hotovosť je suma, ktorú máš na účte. Môžeš to neskôr zmeniť.</p>
-          <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} hint="0, ak nemáš" />
-          <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} hint="0, ak nemáš" />
+          <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} hint="súčet účtov a cenných papierov, napr. stav v aplikácii banky alebo brokera; 0, ak nemáš" />
+          <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} hint="zostatok na bežnom účte a v peňaženke; 0, ak nemáš" />
           {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-          <button onClick={saveAll} disabled={busy} style={btn}>Uložiť a pokračovať</button>
+          <button onClick={saveAll} disabled={busy} style={btn}>Uložiť a zobraziť dátum</button>
           {nav}
         </>
       )}

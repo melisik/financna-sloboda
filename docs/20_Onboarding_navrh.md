@@ -1,6 +1,8 @@
 # 20 – Onboarding (návrh)
 
-> Stav: **návrh na schválenie, bez implementácie.** Vychádza z aktuálneho sprievodcu (dva kroky), z nálezov revízií a z cieľovej skupiny (CLAUDE.md: predvídateľnosť, nízka kognitívna záťaž, rešpektujúci jazyk).
+> Stav: **implementované (D-152, 2026-10-22).** Rozhodnutia z bodu 4 sú zapísané v D-152; nasledujúce úpravy idú cez novú kapitolu.
+>
+> Pôvodný stav: návrh na schválenie. Vychádza z aktuálneho sprievodcu (dva kroky), z nálezov revízií a z cieľovej skupiny (CLAUDE.md: predvídateľnosť, nízka kognitívna záťaž, rešpektujúci jazyk).
 
 ## 1. Čo máme dnes
 
@@ -36,7 +38,7 @@ Pravidlá:
 - Chyba vždy povie, čo opraviť, nie len čo zlyhalo.
 - Žiadny krok nevyžaduje finančnú teóriu. Žiadne odporúčanie produktov (FR-13).
 
-## 4. Čo treba rozhodnúť
+## 4. Rozhodnutia (zapísané v D-152)
 
 1. **Prázdne polia v Nastaveniach:** použiť východiskovú hodnotu, alebo vyžadovať zadanie? Odporúčam použiť východiskovú hodnotu a písať to na obrazovke (revízia, vysoká nález 3).
 2. **Záloha v onboardingu:** pridať krok „Ulož si zálohu“ (odporúčam, krátky, s vysvetlením rizika straty telefónu).
