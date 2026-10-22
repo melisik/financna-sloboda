@@ -14,6 +14,7 @@ import { LockScreen, PinSection } from "../features/zamok/Lock";
 import { DogSection, TaxFormBlock, TaxSection } from "../features/dane/Dane";
 import { LiabilitySection } from "../features/zavazky/Zavazky";
 import { TransactionSection } from "../features/transakcie/Transakcie";
+import { AttachmentsBlock } from "../features/doklady/Prilohy";
 import { SnapshotSection } from "../features/vyhodnotenie/Vyhodnotenie";
 import { SettingsSection } from "../features/nastavenia/Nastavenia";
 import { HomeSection } from "../features/prehlad/Prehlad";
@@ -188,7 +189,7 @@ function AppContent() {
       )}
       {section === "nova-transakcia" && (
         <Section id="nova-transakcia" title="Transakcie">
-          <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} />
+          <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} renderAttachments={(id) => <AttachmentsBlock repo={repo} transactionId={id} />} />
         </Section>
       )}
       {section === "vyhodnotenie" && (
