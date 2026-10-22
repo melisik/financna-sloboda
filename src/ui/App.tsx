@@ -3,7 +3,6 @@ import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
 import type { AppData } from "../storage/types";
 import { amortizeLoan, amortizeMortgage } from "../domain/mortgage";
-import { FeedbackBlock } from "../features/spatna-vazba/Feedback";
 import { investmentsTotalCents } from "../domain/investments";
 import { PHASE2_ENABLED } from "../app/features";
 import { makeCtx } from "../domain/context";
@@ -22,14 +21,15 @@ import { NavodBlock } from "../features/prehlad/Navod";
 import { RocnyPrehladSection } from "../features/rocny-prehlad/RocnyPrehlad";
 import { FirstSetup } from "./Sprievodca";
 import { ModulesBlock, ModulesProvider, useModules } from "./Moduly";
-import { Nav, useSection, type SectionId } from "./Navigacia";
+import { useSection } from "./Navigacia";
+import { IosInstallGate, Shell, isStandalone } from "./Shell";
 import { InvestmentSection } from "../features/investicie/Investicie";
 import { IncomeSection } from "../features/prijmy/Prijmy";
 import { BudgetSection } from "../features/rozpocet/Rozpocet";
 import { PropertySection } from "../features/majetok/Majetok";
 import { RecurringSection } from "../features/pravidelne/Pravidelne";
 import { Section, btn } from "./kit/controls";
-import { isIosOtherBrowser, isIosSafari } from "../app/ios";
+import { isIosSafari } from "../app/ios";
 import { autoSnapshot } from "../app/autoEvaluation";
 
 /** Kontext vypočítaný raz pre všetky sekcie. */
@@ -265,54 +265,3 @@ function AppContent() {
     </Shell>
   );
 }
-
-function isStandalone(): boolean {
-  return (typeof window !== "undefined" && window.matchMedia?.("(display-mode: standalone)").matches) || (navigator as { standalone?: boolean }).standalone === true;
-}
-function IosInstallGate() {
-  return (
-    <div style={{ background: "var(--ok-bg)", padding: 16, borderRadius: 8 }}>
-      <h2 style={{ fontSize: "1.1rem", marginTop: 0 }}>Najprv pridaj appku na plochu</h2>
-      <p>Údaje sa v Safari ukladajú slabšie. Na plochu sa appka pridá takto: klikni <strong>Zdieľať</strong> (štvorček so šípkou), vyber <strong>Pridať na plochu</strong> a potom otvor appku z ikony.</p>
-      <p style={{ color: "var(--muted)" }}>Potom už budeš pracovať len z ikony na ploche.</p>
-    </div>
-  );
-}
-
-function Shell({ children, nav }: { children: React.ReactNode; nav?: SectionId }) {
-  return (
-    <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
-      <h1 style={{ fontSize: "1.5rem" }}>Finančná sloboda</h1>
-      <div role="note" style={{ background: "var(--warn-bg)", padding: 10, borderRadius: 6, marginBottom: 12, fontSize: "0.9rem" }}>
-        <strong>Skúšobná verzia.</strong> Údaje sú len v tomto zariadení, nie sú zašifrované a môžu sa stratiť, preto si pravidelne ukladaj zálohu. Appka sa poskytuje bez záruky a nie je finančné poradenstvo. Fáza 2 zatiaľ nie je právne posúdená ani bezpečnostne auditovaná.
-      </div>
-      <p style={{ color: "var(--muted)" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
-      {typeof navigator !== "undefined" && isIosOtherBrowser(navigator.userAgent) && !isStandalone() && (
-        <p role="note" style={{ background: "var(--ok-bg)", padding: 10, borderRadius: 6, fontSize: "0.9rem" }}>
-          Na plochu appku pridáš v Safari: otvor túto adresu v Safari, potom Zdieľať → Pridať na plochu. Tu ju môžeš používať aj bez toho.
-        </p>
-      )}
-      {nav && <Nav active={nav} />}
-      {children}
-      <FeedbackBlock />
-    </main>
-  );
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
