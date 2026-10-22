@@ -10,6 +10,7 @@ import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { parseLvText } from "../../domain/listVlastnictva";
 import { NextStep } from "../../ui/kit/NextStep";
 
 /** Majetok (Fáza 2, D-080 až D-158): nehnuteľnosti, hypotéka, prenájom, mimoriadne splátky a ďalšie aktíva. Feature „majetok“ (docs/23). */
@@ -539,6 +540,23 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const [parcel, setParcel] = useState(initial?.parcelNumber ?? "");
   const [building, setBuilding] = useState(initial?.buildingNumber ?? "");
   const [flat, setFlat] = useState(initial?.flatNumber ?? "");
+  // Predvyplnenie z textu listu vlastníctva (D-209): text sa po použití vymaže a neukladá sa.
+  const [lvText, setLvText] = useState("");
+  const [lvNote, setLvNote] = useState<string | null>(null);
+  const [lvPledge, setLvPledge] = useState(false);
+  const fillFromLv = () => {
+    const f = parseLvText(lvText);
+    setLvText("");
+    setLvPledge(f.hasPledge);
+    if (f.found.length === 0) return setLvNote("V texte sme nenašli údaje pre daň. Skontroluj, že si vložil celý text listu vlastníctva.");
+    if (f.taxMunicipality) setTaxMuni(f.taxMunicipality);
+    if (f.cadastralArea) setCadastral(f.cadastralArea);
+    if (f.parcelNumber) setParcel(f.parcelNumber);
+    if (f.buildingNumber) setBuilding(f.buildingNumber);
+    if (f.flatNumber) setFlat(f.flatNumber);
+    if (f.taxObjectKind) setTaxKind(f.taxObjectKind);
+    setLvNote(`Doplnené: ${f.found.join(", ")}. Skontroluj údaje a ulož nehnuteľnosť.`);
+  };
   const [floorArea, setFloorArea] = useState<NumIn>(initial?.floorAreaSqm !== undefined ? initial.floorAreaSqm : "");
   const [err, setErr] = useState<string | null>(null);
 
@@ -626,6 +644,20 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <Field label="Dátum obstarania (nepovinné)" value={acqDate} type="date" max={today} onChange={setAcqDate} hint="evidencia pre dane; nepočíta sa" />
       <Field label="Obstarávacia cena (€, nepovinné)" value={acqCost} onChange={setAcqCost} hint="cena pri kúpe, nie odhad; nepočíta sa" />
       {mode === "prenajom" && <Field label="Dátum začiatku prenájmu (nepovinné)" value={rentalStart} type="date" max={today} onChange={setRentalStart} />}
+      <details style={{ marginBottom: 12 }}>
+        <summary style={{ cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Predvyplniť z listu vlastníctva</summary>
+        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+          Skopíruj text z listu vlastníctva (PDF) a vlož ho sem. Appka doplní údaje pre daň. Text sa neukladá a vlastníkov ani číslo LV appka neberie.
+        </p>
+        <textarea aria-label="Text z listu vlastníctva" value={lvText} onChange={(e) => setLvText(e.target.value)} rows={6} style={{ width: "100%", boxSizing: "border-box", fontSize: "1rem" }} />
+        <button type="button" onClick={fillFromLv} disabled={lvText.trim() === ""} style={btn}>Predvyplniť z textu</button>
+        {lvNote && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{lvNote}</p>}
+        {lvPledge && (
+          <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+            V liste je záložné právo. Ak máš hypotéku, zadaj jej zostatok nižšie. Hypotéku appka nevytvára sama.
+          </p>
+        )}
+      </details>
       <label style={{ display: "block", marginBottom: 8 }}>
         Druh objektu pre daň (nepovinné)
         <select aria-label="Druh objektu pre daň" value={taxKind} onChange={(e) => setTaxKind(e.target.value as "" | "dom" | "byt")} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>

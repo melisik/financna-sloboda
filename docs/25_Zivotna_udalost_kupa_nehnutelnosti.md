@@ -1,0 +1,22 @@
+# 25 – Životná udalosť: kúpa nehnuteľnosti
+
+> Stav: 2026-10-22, vetva `claude/phase2-property-card`. Rozhodnutia D-206, D-208, D-209.
+
+## 1. Tok
+1. **Majetok → Pridať nehnuteľnosť.** Otvor „Predvyplniť z listu vlastníctva“ a vlož text z LV (skopíruj ho z PDF). Appka doplní obec, katastrálne územie, číslo parcely, súpisné číslo, číslo bytu a druh objektu. Text sa po použití vymaže a neukladá sa.
+2. Skontroluj údaje a ulož nehnuteľnosť.
+3. **Odkaz Dane a tlačivo** (D-206) sa objaví, keď existuje nehnuteľnosť. Tlačivo 17-dp-md sa vyplní jedným klepnutím (D-208).
+4. Ak LV uvádza záložné právo, appka len upozorní. Hypotéku, jej zostatok a splátku zadáš ručne v karte nehnuteľnosti.
+
+## 2. Čo appka z LV berie a čo nie
+- **Berie:** obec, katastrálne územie, číslo parcely, súpisné číslo, číslo bytu, druh objektu (dom alebo byt) a fakt, že je záložné právo.
+- **Nebere a neukladá:** mená, adresy a dátumy vlastníkov, číslo LV, text listu. Dôvod: D-026 (citlivé údaje, bez šifrovania v MVP).
+
+## 3. Obmedzenia
+- Appka nevolá sieť (D-009, FR-16). Všetko beží v prehliadači.
+- Parser je postavený na typických nadpisoch (Obec, Katastrálne územie, Parc. č., Súpisné číslo, Byt č.). Nebol overený na reálnom LV, lebo repozitár nesmie obsahovať skutočné údaje. Testy používajú syntetický text.
+- Skenovaný LV bez textovej vrstvy sa nepredvyplní. Treba vložiť text ručne.
+- Nahrávanie PDF je odložené, lebo by vyžadovalo novú knižnicu na čítanie PDF.
+
+## 4. Otvorené
+- **Záložné právo:** zatiaľ len upozornenie. Hypotéku appka sama nevytvára, lebo zostatok a splátku z LV nevie. Potvrdenie zakladateľa čaká (otázka zostala bez odpovede).
