@@ -22,6 +22,11 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 6. Skontroluj polia: obec, katastrálne územie, číslo parcely, súpisné číslo, číslo bytu, druh objektu a podlahová plocha. Doplň, čo chýba. Ulož nehnuteľnosť.
 7. Súbor `.html` zmaž z priečinka Stiahnuté. Obsahuje mená a adresy vlastníkov a appka ich nepotrebuje.
 
+## 3a. Čiastočný výpis a viac bytov
+- **Čiastočný výpis** (vygenerovaný len pre teba alebo tvoj byt) je pre appku lepší: obsahuje menej údajov iných osôb a jednoznačne ukazuje tvoj byt. Ak portál túto možnosť ponúka, zvoľ ju. Overiť treba na portáli (kapitola 6).
+- Ak je v liste **viac bytov**, appka nevyberie prvý potichu. Zobrazí zoznam bytov (číslo, poschodie, súpisné číslo). Vyber svoj. Údaje a podlahová plocha sa berú z tvojho bytu.
+- Pri jednom byte sa výber nezobrazí a údaje sa doplnia hneď.
+
 ## 4. Čo appka z listu berie a čo nie
 - **Berie:** obec, katastrálne územie, všetky parcely, súpisné číslo, číslo bytu, druh objektu, podlahovú plochu z nezaokrúhleného podielu (D-212) a upozornenie na záložné právo.
 - **Nebere a neukladá:** mená a adresy vlastníkov, dátumy narodenia, číslo LV a samotný text listu.
@@ -38,3 +43,5 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 - [ ] Prejsť celý postup na skutočnom portáli (kroky 1–3) a potvrdiť názvy volieb v Edge a Chrome.
 - [ ] Zistiť, či je výpis na portáli dostupný bez registrácie alebo poplatku.
 - [ ] Overiť, že HTML z portálu má rovnakú štruktúru ako vzor v `tests/fixtures/lv-synthetic.html`.
+- [ ] Overiť, či portál ponúka čiastočný výpis len pre vlastníka alebo byt, a ako sa volá.
+- [ ] Overiť výber bytu na výpise s viacerými bytmi (`tests/fixtures/lv-synthetic-viac-bytov.html` je len syntetický vzor).

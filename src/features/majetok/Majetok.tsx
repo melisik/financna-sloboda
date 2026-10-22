@@ -10,7 +10,7 @@ import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
-import { parseLvText, type LvFields } from "../../domain/listVlastnictva";
+import { parseLvText, type LvFields, type LvFlatChoice, type LvTaxFields } from "../../domain/listVlastnictva";
 import { parseLvHtml } from "./lvHtml";
 import { NextStep } from "../../ui/kit/NextStep";
 
@@ -546,17 +546,28 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const [lvNote, setLvNote] = useState<string | null>(null);
   const [lvPledge, setLvPledge] = useState<"none" | "mortgage" | "owners">("none");
   const [lvOpen, setLvOpen] = useState(false);
+  const [lvFlats, setLvFlats] = useState<LvFlatChoice[]>([]);
+  const applyFields = (x: LvTaxFields) => {
+    if (x.taxMunicipality) setTaxMuni(x.taxMunicipality);
+    if (x.cadastralArea) setCadastral(x.cadastralArea);
+    if (x.parcelNumber) setParcel(x.parcelNumber);
+    if (x.buildingNumber) setBuilding(x.buildingNumber);
+    if (x.flatNumber) setFlat(x.flatNumber);
+    if (x.floorAreaSqm !== undefined) setFloorArea(x.floorAreaSqm);
+    if (x.taxObjectKind) setTaxKind(x.taxObjectKind);
+  };
   const applyLv = (f: LvFields) => {
     setLvPledge(f.pledgeForOwners ? "owners" : f.hasPledge ? "mortgage" : "none");
+    setLvFlats(f.flats ?? []);
     if (f.found.length === 0) return setLvNote("V texte sme nenašli údaje pre daň. Skontroluj, že si vložil celý text alebo celú stránku listu vlastníctva.");
-    if (f.taxMunicipality) setTaxMuni(f.taxMunicipality);
-    if (f.cadastralArea) setCadastral(f.cadastralArea);
-    if (f.parcelNumber) setParcel(f.parcelNumber);
-    if (f.buildingNumber) setBuilding(f.buildingNumber);
-    if (f.flatNumber) setFlat(f.flatNumber);
-    if (f.floorAreaSqm !== undefined) setFloorArea(f.floorAreaSqm);
-    if (f.taxObjectKind) setTaxKind(f.taxObjectKind);
-    setLvNote(`Doplnené: ${f.found.join(", ")}. Skontroluj údaje a ulož nehnuteľnosť.`);
+    applyFields(f);
+    const more = f.flats ? `V liste je ${f.flats.length} bytov. Vyber svoj v zozname. ` : "";
+    setLvNote(`${more}Doplnené: ${f.found.join(", ")}. Skontroluj údaje a ulož nehnuteľnosť.`);
+  };
+  const chooseFlat = (c: LvFlatChoice) => {
+    setFlat(c.fields.flatNumber ?? "");
+    setFloorArea(c.fields.floorAreaSqm ?? "");
+    applyFields(c.fields);
   };
   const fillFromText = () => {
     const f = /<(?:table|td|html)\b/i.test(lvText) ? parseLvHtml(lvText) : parseLvText(lvText);
@@ -676,6 +687,14 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
           />
         </label>
         {lvNote && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{lvNote}</p>}
+        {lvFlats.length > 1 && (
+          <label style={{ display: "block", margin: "8px 0" }}>
+            <span style={{ display: "block", fontSize: "0.9rem" }}>Ktorý byt je tvoj?</span>
+            <select aria-label="Byt v liste vlastníctva" defaultValue="0" onChange={(e) => chooseFlat(lvFlats[Number(e.target.value)])} style={{ minHeight: 44, width: "100%" }}>
+              {lvFlats.map((c, i) => <option key={i} value={i}>{c.label}</option>)}
+            </select>
+          </label>
+        )}
         {lvPledge === "mortgage" && (
           <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
             V liste je záložné právo. Ak máš hypotéku, zadaj jej zostatok nižšie. Hypotéku appka nevytvára sama.

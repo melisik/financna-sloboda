@@ -2,7 +2,8 @@
  * Predvyplnenie z textu listu vlastníctva (D-209). Čistá funkcia: nič neukladá a nevolá sieť.
  * Berie len údaje pre daň a upozornenie na záložné právo. Vlastníkov, mená, adresy a číslo LV ignoruje.
  */
-export type LvFields = {
+/** Údaje pre daň, ktoré sa dajú predvyplniť. */
+export type LvTaxFields = {
   taxMunicipality?: string;
   cadastralArea?: string;
   parcelNumber?: string;
@@ -10,10 +11,18 @@ export type LvFields = {
   flatNumber?: string;
   floorAreaSqm?: number;
   taxObjectKind?: "dom" | "byt";
+};
+
+/** Jeden byt v liste, ak je ich viac (D-214). Používateľ vyberie svoj. */
+export type LvFlatChoice = { label: string; fields: LvTaxFields };
+
+export type LvFields = LvTaxFields & {
   hasPledge: boolean;
   /** Záložné právo v prospech ostatných vlastníkov bytov (nie hypotéka, D-211). */
   pledgeForOwners: boolean;
   found: string[];
+  /** Zoznam bytov, len ak je ich v liste viac než jeden (D-214). */
+  flats?: LvFlatChoice[];
 };
 
 /** Vyčistí hodnotu z riadku: odreže časové údaje hlavičky a kód pred názvom (D-209). */
