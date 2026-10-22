@@ -53,4 +53,21 @@ describe("predvyplnenie z listu vlastníctva (D-209)", () => {
     expect(f.found).toEqual([]);
     expect(f.hasPledge).toBe(false);
   });
+
+  it("hodnoty obce a k. ú. bez kódu a časových údajov z hlavičky", () => {
+    const f = parseLvText("Obec: 123456 Testovacia obec Čas vyhotovenia : 10:00:00\nKatastrálne územie: 654321 Testovo Údaje platné k : 21.10.2026 18:00:00\n");
+    expect(f.taxMunicipality).toBe("Testovacia obec");
+    expect(f.cadastralArea).toBe("Testovo");
+  });
+
+  it("zoberie všetky parcely bez duplicít", () => {
+    const f = parseLvText("Parcela č. 111/1 zastavaná plocha\nParcela č. 111/2 záhrada\nParcela č. 111/1 (opakovaný výpis)\n");
+    expect(f.parcelNumber).toBe("111/1, 111/2");
+  });
+
+  it("súpisné číslo v rôznych tvaroch", () => {
+    expect(parseLvText("Súp. č. 56, rodinný dom").buildingNumber).toBe("56");
+    expect(parseLvText("stavba so súpisným číslom 57").buildingNumber).toBe("57");
+    expect(parseLvText("Súpisné číslo budovy 58").buildingNumber).toBe("58");
+  });
 });
