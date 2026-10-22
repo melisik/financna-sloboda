@@ -8,8 +8,8 @@ import type { Dog, Property } from "../src/storage/types";
 
 // Vyplnenie tlačiva 17-dp-md (D-161). Syntetické hodnoty; tlačivo je z public/tlaciva/.
 const TODAY = "2026-10-22";
-// Načítanie a uloženie 1 MB PDF trvá dlhšie ako predvolený limit testu.
-const SLOW = 30_000;
+// Načítanie a uloženie 1 MB PDF s 1 600 poľami trvá niekoľko sekúnd; pri paralelnom behu na pomalšom stroji treba väčšiu rezervu (Windows, audit 2026-10-22).
+const SLOW = 60_000;
 const TEMPLATE = readFileSync(join(__dirname, "..", "public", "tlaciva", "17-dp-md.pdf"));
 
 const dom: Property = {
