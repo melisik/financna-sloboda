@@ -9,7 +9,7 @@ test.describe("tlačivo 17-dp-md", () => {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     await openApp(page);
-    await goTo(page, "majetok");
+    await goTo(page, "dane");
 
     await page.getByRole("button", { name: "Pridať psa" }).click();
     await page.getByLabel("Obec, kde je pes chovaný").fill("Testovacia obec");

@@ -1,13 +1,5 @@
 import type { ExtraPaymentMode, Property } from "../storage/types";
-
-/** Plné mesiace od dátumu from do dátumu to (oba RRRR-MM-DD). Neskorší deň v mesiaci musí byť dosiahnutý. */
-export function fullMonthsBetween(from: string, to: string): number {
-  const [fy, fm, fd] = from.split("-").map(Number);
-  const [ty, tm, td] = to.split("-").map(Number);
-  let months = ty * 12 + tm - (fy * 12 + fm);
-  if (td < fd) months -= 1;
-  return Math.max(0, months);
-}
+import { fullMonthsBetween } from "./dates";
 
 /** Pridá mesiace k dátumu; deň sa orezá na posledný deň cieľového mesiaca. */
 export function addMonths(iso: string, months: number): string {

@@ -1,6 +1,17 @@
 # Architektúra: zapínateľné moduly (NÁVRH – čaká na schválenie)
 
-Stav: **návrh**. Nič z tohto dokumentu zatiaľ nie je v kóde ani v `decisions/Decisions.md`. Po schválení sa rozhodnutia zapíšu ako nové D-čísla a kroky sa spravia po jednom, každý s zelenými testami.
+Stav: **schválené s úpravami** (D-162, D-163). Kroky 1 a 4–7 sa spravili v tejto vetve; kroky 2–3 sa nerobia, viď nižšie.
+
+### Aktualizácia po rozhodnutí (D-162, D-163)
+
+- **Jadro:** Transakcie, Prehľad, Vyhodnotenie, Rozpočet, Pravidelné výdavky, Nastavenia, Záloha. Rozpočet a pravidelné výdavky nie sú voliteľné (pôvodný návrh ich mal ako modul).
+- **Vypnutie nemení výpočty.** Pravidlo 3.1 bod 1 (prázdna predvoľba parametrov) sa neuplatňuje a kroky 2–3 sa nerobia. Výpočty čítajú dáta bez ohľadu na moduly. Moduly sú len viditeľnosť sekcií.
+- **Psy** sú v module Dane, nie samostatne. Tlačivo 17-dp-md tiež.
+- **Sprievodca** pýta výber modulov v kroku 6 (pred výsledkom). Opätovné spustenie z Nastavení tento krok preskočí.
+- **Výber je per zariadenie** (`localStorage`, `fs-moduly`). Neuložený výber = všetky moduly zapnuté.
+- **Otvorené:** skrytý modul s dátami sa ďalej počíta (napr. nájom v cieli). Používateľ by to mal vidieť, napr. poznámkou v Prehľade. Zatiaľ to nie je urobené.
+
+Pôvodný návrh nižšie zostáva ako zdôvodnenie.
 
 Vzťahuje sa na: `docs/05_Technical_Architecture.md` (pravidlo závislostí, §3), D-094, D-125, D-142 (brána Fázy 2 a príznak `VITE_PHASE2`).
 

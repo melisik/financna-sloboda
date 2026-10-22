@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, amortizeMortgage, applyExtraPayment, fullMonthsBetween, paymentForMonths, remainingMonths } from "../src/domain/mortgage";
+import { fullMonthsBetween } from "../src/domain/dates";
+import { addMonths, amortizeMortgage, applyExtraPayment, paymentForMonths, remainingMonths } from "../src/domain/mortgage";
 import { validateProperty } from "../src/storage/validate";
 import { housingFlowCents, propertyChangedSince } from "../src/domain/property";
 import { monthSummary } from "../src/domain/monthSummary";

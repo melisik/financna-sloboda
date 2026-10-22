@@ -27,6 +27,10 @@ test.describe("sprievodca prvým nastavením (FR-12, D-117)", () => {
 
     await expect(page.getByRole("heading", { name: "Chceš PIN?" })).toBeVisible();
     await page.getByRole("button", { name: "Bez PIN" }).click();
+    // Krok „Čo chceš sledovať?“ (D-162): voliteľné moduly sa dajú zapnúť už v sprievodcovi.
+    await expect(page.getByRole("heading", { name: "Čo chceš sledovať?" })).toBeVisible();
+    await page.getByLabel("Majetok (nehnuteľnosti, hypotéka, prenájom)").check();
+    await page.getByRole("button", { name: "Pokračovať" }).click();
 
     await expect(page.getByRole("heading", { name: "Hotovo" })).toBeVisible();
     await expect(page.getByText(/Dátum cieľa:/)).toBeVisible();
@@ -58,6 +62,7 @@ test.describe("sprievodca prvým nastavením (FR-12, D-117)", () => {
     await page.getByLabel("Nový PIN (4 až 6 číslic)").fill("1234");
     await page.getByLabel("Zopakuj PIN").fill("1234");
     await page.getByRole("button", { name: "Nastaviť PIN" }).click();
+    await page.getByRole("button", { name: "Pokračovať" }).click();
     await page.getByRole("button", { name: "Otvoriť prehľad" }).click();
     await expect(page.locator("section#prehlad")).toBeVisible();
 

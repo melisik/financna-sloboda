@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
 import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, DOG_KEEPING_PLACES, DOG_PURPOSES, type Dog, type DogKeepingPlace, type DogPurpose, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, type RentalEntry, type RentalEntryKind, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
@@ -29,7 +29,8 @@ import { weeklySummary } from "../domain/weekly";
 import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
-import { PHASE2_ENABLED, visibleSections } from "../app/features";
+import { PHASE2_ENABLED } from "../app/features";
+import { CORE_SECTION_IDS, OPTIONAL_MODULES, readModuleChoice, visibleSectionIds, writeModuleChoice } from "../app/modules";
 import { daysUntil, expiringItems, sortForList, stockStatus } from "../domain/stock";
 import { findExpiryDate, findProductName } from "../domain/scan";
 import { cookRecipe } from "../domain/recipe";
@@ -145,7 +146,69 @@ function scenarioText(ctx: Ctx, rate: number, capital: Capital = ctx.capital): s
 
 const SKIP_FIRST_SETUP_KEY = "fs-skip-first-setup";
 
+type ModulesValue = { visible: Set<string>; choice: string[] | null; setChoice: (ids: string[]) => void };
+const ModulesCtx = createContext<ModulesValue>({ visible: new Set(CORE_SECTION_IDS), choice: null, setChoice: () => undefined });
+
+/** Výber voliteľných modulov pre celú appku (D-162). Sekcie a navigácia čítajú viditeľnosť odtiaľto. */
+function useModules(): ModulesValue {
+  return useContext(ModulesCtx);
+}
+
+function ModulesProvider({ children }: { children: React.ReactNode }) {
+  const [choice, setChoice] = useState<string[] | null>(readModuleChoice);
+  const visible = useMemo(() => visibleSectionIds(choice, PHASE2_ENABLED), [choice]);
+  return <ModulesCtx.Provider value={{ visible, choice, setChoice }}>{children}</ModulesCtx.Provider>;
+}
+
+/** Zaškrtávacie políčka voliteľných modulov (Sprievodca aj Nastavenia). Jadro sa nezobrazuje, je vždy zapnuté. */
+function ModuleCheckboxes({ selected, onChange }: { selected: string[]; onChange: (ids: string[]) => void }) {
+  const toggle = (id: string, on: boolean) => {
+    const next = on ? [...selected, id] : selected.filter((x) => x !== id);
+    onChange(OPTIONAL_MODULES.map((m) => m.id).filter((x) => next.includes(x)));
+  };
+  return (
+    <>
+      {OPTIONAL_MODULES.map((m) => (
+        <label key={m.id} style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44 }}>
+          <input type="checkbox" checked={selected.includes(m.id)} onChange={(e) => toggle(m.id, e.target.checked)} />
+          {m.label}
+        </label>
+      ))}
+    </>
+  );
+}
+
+/** Nastavenia → Moduly. Vypnutie skryje sekcie; údaje ostanú a výpočty sa nemenia (D-162). */
+function ModulesBlock() {
+  const { choice, setChoice } = useModules();
+  if (!PHASE2_ENABLED) return null;
+  const selected = choice ?? OPTIONAL_MODULES.map((m) => m.id);
+  return (
+    <section aria-label="Moduly" style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+      <h3 style={{ fontSize: "1.05rem" }}>Moduly</h3>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+        Vypnutá sekcia sa skryje. Údaje v nej ostanú uložené a výpočty v appke sa nemenia.
+      </p>
+      <ModuleCheckboxes
+        selected={selected}
+        onChange={(ids) => {
+          writeModuleChoice(ids);
+          setChoice(ids);
+        }}
+      />
+    </section>
+  );
+}
+
 export function App() {
+  return (
+    <ModulesProvider>
+      <AppContent />
+    </ModulesProvider>
+  );
+}
+
+function AppContent() {
   const [repo, setRepo] = useState<Repository | null>(null);
   const [data, setData] = useState<AppData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -157,7 +220,8 @@ export function App() {
   const [locked, setLocked] = useState(false);
   // Sprievodca otvorený z Nastavení nad existujúcimi údajmi (nemaže dáta).
   const [wizardOpen, setWizardOpen] = useState(false);
-  const section = useSection();
+  const { visible } = useModules();
+  const section = useSection(visible);
   // Voľba „preskočiť“ sa pamätá v tomto zariadení (per-zariadenie predvoľba); bez úložiska ostáva v pamäti.
   const [skipFirstSetup, setSkipFirstSetup] = useState(() => {
     try {
@@ -276,7 +340,7 @@ export function App() {
             <ol style={{ paddingLeft: 20 }}>
               <li><strong>Prvé nastavenie:</strong> pri prvom spustení zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
               <li><strong>Vyhodnotenie:</strong> mesačné vyhodnotenie vzniká automaticky. Ručne ho zadáš len na opravu. Dátum cieľa sa mení len po vyhodnotení.</li>
-              {PHASE2_ENABLED && <li><strong>Rozpočet:</strong> limity na kategórie sú mesačný plán. Prehľad ukáže plnenie a rozpis na nevyhnutné a nie nevyhnutné výdavky.</li>}
+              <li><strong>Rozpočet:</strong> limity na kategórie sú mesačný plán. Prehľad ukáže plnenie a rozpis na nevyhnutné a nie nevyhnutné výdavky.</li>
               <li><strong>Transakcie:</strong> zapisuj sporenie, investície a výdavky. Výdavok nad prah sa zvýrazní.</li>
               <li><strong>Záloha:</strong> pravidelne exportuj zálohu. Dáta sú len v tomto zariadení; neukladaj ju do verejných priečinkov.</li>
               <li><strong>Obnova:</strong> import nahradí všetky dáta a vyžaduje potvrdenie.</li>
@@ -304,8 +368,6 @@ export function App() {
       {section === "majetok" && (
         <Section id="majetok" title="Majetok">
           <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} />
-          <DogSection repo={repo} dogs={data.dogs} today={todayIso()} onSaved={reload} />
-          <TaxFormBlock properties={data.properties} dogs={data.dogs} today={todayIso()} />
         </Section>
       )}
       {section === "rozpocet" && (
@@ -337,6 +399,8 @@ export function App() {
       {section === "dane" && (
         <Section id="dane" title="Dane">
           <TaxSection positions={data.investments} />
+          <DogSection repo={repo} dogs={data.dogs} today={todayIso()} onSaved={reload} />
+          <TaxFormBlock properties={data.properties} dogs={data.dogs} today={todayIso()} />
         </Section>
       )}
       {section === "sklad" && (
@@ -353,6 +417,7 @@ export function App() {
         <Section id="nastavenia" title="Nastavenia">
           {settingsFlash && <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, color: "var(--ok)" }}>{settingsFlash}</p>}
           <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={() => { reload(); setSettingsFlash("Nastavenia sú uložené."); }} />
+          <ModulesBlock />
           <section style={{ marginTop: 16 }}>
             <h3 style={{ fontSize: "1rem" }}>Sprievodca</h3>
             <p style={{ color: "var(--muted)" }}>Prejdi sprievodcu znova. Údaje sa predvyplnia a nič sa nevymaže.</p>
@@ -395,7 +460,7 @@ function IosInstallGate() {
  */
 /** Sprievodca prvým nastavením (FR-12, D-117, docs/20): jedna otázka na obrazovke, krok so zálohou, výsledok. */
 const ONBOARD_STEP_KEY = "fs-onboarding-step";
-const ONBOARD_STEPS = 7; // 0 úvod, 1 výdavky, 2 miera výberu, 3 dnešný stav, 4 záloha, 5 PIN (voliteľný), 6 výsledok
+const ONBOARD_STEPS = 8; // 0 úvod, 1 výdavky, 2 miera výberu, 3 dnešný stav, 4 záloha, 5 PIN (voliteľný), 6 moduly, 7 výsledok
 
 function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo: Repository; onChanged: () => void; onSkip: () => void; rerun?: boolean; initial?: { expenses: NumIn; withdrawal: NumIn; inv: number; cash: number } }) {
   const [step, setStep] = useState<number>(() => {
@@ -416,6 +481,8 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
   const [busy, setBusy] = useState(false);
   const [pinNew, setPinNew] = useState("");
   const [pinRepeat, setPinRepeat] = useState("");
+  const { choice, setChoice } = useModules();
+  const [modules, setModules] = useState<string[]>(choice ?? []);
 
   const go = (n: number) => {
     setErr(null);
@@ -490,7 +557,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
   const nav = (
     <div style={{ marginTop: 12 }}>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {step > 0 && step < 6 && <button onClick={() => go(step - 1)} style={btn}>Späť</button>}
+        {step > 0 && step < 7 && <button onClick={() => go(step - 1)} style={btn}>Späť</button>}
         <button onClick={onSkip} style={btn}>{rerun ? "Zavrieť sprievodcu" : "Preskočiť na hlavnú stránku"}</button>
       </div>
       {!rerun && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Návod nájdeš v sekcii Prehľad, dole pod „Návod“.</p>}
@@ -545,7 +612,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
           <p>Údaje sú len v tomto telefóne. Ak telefón stratíš alebo vymažeš prehliadač, údaje budú preč.</p>
           <p style={{ color: "var(--muted)" }}>Stiahni si zálohu a ulož ju mimo telefónu. Zálohu môžeš urobiť aj neskôr v sekcii Záloha.</p>
           <button onClick={backupNow} style={btn}>Stiahnuť zálohu</button>{" "}
-          <button onClick={() => go(rerun ? 6 : 5)} style={btn}>Pokračovať</button>
+          <button onClick={() => go(rerun ? 7 : 5)} style={btn}>Pokračovať</button>
           {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
         </>
       )}
@@ -575,6 +642,30 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
         </>
       )}
       {step === 6 && (
+        <>
+          <h2 style={{ fontSize: "1.1rem" }}>Čo chceš sledovať?</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Vždy vidíš Prehľad, Transakcie, Vyhodnotenie, Rozpočet, Pravidelné výdavky, Nastavenia a Zálohu.
+            Ostatné sekcie zapni, ak ich budeš používať. Neskôr ich zapneš alebo vypneš v Nastaveniach.
+          </p>
+          {PHASE2_ENABLED ? (
+            <ModuleCheckboxes selected={modules} onChange={setModules} />
+          ) : (
+            <p style={{ color: "var(--muted)" }}>V tejto zostave sú dostupné všetky základné sekcie.</p>
+          )}
+          <button
+            onClick={() => {
+              writeModuleChoice(modules);
+              setChoice(modules);
+              go(7);
+            }}
+            style={btn}
+          >
+            Pokračovať
+          </button>
+        </>
+      )}
+      {step === 7 && (
         <>
           <h2 style={{ fontSize: "1.1rem" }}>Hotovo</h2>
           {result && <p>Dátum cieľa: <strong>{result}</strong></p>}
@@ -612,35 +703,36 @@ const NAV: { id: SectionId; label: string }[] = [
 ];
 
 /** Sekcia z kotvy v adrese; bez platnej kotvy ide na Prehľad. */
-function sectionFromHash(): SectionId {
+function sectionFromHash(visible: Set<string>): SectionId {
   const id = window.location.hash.slice(1);
-  return NAV_VISIBLE.some((n) => n.id === id) ? (id as SectionId) : "prehlad";
+  return visible.has(id) ? (id as SectionId) : "prehlad";
 }
 
 /** Zobrazí sa len jedna sekcia; zmena kotvy (odkaz v paneli) ju prepne. */
-function useSection(): SectionId {
-  const [section, setSection] = useState<SectionId>(sectionFromHash);
+function useSection(visible: Set<string>): SectionId {
+  const [section, setSection] = useState<SectionId>(() => sectionFromHash(visible));
   useEffect(() => {
     const onChange = () => {
-      setSection(sectionFromHash());
+      setSection(sectionFromHash(visible));
       window.scrollTo(0, 0);
     };
     window.addEventListener("hashchange", onChange);
     return () => window.removeEventListener("hashchange", onChange);
-  }, []);
-  return section;
+  }, [visible]);
+  // Skrytú sekciu (po vypnutí modulu) nahradí Prehľad, aj keď ju ešte držal stav.
+  return visible.has(section) ? section : "prehlad";
 }
 
 /** Horný panel s odkazmi na sekcie (D-095, D-099). Dotyková plocha aspoň 44 px. */
 /** Sekcie v hornom paneli; ostatné sú v ponuke „Viac“ (rozhodnutie zakladateľa, navigácia sa môže meniť). */
 const PRIMARY_NAV: SectionId[] = ["prehlad", "nova-transakcia", "vyhodnotenie", "majetok", "nastavenia", "zaloha"];
-/** Navigácia podľa prepínača Fázy 2 (D-125); verejná zostava ponúka len MVP. */
-const NAV_VISIBLE = visibleSections(NAV, PHASE2_ENABLED);
 
 function Nav({ active }: { active: SectionId }) {
   const [more, setMore] = useState(false);
-  const primary = NAV_VISIBLE.filter((n) => PRIMARY_NAV.includes(n.id));
-  const secondary = NAV_VISIBLE.filter((n) => !PRIMARY_NAV.includes(n.id));
+  const { visible } = useModules();
+  const navVisible = NAV.filter((n) => visible.has(n.id));
+  const primary = navVisible.filter((n) => PRIMARY_NAV.includes(n.id));
+  const secondary = navVisible.filter((n) => !PRIMARY_NAV.includes(n.id));
   const moreActive = secondary.some((n) => n.id === active);
   return (
     <div style={{ position: "sticky", top: 0, background: "var(--surface)", zIndex: 1, borderBottom: "1px solid var(--border-soft)" }}>
@@ -933,6 +1025,7 @@ function WeeklySummaryBlock({ transactions, today, thresholdCents }: { transacti
 }
 
 function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; today: string; thresholdCents: number }) {
+  const { visible } = useModules();
   const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents, data.properties, data.liabilities);
   const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
   const income = monthlyIncomeCents(data.incomes, today);
@@ -947,11 +1040,11 @@ function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; to
         </p>
       ) : (
         <p style={{ margin: "4px 0", color: "var(--muted)" }}>
-          {PHASE2_ENABLED && <>Mesačný plán nie je nastavený. Limity nastavíš v <a href="#rozpocet">Rozpočte</a>. </>}
+          Mesačný plán nie je nastavený. Limity nastavíš v <a href="#rozpocet">Rozpočte</a>. 
           Minuté tento mesiac: {eur(spent)}.
         </p>
       )}
-      {PHASE2_ENABLED && (
+      {visible.has("prijmy") && (
         <p style={{ margin: "4px 0" }}>
           Príjem: <strong>{eur(income)}</strong> · rozdiel: <strong>{income - spent >= 0 ? "+" : "−"}{eur(Math.abs(income - spent))}</strong>
         </p>
@@ -966,7 +1059,7 @@ function MonthSpendingBlock({ data, today, thresholdCents }: { data: AppData; to
           <li>Výdavky nad prahom: {s.overThresholdCount}</li>
         </ul>
       </details>
-      {PHASE2_ENABLED && ending.length > 0 && (
+      {ending.length > 0 && (
         <p style={{ margin: "8px 0 0", background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "0.9rem" }}>
           Koniec platnosti do 30 dní: {ending.map((e) => e.name).join(", ")}. <a href="#pravidelne-vydavky">Pozrieť</a>
         </p>
@@ -2157,6 +2250,7 @@ const INCOME_FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
 /** Pravidelné príjmy (D-102): len zobrazenie. Sporenie m sa mení až podľa zostatku pri vyhodnotení. */
 /** Príjem a minuté tento mesiac: rozdiel ukazuje, kam ide mzda. Nájom je v bývaní (D-137), nie v príjmoch. */
 function IncomeBalance({ income, data, today }: { income: number; data: AppData; today: string }) {
+  const { visible } = useModules();
   const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, 0, data.properties, data.liabilities);
   const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
   const diff = income - spent;

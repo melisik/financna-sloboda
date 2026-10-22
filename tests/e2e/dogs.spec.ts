@@ -7,7 +7,7 @@ test.describe("evidencia psov", () => {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     await openApp(page);
-    await goTo(page, "majetok");
+    await goTo(page, "dane");
     await expect(page.getByText("Zatiaľ nie je zapísaný žiadny pes.")).toBeVisible();
 
     await page.getByRole("button", { name: "Pridať psa" }).click();
@@ -24,7 +24,7 @@ test.describe("evidencia psov", () => {
     await expect(page.getByText(/Hlavná 1, Testovacia obec · rodinný dom · účel domáci/)).toBeVisible();
 
     await page.reload();
-    await goTo(page, "majetok");
+    await goTo(page, "dane");
     await expect(page.getByText("Psov evidovaných dnes: 1")).toBeVisible();
   });
 });

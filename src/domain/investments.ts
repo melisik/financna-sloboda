@@ -1,5 +1,5 @@
 import type { Position } from "../storage/types";
-import { fullMonthsBetween } from "./mortgage";
+import { fullMonthsBetween } from "./dates";
 
 /** Hodnota položky v centoch: počet × cena × kurz k euru (D-101). */
 export function positionValueCents(p: Position): number {
