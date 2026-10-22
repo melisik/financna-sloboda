@@ -68,14 +68,14 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-05 | K = 100 000, m = 500, r = 5,5 % (optimistický = základ 3,5 % + 2 p. b., D-050) | n = 271,67 → **272** | FR-03, D-050 |
 | GC-06 | K = 100 000, m = 500, r = 1,5 % (opatrný = základ 3,5 % − 2 p. b., D-050) | n = 556,46 → **557** | FR-03, D-050 |
 | GC-07 | K = 100 000, m = 0, r = 4 % | n = 548,21 → **549** (≈ 45,7 roka, dátum sa zobrazí, pretože je do 50 rokov) | FR-02, D-019 |
-| GC-08 | K = 0, m = 0, r = 4 % | bez dátumu: „Pri súčasnom sporení a výnose sa cieľ nedosiahne“ | D-019 |
+| GC-08 | K = 0, m = 0, r = 4 % | bez dátumu: „Pri tomto sporení cieľ nedosiahneš. Zadaj mesačné sporenie.“ (nulové sporenie; pri zadanom sporení „Pri súčasnom sporení a výnose sa cieľ nedosiahne“; D-224) | D-019 |
 | GC-09 | K = 0, m = 500, r = 4 % | n = 488,02 → **489** | FR-02 |
 | GC-10 | K = 100 000, T = 600 000, m = 500, r = 0 % | n = (T − K) / m = **1 000** (presne celé číslo; `ceil(n − 1e-6)` musí dať 1 000, nie 1 001) | FR-02 |
 | GC-11 | K_L ≥ T | cieľ dosiahnutý, dátum = D_L (dátum posledného vyhodnotenia) | FR-02, D-024 |
 | GC-12 | K = 100 000, m = 500, r = 4 %, T = 2 000 000 | n ≈ 655,4 → **656 mesiacov** (≈ 54,6 roka); zobrazí sa „viac ako 50 rokov“ | FR-02, D-019 |
 | GC-13 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2026-12-14 (bez nového vyhodnotenia) | dátum cieľa **nezmenený**: august 2054 (interne 2054-08-14 = D_L + 334 mesiacov); zostávajúci čas = **332 mesiacov** | D-024, FR-02 |
-| GC-14 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2055-01-01 (po dátume cieľa) | „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie“; žiadny záporný čas; dátum sa nemení | FR-10, D-024 |
-| GC-15 | K_L = 100 000, m = 500, r = 4 %, T = 600 000; po D_L dva výdavky z kapitálu po 60 000 € | K_pred = max(0; −20 000) = **0**; dopad = n(K_L) − n(0) = 333,92 − 488,02 = **−154 mesiacov** (zaokrúhlené; N1: surový rozdiel); text „Hotovosť nestačila; kapitál je 0 €“, žiadny záporný kapitál | FR-04, FR-08, H2 |
+| GC-14 | D_L = 2026-10-14, K = 100 000, m = 500, r = 4 %, T = 600 000; dnes = 2055-01-01 (po dátume cieľa) | dátum cieľa a „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie.“ (D-224); žiadny záporný čas; dátum sa nemení | FR-10, D-024 |
+| GC-15 | K_L = 100 000, m = 500, r = 4 %, T = 600 000; po D_L dva výdavky z kapitálu po 60 000 € | K_pred = max(0; −20 000) = **0**; dopad = n(K_L) − n(0) = 333,92 − 488,02 = **−154 mesiacov** (zaokrúhlené; N1: surový rozdiel); text „Investície nestačia. Po uložení bude K_inv 0 €. Ak výdavok platíš z príjmu, zvoľ zdroj „z príjmu“.“ (D-224), žiadny záporný kapitál | FR-04, FR-08, H2 |
 | GC-16 | sporenie 500 € v každom z troch mesiacov pred D_L, žiadne staršie transakcie | m = 1 500 / 3 = **500** (nie 125; D-031) | D-031 |
 | GC-17 | D_L = 2026-10-14, K_inv = 50 000, K_cash = 60 000, m = 500, r = 4 %, T = 100 000 | K_L = 110 000 ≥ T → cieľ dosiahnutý, dátum = D_L (hotovosť sa počíta v K) | FR-02, D-036 |
 | GC-18 | D_L = 2026-10-14, K_inv = 90 000, K_cash = 5 000, m = 500 (investícia, m_inv), r = 4 %, T = 100 000 | T′ = T − K_cash = 95 000; n ≈ 6,24 → **7 mesiacov** (dátum D_L + 7 mesiacov) | FR-02, D-036, D-039 |

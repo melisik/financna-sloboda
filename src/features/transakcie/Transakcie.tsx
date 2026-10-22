@@ -6,7 +6,7 @@ import { checkDate } from "../../storage/validate";
 import { expenseTotalsByCategory, filterHistory, totalsByType } from "../../domain/history";
 import { reserveBalance, capitalWithFlags } from "../../domain/ledger";
 import type { Ctx } from "../../domain/context";
-import { payFromCash, payFromInvestments, transferToInvestments, type Capital } from "../../domain/capital";
+import { INVESTMENTS_EXHAUSTED_TEXT, payFromCash, payFromInvestments, transferToInvestments, type Capital } from "../../domain/capital";
 import { impactWithRentals } from "../../domain/rentalGoal";
 import { formatImpactOutcome } from "../../domain/impact";
 import { parseReceiptItems } from "../../domain/receiptItems";
@@ -85,7 +85,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       }
       if (source === "z_investicii") {
         const r = payFromInvestments(cap, ca);
-        if (r.ok && r.warning === "exhausted") return { after: r.capital, needsConfirm: true, message: "Investície nestačia. Po uložení bude K_inv 0 €. Ak výdavok platíš z príjmu, zvoľ zdroj „z príjmu“." };
+        if (r.ok && r.warning === "exhausted") return { after: r.capital, needsConfirm: true, message: INVESTMENTS_EXHAUSTED_TEXT };
         return { after: r.ok ? r.capital : cap };
       }
       return { after: cap }; // z príjmu

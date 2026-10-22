@@ -14,6 +14,7 @@ export function goalDateText(d: GoalDisplay, savingZero: boolean, formatDate: (i
     case "over50":
       return "Viac ako 50 rokov. Zvýš mesačné sporenie, aby sa cieľ priblížil.";
     case "stale":
+      return `${formatDate(d.date)}. Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie.`;
     case "date":
       return formatDate(d.date);
   }

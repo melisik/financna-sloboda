@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { monthsToTargetSplit, payFromCash, payFromInvestments, transferToInvestments, impactMonthsSplit } from "../src/domain/capital";
+import { INVESTMENTS_EXHAUSTED_TEXT, monthsToTargetSplit, payFromCash, payFromInvestments, transferToInvestments, impactMonthsSplit } from "../src/domain/capital";
 import { formatImpact } from "../src/domain/impact";
+
 
 const eur = (x: number) => x * 100;
 const T600 = eur(600_000);
@@ -102,6 +103,8 @@ describe("scenáre a hranice (D-050, GC-05, GC-06, GC-23)", () => {
 });
 
 // GC-15 (docs/07): hodnota a stav sú v teste vyššie; znenie hlásenia nie.
-describe("GC-15: znenie pri vyčerpaní investícií (docs/07)", () => {
-  it.todo("GC-15: pri vyčerpaní K_inv má hlásenie znieť „Hotovosť nestačila; kapitál je 0 €“ (docs/07); UI v Transakcie.tsx má „Investície nestačia. Po uložení bude K_inv 0 €.“ — rozhodnúť znenie");
+describe("GC-15: znenie pri vyčerpaní investícií (D-224)", () => {
+  it("GC-15: hlásenie pri vyčerpaní K_inv je v doméne a navádza zdroj „z príjmu“", () => {
+    expect(INVESTMENTS_EXHAUSTED_TEXT).toBe("Investície nestačia. Po uložení bude K_inv 0 €. Ak výdavok platíš z príjmu, zvoľ zdroj „z príjmu“.");
+  });
 });

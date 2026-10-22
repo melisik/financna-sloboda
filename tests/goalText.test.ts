@@ -30,8 +30,10 @@ describe("text dátumu cieľa", () => {
 
 // GC-08 a GC-14 (docs/07): texty, ktoré dokument špecifikuje, a stav po dátume cieľa.
 describe("GC-08 a GC-14: znenie a stav po dátume cieľa", () => {
-  it.todo("GC-08: K = 0 a m = 0 má mať text „Pri súčasnom sporení a výnose sa cieľ nedosiahne“ (docs/07); kód pri nulovom sporení vracia text o zadaní sporenia — rozhodnúť znenie");
-  it.todo("GC-14: po dátume cieľa má byť text „Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie“ (docs/07); kód zobrazí iba dátum");
+  it("GC-14: po dátume cieľa sa zobrazí dátum a hlásenie o starom vyhodnotení", () => {
+    const d = goalDisplay(120, "2026-10-01", "2037-01-01");
+    expect(goalDateText(d, false, fmt)).toBe("formát 2036-10-01. Posledné vyhodnotenie je staršie ako dátum cieľa; urobte nové vyhodnotenie.");
+  });
 
   it("GC-14: po dátume cieľa sa dátum nemení a čas sa nezobrazí ako záporný", () => {
     const d = goalDisplay(120, "2026-10-01", "2037-01-01");
