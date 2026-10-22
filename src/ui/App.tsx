@@ -30,6 +30,8 @@ import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
 import { PHASE2_ENABLED } from "../app/features";
+import { MONTHS, cents, dateSk, eur, monthYear, todayIso } from "./kit/format";
+import { Field, Section, asNum, btn, inp, type NumIn } from "./kit/controls";
 import { isIosOtherBrowser, isIosSafari } from "../app/ios";
 import { CORE_SECTION_IDS, OPTIONAL_MODULES, readModuleChoice, visibleSectionIds, writeModuleChoice } from "../app/modules";
 import { daysUntil, expiringItems, sortForList, stockStatus } from "../domain/stock";
@@ -55,24 +57,6 @@ import {
   type Capital,
 } from "../domain/capital";
 
-const MONTHS = ["januára", "februára", "marca", "apríla", "mája", "júna", "júla", "augusta", "septembra", "októbra", "novembra", "decembra"];
-const cents = (x: number) => Math.round(x * 100);
-const eur = (c: number) => `${(c / 100).toLocaleString("sk-SK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
-/** Lokálny dnešný dátum YYYY-MM-DD (R14: nie UTC). */
-const todayIso = () => {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-};
-/** Dátum na zobrazenie: dd.mm.rrrr. Vnútorne sa dátum ukladá ako RRRR-MM-DD. */
-const dateSk = (iso: string) => {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  return m ? `${m[3]}.${m[2]}.${m[1]}` : iso;
-};
-const monthYear = (iso: string) => {
-  const [y, m] = iso.split("-").map(Number);
-  return `${MONTHS[m - 1]} ${y}`;
-};
 const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 const TYPE_LABEL: Record<TransactionType, string> = {
@@ -87,9 +71,6 @@ const SOURCE_LABEL: Record<Source, string> = { z_prijmu: "z príjmu", z_hotovost
 const canUseCamera = (): boolean => typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getUserMedia === "function";
 const STORAGE_ERROR = "Úložisko zlyhalo a dáta sa nezmenili. Skús znova alebo exportuj zálohu.";
 
-/** Číselné pole môže byť prázdne (NaN); validácia pri uložení (R11). */
-type NumIn = number | "";
-const asNum = (x: NumIn) => (x === "" ? NaN : x);
 
 /** Kontext vypočítaný raz pre všetky sekcie. */
 interface Ctx {
@@ -753,14 +734,6 @@ function Nav({ active }: { active: SectionId }) {
 }
 
 /** Nadpis a obsah jednej sekcie (zobrazuje sa samostatne). */
-function Section({ id, title, children }: { id: SectionId; title: string; children: React.ReactNode }) {
-  return (
-    <section id={id} style={{ background: "var(--page)", padding: 16, borderRadius: 8, marginBottom: 12 }}>
-      <h2 style={{ fontSize: "1.25rem", marginTop: 0, marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid var(--border-soft)" }}>{title}</h2>
-      {children}
-    </section>
-  );
-}
 
 /** Nahlásenie pripomienky (D-149): tester si vyberie GitHub, alebo formulár bez účtu. */
 function Feedback() {
@@ -4089,8 +4062,6 @@ function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo
   );
 }
 
-const inp: React.CSSProperties = { width: "100%", padding: "8px", fontSize: "1rem", boxSizing: "border-box" };
-const btn: React.CSSProperties = { padding: "8px 14px", fontSize: "1rem", marginTop: 8 };
 
 /** Hodnota poľa sa líši od východiskovej (FR-13): tlačidlo „vrátiť“ sa ukáže len vtedy. */
 function differs(value: NumIn | string, defaultValue: number | null): boolean {
@@ -4099,34 +4070,4 @@ function differs(value: NumIn | string, defaultValue: number | null): boolean {
   return Math.abs(Number(value) - defaultValue) > 1e-9;
 }
 
-function Field(props: { label: string; value: NumIn | string; onChange: (v: any) => void; step?: number; type?: string; inputMode?: "numeric" | "text"; max?: string; hint?: string; onReset?: () => void; changed?: boolean }) {
-  const textual = props.type === "text" || props.type === "date" || props.type === "password";
-  return (
-    <label style={{ display: "block", margin: "8px 0" }}>
-      <span style={{ display: "block", fontSize: "0.9rem" }}>{props.label}</span>
-      <input
-        type={props.type ?? "number"}
-        inputMode={props.inputMode}
-        max={props.max}
-        step={props.step ?? 1}
-        value={props.value}
-        onChange={(e) => {
-          if (textual) return props.onChange(e.target.value);
-          props.onChange(e.target.value === "" ? "" : Number(e.target.value));
-        }}
-        style={inp}
-      />
-      {props.hint && (
-        <span style={{ display: "flex", gap: 8, alignItems: "center", fontSize: "0.85rem", color: "var(--muted)" }}>
-          {props.hint}
-          {props.onReset && props.changed && (
-            <button type="button" onClick={props.onReset} style={{ ...btn, padding: "2px 8px", fontSize: "0.85rem", marginTop: 0 }}>
-              Vrátiť východiskovú hodnotu
-            </button>
-          )}
-        </span>
-      )}
-    </label>
-  );
-}
 

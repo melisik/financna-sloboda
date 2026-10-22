@@ -5,8 +5,9 @@ Stav: **schválené s úpravami** (D-171, D-172). Rozhodnutia zakladateľa: len 
 Hotové v tejto vetve:
 - Krok 1: entity a číselníky sú v `src/domain/model/entities.ts`; `storage/types.ts` ich znovu exportuje.
 - Krok 2: doména (výpočty) importuje len vlastné súbory a nikdy úložisko, aplikáciu ani UI (`tests/architecture.test.ts`).
+- Krok 3: spoločné prvky sú v `src/ui/kit/` (`format.ts`, `controls.tsx`, D-173); kit nesmie importovať doménu, úložisko ani sekcie (`tests/architecture.test.ts`).
 
-Zmena oproti návrhu: výpočty ostávajú v `src/domain/` (nie `core/finance/`), aby sa nepremenovalo 31 súborov naraz (D-172). Kroky 3–5 (spoločné prvky, sekcie do features/, samostatné balíky) čakajú na samostatné schválenie.
+Zmena oproti návrhu: výpočty ostávajú v `src/domain/` (nie `core/finance/`), aby sa nepremenovalo 31 súborov naraz (D-172). Kroky 4–5 (sekcie do features/, samostatné balíky) čakajú na samostatné schválenie.
 
 Ak sa jadro neskôr použije v inom projekte, vyčlení sa ako samostatný balík s verziou (git závislosť), nie kopírovaním, a to len po rozhodnutí podľa CLAUDE.md.
 

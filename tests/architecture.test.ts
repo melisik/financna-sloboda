@@ -28,6 +28,14 @@ describe("pravidlo závislostí (D-162)", () => {
     expect(up).toEqual([]);
   });
 
+  it("spoločné prvky (ui/kit) neimportujú doménu, úložisko ani sekcie aplikácie (D-173)", () => {
+    const bad = readdirSync(join(SRC, "ui", "kit"))
+      .filter((f) => /\.tsx?$/.test(f))
+      .flatMap((f) => [...readFileSync(join(SRC, "ui", "kit", f), "utf8").matchAll(/from "([^"]+)"/g)].map((m) => ({ f, spec: m[1] })))
+      .filter((i) => i.spec !== "react" && !i.spec.startsWith("./"));
+    expect(bad).toEqual([]);
+  });
+
   it("register modulov je čistý: neimportuje UI ani nič z aplikačnej vrstvy", () => {
     const bad = importsOf(join(SRC, "app")).filter((i) => i.file === "modules.ts" && i.spec.startsWith("."));
     expect(bad).toEqual([]);
