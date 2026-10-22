@@ -731,58 +731,23 @@ function useSection(visible: Set<string>): SectionId {
   return visible.has(section) ? section : "prehlad";
 }
 
-/** Horný panel s odkazmi na sekcie (D-095, D-099). Dotyková plocha aspoň 44 px. */
-/** Sekcie v hornom paneli; ostatné sú v ponuke „Viac“ (rozhodnutie zakladateľa, navigácia sa môže meniť). */
-const PRIMARY_NAV: SectionId[] = ["prehlad", "nova-transakcia", "vyhodnotenie", "majetok", "nastavenia", "zaloha"];
-
+/** Horný panel: všetky viditeľné sekcie naraz; ak sa nezmestia do riadku, zalomia sa do ďalšieho (D-170). Dotyková plocha aspoň 44 px. */
 function Nav({ active }: { active: SectionId }) {
-  const [more, setMore] = useState(false);
   const { visible } = useModules();
-  const navVisible = NAV.filter((n) => visible.has(n.id));
-  const primary = navVisible.filter((n) => PRIMARY_NAV.includes(n.id));
-  const secondary = navVisible.filter((n) => !PRIMARY_NAV.includes(n.id));
-  const moreActive = secondary.some((n) => n.id === active);
   return (
     <div style={{ position: "sticky", top: 0, background: "var(--surface)", zIndex: 1, borderBottom: "1px solid var(--border-soft)" }}>
-    <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexWrap: "nowrap", overflowX: "auto", gap: 0, padding: "4px 0" }}>
-      {primary.map((n) => (
-        <a
-          key={n.id}
-          href={`#${n.id}`}
-          aria-current={n.id === active ? "page" : undefined}
-          style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 6px", color: "inherit", whiteSpace: "nowrap", flex: "0 0 auto", fontSize: "0.9rem", fontWeight: n.id === active ? 700 : 400, textDecoration: n.id === active ? "underline" : "none" }}
-        >
-          {n.label}
-        </a>
-      ))}
-      {secondary.length > 0 && (
-      <button
-        type="button"
-        aria-expanded={more}
-        aria-controls="nav-viac"
-        onClick={() => setMore(!more)}
-        style={{ minHeight: 44, padding: "0 6px", border: "none", background: "none", color: "inherit", whiteSpace: "nowrap", flex: "0 0 auto", fontSize: "0.9rem", fontWeight: moreActive ? 700 : 400, textDecoration: moreActive ? "underline" : "none", cursor: "pointer" }}
-      >
-        Viac ▾
-      </button>
-      )}
-    </nav>
-    {more && secondary.length > 0 && (
-      <div id="nav-viac" aria-label="Ďalšie sekcie" style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "8px 0", background: "var(--surface)", borderBottom: "1px solid var(--border-soft)" }}>
-        {secondary.map((n) => (
+      <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexWrap: "wrap", gap: 0, padding: "4px 0" }}>
+        {NAV.filter((n) => visible.has(n.id)).map((n) => (
           <a
             key={n.id}
             href={`#${n.id}`}
-            onClick={() => setMore(false)}
             aria-current={n.id === active ? "page" : undefined}
-            style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 10px", color: "inherit", whiteSpace: "nowrap", fontWeight: n.id === active ? 700 : 400, textDecoration: n.id === active ? "underline" : "none" }}
+            style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 6px", color: "inherit", whiteSpace: "nowrap", flex: "0 0 auto", fontSize: "0.9rem", fontWeight: n.id === active ? 700 : 400, textDecoration: n.id === active ? "underline" : "none" }}
           >
             {n.label}
           </a>
         ))}
-      </div>
-    )}
-    <div aria-hidden="true" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 28, pointerEvents: "none", background: "linear-gradient(to right, transparent, var(--surface))" }} />
+      </nav>
     </div>
   );
 }

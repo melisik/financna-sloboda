@@ -26,12 +26,13 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await expect(page.locator("p", { hasText: "Dátum cieľa:" }).first()).toBeVisible();
   });
 
-  test("bez dát sa nezobrazí výzva na zálohu; navigácia je na telefóne v jednom riadku", async ({ page }) => {
+  test("bez dát sa nezobrazí výzva na zálohu; navigácia na telefóne zobrazí všetky sekcie a nerozťahuje stránku", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await openApp(page);
     await expect(page.getByText("Záloha ešte nebola exportovaná")).toHaveCount(0);
-    const box = await page.getByRole("navigation", { name: "Hlavná navigácia" }).boundingBox();
-    expect(box?.height ?? 999).toBeLessThan(60);
+    await expect(page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("link")).toHaveCount(14);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
   });
 
   test("tlačidlo vrátiť východiskovú hodnotu sa ukáže len pri hodnote, ktorá sa líši (FR-13)", async ({ page }) => {

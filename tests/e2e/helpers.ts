@@ -3,16 +3,9 @@ import { expect } from "@playwright/test";
 
 export type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "dane" | "sklad" | "rocny-prehlad" | "nastavenia" | "zaloha";
 
-/** Prepne na sekciu kliknutím v hornom paneli (zobrazí sa len táto sekcia, D-099). */
+/** Prepne na sekciu kliknutím v hornom paneli (všetky sekcie sú v paneli, D-170). */
 export async function goTo(page: Page, id: SectionId) {
-  const nav = page.getByRole("navigation", { name: "Hlavná navigácia" });
-  if ((await nav.locator(`a[href="#${id}"]`).count()) === 0) {
-    // sekcia nie je v hornom paneli: otvoríme „Viac“
-    await nav.getByRole("button", { name: /^Viac/ }).click();
-    await page.locator(`#nav-viac a[href="#${id}"]`).click();
-  } else {
-    await nav.locator(`a[href="#${id}"]`).click();
-  }
+  await page.getByRole("navigation", { name: "Hlavná navigácia" }).locator(`a[href="#${id}"]`).click();
   await expect(page.locator(`section#${id}`)).toBeVisible();
 }
 

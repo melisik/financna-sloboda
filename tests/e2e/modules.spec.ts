@@ -9,15 +9,14 @@ test.describe("moduly (D-162)", () => {
     const moduly = page.getByRole("region", { name: "Moduly" });
     await moduly.getByLabel("Investície", { exact: true }).uncheck();
 
-    await page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("button", { name: /^Viac/ }).click();
-    await expect(page.locator('#nav-viac a[href="#investicie"]')).toHaveCount(0);
-    await expect(page.locator('#nav-viac a[href="#dane"]')).toBeVisible();
+    const nav = page.getByRole("navigation", { name: "Hlavná navigácia" });
+    await expect(nav.locator('a[href="#investicie"]')).toHaveCount(0);
+    await expect(nav.locator('a[href="#dane"]')).toBeVisible();
 
     await page.reload();
     await goTo(page, "nastavenia");
     await expect(page.getByRole("region", { name: "Moduly" }).getByLabel("Investície", { exact: true })).not.toBeChecked();
-    await page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("button", { name: /^Viac/ }).click();
-    await expect(page.locator('#nav-viac a[href="#investicie"]')).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "Hlavná navigácia" }).locator('a[href="#investicie"]')).toHaveCount(0);
   });
 
   test("jadro (rozpočet, pravidelné výdavky) zostane zapnuté, aj keď sú všetky voliteľné moduly vypnuté", async ({ page }) => {
