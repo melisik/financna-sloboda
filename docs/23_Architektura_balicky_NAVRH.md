@@ -13,7 +13,7 @@ Hotové v tejto vetve:
 - Automatika (D-196): automatické vyhodnotenie a splácanie sú v `src/ui/useAutomaticUpdates.ts`. `App.tsx` má 230 riadkov; zostáva routing.
 - Routing sekcií (D-197): `SectionView` v `src/ui/Sekcie.tsx`. `App.tsx` má 138 riadkov a zostáva so stavom, načítaním a zložením.
 
-Zmena oproti návrhu: výpočty ostávajú v `src/domain/` (nie `core/finance/`), aby sa nepremenovalo 31 súborov naraz (D-172). Kroky 4–5 (sekcie do features/, samostatné balíky) čakajú na samostatné schválenie.
+Zmena oproti návrhu: výpočty ostávajú v `src/domain/` (nie `core/finance/`), aby sa nepremenovalo 31 súborov naraz (D-172). Krok 4 (sekcie do features/ a zloženie appky) je hotový (D-174 až D-197). Krok 5 (samostatné npm balíky) je odložený (D-198).
 
 Ak sa jadro neskôr použije v inom projekte, vyčlení sa ako samostatný balík s verziou (git závislosť), nie kopírovaním, a to len po rozhodnutí podľa CLAUDE.md.
 
@@ -155,7 +155,7 @@ Každý krok je samostatný commit so zelenými testami.
 2. **`core/finance` ako priečinok s pravidlom** (zatiaľ bez samostatného balíčka). Presun 31 súborov, test závislostí rozšírený na všetky smery.
 3. **`ui-kit`:** `Field`, `Section`, `btn`, formátovanie. Malé, mechanické, bez rizika.
 4. **Features, po jednom:** začať s najmenej previazanými (`zaloha`, `zamok`, `sklad`, `dane`), potom `doklady`, `investicie`, `zavazky`, `prijmy`, `rozpocet`, `majetok`, `transakcie`, `vyhodnotenie`, `prehlad`, nakoniec `sprievodca` a `app`.
-5. **Samostatné balíčky v npm workspaces** (`packages/core`, `packages/ui-kit`), len ak je reálna potreba použiť ich mimo tejto aplikácie.
+5. **Samostatné balíčky v npm workspaces** (`packages/core`, `packages/ui-kit`), len ak je reálna potreba použiť ich mimo tejto aplikácie. **Odložené (D-198).**
 
 Po kroku 4 bude `App.tsx` len zloženie (odhad pod 300 riadkov).
 
