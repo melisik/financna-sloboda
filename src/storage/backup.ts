@@ -18,6 +18,7 @@ export function buildBackup(data: AppData, exportedAt: string) {
     recurringExpenses: data.recurringExpenses,
     stockItems: data.stockItems,
     recipes: data.recipes,
+    dogs: data.dogs,
     budgets: data.budgets,
   };
 }
@@ -40,7 +41,7 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
   const base = o.schemaVersion === 1 ? { ...content, properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [] } : content;
   // Verzie 1 a 2 nemajú pravidelné výdavky: načíta sa prázdny zoznam (D-124).
   // Staršie zálohy nemajú pravidelné výdavky (v3), sklad (v4), recepty (v5) ani položky dokladu (v6): načíta sa prázdny zoznam (D-124, D-127, D-129).
-  const v = validateAppData({ recurringExpenses: [], stockItems: [], recipes: [], ...base }, today);
+  const v = validateAppData({ recurringExpenses: [], stockItems: [], recipes: [], dogs: [], ...base }, today);
   if (!v.ok) return v;
   return { ok: true, data: v.data, counts: { transactions: v.data!.transactions.length, snapshots: v.data!.snapshots.length } };
 }

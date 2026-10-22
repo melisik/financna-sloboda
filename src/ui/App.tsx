@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, type RentalEntry, type RentalEntryKind, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, DOG_KEEPING_PLACES, DOG_PURPOSES, type Dog, type DogKeepingPlace, type DogPurpose, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, type RentalEntry, type RentalEntryKind, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
@@ -22,6 +22,7 @@ import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "..
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { futureOutlook } from "../domain/outlook";
 import { rentalRow11, rentalTotalsForYear, rentalYears } from "../domain/rental";
+import { activeDogCount } from "../domain/dogs";
 import { weeklySummary } from "../domain/weekly";
 import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
@@ -299,6 +300,7 @@ export function App() {
       {section === "majetok" && (
         <Section id="majetok" title="Majetok">
           <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} />
+          <DogSection repo={repo} dogs={data.dogs} today={todayIso()} onSaved={reload} />
         </Section>
       )}
       {section === "rozpocet" && (
@@ -970,6 +972,159 @@ const PROPERTY_MODE_LABEL: Record<PropertyMode, string> = {
 };
 
 /** Karta majetku (Fáza 2, návrh docs/11_Karta_majetku.md): nehnuteľnosť a jej čistá hodnota. */
+const DOG_PLACE_LABEL: Record<DogKeepingPlace, string> = {
+  byt: "byt",
+  rodinny_dom: "rodinný dom",
+  objekt_podnikanie: "objekt na podnikanie",
+  ina_stavba: "iná stavba",
+};
+const DOG_PURPOSE_LABEL: Record<DogPurpose, string> = { domaci: "domáci", sluzobny: "služobný", zvlastny: "zvláštny" };
+
+/** Evidencia psov pre daň za psa (D-159): podklad pre tlačivo 17-dp-md, oddiel V. Sadzbu určuje obec; appka ju nepočíta. */
+function DogSection({ repo, dogs, today, onSaved }: { repo: Repository; dogs: Dog[]; today: string; onSaved: () => void }) {
+  const [editing, setEditing] = useState<Dog | "new" | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deleteDog(id);
+      setConfirmId(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <section aria-label="Psy">
+      <h3 style={{ fontSize: "1.05rem" }}>Psy (daň za psa)</h3>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Evidencia psov pre tlačivo 17-dp-md, oddiel V. Sadzbu určuje obec; appka ju nepočíta.</p>
+      <p>Psov evidovaných dnes: <strong>{activeDogCount(dogs, today)}</strong></p>
+      {dogs.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny pes.</p>}
+      {dogs.map((d) => (
+        <div key={d.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+          <p style={{ margin: 0 }}><strong>{d.name || "Pes bez mena"}</strong>{d.evidenceNumber ? ` · evidenčné číslo ${d.evidenceNumber}` : ""}</p>
+          <p style={{ margin: "4px 0", fontSize: "0.9rem" }}>{d.address}, {d.municipality} · {DOG_PLACE_LABEL[d.keepingPlace]} · účel {DOG_PURPOSE_LABEL[d.purpose]}</p>
+          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+            Od {dateSk(d.startDate)}{d.endDate ? `, do ${dateSk(d.endDate)}` : ", trvá"}
+            {d.breed ? ` · plemeno ${d.breed}` : ""}{d.age ? ` · vek ${d.age}` : ""}{d.holderWithDisability ? " · držiteľ preukazu ŤZP" : ""}
+          </p>
+          {confirmId === d.id ? (
+            <div>
+              <p>Naozaj zmazať psa „{d.name || "bez mena"}“?</p>
+              <button onClick={() => remove(d.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+              <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+            </div>
+          ) : (
+            <div>
+              <button onClick={() => { setEditing(d); setErr(null); }} style={btn}>Upraviť</button>{" "}
+              <button onClick={() => setConfirmId(d.id)} style={btn}>Zmazať</button>
+            </div>
+          )}
+        </div>
+      ))}
+      {editing !== null ? (
+        <DogForm
+          key={editing === "new" ? "new" : editing.id}
+          repo={repo}
+          initial={editing === "new" ? null : editing}
+          today={today}
+          onDone={() => { setEditing(null); onSaved(); }}
+          onCancel={() => setEditing(null)}
+        />
+      ) : (
+        <button onClick={() => setEditing("new")} style={btn}>Pridať psa</button>
+      )}
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
+    </section>
+  );
+}
+
+function DogForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: Dog | null; today: string; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [evidence, setEvidence] = useState(initial?.evidenceNumber ?? "");
+  const [breed, setBreed] = useState(initial?.breed ?? "");
+  const [age, setAge] = useState(initial?.age ?? "");
+  const [municipality, setMunicipality] = useState(initial?.municipality ?? "");
+  const [address, setAddress] = useState(initial?.address ?? "");
+  const [place, setPlace] = useState<DogKeepingPlace>(initial?.keepingPlace ?? "byt");
+  const [purpose, setPurpose] = useState<DogPurpose>(initial?.purpose ?? "domaci");
+  const [holder, setHolder] = useState(initial?.holderWithDisability ?? false);
+  const [startDate, setStartDate] = useState(initial?.startDate ?? today);
+  const [endDate, setEndDate] = useState(initial?.endDate ?? "");
+  const [err, setErr] = useState<string | null>(null);
+
+  const save = async () => {
+    if (municipality.trim() === "") return setErr("Vyplň obec, kde je pes chovaný.");
+    if (address.trim() === "") return setErr("Vyplň ulicu a číslo domu, kde je pes chovaný.");
+    const sErr = checkDate(startDate, today, "dátum vzniku");
+    if (sErr.length) return setErr(sErr[0]);
+    if (endDate !== "") {
+      const eErr = checkDate(endDate, "9999-12-31", "dátum zániku");
+      if (eErr.length) return setErr(eErr[0]);
+      if (endDate < startDate) return setErr("Zánik nesmie byť pred vznikom.");
+    }
+    const now = new Date().toISOString();
+    const dog: Dog = {
+      id: initial?.id ?? uid(),
+      municipality: municipality.trim(),
+      address: address.trim(),
+      keepingPlace: place,
+      purpose,
+      startDate,
+      createdAt: initial?.createdAt ?? now,
+      updatedAt: now,
+      ...(name.trim() ? { name: name.trim().slice(0, 80) } : {}),
+      ...(evidence.trim() ? { evidenceNumber: evidence.trim().slice(0, 40) } : {}),
+      ...(breed.trim() ? { breed: breed.trim().slice(0, 80) } : {}),
+      ...(age.trim() ? { age: age.trim().slice(0, 20) } : {}),
+      ...(holder ? { holderWithDisability: true } : {}),
+      ...(endDate !== "" ? { endDate } : {}),
+    };
+    try {
+      await repo.saveDog(dog);
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
+      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť psa" : "Nový pes"}</h4>
+      <Field label="Meno psa (nepovinné)" value={name} type="text" onChange={setName} />
+      <Field label="Evidenčné číslo psa (nepovinné)" value={evidence} type="text" onChange={setEvidence} hint="pridelí obec" />
+      <Field label="Plemeno (nepovinné)" value={breed} type="text" onChange={setBreed} />
+      <Field label="Vek (nepovinné)" value={age} type="text" onChange={setAge} />
+      <Field label="Obec, kde je pes chovaný" value={municipality} type="text" onChange={setMunicipality} />
+      <Field label="Ulica a číslo domu, kde je pes chovaný" value={address} type="text" onChange={setAddress} />
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Miesto držania psa
+        <select aria-label="Miesto držania psa" value={place} onChange={(e) => setPlace(e.target.value as DogKeepingPlace)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {DOG_KEEPING_PLACES.map((p) => <option key={p} value={p}>{DOG_PLACE_LABEL[p]}</option>)}
+        </select>
+      </label>
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Účel držania psa
+        <select aria-label="Účel držania psa" value={purpose} onChange={(e) => setPurpose(e.target.value as DogPurpose)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          {DOG_PURPOSES.map((p) => <option key={p} value={p}>{DOG_PURPOSE_LABEL[p]}</option>)}
+        </select>
+      </label>
+      <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0" }}>
+        <input type="checkbox" checked={holder} onChange={(e) => setHolder(e.target.checked)} />
+        Držiteľ preukazu FO s ťažkým zdravotným postihnutím
+      </label>
+      <Field label="Dátum vzniku daňovej povinnosti" value={startDate} type="date" max={today} onChange={setStartDate} />
+      <Field label="Dátum zániku daňovej povinnosti (nepovinné)" value={endDate} type="date" onChange={setEndDate} />
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
+      <button onClick={save} style={btn}>Uložiť psa</button>{" "}
+      <button onClick={onCancel} style={btn}>Zrušiť</button>
+    </div>
+  );
+}
+
 function PropertySection({ repo, properties, assets, today, onSaved }: { repo: Repository; properties: Property[]; assets: Asset[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<Property | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -2806,7 +2961,7 @@ function BudgetSection({ repo, budgets, transactions, recurring, properties, tod
 /** Odomknutie PIN-om (D-119). Údaje sa nezobrazia, kým PIN nie je správny. */
 const EMPTY_DATA: AppData = {
   settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [],
-  incomes: [], budgets: [], recurringExpenses: [], stockItems: [], recipes: [],
+  incomes: [], budgets: [], recurringExpenses: [], stockItems: [], recipes: [], dogs: [],
 };
 
 /** Odomknutie PIN-om. Zabudnutý PIN = vymazanie dát v zariadení po dvojitom potvrdení (D-135). */

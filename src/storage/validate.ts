@@ -1,5 +1,5 @@
 import { isReceiptId } from "../domain/receipt";
-import { ASSET_KINDS, BUDGET_CATEGORIES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Recipe, type ReceiptItem, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Dog, type Recipe, type ReceiptItem, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -196,6 +196,26 @@ export function validateReceiptItem(i: unknown, label = "položka dokladu"): str
   return errors;
 }
 
+export function validateDog(d: unknown, today: string, label = "pes"): string[] {
+  if (typeof d !== "object" || d === null || Array.isArray(d)) return [`${label}: musí byť objekt`];
+  const o = d as Record<string, unknown>;
+  const errors = unknownKeys(o, ["id", "name", "evidenceNumber", "breed", "age", "municipality", "address", "keepingPlace", "purpose", "holderWithDisability", "startDate", "endDate", "createdAt", "updatedAt"], label);
+  if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
+  for (const [key, max] of [["name", 80], ["evidenceNumber", 40], ["breed", 80], ["age", 20], ["municipality", 80], ["address", 120]] as const) {
+    if (o[key] !== undefined && (typeof o[key] !== "string" || (o[key] as string).length > max)) errors.push(`${label}: ${key} musí byť text max ${max} znakov`);
+  }
+  if (typeof o.municipality !== "string" || o.municipality.trim().length === 0) errors.push(`${label}: obec je povinná`);
+  if (typeof o.address !== "string" || o.address.trim().length === 0) errors.push(`${label}: adresa je povinná`);
+  if (!(DOG_KEEPING_PLACES as readonly unknown[]).includes(o.keepingPlace)) errors.push(`${label}: miesto držania musí byť z katalógu`);
+  if (!(DOG_PURPOSES as readonly unknown[]).includes(o.purpose)) errors.push(`${label}: účel držania musí byť z katalógu`);
+  if (o.holderWithDisability !== undefined && typeof o.holderWithDisability !== "boolean") errors.push(`${label}: príznak musí byť áno/nie`);
+  errors.push(...checkDate(o.startDate, today, `${label}: dátum vzniku`));
+  if (o.endDate !== undefined) errors.push(...checkDate(o.endDate, "9999-12-31", `${label}: dátum zániku`));
+  if (typeof o.startDate === "string" && typeof o.endDate === "string" && o.endDate < o.startDate) errors.push(`${label}: zánik nesmie byť pred vznikom`);
+  if (typeof o.createdAt !== "string" || typeof o.updatedAt !== "string") errors.push(`${label}: chýba čas vytvorenia alebo úpravy`);
+  return errors;
+}
+
 export function validateRecipe(r: unknown, label = "recept"): string[] {
   if (typeof r !== "object" || r === null || Array.isArray(r)) return [`${label}: musí byť objekt`];
   const o = r as Record<string, unknown>;
@@ -285,7 +305,7 @@ export function validateSettings(s: unknown, today: string): string[] {
 export function validateAppData(d: unknown, today: string): Check & { data?: AppData } {
   if (typeof d !== "object" || d === null || Array.isArray(d)) return { ok: false, errors: ["záloha musí byť objekt"] };
   const o = d as Record<string, unknown>;
-  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes"], "záloha");
+  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs"], "záloha");
   if (o.settings !== null && o.settings !== undefined) errors.push(...validateSettings(o.settings, today));
   if (!Array.isArray(o.transactions)) errors.push("záloha: transactions musí byť pole");
   else o.transactions.forEach((t, i) => errors.push(...validateTransaction(t, today, `transakcia ${i + 1}`)));
@@ -320,7 +340,10 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
   if (!Array.isArray(o.recipes)) errors.push("záloha: recipes musí byť pole");
   else o.recipes.forEach((r, n) => errors.push(...validateRecipe(r, `recept ${n + 1}`)));
   const recipeList = Array.isArray(o.recipes) ? (o.recipes as unknown[]) : [];
-  for (const [name, list] of [["transakcie", ids(o.transactions as unknown[])], ["vyhodnotenia", ids(o.snapshots as unknown[])], ["majetok", ids(propertyList)], ["aktíva", ids(assetList)], ["investície", ids(investmentList)], ["záväzky", ids(liabilityList)], ["príjmy", ids(incomeList)], ["rozpočty", ids(budgetList)], ["pravidelné výdavky", ids(recurringList)], ["sklad", ids(stockList)]] as const) {
+  if (!Array.isArray(o.dogs)) errors.push("záloha: dogs musí byť pole");
+  else o.dogs.forEach((x, n) => errors.push(...validateDog(x, today, `pes ${n + 1}`)));
+  const dogList = Array.isArray(o.dogs) ? (o.dogs as unknown[]) : [];
+  for (const [name, list] of [["transakcie", ids(o.transactions as unknown[])], ["vyhodnotenia", ids(o.snapshots as unknown[])], ["majetok", ids(propertyList)], ["aktíva", ids(assetList)], ["investície", ids(investmentList)], ["záväzky", ids(liabilityList)], ["príjmy", ids(incomeList)], ["rozpočty", ids(budgetList)], ["pravidelné výdavky", ids(recurringList)], ["sklad", ids(stockList)], ["psy", ids(dogList)]] as const) {
     if (new Set(list).size !== list.length) errors.push(`záloha: duplicitné id v ${name}`);
   }
   if (new Set(ids(recipeList)).size !== recipeList.length) errors.push("záloha: duplicitné id v receptoch");
@@ -340,6 +363,7 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
       recurringExpenses: o.recurringExpenses as RecurringExpense[],
       stockItems: o.stockItems as StockItem[],
       recipes: o.recipes as Recipe[],
+      dogs: o.dogs as Dog[],
     },
   };
 }

@@ -248,6 +248,30 @@ export interface Recipe {
   updatedAt: string;
 }
 
+/** Miesto držania psa a účel držania podľa tlačiva 17-dp-md, oddiel V (D-159). */
+export const DOG_KEEPING_PLACES = ["byt", "rodinny_dom", "objekt_podnikanie", "ina_stavba"] as const;
+export type DogKeepingPlace = (typeof DOG_KEEPING_PLACES)[number];
+export const DOG_PURPOSES = ["domaci", "sluzobny", "zvlastny"] as const;
+export type DogPurpose = (typeof DOG_PURPOSES)[number];
+
+/** Pes na evidenciu pre daň za psa (D-159). Podklad pre tlačivo 17-dp-md, sadzby určuje obec. */
+export interface Dog {
+  id: string;
+  name?: string; // max 80 znakov, len na orientáciu
+  evidenceNumber?: string; // evidenčné číslo psa, ak ho pridelila obec (max 40)
+  breed?: string; // plemeno (max 80)
+  age?: string; // vek, text (max 20)
+  municipality: string; // obec, kde je pes chovaný (max 80)
+  address: string; // ulica a číslo domu, kde je pes chovaný (max 120)
+  keepingPlace: DogKeepingPlace;
+  purpose: DogPurpose;
+  holderWithDisability?: boolean; // držiteľ preukazu FO s ťažkým zdravotným postihnutím (tlačivo, oddiel V)
+  startDate: string; // dátum vzniku daňovej povinnosti, YYYY-MM-DD
+  endDate?: string; // dátum zániku daňovej povinnosti, YYYY-MM-DD
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   settings: Settings | null;
   transactions: Transaction[];
@@ -261,10 +285,11 @@ export interface AppData {
   recurringExpenses: RecurringExpense[];
   stockItems: StockItem[];
   recipes: Recipe[];
+  dogs: Dog[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */
 export const APP_NAME = "financna-sloboda";
-export const SCHEMA_VERSION = 6; // v2 pridáva properties (FR-28); v3 pravidelné výdavky (D-124); v4 sklad; v5 recepty (D-127); v6 položky dokladu (D-129)
+export const SCHEMA_VERSION = 7; // v2 pridáva properties (FR-28); v3 pravidelné výdavky (D-124); v4 sklad; v5 recepty (D-127); v6 položky dokladu (D-129); v7 psy (D-159)
 /** Verzie schémy, ktoré import prijme; verzia 1 nemá majetok (načíta sa prázdny zoznam). */
-export const READABLE_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6] as const;
+export const READABLE_SCHEMA_VERSIONS = [1, 2, 3, 4, 5, 6, 7] as const;
