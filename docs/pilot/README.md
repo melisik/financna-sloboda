@@ -1,6 +1,6 @@
 # Pilot (Fáza 1b) – záznamy
 
-Podľa `docs/17_Overovaci_plan_pilota.md`. Začiatok: 2026-10-19 (build bb992db na `main`).
+Podľa `docs/17_Overovaci_plan_pilota.md`. Začiatok: 2026-10-21 (schválené v D-153, po overení na iPhone).
 
 - `denik-zmatkov.md`: každý zmätok jednou vetou, dátum, obrazovka. **Bez reálnych súm a osobných údajov.**
 - `tyzdenny-zapis.md`: týždenný záznam metrík (dotyky, čas transakcie, počet otázok).

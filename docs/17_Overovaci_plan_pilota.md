@@ -1,6 +1,6 @@
 # 17 – Overovací plán pilota (Fáza 1b)
 
-> Stav: **návrh na schválenie.** Vychádza z `06_Roadmap.md` §5 (pilot) a §10 (metriky). Čísla označené [predpoklad] sa overia v pilote. Plán nemení kód ani výpočty.
+> Stav: **schválený (D-153, 2026-10-22).** Vychádza z `06_Roadmap.md` §5 (pilot) a §10 (metriky). Čísla označené [predpoklad] sa overia v pilote. Plán nemení kód ani výpočty.
 
 ## 1. Účel
 
@@ -14,7 +14,7 @@ Overiť, že aplikácia je zrozumiteľná a dá sa používať bez vysvetlenia, 
 
 ## 3. Trvanie a rytmus
 
-- **3 mesiace** (roadmapa §5). Začiatok: po zlúčení do `main` a overení na iPhone.
+- **3 mesiace** (roadmapa §5). Začiatok: **2026-10-21**, po zlúčení do `main` a overení na iPhone (potvrdené).
 - **Týždenne:** zadanie transakcií, kontrola, či sa zobrazuje správny stav (5 minút).
 - **Mesačne:** tri po sebe idúce vyhodnotenia (roadmapa §5). Vyhodnotenie sa robí v posledných troch dňoch mesiaca (D-107).
 - **Raz na konci mesiaca:** záloha a overenie importu (roadmapa §5: aspoň jeden round trip).
@@ -52,8 +52,14 @@ Pilot je úspešný, ak sú splnené všetky body z roadmapy §5 a metriky z tab
 - **Zmena kódu počas pilotu:** každá zmena výpočtu zneplatní porovnanie. Zmeny UI sú možné, ale zapíšu sa do denníka.
 - **Privacy:** údaje ostávajú lokálne (FR-16). Do repozitára sa dávajú len anonymizované výsledky.
 
-## 9. Otvorené otázky
+## 9. Odpovede na otvorené otázky (schválené 2026-10-22)
 
-1. Bude mať pilot tretiu osobu, alebo len vlastníka?
-2. Má sa pilot spustiť až po iPhone overení (roadmapa, 2026-10-23), alebo skôr?
-3. Ako dlho držať pravidelnú kontrolu bez zmien kódu, aby výsledky boli porovnateľné?
+1. **Tretia osoba:** áno, externí testeri podľa `docs/Testovaci_scenare.md` (scenár A krok za krokom, scenár B voľný). Výsledky sa vedú oddelene: vlastník a tester.
+2. **Začiatok:** po iPhone overení, ktoré je hotové 2026-10-21. Pilot začína 2026-10-21, nie neskôr.
+3. **Kód počas pilotu:** výpočty sa nemenia. Zmeny UI sa zapisujú do denníka a ak vyplynú z nálezu, do `Decisions.md`. Porovnateľnosť tak ostáva zachovaná.
+
+## 10. Prepojenie s ostatnými dokumentmi
+
+- Záznamy: `docs/pilot/` (`denik-zmatkov.md`, `tyzdenny-zapis.md`, README).
+- Scenáre pre testerov: `docs/Testovaci_scenare.md`.
+- Nálezy z testov na telefóne: tlačidlo **Nahlásiť pripomienku** v appke; opravy vo vetve, nasadenie na `main` podľa rozhodnutia zakladateľa.

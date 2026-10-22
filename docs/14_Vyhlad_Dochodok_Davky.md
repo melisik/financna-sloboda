@@ -1,6 +1,6 @@
 # 14 – Výhľad: starobný dôchodok a sociálne dávky (návrh)
 
-> Stav: **návrh na diskusiu.** Kód sa nemení, kým vlastník nepotvrdí smer. Všetky pravidlá, čísla a lehoty v tomto dokumente sú **predpoklad, kým sa neoverí** v primárnom zdroji (Sociálna poisťovňa, ÚPSVaR, zákon).
+> Stav: **čiastočne implementované (D-154).** Zobrazenie budúcich dôchodkov a dávok zo zadaných údajov v sekcii Príjmy (výhľad). Výpočty, dátum výpisu a overené pravidlá ostávajú mimo. Všetky pravidlá, čísla a lehoty v tomto dokumente sú **predpoklad, kým sa neoverí** v primárnom zdroji (Sociálna poisťovňa, ÚPSVaR, zákon).
 
 ## 1. Účel
 

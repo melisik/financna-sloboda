@@ -20,6 +20,7 @@ import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../app/feedback";
 import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, staleValuationNames, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
+import { futureOutlook } from "../domain/outlook";
 import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
@@ -1719,6 +1720,28 @@ function IncomeBalance({ income, data, today }: { income: number; data: AppData;
   );
 }
 
+/** Výhľad (docs/14, D-154): budúce dôchodky a dávky zo zadaných údajov. Len zobrazenie; nič sa neodhaduje. */
+function OutlookBlock({ incomes, today }: { incomes: RegularIncome[]; today: string }) {
+  const items = futureOutlook(incomes, today);
+  return (
+    <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 12 }}>
+      <h3 style={{ fontSize: "1rem", marginTop: 0 }}>Výhľad</h3>
+      {items.length === 0 ? (
+        <p style={{ color: "var(--muted)" }}>Zatiaľ nie je zadaný žiadny budúci dôchodok ani dávka. Ak poznáš dátum začiatku, zadaj ho ako príjem s druhom dôchodku alebo dávky.</p>
+      ) : (
+        <ul style={{ paddingLeft: 20, margin: "4px 0" }}>
+          {items.map((i) => (
+            <li key={i.id}>Od {dateSk(i.startDate)}: {INCOME_KIND_LABEL[i.kind]} {eur(i.amountCents)} {i.frequency === "mesacne" ? "mesačne" : "jednorazovo"} ({i.name})</li>
+          ))}
+        </ul>
+      )}
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem", margin: 0 }}>
+        Zobrazujú sa len údaje, ktoré si zadal. Appka nič neodhaduje a dátum cieľa sa podľa toho nemení.
+      </p>
+    </div>
+  );
+}
+
 function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: Repository; incomes: RegularIncome[]; data: AppData; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<RegularIncome | "new" | null>(null);
   const [pendingFeed, setPendingFeed] = useState<ParsedFeed | null>(null);
@@ -1790,6 +1813,7 @@ function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: Reposito
         )}
       </div>
       {incomes.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny pravidelný príjem.</p>}
+      <OutlookBlock incomes={incomes} today={today} />
       <IncomeBalance income={monthlyIncomeCents(incomes, today)} data={data} today={today} />
       {irregularIncomes(incomes).length > 0 && (
         <p style={{ color: "var(--muted)" }}>Nepravidelné príjmy (do mesačného súčtu sa nerátajú): {eur(irregularIncomes(incomes).reduce((sum, i) => sum + i.amountCents, 0))}</p>
