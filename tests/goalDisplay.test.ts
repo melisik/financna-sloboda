@@ -5,6 +5,13 @@ import { goalDisplay } from "../src/domain/goalDisplay";
 const eur = (x: number) => x * 100;
 const DL = "2026-10-14";
 
+describe("zobrazenie dátumu pri neplatnom počte mesiacov (nález 5)", () => {
+  it("NaN a záporný počet mesiacov sú nedosiahnuteľné, nikdy NaN dátum", () => {
+    expect(goalDisplay(NaN, DL, DL)).toEqual({ kind: "unreachable" });
+    expect(goalDisplay(-3, DL, DL)).toEqual({ kind: "unreachable" });
+  });
+});
+
 describe("goalDisplay (FR-02, FR-10, D-019, D-024)", () => {
   // GC-12: K = 100 000, m = 500, r = 4 %, T = 2 000 000 → n ≈ 655,4 → „viac ako 50 rokov“
   it("GC-12: n nad 50 rokov sa zobrazí ako „viac ako 50 rokov“", () => {

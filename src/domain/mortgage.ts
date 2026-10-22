@@ -72,3 +72,11 @@ export function amortizeMortgage(p: Property, today: string): { mortgageBalanceC
   const r = amortizeLoan(p.mortgageBalanceCents, p.mortgageRate ?? 0, p.monthlyPaymentCents, p.balanceDate, today);
   return r ? { mortgageBalanceCents: r.balanceCents, balanceDate: r.balanceDate } : null;
 }
+
+/**
+ * Splátka, ktorá nepokryje úrok za jeden mesiac (alebo ho len vyrovná): zostatok nekleslie (nález 8).
+ * Používa sa na upozornenie pri zápise záväzku.
+ */
+export function paymentBelowInterest(balanceCents: number, rate: number, paymentCents: number): boolean {
+  return balanceCents > 0 && paymentCents > 0 && paymentCents <= (balanceCents * rate) / 12;
+}

@@ -4,6 +4,26 @@ import { monthsToTarget, targetDate } from "../src/domain/goal";
 const eur = (x: number) => x * 100;
 
 describe("monthsToTarget (FR-02)", () => {
+  it("záporné alebo nulové sporenie pri r = 0 je nedosiahnuteľné, nie NaN (nález 5)", () => {
+    expect(monthsToTarget(eur(1_000), eur(-50), 0, eur(600_000))).toBeNull();
+    expect(monthsToTarget(eur(1_000), 0, 0, eur(600_000))).toBeNull();
+  });
+
+  it("záporné sporenie s r > 0 je nedosiahnuteľné, nie NaN ani záporný čas (nález 5)", () => {
+    expect(monthsToTarget(eur(1_000), eur(-50), 0.035, eur(600_000))).toBeNull();
+  });
+
+  it("výsledok je vždy null alebo konečné nezáporné číslo", () => {
+    for (const m of [-10_000, -100, -1, 0, 1, 100]) {
+      for (const r of [0, 0.02, 0.1]) {
+        for (const k of [0, 1_000, 100_000]) {
+          const n = monthsToTarget(k, m, r, eur(600_000));
+          expect(n === null || (Number.isFinite(n) && n >= 0)).toBe(true);
+        }
+      }
+    }
+  });
+
   // GC-03: K = 100 000, m = 500, r = 4 %, T = 600 000 → n = 333,92 → 334 mesiacov
   it("GC-03: n ≈ 333,92 a po ceil 334 mesiacov", () => {
     const n = monthsToTarget(eur(100_000), eur(500), 0.04, eur(600_000));

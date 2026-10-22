@@ -30,7 +30,7 @@ export function buildBackup(data: AppData, exportedAt: string, attachments: Atta
  * Import (FR-18): overí verziu schémy a obsah. Vráti dáta alebo chyby.
  * Pri chybe sa nič nemení; zápis robí úložisko až po potvrdení.
  */
-export function parseBackup(json: unknown, today: string): Check & { data?: AppData; attachments?: Attachment[]; counts?: { transactions: number; snapshots: number } } {
+export function parseBackup(json: unknown, today: string): Check & { data?: AppData; attachments?: Attachment[]; counts?: { transactions: number; snapshots: number }; notes?: string[] } {
   if (typeof json !== "object" || json === null || Array.isArray(json)) return { ok: false, errors: ["súbor nie je platná záloha"] };
   const o = json as Record<string, unknown>;
   if (o.app !== APP_NAME) return { ok: false, errors: ["súbor nepatrí tejto aplikácii"] };
@@ -44,7 +44,21 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
   const base = o.schemaVersion === 1 ? { ...content, properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [] } : content;
   // Verzie 1 a 2 nemajú pravidelné výdavky: načíta sa prázdny zoznam (D-124).
   // Staršie zálohy nemajú pravidelné výdavky (v3), sklad (v4), recepty (v5) ani položky dokladu (v6): načíta sa prázdny zoznam (D-124, D-127, D-129).
-  const v = validateAppData({ recurringExpenses: [], stockItems: [], recipes: [], dogs: [], ...base }, today);
+  // Záporné mesačné sporenie vznikalo pred opravou uloženia (nález 1). Pri obnove sa pole vynechá,
+  // hodnota sa odvodí z transakcií a import o tom povie v náhľade; zvyšok zálohy sa nestratí.
+  const notes: string[] = [];
+  let withSettings: Record<string, unknown> = base;
+  const settingsIn = base.settings;
+  if (typeof settingsIn === "object" && settingsIn !== null && !Array.isArray(settingsIn)) {
+    const st: Record<string, unknown> = { ...(settingsIn as Record<string, unknown>) };
+    const negative = ["savingInvCents", "savingCashCents"].filter((k) => typeof st[k] === "number" && (st[k] as number) < 0);
+    if (negative.length > 0) {
+      for (const k of negative) delete st[k];
+      withSettings = { ...base, settings: st };
+      notes.push("Záporné mesačné sporenie sa pri obnove vynechalo; hodnota sa odvodí z transakcií.");
+    }
+  }
+  const v = validateAppData({ recurringExpenses: [], stockItems: [], recipes: [], dogs: [], ...withSettings }, today);
   if (!v.ok) return v;
   // Prílohy (D-160) sa overia voči výdavkom a dekódujú; staršie zálohy ich nemajú.
   const attachments: Attachment[] = [];
@@ -64,5 +78,5 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
     }
   }
   if (errors.length) return { ok: false, errors };
-  return { ok: true, data: v.data, attachments, counts: { transactions: v.data!.transactions.length, snapshots: v.data!.snapshots.length } };
+  return { ok: true, data: v.data, attachments, counts: { transactions: v.data!.transactions.length, snapshots: v.data!.snapshots.length }, notes };
 }

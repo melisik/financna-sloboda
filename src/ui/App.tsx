@@ -15,7 +15,7 @@ import { formatImpactOutcome, plural, UNREACHABLE_IMPACT_TEXT } from "../domain/
 import { annualOverview, yearlySummary, type OverviewSettings } from "../domain/annualOverview";
 import { monthlySaving } from "../domain/saving";
 import { housingFlowCents, monthlyCostsCents, netPropertyValueCents, propertyChangedSince, splitPayment, valueIsStale } from "../domain/property";
-import { amortizeLoan, amortizeMortgage, applyExtraPayment, remainingMonths } from "../domain/mortgage";
+import { amortizeLoan, amortizeMortgage, applyExtraPayment, paymentBelowInterest, remainingMonths } from "../domain/mortgage";
 import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../app/feedback";
 import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, staleValuationNames, monthlyContributionsTotalCents, positionValueCents } from "../domain/investments";
 import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "../domain/liabilities";
@@ -30,6 +30,7 @@ import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
 import { TAX_CATALOG, taxScenario } from "../domain/tax";
 import { PHASE2_ENABLED } from "../app/features";
+import { isIosOtherBrowser, isIosSafari } from "../app/ios";
 import { CORE_SECTION_IDS, OPTIONAL_MODULES, readModuleChoice, visibleSectionIds, writeModuleChoice } from "../app/modules";
 import { daysUntil, expiringItems, sortForList, stockStatus } from "../domain/stock";
 import { findExpiryDate, findProductName } from "../domain/scan";
@@ -96,6 +97,7 @@ interface Ctx {
   latest: Snapshot | null;
   capital: Capital;
   negative: { inv: boolean; cash: boolean };
+  shortfall: { inv: number; cash: number };
   derived: { inv: number; cash: number };
   reserve: number;
   mInv: number;
@@ -122,6 +124,7 @@ function makeCtx(data: AppData): Ctx {
     latest,
     capital: flags.capital,
     negative: flags.negative,
+    shortfall: flags.shortfall,
     derived,
     reserve: reserveBalance(data.transactions),
     mInv,
@@ -303,7 +306,8 @@ function AppContent() {
     ]).then(reload).catch(() => undefined);
   }, [repo, data]);
 
-  if (isIosBrowser() && !isStandalone()) return <Shell><IosInstallGate /></Shell>;
+  // Brána len v Safari (D-053); iné iOS prehliadače appku neblokujú, viď Shell (D-168).
+  if (isIosSafari(navigator.userAgent) && !isStandalone()) return <Shell><IosInstallGate /></Shell>;
   if (error) return <Shell><p style={{ color: "var(--danger)" }}>{error}</p></Shell>;
   if (!repo || !data) return <Shell><p>Načítavam údaje…</p></Shell>;
   if (locked) return <Shell><LockScreen repo={repo} onUnlock={() => setLocked(false)} onWiped={() => { setLocked(false); setPinSet(false); void reload(); }} /></Shell>;
@@ -444,11 +448,6 @@ function AppContent() {
   );
 }
 
-/** iOS Safari mimo plochy (D-053): povinná výzva na pridanie. */
-function isIosBrowser(): boolean {
-  if (typeof navigator === "undefined") return false;
-  return /iPhone|iPad|iPod/.test(navigator.userAgent);
-}
 function isStandalone(): boolean {
   return (typeof window !== "undefined" && window.matchMedia?.("(display-mode: standalone)").matches) || (navigator as { standalone?: boolean }).standalone === true;
 }
@@ -820,6 +819,11 @@ function Shell({ children, nav }: { children: React.ReactNode; nav?: SectionId }
         <strong>Skúšobná verzia.</strong> Údaje sú len v tomto zariadení, nie sú zašifrované a môžu sa stratiť, preto si pravidelne ukladaj zálohu. Appka sa poskytuje bez záruky a nie je finančné poradenstvo. Fáza 2 zatiaľ nie je právne posúdená ani bezpečnostne auditovaná.
       </div>
       <p style={{ color: "var(--muted)" }}>Údaje sa ukladajú len v tomto zariadení. Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
+      {typeof navigator !== "undefined" && isIosOtherBrowser(navigator.userAgent) && !isStandalone() && (
+        <p role="note" style={{ background: "var(--ok-bg)", padding: 10, borderRadius: 6, fontSize: "0.9rem" }}>
+          Na plochu appku pridáš v Safari: otvor túto adresu v Safari, potom Zdieľať → Pridať na plochu. Tu ju môžeš používať aj bez toho.
+        </p>
+      )}
       {nav && <Nav active={nav} />}
       {children}
       <Feedback />
@@ -838,7 +842,7 @@ function goalShiftText(d: number): string {
 function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) {
   const s: OverviewSettings | null =
     ctx.settings && ctx.target !== null ? { target: ctx.target, realReturn: ctx.realReturn, mInv: ctx.mInv, mCash: ctx.mCash } : null;
-  const rows = annualOverview(data.snapshots, s, data.transactions);
+  const rows = annualOverview(data.snapshots, s, data.transactions, ctx.rentals);
   const years = yearlySummary(data.snapshots, data.transactions);
   if (rows.length === 0) return <p>Zatiaľ nie sú vyhodnotenia. Prehľad sa zobrazí po prvom vyhodnotení.</p>;
   const savingZero = ctx.mInv + ctx.mCash === 0;
@@ -926,6 +930,8 @@ function HomeSection({ data, ctx, lastExport }: { data: AppData; ctx: Ctx; lastE
       {(ctx.negative.cash || ctx.negative.inv) && (
         <p style={{ background: "var(--err-bg)", padding: 8, borderRadius: 6 }}>
           Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení.
+          {ctx.shortfall.inv > 0 && <> Prečerpanie investícií: <strong>{eur(ctx.shortfall.inv)}</strong>. Do hodnoty K sa nezapočíta.</>}
+          {ctx.shortfall.cash > 0 && <> Prečerpanie hotovosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do hodnoty K sa nezapočíta.</>}
         </p>
       )}
       {ctx.latest && ctx.target !== null ? (
@@ -2123,6 +2129,11 @@ function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: Reposit
       {liabilities.map((l) => (
         <div key={l.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{l.name}</strong> · {LIABILITY_KIND_LABEL[l.kind]}</p>
+          {paymentBelowInterest(l.balanceCents, l.rate, l.monthlyPaymentCents) && (
+            <p role="note" style={{ margin: "4px 0", background: "var(--warn-bg)", padding: 6, borderRadius: 6, fontSize: "0.9rem" }}>
+              Splátka nepokrýva úrok, zostatok rastie. Skontroluj splátku.
+            </p>
+          )}
           <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
             <dt>Zostatok</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(l.balanceCents)}</dd>
             <dt>Úroková sadzba</dt><dd style={{ margin: 0, textAlign: "right" }}>{String(Number((l.rate * 100).toFixed(4)))} % p. a.</dd>
@@ -2175,6 +2186,10 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
   const [endDate, setEndDate] = useState(initial?.endDate ?? "");
   const [balanceDate, setBalanceDate] = useState(initial?.balanceDate ?? today);
   const [err, setErr] = useState<string | null>(null);
+  // Upozornenie pred uložením (nález 8): splátka pod úrokom by zostatok zvyšovala.
+  const belowInterest =
+    !Number.isNaN(asNum(balance)) && !Number.isNaN(asNum(rate)) && !Number.isNaN(asNum(payment)) &&
+    paymentBelowInterest(cents(asNum(balance)), asNum(rate) / 100, cents(asNum(payment)));
 
   const save = async () => {
     const trimmed = name.trim();
@@ -2234,6 +2249,11 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       )}
       <Field label="Úroková sadzba (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak úrok nie je" />
       <Field label="Splátka mesačne (€)" value={payment} onChange={setPayment} hint="0, ak splátku nemáš" />
+      {belowInterest && (
+        <p role="note" style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "0.9rem" }}>
+          Splátka nepokryje mesačný úrok ({eur(Math.round((cents(asNum(balance)) * asNum(rate)) / 100 / 12))}). Zostatok by sa nezmenšil; skontroluj splátku.
+        </p>
+      )}
       <Field label="Koniec (nepovinné)" value={endDate} type="date" onChange={setEndDate} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť záväzok</button>{" "}
@@ -3263,6 +3283,7 @@ function SettingsSection({ repo, settings, derived, onSaved }: { repo: Repositor
     if (!(wr > 0 && wr <= 100)) return setErr("Miera výberu musí byť väčšia ako 0 % a najviac 100 %.");
     if (!(rr >= 0 && rr <= 100)) return setErr("Výnos r musí byť v rozsahu 0 až 100 %.");
     if (res < 0 || thr < 0) return setErr("Rezerva a prah nesmú byť záporné.");
+    if (asNum(v.savingInv) < 0 || asNum(v.savingCash) < 0) return setErr("Mesačné sporenie nesmie byť záporné. Ak nechceš sporiť, zadaj 0.");
     setErr(null);
     try {
       await repo.saveSettings({
@@ -4011,7 +4032,7 @@ function lastExportText(iso: string, today: string): string {
 function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo: Repository; data: AppData; lastExport: string | null; onChanged: () => void; onExported: (iso: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
-  const [preview, setPreview] = useState<{ data: AppData; attachments: Attachment[]; counts: { transactions: number; snapshots: number }; exportedAt: string } | null>(null);
+  const [preview, setPreview] = useState<{ data: AppData; attachments: Attachment[]; counts: { transactions: number; snapshots: number }; exportedAt: string; notes: string[] } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -4040,7 +4061,7 @@ function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo
       setErrors([...res.errors.map(plainBackupError), "Nič sa nezmenilo."]);
       return;
     }
-    setPreview({ data: res.data!, attachments: res.attachments ?? [], counts: res.counts!, exportedAt: (json as { exportedAt: string }).exportedAt });
+    setPreview({ data: res.data!, attachments: res.attachments ?? [], counts: res.counts!, exportedAt: (json as { exportedAt: string }).exportedAt, notes: res.notes ?? [] });
   };
 
   const confirmImport = async () => {
@@ -4091,6 +4112,7 @@ function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo
         <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6 }}>
           <p>Záloha z {dateSk(preview.exportedAt.slice(0, 10))} obsahuje: {summarizeData(preview.data)}.</p>
           <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Teraz v zariadení: {summarizeData(data)}.</p>
+          {preview.notes.map((n) => <p key={n} style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "0.9rem" }}>{n}</p>)}
           <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong></p>
           <p style={{ color: "var(--danger)", fontSize: "0.9rem" }}>Aktuálne dáta sa nenávratne prepíšu. Ak ich chceš zachovať, najprv ulož zálohu tlačidlom „Exportovať zálohu“ hore.</p>
           <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}

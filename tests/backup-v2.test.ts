@@ -58,3 +58,24 @@ describe("záloha verzie 2 a import verzie 1 (FR-28)", () => {
     expect(parsed.ok).toBe(false);
   });
 });
+
+describe("záporné mesačné sporenie v zálohe (nález 1)", () => {
+  it("záloha s kladným sporením sa načíta bez upozornenia", () => {
+    const json = JSON.parse(readFileSync(path.resolve("public/testovacia-zaloha.json"), "utf8"));
+    json.settings = { ...json.settings, savingInvCents: 1_000 };
+    const r = parseBackup(json, TODAY);
+    expect(r.ok).toBe(true);
+    expect(r.notes).toEqual([]);
+  });
+
+  it("záporná hodnota sa pri obnove vynechá s upozornením; ostatné dáta zostanú", () => {
+    const json = JSON.parse(readFileSync(path.resolve("public/testovacia-zaloha.json"), "utf8"));
+    json.settings = { ...json.settings, savingInvCents: -100, savingCashCents: 2_000 };
+    const r = parseBackup(json, TODAY);
+    expect(r.ok).toBe(true);
+    expect(r.notes?.length).toBe(1);
+    expect(r.data?.settings?.savingInvCents).toBeUndefined();
+    expect(r.data?.settings?.savingCashCents).toBe(2_000);
+    expect(r.counts).toEqual({ transactions: 12, snapshots: 2 });
+  });
+});

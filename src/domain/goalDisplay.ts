@@ -28,7 +28,7 @@ export function goalDisplay(
   lastReviewIso: string,
   todayIso: string,
 ): GoalDisplay {
-  if (months === null) return { kind: "unreachable" };
+  if (months === null || !(months >= 0)) return { kind: "unreachable" };
   if (months === 0) return { kind: "reached", date: lastReviewIso };
   if (months > HORIZON_MONTHS) return { kind: "over50" };
   const date = targetDate(lastReviewIso, months);

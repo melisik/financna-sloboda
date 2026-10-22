@@ -1,5 +1,6 @@
 import type { Snapshot, Transaction } from "../storage/types";
-import { goalMonths } from "./rentalGoal";
+import { goalMonths, type Rental } from "./rentalGoal";
+import { isAfterEvaluation } from "./capital";
 import { goalDisplay, type GoalDisplay } from "./goalDisplay";
 
 /** Aktuálne nastavenia, z ktorých sa počíta dátum cieľa pre každé vyhodnotenie (docs/13, oddiel 4). */
@@ -36,12 +37,15 @@ export interface YearSummary {
   topCategory: { name: string; cents: number } | null;
 }
 
-/** Sporenie a výdavky, ktoré menia K, v období (od, do]. Nulové pole sa počíta len z dátumov. */
-export function flowsBetween(transactions: Transaction[], fromExclusive: string, toInclusive: string) {
+/**
+ * Sporenie a výdavky, ktoré menia K po vyhodnotení `prev` až do dňa `toInclusive`.
+ * Hranica je rovnaká ako pri K (isAfterEvaluation): rozhoduje dátum a čas zápisu, nie len deň (nález 7).
+ */
+export function flowsBetween(transactions: Transaction[], prev: Snapshot, toInclusive: string) {
   let sporenie = 0;
   let vydavky = 0;
   for (const t of transactions) {
-    if (t.date <= fromExclusive || t.date > toInclusive) continue;
+    if (!isAfterEvaluation(t, prev) || t.date > toInclusive) continue;
     if (t.type === "sporenie") sporenie += t.amountCents;
     if (t.type === "vydavok" && (t.source === "z_hotovosti" || t.source === "z_investicii")) vydavky += t.amountCents;
   }
@@ -56,13 +60,13 @@ function monthIndex(iso: string): number {
 
 /**
  * Ročný prehľad (docs/13, oddiel 4): riadky od najstaršieho vyhodnotenia.
- * Dátum cieľa sa počíta z uloženého K a z aktuálnych Nastavení, bez nehnuteľností.
+ * Dátum cieľa sa počíta z uloženého K, aktuálnych Nastavení a nehnuteľností v prenájme (rovnako ako hlavný cieľ, nález 6).
  */
-export function annualOverview(snapshots: Snapshot[], s: OverviewSettings | null, transactions: Transaction[] = []): OverviewRow[] {
+export function annualOverview(snapshots: Snapshot[], s: OverviewSettings | null, transactions: Transaction[] = [], rentals: Rental[] = []): OverviewRow[] {
   const sorted = [...snapshots].sort((a, b) => a.date.localeCompare(b.date));
   const rows: OverviewRow[] = [];
   let prevTotal: number | null = null;
-  let prevDate: string | null = null;
+  let prevSnap: Snapshot | null = null;
   let prevGoalIdx: number | null = null;
 
   for (const snap of sorted) {
@@ -70,13 +74,13 @@ export function annualOverview(snapshots: Snapshot[], s: OverviewSettings | null
     let goal: GoalDisplay | null = null;
     let goalIdx: number | null = null;
     if (s) {
-      const g = goalMonths({ inv: snap.investmentsCents, cash: snap.cashCents }, s.mInv, s.mCash, s.realReturn, s.target, []);
+      const g = goalMonths({ inv: snap.investmentsCents, cash: snap.cashCents }, s.mInv, s.mCash, s.realReturn, s.target, rentals);
       const months = g.kind === "months" ? g.months : null;
       goal = goalDisplay(months, snap.date, snap.date);
       if (goal.kind === "date" || goal.kind === "reached") goalIdx = monthIndex(goal.date);
     }
     const deltaTotalCents = prevTotal === null ? null : totalCents - prevTotal;
-    const flows = prevDate === null ? null : flowsBetween(transactions, prevDate, snap.date);
+    const flows = prevSnap === null ? null : flowsBetween(transactions, prevSnap, snap.date);
     rows.push({
       date: snap.date,
       auto: snap.auto ?? false,
@@ -91,7 +95,7 @@ export function annualOverview(snapshots: Snapshot[], s: OverviewSettings | null
       ostatneCents: flows && deltaTotalCents !== null ? deltaTotalCents - flows.sporenie + flows.vydavky : null,
     });
     prevTotal = totalCents;
-    prevDate = snap.date;
+    prevSnap = snap;
     prevGoalIdx = goalIdx;
   }
   return rows;

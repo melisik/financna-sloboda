@@ -31,11 +31,12 @@ export function monthsToTarget(
   if (capitalCents >= targetCents) return 0;
   const i = monthlyRate(annualRate);
   if (capitalCents * i + monthlySavingCents === 0) return null;
-  if (annualRate === 0) return (targetCents - capitalCents) / monthlySavingCents;
-  return (
+  if (annualRate === 0) return monthlySavingCents > 0 ? (targetCents - capitalCents) / monthlySavingCents : null;
+  const n =
     Math.log((targetCents * i + monthlySavingCents) / (capitalCents * i + monthlySavingCents)) /
-    Math.log(1 + i)
-  );
+    Math.log(1 + i);
+  // Záporné sporenie môže cieľ urobiť nedosiahnuteľným: log nekladného pomeru dá NaN alebo záporný čas (nález 5).
+  return n >= 0 ? n : null;
 }
 
 /**

@@ -1,3 +1,4 @@
+import type { Snapshot, Transaction } from "../storage/types";
 import { monthlyRate, monthsToTarget } from "./goal";
 
 /** Kapitál rozdelený na dva zásobníky (D-036, D-039, D-041). Sumy v centoch. */
@@ -7,6 +8,15 @@ export interface Capital {
 }
 
 const MAX_MONTHS = 14_400; // 1 200 rokov, poistka proti nekonečnej slučke
+
+/**
+ * Transakcia sa počíta do kapitálu po vyhodnotení (D-121, D-123), ak má dátum po vyhodnotení,
+ * alebo ak bola zadaná po uložení vyhodnotenia (zabudnutý výdavok s dátumom pred ním).
+ * Transakcia zadaná pred vyhodnotením s dátumom pred ním je už v jeho hodnote, nepridáva sa znovu.
+ */
+export function isAfterEvaluation(t: Pick<Transaction, "date" | "createdAt">, snapshot: Pick<Snapshot, "date" | "createdAt">): boolean {
+  return t.date > snapshot.date || t.createdAt > snapshot.createdAt;
+}
 
 /** Celkový kapitál K_L = K_inv + K_cash. */
 export function totalCapital(c: Capital): number {

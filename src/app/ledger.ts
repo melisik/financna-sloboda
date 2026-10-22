@@ -1,4 +1,4 @@
-import type { Capital } from "../domain/capital";
+import { isAfterEvaluation, type Capital } from "../domain/capital";
 import type { Snapshot, Transaction } from "../storage/types";
 
 /**
@@ -20,17 +20,12 @@ export function currentCapital(snapshot: Snapshot | null, transactions: Transact
  * Ako currentCapital, ale hlási, či sa niektorá zložka dostala pod 0 (R2).
  * Záporný stav znamená nekonzistentné zadanie (napr. výdavok nad stav); UI ho musí ukázať, nie skryť.
  */
-/**
- * Transakcia sa počíta do kapitálu po vyhodnotení (D-121, D-123), ak má dátum po vyhodnotení,
- * alebo ak bola zadaná po uložení vyhodnotenia (zabudnutý výdavok s dátumom pred ním).
- * Transakcia zadaná pred vyhodnotením s dátumom pred ním je už v jeho hodnote, nepridáva sa znovu.
- */
-export function isAfterEvaluation(t: Transaction, snapshot: Snapshot): boolean {
-  return t.date > snapshot.date || t.createdAt > snapshot.createdAt;
-}
+export { isAfterEvaluation } from "../domain/capital";
 
-export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transaction[]): { capital: Capital; negative: { inv: boolean; cash: boolean } } {
-  if (!snapshot) return { capital: { inv: 0, cash: 0 }, negative: { inv: false, cash: false } };
+export type Shortfall = { inv: number; cash: number };
+
+export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transaction[]): { capital: Capital; negative: { inv: boolean; cash: boolean }; shortfall: Shortfall } {
+  if (!snapshot) return { capital: { inv: 0, cash: 0 }, negative: { inv: false, cash: false }, shortfall: { inv: 0, cash: 0 } };
   let inv = snapshot.investmentsCents;
   let cash = snapshot.cashCents;
   const after = transactions
@@ -63,6 +58,8 @@ export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transa
   return {
     capital: { inv: Math.max(0, inv), cash: Math.max(0, cash) },
     negative: { inv: inv < 0, cash: cash < 0 },
+    // Suma, ktorá presiahla stav a nie je odpočítaná z K (nález 3, D-045). Zobrazí sa v Prehľade.
+    shortfall: { inv: Math.max(0, -inv), cash: Math.max(0, -cash) },
   };
 }
 

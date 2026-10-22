@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { activeLiabilityPaymentCents, liabilitiesTotals, liabilityInterestCents, liabilityIsActive } from "../src/domain/liabilities";
-import { amortizeLoan } from "../src/domain/mortgage";
+import { amortizeLoan, paymentBelowInterest } from "../src/domain/mortgage";
 import { monthSummary } from "../src/domain/monthSummary";
 import { validateLiability } from "../src/storage/validate";
 import type { Liability } from "../src/storage/types";
@@ -78,5 +78,16 @@ describe("záväzky – stav splatenia a splátky (D-140)", () => {
   it("dátum zostatku sa validuje ako dátum", () => {
     expect(validateLiability({ ...uver, balanceDate: "2026-02-30" }, TODAY).join(" ")).toMatch(/neexistujúci dátum/);
     expect(validateLiability({ ...uver, balanceDate: "2026-10-01" }, TODAY)).toEqual([]);
+  });
+});
+
+describe("splátka pod úrokom (nález 8)", () => {
+  it("splátka, ktorá nepokryje mesačný úrok, sa označí", () => {
+    // zostatok 1 000 €, úrok 12 % p. a. = 10 € za mesiac
+    expect(paymentBelowInterest(100_000, 0.12, 1_000)).toBe(true);
+    expect(paymentBelowInterest(100_000, 0.12, 1_001)).toBe(false);
+    expect(paymentBelowInterest(0, 0.12, 1_000)).toBe(false);
+    expect(paymentBelowInterest(100_000, 0, 1_000)).toBe(false);
+    expect(paymentBelowInterest(100_000, 0.12, 0)).toBe(false);
   });
 });

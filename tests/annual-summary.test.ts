@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { annualOverview, flowsBetween, yearlySummary } from "../src/domain/annualOverview";
 import type { Snapshot, Transaction } from "../src/storage/types";
+import type { Rental } from "../src/domain/rentalGoal";
 
 // Rozpis zmeny K a ročné súhrny (Ročný prehľad). Syntetické hodnoty.
 const meta = { createdAt: "x", updatedAt: "x" };
@@ -17,7 +18,23 @@ describe("tok peňazí medzi vyhodnoteniami", () => {
       tx("d", "2026-01-10", "vydavok", 5, { source: "z_hotovosti", category: "jedlo" }),
       tx("e", "2026-01-11", "vydavok", 7, { source: "z_prijmu", category: "jedlo" }),
     ];
-    expect(flowsBetween(txs, "2026-01-01", "2026-02-01")).toEqual({ sporenie: 30, vydavky: 5 });
+    expect(flowsBetween(txs, snap("p", "2026-01-01", 0, 0), "2026-02-01")).toEqual({ sporenie: 30, vydavky: 5 });
+  });
+
+  it("výdavok z dňa vyhodnotenia zapísaný po ňom sa rátа do ďalšieho obdobia; pred ním nie (nález 7)", () => {
+    const prev: Snapshot = { id: "p", date: "2026-10-05", investmentsCents: 0, cashCents: 0, createdAt: "2026-10-05T08:00:00.000Z" };
+    const before = tx("b", "2026-10-05", "vydavok", 3, { source: "z_hotovosti", category: "jedlo", createdAt: "2026-10-05T07:00:00.000Z" });
+    const after = tx("a", "2026-10-05", "vydavok", 10, { source: "z_hotovosti", category: "jedlo", createdAt: "2026-10-05T20:00:00.000Z" });
+    expect(flowsBetween([before, after], prev, "2026-10-20")).toEqual({ sporenie: 0, vydavky: 10 });
+  });
+
+  it("Ročný prehľad počíta dátum cieľa s nehnuteľnosťami v prenájme rovnako ako hlavný cieľ (nález 6)", () => {
+    const settings = { target: 60_000_000, realReturn: 0.035, mInv: 50_000, mCash: 0 };
+    const rental: Rental = { valueCents: 20_000_000, mortgageBalanceCents: 0, mortgageRate: 0, paymentCents: 0, netRentCents: 100_000 };
+    const s = [snap("a", "2026-10-01", 1_000_000, 0)];
+    const without = annualOverview(s, settings, [], []);
+    const withRental = annualOverview(s, settings, [], [rental]);
+    expect(withRental[0].goal).not.toEqual(without[0].goal);
   });
 
   it("riadok rozpíše zmenu K na sporenie, výdavky a zvyšok", () => {

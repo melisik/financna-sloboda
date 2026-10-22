@@ -9,6 +9,15 @@ function expense(id: string, date: string, createdAt: string, amountCents: numbe
   return { id, date, type: "vydavok", amountCents, source: "z_investicii", createdAt } as Transaction;
 }
 
+describe("prečerpanie investícií (nález 3)", () => {
+  it("suma nad K_inv sa zobrazí ako prečerpanie a do K sa nezapočíta", () => {
+    const r = capitalWithFlags(snap, [expense("x", "2026-10-21", "2026-10-21T09:00:00.000Z", 31_050_000)]);
+    expect(r.capital.inv).toBe(0);
+    expect(r.negative.inv).toBe(true);
+    expect(r.shortfall.inv).toBe(50_000);
+  });
+});
+
 describe("pravidlo D-121: transakcie v deň vyhodnotenia", () => {
   it("transakcia zadaná po vyhodnotení v ten istý deň sa odpočíta", () => {
     const t = expense("a", "2026-10-20", "2026-10-20T11:00:00.000Z", 15_000);
