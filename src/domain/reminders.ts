@@ -1,3 +1,4 @@
+import { daysSince } from "./dates";
 /**
  * Pripomienky (FR-10, FR-19, D-016, D-035). Čisté funkcie, bez času v pozadí.
  * Pripomienka je jemná: nič sa automaticky nemení ani nevynucuje.
@@ -28,9 +29,3 @@ export function settingsCheckOverdue(checkedAtIso: string | undefined, todayIso:
   return daysSince(checkedAtIso, todayIso) > days;
 }
 
-/** Počet dní od dátumu (YYYY-MM-DD alebo ISO) do dneška; 0 = dnes. */
-export function daysSince(iso: string, todayIso: string): number {
-  const a = Date.UTC(...(iso.slice(0, 10).split("-").map(Number) as [number, number, number]));
-  const b = Date.UTC(...(todayIso.split("-").map(Number) as [number, number, number]));
-  return Math.round((b - a) / 86_400_000);
-}

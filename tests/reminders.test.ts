@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { backupOverdue, settingsCheckOverdue, reviewOverdue } from "../src/app/reminders";
+import { backupOverdue, settingsCheckOverdue, reviewOverdue } from "../src/domain/reminders";
 
 describe("pripomienka vyhodnotenia (FR-10)", () => {
   it("v tom istom mesiaci nie je pripomienka", () => {

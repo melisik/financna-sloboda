@@ -36,6 +36,24 @@ describe("pravidlo závislostí (D-162)", () => {
     expect(bad).toEqual([]);
   });
 
+  it("feature moduly neimportujú aplikačnú vrstvu, hlavný UI súbor ani iné features (D-174)", () => {
+    const root = join(SRC, "features");
+    const bad: { file: string; spec: string }[] = [];
+    for (const feat of readdirSync(root)) {
+      for (const f of readdirSync(join(root, feat)).filter((x) => /\.tsx?$/.test(x))) {
+        const text = readFileSync(join(root, feat, f), "utf8");
+        for (const m of text.matchAll(/from "([^"]+)"/g)) {
+          const spec = m[1];
+          // zakázané: aplikačná vrstva (src/app), hlavný UI súbor (App) a iné features
+          if (spec.includes("/app/") || spec.endsWith("/App") || spec.includes("features/")) {
+            bad.push({ file: `${feat}/${f}`, spec });
+          }
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
   it("register modulov je čistý: neimportuje UI ani nič z aplikačnej vrstvy", () => {
     const bad = importsOf(join(SRC, "app")).filter((i) => i.file === "modules.ts" && i.spec.startsWith("."));
     expect(bad).toEqual([]);

@@ -11,3 +11,10 @@ export function fullMonthsBetween(from: string, to: string): number {
   if (td < fd) months -= 1;
   return Math.max(0, months);
 }
+
+/** Počet dní od dátumu (YYYY-MM-DD alebo ISO) do dneška; 0 = dnes. */
+export function daysSince(iso: string, todayIso: string): number {
+  const a = Date.UTC(...(iso.slice(0, 10).split("-").map(Number) as [number, number, number]));
+  const b = Date.UTC(...(todayIso.split("-").map(Number) as [number, number, number]));
+  return Math.round((b - a) / 86_400_000);
+}
