@@ -1,9 +1,9 @@
 import { openDB, type IDBPDatabase } from "idb";
 import type { Repository } from "./repository";
-import type { Asset, AppData, Budget, Dog, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, Settings, Snapshot, StockItem, Transaction } from "./types";
+import type { Asset, AppData, Attachment, Budget, Dog, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, Settings, Snapshot, StockItem, Transaction } from "./types";
 
 const DB_NAME = "financna-sloboda";
-const DB_VERSION = 6; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28); verzia 5 recepty (D-127); verzia 6 psy (D-159)
+const DB_VERSION = 7; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28); verzia 5 recepty (D-127); verzia 6 psy (D-159); verzia 7 prílohy (D-160)
 const SETTINGS_KEY = "current";
 
 /** Otvorí databázu s úložiskami z 05 §4. */
@@ -38,6 +38,10 @@ export async function openRepository(name: string = DB_NAME): Promise<Repository
       if (oldVersion < 6) {
         d.createObjectStore("dogs", { keyPath: "id" });
       }
+      if (oldVersion < 7) {
+        const attachments = d.createObjectStore("attachments", { keyPath: "id" });
+        attachments.createIndex("transactionId", "transactionId");
+      }
     },
   });
   return new IdbRepository(db);
@@ -71,8 +75,40 @@ class IdbRepository implements Repository {
     await this.db.put("transactions", t);
   }
 
+  // Výdavok sa maže spolu s prílohami, aby v úložisku nezostali osirelé súbory (D-160).
   async deleteTransaction(id: string): Promise<void> {
-    await this.db.delete("transactions", id);
+    const tx = this.db.transaction(["transactions", "attachments"], "readwrite");
+    await tx.objectStore("transactions").delete(id);
+    let cursor = await tx.objectStore("attachments").index("transactionId").openCursor(id);
+    while (cursor) {
+      await cursor.delete();
+      cursor = await cursor.continue();
+    }
+    await tx.done;
+  }
+
+  async listAttachments(transactionId: string): Promise<Attachment[]> {
+    return this.db.getAllFromIndex("attachments", "transactionId", transactionId);
+  }
+
+  async listAllAttachments(): Promise<Attachment[]> {
+    return this.db.getAll("attachments");
+  }
+
+  async saveAttachment(a: Attachment): Promise<void> {
+    await this.db.put("attachments", a);
+  }
+
+  async deleteAttachment(id: string): Promise<void> {
+    await this.db.delete("attachments", id);
+  }
+
+  async replaceAttachments(list: Attachment[]): Promise<void> {
+    const tx = this.db.transaction("attachments", "readwrite");
+    tx.done.catch(() => undefined);
+    await tx.objectStore("attachments").clear();
+    for (const a of list) await tx.objectStore("attachments").put(a);
+    await tx.done;
   }
 
   async addSnapshot(s: Snapshot): Promise<void> {

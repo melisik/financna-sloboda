@@ -1,8 +1,10 @@
 import { validateAppData, type Check } from "./validate";
-import { APP_NAME, READABLE_SCHEMA_VERSIONS, SCHEMA_VERSION, type AppData } from "./types";
+import { APP_NAME, READABLE_SCHEMA_VERSIONS, SCHEMA_VERSION, type AppData, type Attachment, type AttachmentRecord } from "./types";
+import { decodeAttachmentRecord } from "./attachments";
+import { validateAttachmentRecord as validateAttachmentRecordLocal } from "./validate";
 
 /** Export do jedného JSON súboru (FR-17): verzia schémy a dátum exportu. */
-export function buildBackup(data: AppData, exportedAt: string) {
+export function buildBackup(data: AppData, exportedAt: string, attachments: AttachmentRecord[] = []) {
   return {
     app: APP_NAME,
     schemaVersion: SCHEMA_VERSION,
@@ -19,6 +21,7 @@ export function buildBackup(data: AppData, exportedAt: string) {
     stockItems: data.stockItems,
     recipes: data.recipes,
     dogs: data.dogs,
+    attachments,
     budgets: data.budgets,
   };
 }
@@ -27,7 +30,7 @@ export function buildBackup(data: AppData, exportedAt: string) {
  * Import (FR-18): overí verziu schémy a obsah. Vráti dáta alebo chyby.
  * Pri chybe sa nič nemení; zápis robí úložisko až po potvrdení.
  */
-export function parseBackup(json: unknown, today: string): Check & { data?: AppData; counts?: { transactions: number; snapshots: number } } {
+export function parseBackup(json: unknown, today: string): Check & { data?: AppData; attachments?: Attachment[]; counts?: { transactions: number; snapshots: number } } {
   if (typeof json !== "object" || json === null || Array.isArray(json)) return { ok: false, errors: ["súbor nie je platná záloha"] };
   const o = json as Record<string, unknown>;
   if (o.app !== APP_NAME) return { ok: false, errors: ["súbor nepatrí tejto aplikácii"] };
@@ -36,12 +39,30 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
   if (!(READABLE_SCHEMA_VERSIONS as readonly number[]).includes(o.schemaVersion)) return { ok: false, errors: [`neznáma verzia schémy ${o.schemaVersion}`] };
   if (typeof o.exportedAt !== "string") return { ok: false, errors: ["chýba dátum exportu"] };
   // Obalové polia overené vyššie; validácia obsahu vidí len nastavenia, transakcie a vyhodnotenia.
-  const { app: _app, schemaVersion: _schema, exportedAt: _exp, ...content } = o;
+  const { app: _app, schemaVersion: _schema, exportedAt: _exp, attachments: rawAttachments, ...content } = o;
   // Verzia 1 nemá majetok: načíta sa prázdny zoznam, dáta sa nestratia (FR-28).
   const base = o.schemaVersion === 1 ? { ...content, properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [] } : content;
   // Verzie 1 a 2 nemajú pravidelné výdavky: načíta sa prázdny zoznam (D-124).
   // Staršie zálohy nemajú pravidelné výdavky (v3), sklad (v4), recepty (v5) ani položky dokladu (v6): načíta sa prázdny zoznam (D-124, D-127, D-129).
   const v = validateAppData({ recurringExpenses: [], stockItems: [], recipes: [], dogs: [], ...base }, today);
   if (!v.ok) return v;
-  return { ok: true, data: v.data, counts: { transactions: v.data!.transactions.length, snapshots: v.data!.snapshots.length } };
+  // Prílohy (D-160) sa overia voči výdavkom a dekódujú; staršie zálohy ich nemajú.
+  const attachments: Attachment[] = [];
+  const errors: string[] = [];
+  if (rawAttachments !== undefined && !Array.isArray(rawAttachments)) errors.push("záloha: prílohy musia byť pole");
+  const transactionIds = new Set(v.data!.transactions.map((t) => t.id));
+  for (const [n, r] of ((Array.isArray(rawAttachments) ? rawAttachments : []) as unknown[]).entries()) {
+    const label = `príloha ${n + 1}`;
+    const rowErrors = validateAttachmentRecordLocal(r, label);
+    if (rowErrors.length) { errors.push(...rowErrors); continue; }
+    const rec = r as AttachmentRecord;
+    if (!transactionIds.has(rec.transactionId)) { errors.push(`${label}: patrí k výdavku, ktorý v zálohe nie je`); continue; }
+    try {
+      attachments.push(decodeAttachmentRecord(rec));
+    } catch {
+      errors.push(`${label}: obsah sa nedá načítať`);
+    }
+  }
+  if (errors.length) return { ok: false, errors };
+  return { ok: true, data: v.data, attachments, counts: { transactions: v.data!.transactions.length, snapshots: v.data!.snapshots.length } };
 }

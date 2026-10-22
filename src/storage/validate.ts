@@ -1,5 +1,5 @@
 import { isReceiptId } from "../domain/receipt";
-import { ASSET_KINDS, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Dog, type Recipe, type ReceiptItem, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Dog, type Recipe, type ReceiptItem, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -193,6 +193,21 @@ export function validateReceiptItem(i: unknown, label = "položka dokladu"): str
   if (typeof o.vatPercent !== "number" || !(o.vatPercent >= 0)) errors.push(`${label}: DPH musí byť číslo 0 alebo väčšie`);
   if (!isCents(o.unitPriceCents)) errors.push(`${label}: jednotková cena musí byť celé číslo v centoch`);
   if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť kladné celé číslo v centoch`);
+  return errors;
+}
+
+/** Príloha v zálohe (D-160): typ z katalógu, veľkosť do limitu, obsah base64. */
+export function validateAttachmentRecord(a: unknown, label = "príloha"): string[] {
+  if (typeof a !== "object" || a === null || Array.isArray(a)) return [`${label}: musí byť objekt`];
+  const o = a as Record<string, unknown>;
+  const errors = unknownKeys(o, ["id", "transactionId", "name", "type", "size", "createdAt", "dataBase64"], label);
+  if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
+  if (typeof o.transactionId !== "string" || o.transactionId.length === 0) errors.push(`${label}: chýba výdavok`);
+  if (typeof o.name !== "string" || o.name.length === 0 || o.name.length > 120) errors.push(`${label}: názov max 120 znakov`);
+  if (!(ATTACHMENT_TYPES as readonly unknown[]).includes(o.type)) errors.push(`${label}: typ musí byť JPG, PNG, WEBP alebo PDF`);
+  if (typeof o.size !== "number" || !Number.isInteger(o.size) || o.size <= 0 || o.size > ATTACHMENT_MAX_BYTES) errors.push(`${label}: veľkosť musí byť najviac 2 MB`);
+  if (typeof o.dataBase64 !== "string" || o.dataBase64.length === 0) errors.push(`${label}: chýba obsah`);
+  if (typeof o.createdAt !== "string") errors.push(`${label}: chýba čas vytvorenia`);
   return errors;
 }
 

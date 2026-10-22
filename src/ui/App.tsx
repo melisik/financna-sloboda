@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
 import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, DOG_KEEPING_PLACES, DOG_PURPOSES, type Dog, type DogKeepingPlace, type DogPurpose, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, type RentalEntry, type RentalEntryKind, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
@@ -35,7 +35,9 @@ import { readQrFromImage } from "../app/receiptScan";
 import { ReceiptCamera } from "./ReceiptCamera";
 import { isReceiptId, RECEIPT_CHECK_URL, receiptIdFromQr } from "../domain/receipt";
 import { parseReceiptItems } from "../domain/receiptItems";
-import type { Recipe, RecipeIngredient } from "../storage/types";
+import type { Recipe, RecipeIngredient, Attachment } from "../storage/types";
+import { ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES } from "../storage/types";
+import { encodeAttachment } from "../storage/attachments";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../storage/feed";
 import { autoSnapshot } from "../app/autoEvaluation";
 import { budgetStatus, spentInMonthCents } from "../domain/budget";
@@ -465,7 +467,7 @@ function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: { repo:
   const backupNow = async () => {
     try {
       const d = await repo.getData();
-      const r = await exportBackupFile(d);
+      const r = await exportBackupFile(d, await repo.listAllAttachments());
       if (r.result !== "cancelled") await repo.setMeta("lastExportAt", r.exportedAt);
     } catch {
       setErr(STORAGE_ERROR);
@@ -2979,6 +2981,7 @@ function LockScreen({ repo, onUnlock, onWiped }: { repo: Repository; onUnlock: (
   const wipe = async () => {
     try {
       await repo.replaceAll(EMPTY_DATA);
+      await repo.replaceAttachments([]);
       await repo.setMeta("pin", "");
       onWiped();
     } catch {
@@ -3297,6 +3300,91 @@ function SnapshotSection({ repo, latest, capital, derivedInvCents, snapshots, pr
   );
 }
 
+/** Prílohy k výdavku (D-160): doklady a fotky, uložené v zariadení a zahrnuté v zálohe. */
+function AttachmentsBlock({ repo, transactionId }: { repo: Repository; transactionId: string }) {
+  const [items, setItems] = useState<Attachment[] | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  const load = async () => {
+    try {
+      setItems(await repo.listAttachments(transactionId));
+    } catch {
+      setMsg(STORAGE_ERROR);
+    }
+  };
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionId]);
+
+  const onFile = async (file: File) => {
+    if (!(ATTACHMENT_TYPES as readonly string[]).includes(file.type) || file.size > ATTACHMENT_MAX_BYTES) {
+      return setMsg("Príloha musí byť JPG, PNG, WEBP alebo PDF, najviac 2 MB.");
+    }
+    try {
+      await repo.saveAttachment({ id: uid(), transactionId, name: file.name.slice(0, 120) || "príloha", type: file.type, size: file.size, createdAt: new Date().toISOString(), data: file });
+      setMsg(null);
+      await load();
+    } catch {
+      setMsg(STORAGE_ERROR);
+    }
+  };
+
+  const open = (a: Attachment) => {
+    const url = URL.createObjectURL(a.data);
+    window.open(url, "_blank", "noopener");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
+
+  const remove = async (id: string) => {
+    try {
+      await repo.deleteAttachment(id);
+      setConfirmId(null);
+      await load();
+    } catch {
+      setMsg(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ fontSize: "0.9rem" }}>
+      <p style={{ margin: "4px 0", color: "var(--muted)" }}>Doklady k výdavku: JPG, PNG, WEBP alebo PDF, najviac 2 MB.</p>
+      {items && items.length === 0 && <p style={{ margin: "4px 0" }}>Zatiaľ nie je priložený žiadny doklad.</p>}
+      <ul style={{ paddingLeft: 20, margin: "4px 0" }}>
+        {(items ?? []).map((a) => (
+          <li key={a.id}>
+            {a.name} · {Math.max(1, Math.round(a.size / 1024))} kB{" "}
+            <button onClick={() => open(a)} style={btn}>Otvoriť</button>{" "}
+            {confirmId === a.id ? (
+              <>
+                <button onClick={() => remove(a.id)} style={btn}>Potvrdiť zmazanie</button>{" "}
+                <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+              </>
+            ) : (
+              <button onClick={() => setConfirmId(a.id)} style={btn}>Zmazať prílohu</button>
+            )}
+          </li>
+        ))}
+      </ul>
+      <label style={{ display: "block", margin: "6px 0" }}>
+        <span style={{ display: "block" }}>Pridať prílohu</span>
+        <input
+          type="file"
+          aria-label="Pridať prílohu"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = "";
+            if (f) void onFile(f);
+          }}
+        />
+      </label>
+      {msg && <p style={{ color: "var(--danger)" }}>{msg}</p>}
+    </div>
+  );
+}
+
 function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void }) {
   const [type, setType] = useState<TransactionType>("vydavok");
   const [amount, setAmount] = useState<NumIn>("");
@@ -3311,6 +3399,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
   const [err, setErr] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [undo, setUndo] = useState<Transaction | null>(null);
+  const [undoAtt, setUndoAtt] = useState<Attachment[]>([]);
+  const [openAttId, setOpenAttId] = useState<string | null>(null);
   const [fType, setFType] = useState<"all" | TransactionType>("all");
   const [fFrom, setFFrom] = useState("");
   const [fTo, setFTo] = useState("");
@@ -3484,13 +3574,17 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
 
   const remove = async (id: string) => {
     const gone = data.transactions.find((x) => x.id === id) ?? null;
+    let atts: Attachment[] = [];
     try {
+      // Prílohy sa odložia, aby ich vrátenie späť obnovilo (D-160).
+      atts = await repo.listAttachments(id);
       await repo.deleteTransaction(id);
     } catch {
       return setErr(STORAGE_ERROR);
     }
     if (editingId === id) resetForm();
     setUndo(gone);
+    setUndoAtt(atts);
     onChanged();
   };
 
@@ -3498,6 +3592,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
     if (!undo) return;
     try {
       await repo.addTransaction(undo);
+      for (const a of undoAtt) await repo.saveAttachment(a);
+      setUndoAtt([]);
     } catch {
       return setErr(STORAGE_ERROR);
     }
@@ -3657,7 +3753,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
       <ul style={{ paddingLeft: 0, listStyle: "none" }}>
         {list.length === 0 && <li style={{ color: "var(--muted)" }}>Zatiaľ žiadne.</li>}
         {list.map((t) => (
-          <li key={t.id} style={{ borderBottom: "1px solid var(--border-soft)", padding: "6px 0", display: "flex", justifyContent: "space-between", gap: 8 }}>
+          <Fragment key={t.id}>
+          <li style={{ borderBottom: "1px solid var(--border-soft)", padding: "6px 0", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <span>
               {dateSk(t.date)} · {TYPE_LABEL[t.type]} · {eur(t.amountCents)}
               {t.source ? ` (${SOURCE_LABEL[t.source]})` : ""}
@@ -3666,7 +3763,8 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
               {t.receiptId ? " · doklad" : ""}
               {t.receiptItems && t.receiptItems.length > 0 ? ` · položiek: ${t.receiptItems.length}` : ""}
             </span>
-            <span style={{ display: "flex", gap: 6 }}>
+            <span style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              {t.type === "vydavok" && <button onClick={() => setOpenAttId(openAttId === t.id ? null : t.id)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Prílohy</button>}
               <button onClick={() => startEdit(t)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Upraviť</button>
               {confirmDeleteId === t.id ? (
                 <>
@@ -3679,6 +3777,12 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
               )}
             </span>
           </li>
+          {openAttId === t.id && t.type === "vydavok" && (
+            <li style={{ borderBottom: "1px solid var(--border-soft)", padding: "6px 0" }}>
+              <AttachmentsBlock repo={repo} transactionId={t.id} />
+            </li>
+          )}
+          </Fragment>
         ))}
       </ul>
     </section>
@@ -3690,10 +3794,10 @@ function TransactionSection({ repo, data, ctx, onChanged }: { repo: Repository; 
  * Export zálohy. Ak prehliadač dokáže zdieľať súbory (iPhone), ponúkne zdieľací list, kde sa dá zvoliť
  * „Uložiť do Súborov“. Inak alebo pri chybe zdieľania súbor stiahne. Zrušenie zdieľania nič neuloží.
  */
-async function exportBackupFile(data: AppData): Promise<{ result: "shared" | "downloaded" | "cancelled"; exportedAt: string }> {
+async function exportBackupFile(data: AppData, attachments: Attachment[]): Promise<{ result: "shared" | "downloaded" | "cancelled"; exportedAt: string }> {
   const nowIso = new Date().toISOString();
   const name = `financna-sloboda-zaloha-${todayIso()}.json`;
-  const text = JSON.stringify(buildBackup(data, nowIso), null, 2);
+  const text = JSON.stringify(buildBackup(data, nowIso, await Promise.all(attachments.map(encodeAttachment))), null, 2);
   const file = new File([text], name, { type: "application/json" });
   if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
     try {
@@ -3750,12 +3854,12 @@ function lastExportText(iso: string, today: string): string {
 function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo: Repository; data: AppData; lastExport: string | null; onChanged: () => void; onExported: (iso: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
-  const [preview, setPreview] = useState<{ data: AppData; counts: { transactions: number; snapshots: number }; exportedAt: string } | null>(null);
+  const [preview, setPreview] = useState<{ data: AppData; attachments: Attachment[]; counts: { transactions: number; snapshots: number }; exportedAt: string } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
 
   const exportBackup = async () => {
-    const r = await exportBackupFile(data);
+    const r = await exportBackupFile(data, await repo.listAllAttachments());
     if (r.result === "cancelled") return setStatus("Export bol zrušený. Záloha nie je uložená.");
     onExported(r.exportedAt);
     setStatus(r.result === "shared"
@@ -3779,13 +3883,14 @@ function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo
       setErrors([...res.errors.map(plainBackupError), "Nič sa nezmenilo."]);
       return;
     }
-    setPreview({ data: res.data!, counts: res.counts!, exportedAt: (json as { exportedAt: string }).exportedAt });
+    setPreview({ data: res.data!, attachments: res.attachments ?? [], counts: res.counts!, exportedAt: (json as { exportedAt: string }).exportedAt });
   };
 
   const confirmImport = async () => {
     if (!preview) return;
     try {
       await repo.replaceAll(preview.data);
+      await repo.replaceAttachments(preview.attachments);
     } catch {
       setErrors([STORAGE_ERROR]);
       return;
