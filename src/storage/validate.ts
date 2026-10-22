@@ -91,7 +91,11 @@ export function validateRentalEntry(x: unknown, today: string, label = "záznam 
 export function validateProperty(p: unknown, today: string, label = "nehnuteľnosť"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "extraPayments", "rentalLedger", "acquisitionDate", "acquisitionCostCents", "rentalStartDate", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "extraPayments", "rentalLedger", "acquisitionDate", "acquisitionCostCents", "rentalStartDate", "taxMunicipality", "cadastralArea", "parcelNumber", "buildingNumber", "flatNumber", "floorAreaSqm", "createdAt", "updatedAt"], label);
+  for (const key of ["taxMunicipality", "cadastralArea", "parcelNumber", "buildingNumber", "flatNumber"] as const) {
+    if (o[key] !== undefined && (typeof o[key] !== "string" || (o[key] as string).length > 80)) errors.push(`${label}: ${key} musí byť text max 80 znakov`);
+  }
+  if (o.floorAreaSqm !== undefined && !(typeof o.floorAreaSqm === "number" && Number.isFinite(o.floorAreaSqm) && o.floorAreaSqm >= 0 && o.floorAreaSqm <= 100_000)) errors.push(`${label}: podlahová plocha musí byť číslo v m² od 0 do 100 000`);
   if (o.rentalLedger !== undefined) {
     if (!Array.isArray(o.rentalLedger)) errors.push(`${label}: záznamy prenájmu musia byť zoznam`);
     else o.rentalLedger.forEach((x, n) => errors.push(...validateRentalEntry(x, today, `${label}: záznam prenájmu ${n + 1}`)));

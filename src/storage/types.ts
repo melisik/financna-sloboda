@@ -111,6 +111,12 @@ export interface Property {
   acquisitionDate?: string; // dátum obstarania, YYYY-MM-DD (evidencia pre dane, D-156)
   acquisitionCostCents?: number; // obstarávacia cena v centoch (evidencia pre dane, D-156)
   rentalStartDate?: string; // dátum začiatku prenájmu, len pri režime prenájom (D-156)
+  taxMunicipality?: string; // obec pre daň z nehnuteľností (tlačivo 17-dp-md, D-158)
+  cadastralArea?: string; // katastrálne územie (D-158)
+  parcelNumber?: string; // číslo parcely (D-158)
+  buildingNumber?: string; // súpisné číslo (D-158)
+  flatNumber?: string; // číslo bytu, ak ide o byt (D-158)
+  floorAreaSqm?: number; // podlahová plocha v m², len na podklad pre daň (D-158)
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }

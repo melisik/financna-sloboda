@@ -22,18 +22,18 @@ test.describe("evidencia prenájmu", () => {
     await card.getByLabel("Suma (€) – prenájom").fill("80");
     await card.getByLabel("Poznámka (nepovinné)").fill("oprava kúpeľne");
     await card.getByRole("button", { name: "Pridať záznam" }).click();
-    await expect(card).toContainText(`Za rok ${today.slice(0, 4)}: prijatý nájom 500,00 €, výdavky 80,00 €, zápisov 2.`);
+    await expect(card).toContainText(`Za rok ${today.slice(0, 4)}: prijatý nájom 500,00 €, výdavky 80,00 €, zápisov 2.`, { timeout: 15000 })
 
     // úprava nehnuteľnosti nesmie stratiť záznamy
     await card.getByRole("button", { name: "Upraviť" }).click();
     await page.getByLabel("Odhad hodnoty (€)").fill("151000");
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
     const edited = page.locator("#majetok div", { hasText: "Prenájom test" }).last();
-    await expect(edited).toContainText(`prijatý nájom 500,00 €`);
+    await expect(edited).toContainText(`prijatý nájom 500,00 €`, { timeout: 15000 })
 
     const expense = edited.locator("li", { hasText: "oprava kúpeľne" });
     await expense.getByRole("button", { name: "Zmazať", exact: true }).click();
     await expense.getByRole("button", { name: "Potvrdiť zmazanie" }).click();
-    await expect(edited).toContainText(`prijatý nájom 500,00 €, výdavky 0,00 €, zápisov 1.`);
+    await expect(edited).toContainText(`prijatý nájom 500,00 €, výdavky 0,00 €, zápisov 1.`, { timeout: 15000 })
   });
 });

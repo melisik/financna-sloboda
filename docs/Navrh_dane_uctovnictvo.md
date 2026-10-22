@@ -66,3 +66,10 @@ Dôvod: z prostredia vývoja nie je prístup na stránky Finančnej správy ani 
 - Daň z nehnuteľností: vznik a zánik, termín priznania, či sa priznanie podáva len pri vzniku a zániku, odkaz na správcu dane (obec).
 - Daň z príjmu z prenájmu: vymedzenie, sadzba, hranica oslobodenia, výdavky, odkaz na portál.
 - Registrácia na daňovom úrade pri prenájme časti bytu (vrátane oddelenej vstupu a služieb).
+
+## 9. Podklady z oficiálnych tlačív (2026-10-22)
+
+- **Tlačivo 17-dp-md** (priznanie k dani z nehnuteľností, dani za psa, predajné automaty, hracie prístroje): PDF má 1 688 editovateľných polí. Oddiely: I daňovník, II pozemky, III stavby, IV byty, V pes (25 riadkov, dátum vzniku a zániku). Vyplnenie z údajov v appke je technicky možné; zatiaľ nie je implementované.
+- **Poučenie k DP FO 2025 (typ B), s. 13:** riadok 11 tabuľky 1 (oddiel VI). Stĺpec 1 = kladný rozdiel príjmu z prenájmu a 500 € (§ 9 ods. 1 písm. g). Stĺpec 2 = výdavky v rovnakom pomere. Výdavky percentom sa pri prenájme neuplatňujú. Príklad v poučení (3 595,75 €) sa nezhoduje s vzorcom (3 594,76 €) — overiť s účtovníkom.
+- **Príjem:** podľa dátumu, kedy prišiel na účet (zadanie zakladateľa). **Výdavky:** doklady sa pripájajú k jednotlivým výdavkom; prílohy zatiaľ nie sú v appke (ďalší krok).
+- **Daň za psa:** zatiaľ len evidencia (ďalší krok, bez sadzieb obce).

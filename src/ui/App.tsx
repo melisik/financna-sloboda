@@ -21,7 +21,7 @@ import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, s
 import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { futureOutlook } from "../domain/outlook";
-import { rentalTotalsForYear, rentalYears } from "../domain/rental";
+import { rentalRow11, rentalTotalsForYear, rentalYears } from "../domain/rental";
 import { weeklySummary } from "../domain/weekly";
 import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
@@ -1006,6 +1006,18 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
               {properties.some((p) => p.mode === "nezadane") ? `, nezadaný režim ${eur(unset)}` : ""}
             </p>
             {monthly > 0 && <p style={{ margin: "4px 0" }}>Mesačné náklady na nehnuteľnosti spolu: <strong>{eur(monthly)}</strong></p>}
+        {properties.some((p) => p.mode === "prenajom") && (() => {
+          const year = Number(today.slice(0, 4));
+          const rentals = properties.filter((p) => p.mode === "prenajom");
+          const income = rentals.reduce((sum, p) => sum + rentalTotalsForYear(p.rentalLedger ?? [], year).incomeCents, 0);
+          const costs = rentals.reduce((sum, p) => sum + rentalTotalsForYear(p.rentalLedger ?? [], year).costsCents, 0);
+          const row = rentalRow11(income, costs);
+          return (
+            <p style={{ margin: "4px 0" }}>
+              Podklad pre DP za {year}, oddiel VI, tabuľka 1, riadok 11: stĺpec 1 <strong>{eur(row.col1Cents)}</strong>, stĺpec 2 <strong>{eur(row.col2Cents)}</strong>. Na overenie, nie konečné číslo daňového priznania.
+            </p>
+          );
+        })()}
           </div>
         );
       })()}
@@ -1025,7 +1037,19 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
             {p.mode === "prenajom" && p.rentalStartDate && (
               <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Prenájom od {dateSk(p.rentalStartDate)}</p>
             )}
-            {p.mode === "prenajom" && <RentalLedger key={(p.rentalLedger ?? []).length} repo={repo} property={p} today={today} onDone={onSaved} />}
+            {(p.taxMunicipality || p.cadastralArea || p.parcelNumber || p.buildingNumber || p.flatNumber || p.floorAreaSqm !== undefined) && (
+              <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+                Údaje pre daň: {[
+                  p.taxMunicipality && `obec ${p.taxMunicipality}`,
+                  p.cadastralArea && `k. ú. ${p.cadastralArea}`,
+                  p.parcelNumber && `parcela ${p.parcelNumber}`,
+                  p.buildingNumber && `súp. č. ${p.buildingNumber}`,
+                  p.flatNumber && `byt ${p.flatNumber}`,
+                  p.floorAreaSqm !== undefined && `${p.floorAreaSqm.toLocaleString("sk-SK")} m²`,
+                ].filter(Boolean).join(", ")}
+              </p>
+            )}
+            {p.mode === "prenajom" && <RentalLedger repo={repo} property={p} today={today} onDone={onSaved} />}
             {stale && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
             <p style={{ margin: "4px 0" }}>Hypotéka: {eur(p.mortgageBalanceCents)}</p>
             <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
@@ -1214,6 +1238,9 @@ function AssetForm({ repo, kind, initial, today, onDone, onCancel }: { repo: Rep
   );
 }
 
+/** Front zápisov do evidencie prenájmu (D-157): jeden zápis naraz, aby sa žiadny neprepísal. */
+let rentalSaveQueue: Promise<void> = Promise.resolve();
+
 /** Ročná evidencia príjmov a výdavkov z prenájmu (D-157): priebežne počas roka, súčty sú len podklad pre daňové priznanie. */
 function RentalLedger({ repo, property, today, onDone }: { repo: Repository; property: Property; today: string; onDone: () => void }) {
   const entries = property.rentalLedger ?? [];
@@ -1229,16 +1256,19 @@ function RentalLedger({ repo, property, today, onDone }: { repo: Repository; pro
   const totals = rentalTotalsForYear(entries, year);
   const yearEntries = entries.filter((e) => e.date.startsWith(`${year}-`)).sort((a, b) => a.date.localeCompare(b.date));
 
-  // Zmena sa robí nad aktuálnymi dátami z úložiska, aby sa rýchly zápis za sebou nestratil (D-157).
-  const save = async (mutate: (list: RentalEntry[]) => RentalEntry[]) => {
-    try {
-      const fresh = (await repo.getData()).properties.find((p) => p.id === property.id) ?? property;
-      await repo.saveProperty({ ...fresh, rentalLedger: mutate(fresh.rentalLedger ?? []), updatedAt: new Date().toISOString() });
-      setErr(null);
-      onDone();
-    } catch {
-      setErr(STORAGE_ERROR);
-    }
+  // Zápisy sa radia za sebou a vždy čítajú aktuálne dáta, aby sa rýchly zápis neprepísal (D-157).
+  const save = (mutate: (list: RentalEntry[]) => RentalEntry[]) => {
+    rentalSaveQueue = rentalSaveQueue.then(async () => {
+      try {
+        const fresh = (await repo.getData()).properties.find((p) => p.id === property.id) ?? property;
+        await repo.saveProperty({ ...fresh, rentalLedger: mutate(fresh.rentalLedger ?? []), updatedAt: new Date().toISOString() });
+        setErr(null);
+        onDone();
+      } catch {
+        setErr(STORAGE_ERROR);
+      }
+    });
+    return rentalSaveQueue;
   };
 
   const add = async () => {
@@ -1441,6 +1471,12 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const [acqDate, setAcqDate] = useState(initial?.acquisitionDate ?? "");
   const [acqCost, setAcqCost] = useState<NumIn>(initial?.acquisitionCostCents !== undefined ? initial.acquisitionCostCents / 100 : "");
   const [rentalStart, setRentalStart] = useState(initial?.rentalStartDate ?? "");
+  const [taxMuni, setTaxMuni] = useState(initial?.taxMunicipality ?? "");
+  const [cadastral, setCadastral] = useState(initial?.cadastralArea ?? "");
+  const [parcel, setParcel] = useState(initial?.parcelNumber ?? "");
+  const [building, setBuilding] = useState(initial?.buildingNumber ?? "");
+  const [flat, setFlat] = useState(initial?.flatNumber ?? "");
+  const [floorArea, setFloorArea] = useState<NumIn>(initial?.floorAreaSqm !== undefined ? initial.floorAreaSqm : "");
   const [err, setErr] = useState<string | null>(null);
 
   const save = async () => {
@@ -1494,6 +1530,12 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       ...(acqDate !== "" ? { acquisitionDate: acqDate } : {}),
       ...(ac !== undefined ? { acquisitionCostCents: cents(ac) } : {}),
       ...(mode === "prenajom" && rentalStart !== "" ? { rentalStartDate: rentalStart } : {}),
+      ...(taxMuni.trim() ? { taxMunicipality: taxMuni.trim() } : {}),
+      ...(cadastral.trim() ? { cadastralArea: cadastral.trim() } : {}),
+      ...(parcel.trim() ? { parcelNumber: parcel.trim() } : {}),
+      ...(building.trim() ? { buildingNumber: building.trim() } : {}),
+      ...(flat.trim() ? { flatNumber: flat.trim() } : {}),
+      ...(floorArea !== "" && !Number.isNaN(asNum(floorArea)) ? { floorAreaSqm: asNum(floorArea) } : {}),
     };
     try {
       await repo.saveProperty(property);
@@ -1520,6 +1562,12 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <Field label="Dátum obstarania (nepovinné)" value={acqDate} type="date" max={today} onChange={setAcqDate} hint="evidencia pre dane; nepočíta sa" />
       <Field label="Obstarávacia cena (€, nepovinné)" value={acqCost} onChange={setAcqCost} hint="cena pri kúpe, nie odhad; nepočíta sa" />
       {mode === "prenajom" && <Field label="Dátum začiatku prenájmu (nepovinné)" value={rentalStart} type="date" max={today} onChange={setRentalStart} />}
+      <Field label="Obec (pre daň z nehnuteľností, nepovinné)" value={taxMuni} type="text" onChange={setTaxMuni} />
+      <Field label="Katastrálne územie (nepovinné)" value={cadastral} type="text" onChange={setCadastral} />
+      <Field label="Číslo parcely (nepovinné)" value={parcel} type="text" onChange={setParcel} />
+      <Field label="Súpisné číslo (nepovinné)" value={building} type="text" onChange={setBuilding} />
+      <Field label="Číslo bytu (nepovinné)" value={flat} type="text" onChange={setFlat} />
+      <Field label="Podlahová plocha (m², nepovinné)" value={floorArea} onChange={setFloorArea} hint="z kúpnej zmluvy alebo listu vlastníctva; len na podklad pre daň" />
       <Field label="Zostatok hypotéky (€)" value={mortgage} onChange={setMortgage} hint="0, ak hypotéku nemáš" />
       {typeof mortgage === "number" && mortgage > 0 && (
         <Field label="Zostatok platí k (dátum)" value={balanceDate} type="date" max={today} onChange={setBalanceDate} hint="nechaj dnešný dátum, ak si zostatok práve zistil; od tohto dátumu sa každý mesiac automaticky znižuje o istinu" />
