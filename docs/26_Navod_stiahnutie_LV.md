@@ -1,6 +1,6 @@
 # 26 – Návod: ako získať list vlastníctva a nahrať ho do appky
 
-> Stav: 2026-10-22, vetva `claude/phase2-property-card`. Overené zakladateľom na skutočnom portáli: výpis je bez registrácie a zadarmo; Ctrl+S funguje; vlastník vyberá byt. Neoverené zostáva: text dialógu ukladania v druhom prehliadači (Edge alebo Chrome), výber bytu na reálnom LV s viacerými bytmi a pravidlo menovateľa na inom LV. Postup overenia je v kapitole 6.
+> Stav: 2026-10-22, vetva `claude/phase2-property-card`. Overené zakladateľom na skutočnom portáli: výpis je bez registrácie a zadarmo; Ctrl+S funguje; texty v dialógu ukladania potvrdené pre Chrome aj Edge; vlastník vyberá byt. Neoverené zostáva: výber bytu na reálnom LV s viacerými bytmi a pravidlo menovateľa na inom LV. Postup overenia je v kapitole 6.
 > Súvisí s D-209 (vloženie textu), D-211 (HTML), D-212 (podlahová plocha) a `docs/25`.
 
 ## 1. Prečo HTML a nie PDF
@@ -14,7 +14,7 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 1. Otvor katastrálny portál a vyhľadaj list vlastníctva podľa čísla LV a katastrálneho územia. Výpis je dostupný bez registrácie a zadarmo (overené zakladateľom 2026-10-22).
 2. Otvor výpis z listu vlastníctva, aby sa zobrazil celý (nie len jeho časť). Výpis sa načítava na stránke.
 3. Ulož stránku: stlač **Ctrl+S** (Mac: Cmd+S). Funguje v Edge aj v Chrome (overené zakladateľom 2026-10-22). V Chrome je ten istý príkaz v menu **Cast, save, and share → Save page as…** (overené zakladateľom na screenshote).
-   - V poli **Save as type** (SK Windows: Uložiť ako typ) zvoľ **Webpage, Complete (\*.htm;\*.html)**. Overené screenshotom zakladateľa 2026-10-22; na screenshote nie je uvedený prehliadač. Slovenské názvy v návode sú zatiaľ predpoklad, neoverené.
+   - V poli **Save as type** (SK Windows: Uložiť ako typ) zvoľ úplnú stránku: v Chrome **Webpage, Complete (\*.htm;\*.html)**, v Edge **Webpage, complete (\*.htm;\*.html)**. Overené screenshotmi zakladateľa 2026-10-22. Slovenské názvy v návode sú zatiaľ predpoklad, neoverené.
    - Vznikne súbor `.html` a priečinok `_files`. Stačí súbor `.html`. Priečinok môžeš zmazať.
 4. V appke otvor **Majetok → Pridať nehnuteľnosť**. Klikni na **Predvyplniť z listu vlastníctva**.
 5. Klikni na **Nahrať uloženú stránku listu (HTML)** a vyber uložený súbor. Alebo otvor súbor v prehliadači, označ všetko (Ctrl+A), skopíruj (Ctrl+C) a vlož do poľa **Text z listu vlastníctva**.
@@ -39,7 +39,7 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 - **Viac parciel:** appka uvedie všetky, oddelené čiarkou. Tlačivo 17-dp-md má na parcely obmedzené miesto, preto môže byť potrebné doplniť ich v PDF ručne.
 
 ## 6. Overenie pred vydaním návodu
-- [ ] Prejsť celý postup na skutočnom portáli (kroky 1–3) a potvrdiť text v dialógu ukladania v druhom prehliadači. Ctrl+S funguje v oboch (overené zakladateľom 2026-10-22); položka Save page as… v Chrome a text „Webpage, Complete (*.htm;*.html)“ potvrdené screenshotmi.
+- [ ] Prejsť celý postup na skutočnom portáli (kroky 1–3). Ctrl+S funguje v Edge aj Chrome; texty v dialógu ukladania potvrdené screenshotmi: Chrome „Webpage, Complete (*.htm;*.html)“, Edge „Webpage, complete (*.htm;*.html)“. Položka Save page as… v Chrome potvrdená. Slovenské názvy zatiaľ neoverené.
 - [x] Zistiť, či je výpis na portáli dostupný bez registrácie: áno (overené zakladateľom 2026-10-22).
 - [x] Zistiť, či výpis na portáli stojí poplatok: nestojí (overené zakladateľom 2026-10-22).
 - [ ] Overiť, že HTML z portálu má rovnakú štruktúru ako vzor v `tests/fixtures/lv-synthetic.html`.
