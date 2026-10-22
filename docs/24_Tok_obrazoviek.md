@@ -30,7 +30,7 @@
 ## 3. Chýbajúce alebo slabé prepojenia (kandidáti, zatiaľ nezavedené)
 - **Majetok → Záväzky:** hypotéka je v Majetku, úvery a kreditné karty v Záväzkoch. Majetok na to zatiaľ neodkazuje.
 - **Dane → Majetok:** text „údaje o nehnuteľnostiach“ bez odkazu.
-- **Pravidelné výdavky → Rozpočet:** pravidelné výdavky sa počítajú do mesačného plánu.
+- **Pravidelné výdavky → Rozpočet:** zavedené (D-207).
 - **Transakcie → Rozpočet:** po zápise výdavku nie je vidieť, koľko je z limitu kategórie.
 - **Návrat na Prehľad:** Majetok, Investície, Dane, Sklad, Záloha a Ročný prehľad nemajú odkaz späť; návrat je len cez horný panel.
 
@@ -46,7 +46,8 @@
 Klepnutie na skupinu otvorí jej prvú viditeľnú sekciu. Sekcia z inej skupiny sa dosiahne dvoma klepnutiami. Skupina s jednou sekciou sa otvorí jedným klepnutím.
 
 ## 5. Otvorené
-- Kandidáti z kapitoly 3, ktoré ešte nie sú zavedené: Pravidelné výdavky → Rozpočet, návrat z detailov na Prehľad, Sklad a Ročný prehľad.
+- **Návrat na Prehľad** z Majetku, Investícií, Daní, Skladu, Zálohy a Ročného prehľadu: zatiaľ bez generického odkazu. Skupina Prehľad je v paneli na jedno klepnutie. Návrat po uložení zavedieme, až ho testeri budú potrebovať.
+- **Sklad a Ročný prehľad:** nemajú dátový vzťah k inej sekcii, ktorý by vyžadoval ďalší krok. Zatiaľ bez odkazov.
 
 ## 6. Podmienené odkazy na ďalší krok (D-206)
 Skryté tlačidlá (`NextStep`, `src/ui/kit/NextStep.tsx`) sa zobrazia len vtedy, keď dáta ukazujú, že ich používateľ potrebuje.
@@ -61,6 +62,7 @@ Skryté tlačidlá (`NextStep`, `src/ui/kit/NextStep.tsx`) sa zobrazia len vtedy
 | Transakcie | výdavok s kategóriou, ktorá má limit | Rozpočet |
 | Vyhodnotenie | existuje uložené vyhodnotenie | Prehľad (dátum cieľa) |
 | Nastavenia | po uložení nastavení | Prehľad |
+| Pravidelné výdavky | aspoň jeden pravidelný výdavok | Rozpočet (berie sa do kategórie) |
 
 Pravidlo: odkaz sa nezobrazuje, ak cieľ je už vyplnený. Napríklad Dane neponúknu Majetok, keď nehnuteľnosť existuje.
 Overené v `tests/e2e/flow-links.spec.ts`.

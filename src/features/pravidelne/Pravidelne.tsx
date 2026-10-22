@@ -7,6 +7,7 @@ import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { NextStep } from "../../ui/kit/NextStep";
 
 /** Pravidelné výdavky (D-124): zoznam, súčet za mesiac a podľa kategórie, ukončenie. Iba zobrazenie výpočtov. Feature „pravidelne“ (docs/23). */
 
@@ -54,6 +55,9 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
         <ul style={{ paddingLeft: 20 }}>
           {Object.entries(byCat).map(([c, v]) => <li key={c}>{c}: {eur(v ?? 0)}</li>)}
         </ul>
+      )}
+      {items.length > 0 && (
+        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Pravidelné výdavky sa berú do rozpočtu podľa kategórie. <NextStep to="rozpocet">Rozpočet</NextStep></p>
       )}
       {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané pravidelné výdavky.</p>}
       {items.map((e) => (

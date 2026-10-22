@@ -61,4 +61,17 @@ test.describe("prepojenia medzi sekciami", () => {
     await page.locator('section#vyhodnotenie a[href="#prehlad"]').click();
     await expect(page.locator("section#prehlad")).toBeVisible();
   });
+  test("pravidelný výdavok ponúkne Rozpočet, kde sa berie do kategórie", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "pravidelne-vydavky");
+    await expect(page.locator('section#pravidelne-vydavky a[href="#rozpocet"]')).toHaveCount(0);
+    await page.getByRole("button", { name: "Pridať pravidelný výdavok" }).click();
+    await page.getByLabel("Názov (napr. predplatné)").fill("Predplatné streamingu");
+    await page.getByLabel("Kategória pravidelného výdavku").selectOption("predplatné a služby");
+    await page.getByLabel("Suma mesačne (€)").fill("12");
+    await page.getByRole("button", { name: "Uložiť výdavok" }).click();
+    await expect(page.locator('section#pravidelne-vydavky a[href="#rozpocet"]')).toBeVisible();
+    await page.locator('section#pravidelne-vydavky a[href="#rozpocet"]').click();
+    await expect(page.locator("section#rozpocet")).toBeVisible();
+  });
 });
