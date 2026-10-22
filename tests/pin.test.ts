@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkPin, isValidPin, makePinRecord } from "../src/app/pin";
+import { checkPin, isValidPin, makePinRecord } from "../src/features/zamok/pin";
 
 // D-119: lokálny PIN. Syntetické hodnoty.
 describe("lokálny PIN (D-119)", () => {
