@@ -42,7 +42,13 @@ Potrebné pravidlá z overeného zdroja: odpisové skupiny a doby odpisovania, m
 
 **Krok 1 (zapracované, D-156):** pri nehnuteľnosti pribudli nepovinné údaje: dátum obstarania, obstarávacia cena a pri prenájme dátum začiatku prenájmu. Sú to údaje z dokumentov, nie daňové čísla.
 
-**Krok 2 (nezapracované):** výpočty a odkazy na portály čakajú na overenie zdroja.
+**Krok 1b (zapracované, D-157):** pri prenájme priebežná evidencia príjmov a výdavkov (dátum, druh, suma, poznámka) s ročným súčtom. Súčet je podklad pre riadok 11, oddiel VI, tabuľka 1 daňového priznania. Appka nepočíta daň ani sadzby.
+
+**Krok 2 (nezapracovaný, čaká na overenie zdroja):**
+- Miestne dane: editovateľné tlačivo (17-dp-md, slovensko.sk) sa dá vyplniť z údajov o nehnuteľnosti (kúpna zmluva, list vlastníctva). Potrebujeme PDF na zistenie názvov polí, nie je dostupné z prostredia vývoja.
+- Daň za psa: rovnaký typ podkladu; sadzby určuje obec (VZN), preto sa zavedie až s konkrétnou obcou.
+- Daň z príjmu: XML pre daňové priznanie typu rdp=1 (šablóna form.621.xml, rok 2025). Význam stĺpcov s1 a s2 v riadku t1r11 treba potvrdiť z tlačiva pred generovaním.
+- Pojem príjmu (dátum prijatia) a uznanie výdavkov (doklady alebo paušál) sa potvrdia pred výpočtom.
 
 ## 8. Stav overenia zdrojov (2026-10-22)
 

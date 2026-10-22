@@ -1,5 +1,5 @@
 import { isReceiptId } from "../domain/receipt";
-import { ASSET_KINDS, BUDGET_CATEGORIES, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Recipe, type ReceiptItem, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, BUDGET_CATEGORIES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Recipe, type ReceiptItem, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -76,10 +76,26 @@ export function validateExtraPayment(x: unknown, today: string, label = "mimoria
   return errors;
 }
 
+export function validateRentalEntry(x: unknown, today: string, label = "záznam prenájmu"): string[] {
+  if (typeof x !== "object" || x === null || Array.isArray(x)) return [`${label}: musí byť objekt`];
+  const o = x as Record<string, unknown>;
+  const errors = unknownKeys(o, ["id", "date", "kind", "amountCents", "note"], label);
+  if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
+  errors.push(...checkDate(o.date, today, `${label}: dátum`));
+  if (!(RENTAL_ENTRY_KINDS as readonly unknown[]).includes(o.kind)) errors.push(`${label}: druh musí byť príjem alebo výdavok`);
+  if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť celé číslo väčšie ako 0`);
+  if (o.note !== undefined && (typeof o.note !== "string" || o.note.length > 120)) errors.push(`${label}: poznámka max 120 znakov`);
+  return errors;
+}
+
 export function validateProperty(p: unknown, today: string, label = "nehnuteľnosť"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "extraPayments", "acquisitionDate", "acquisitionCostCents", "rentalStartDate", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "extraPayments", "rentalLedger", "acquisitionDate", "acquisitionCostCents", "rentalStartDate", "createdAt", "updatedAt"], label);
+  if (o.rentalLedger !== undefined) {
+    if (!Array.isArray(o.rentalLedger)) errors.push(`${label}: záznamy prenájmu musia byť zoznam`);
+    else o.rentalLedger.forEach((x, n) => errors.push(...validateRentalEntry(x, today, `${label}: záznam prenájmu ${n + 1}`)));
+  }
   if (o.balanceDate !== undefined) errors.push(...checkDate(o.balanceDate, today, `${label}: dátum zostatku`));
   if (o.acquisitionDate !== undefined) errors.push(...checkDate(o.acquisitionDate, today, `${label}: dátum obstarania`));
   if (o.rentalStartDate !== undefined) errors.push(...checkDate(o.rentalStartDate, today, `${label}: dátum začiatku prenájmu`));

@@ -71,6 +71,18 @@ export const PROPERTY_MODES = ["vlastne_byvanie", "prenajom", "nezadane"] as con
 export const EXTRA_PAYMENT_MODES = ["znizit_splatku", "skratit_termin"] as const;
 export type ExtraPaymentMode = (typeof EXTRA_PAYMENT_MODES)[number];
 
+/** Príjem alebo výdavok z prenájmu, zapísaný priebežne počas roka (podklad pre daňové priznanie, D-157). */
+export const RENTAL_ENTRY_KINDS = ["prijem", "vydavok"] as const;
+export type RentalEntryKind = (typeof RENTAL_ENTRY_KINDS)[number];
+
+export interface RentalEntry {
+  id: string;
+  date: string; // YYYY-MM-DD, dátum prijatia alebo úhrady
+  kind: RentalEntryKind;
+  amountCents: number; // kladné
+  note?: string; // max 120 znakov
+}
+
 export interface ExtraPayment {
   id: string;
   date: string; // YYYY-MM-DD, v rozsahu od dátumu zostatku po dnes
@@ -95,6 +107,7 @@ export interface Property {
   mortgageRate?: number; // úroková sadzba p. a., napr. 0.036; bez hodnoty = 0 (FR-22)
   monthlyOtherCostsCents?: number; // ostatné mesačné náklady: údržba, poistenie, poplatky
   extraPayments?: ExtraPayment[]; // mimoriadne splátky hypotéky (N-15, D-145)
+  rentalLedger?: RentalEntry[]; // príjmy a výdavky z prenájmu, len pri režime prenájom (D-157)
   acquisitionDate?: string; // dátum obstarania, YYYY-MM-DD (evidencia pre dane, D-156)
   acquisitionCostCents?: number; // obstarávacia cena v centoch (evidencia pre dane, D-156)
   rentalStartDate?: string; // dátum začiatku prenájmu, len pri režime prenájom (D-156)

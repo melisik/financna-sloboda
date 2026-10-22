@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
-import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
+import { ASSET_KINDS, BALANCE_INVESTMENT_KINDS, EXTRA_PAYMENT_MODES, type ExtraPaymentMode, type RentalEntry, type RentalEntryKind, BUDGET_CATEGORIES, RECURRING_FREQUENCIES, STOCK_UNITS, type StockItem, type StockUnit, TAX_REGIMES, type TaxRegime, type RecurringExpense, type RecurringFrequency, INCOME_FREQUENCIES, INCOME_KINDS, type IncomeFrequency, type IncomeKind, INVESTMENT_KINDS, LIABILITY_KINDS, PROPERTY_MODES, SOURCES, type AppData, type Asset, type AssetKind, type Budget, type BudgetCategory, type InvestmentKind, type Liability, type LiabilityKind, type Position, type Property, type PropertyMode, type RegularIncome, type Settings, type Snapshot, type Source, type Transaction, type TransactionType } from "../storage/types";
 import { checkDate } from "../storage/validate";
 import { checkPin, isValidPin, makePinRecord } from "../app/pin";
 import { buildBackup, parseBackup } from "../storage/backup";
@@ -21,6 +21,7 @@ import { investmentsByKindCents, investmentsTotalCents, positionsChangedSince, s
 import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "../domain/liabilities";
 import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../domain/income";
 import { futureOutlook } from "../domain/outlook";
+import { rentalTotalsForYear, rentalYears } from "../domain/rental";
 import { weeklySummary } from "../domain/weekly";
 import { monthSummary } from "../domain/monthSummary";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../domain/recurring";
@@ -1024,6 +1025,7 @@ function PropertySection({ repo, properties, assets, today, onSaved }: { repo: R
             {p.mode === "prenajom" && p.rentalStartDate && (
               <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Prenájom od {dateSk(p.rentalStartDate)}</p>
             )}
+            {p.mode === "prenajom" && <RentalLedger key={(p.rentalLedger ?? []).length} repo={repo} property={p} today={today} onDone={onSaved} />}
             {stale && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
             <p style={{ margin: "4px 0" }}>Hypotéka: {eur(p.mortgageBalanceCents)}</p>
             <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
@@ -1208,6 +1210,87 @@ function AssetForm({ repo, kind, initial, today, onDone, onCancel }: { repo: Rep
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Uložiť</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
+    </div>
+  );
+}
+
+/** Ročná evidencia príjmov a výdavkov z prenájmu (D-157): priebežne počas roka, súčty sú len podklad pre daňové priznanie. */
+function RentalLedger({ repo, property, today, onDone }: { repo: Repository; property: Property; today: string; onDone: () => void }) {
+  const entries = property.rentalLedger ?? [];
+  const currentYear = Number(today.slice(0, 4));
+  const years = [...new Set([currentYear, ...rentalYears(entries)])].sort((a, b) => b - a);
+  const [year, setYear] = useState(currentYear);
+  const [date, setDate] = useState(today);
+  const [kind, setKind] = useState<RentalEntryKind>("prijem");
+  const [amount, setAmount] = useState<NumIn>("");
+  const [note, setNote] = useState("");
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const totals = rentalTotalsForYear(entries, year);
+  const yearEntries = entries.filter((e) => e.date.startsWith(`${year}-`)).sort((a, b) => a.date.localeCompare(b.date));
+
+  // Zmena sa robí nad aktuálnymi dátami z úložiska, aby sa rýchly zápis za sebou nestratil (D-157).
+  const save = async (mutate: (list: RentalEntry[]) => RentalEntry[]) => {
+    try {
+      const fresh = (await repo.getData()).properties.find((p) => p.id === property.id) ?? property;
+      await repo.saveProperty({ ...fresh, rentalLedger: mutate(fresh.rentalLedger ?? []), updatedAt: new Date().toISOString() });
+      setErr(null);
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  const add = async () => {
+    const dErr = checkDate(date, today, "dátum záznamu");
+    if (dErr.length) return setErr(dErr[0]);
+    const a = asNum(amount);
+    if (Number.isNaN(a) || a <= 0) return setErr("Vyplň sumu väčšiu ako 0.");
+    const entry: RentalEntry = { id: uid(), date, kind, amountCents: cents(a), ...(note.trim() ? { note: note.trim().slice(0, 120) } : {}) };
+    setAmount("");
+    setNote("");
+    await save((list) => [...list, entry]);
+  };
+
+  return (
+    <div style={{ border: "1px solid var(--border)", borderRadius: 6, padding: 10, margin: "8px 0" }}>
+      <p style={{ margin: 0 }}><strong>Príjmy a výdavky z prenájmu</strong></p>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem", margin: "4px 0" }}>Zapisuj priebežne. Súčty sú len podklad pre daňové priznanie, nie daňový výpočet.</p>
+      <label style={{ display: "block", margin: "6px 0" }}>
+        Rok{" "}
+        <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={{ minHeight: 44 }}>
+          {years.map((y) => <option key={y} value={y}>{y}</option>)}
+        </select>
+      </label>
+      <p style={{ margin: "4px 0" }}>Za rok {year}: prijatý nájom <strong>{eur(totals.incomeCents)}</strong>, výdavky <strong>{eur(totals.costsCents)}</strong>, zápisov {totals.count}.</p>
+      {yearEntries.length === 0 && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Za tento rok zatiaľ nie sú záznamy.</p>}
+      <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "0.9rem" }}>
+        {yearEntries.map((e) => (
+          <li key={e.id}>
+            {dateSk(e.date)} · {e.kind === "prijem" ? "príjem" : "výdavok"} · {eur(e.amountCents)}{e.note ? ` (${e.note})` : ""}{" "}
+            {confirmId === e.id ? (
+              <>
+                <button onClick={() => save((list) => list.filter((x) => x.id !== e.id))} style={btn}>Potvrdiť zmazanie</button>{" "}
+                <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
+              </>
+            ) : (
+              <button onClick={() => setConfirmId(e.id)} style={btn}>Zmazať</button>
+            )}
+          </li>
+        ))}
+      </ul>
+      <Field label="Dátum záznamu" value={date} type="date" max={today} onChange={setDate} />
+      <label style={{ display: "block", margin: "6px 0" }}>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>Druh záznamu</span>
+        <select aria-label="Druh záznamu" value={kind} onChange={(e) => setKind(e.target.value as RentalEntryKind)} style={{ minHeight: 44, width: "100%" }}>
+          <option value="prijem">Príjem z nájmu</option>
+          <option value="vydavok">Výdavok na prenájom</option>
+        </select>
+      </label>
+      <Field label="Suma (€) – prenájom" value={amount} onChange={setAmount} />
+      <Field label="Poznámka (nepovinné)" value={note} type="text" onChange={setNote} />
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
+      <button onClick={add} style={btn}>Pridať záznam</button>
     </div>
   );
 }
@@ -1406,6 +1489,8 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       ...(pay > 0 ? { monthlyPaymentCents: cents(pay) } : {}),
       ...(rt > 0 ? { mortgageRate: rt / 100 } : {}),
       ...(other > 0 ? { monthlyOtherCostsCents: cents(other) } : {}),
+      ...(initial?.extraPayments ? { extraPayments: initial.extraPayments } : {}),
+      ...(initial?.rentalLedger ? { rentalLedger: initial.rentalLedger } : {}),
       ...(acqDate !== "" ? { acquisitionDate: acqDate } : {}),
       ...(ac !== undefined ? { acquisitionCostCents: cents(ac) } : {}),
       ...(mode === "prenajom" && rentalStart !== "" ? { rentalStartDate: rentalStart } : {}),
