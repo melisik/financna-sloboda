@@ -5,8 +5,8 @@ import { INCOME_FREQUENCIES, INCOME_KINDS, type RegularIncome } from "./types";
  * Súbor od integračnej služby (D-112, docs/15). Aplikácia ho len číta; nikdy sa nevolá sieť.
  * Verzia formátu 1: {"app":"integracna-sluzba","feedVersion":1,"source":…,"fetchedAt":…,"items":[…]}.
  */
-export const FEED_APP = "integracna-sluzba";
-export const FEED_VERSION = 1;
+const FEED_APP = "integracna-sluzba";
+const FEED_VERSION = 1;
 /** Horný limit veľkosti súboru; väčší súbor sa odmietne bez čítania (1 MB). */
 export const FEED_MAX_BYTES = 1_000_000;
 
@@ -16,7 +16,7 @@ export interface ParsedFeed {
   items: RegularIncome[];
 }
 
-export type FeedCheck = { ok: true; feed: ParsedFeed } | { ok: false; errors: string[] };
+type FeedCheck = { ok: true; feed: ParsedFeed } | { ok: false; errors: string[] };
 
 const FEED_KEYS = ["app", "feedVersion", "source", "fetchedAt", "items"];
 const ITEM_KEYS = ["id", "kind", "frequency", "name", "amountCents", "startDate", "endDate", "dayOfMonth"];

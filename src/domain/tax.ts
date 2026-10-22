@@ -6,7 +6,7 @@ import { positionValueCents } from "./investments";
  * Katalóg daňových režimov (FR-24). Každý parameter má zdroj, dátum platnosti a stav.
  * Zatiaľ žiadny parameter nie je overený, sadzby nie sú zadané (D-104): scenár po dani sa nepočíta.
  */
-export interface TaxRegimeParams {
+interface TaxRegimeParams {
   id: TaxRegime;
   label: string;
   rate: number | null; // sadzba po overení; zatiaľ null
@@ -22,7 +22,7 @@ export const TAX_CATALOG: Record<TaxRegime, TaxRegimeParams> = {
 };
 
 /** Riadok daňového scenára: hodnota investícií v režime a stav výpočtu po dani. */
-export interface TaxLine {
+interface TaxLine {
   regime: TaxRegime;
   label: string;
   valueCents: number;

@@ -15,7 +15,7 @@ export const CORE_SECTION_IDS = [
   "zaloha",
 ] as const;
 
-export interface OptionalModule {
+interface OptionalModule {
   id: string;
   label: string;
   sections: readonly string[];

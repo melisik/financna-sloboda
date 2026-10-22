@@ -1,5 +1,5 @@
 import { isReceiptId } from "../domain/receipt";
-import { ASSET_KINDS, ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Dog, type Recipe, type ReceiptItem, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Dog, type Recipe, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -49,7 +49,7 @@ export function validateTransaction(t: unknown, today: string, label = "transakc
   return errors;
 }
 
-export function validateSnapshot(s: unknown, today: string, label = "vyhodnotenie"): string[] {
+function validateSnapshot(s: unknown, today: string, label = "vyhodnotenie"): string[] {
   if (typeof s !== "object" || s === null || Array.isArray(s)) return [`${label}: musí byť objekt`];
   const o = s as Record<string, unknown>;
   const errors = unknownKeys(o, ["id", "date", "investmentsCents", "cashCents", "createdAt", "auto"], label);
@@ -62,7 +62,7 @@ export function validateSnapshot(s: unknown, today: string, label = "vyhodnoteni
   return errors;
 }
 
-export function validateExtraPayment(x: unknown, today: string, label = "mimoriadna splátka"): string[] {
+function validateExtraPayment(x: unknown, today: string, label = "mimoriadna splátka"): string[] {
   if (typeof x !== "object" || x === null || Array.isArray(x)) return [`${label}: musí byť objekt`];
   const o = x as Record<string, unknown>;
   const errors = unknownKeys(o, ["id", "date", "amountCents", "mode", "balanceBeforeCents", "monthlyPaymentBeforeCents"], label);
@@ -184,7 +184,7 @@ export function validateStockItem(i: unknown, label = "položka skladu"): string
   return errors;
 }
 
-export function validateReceiptItem(i: unknown, label = "položka dokladu"): string[] {
+function validateReceiptItem(i: unknown, label = "položka dokladu"): string[] {
   if (typeof i !== "object" || i === null || Array.isArray(i)) return [`${label}: musí byť objekt`];
   const o = i as Record<string, unknown>;
   const errors = unknownKeys(o, ["code", "name", "quantity", "vatPercent", "unitPriceCents", "amountCents"], label);
@@ -255,7 +255,7 @@ export function validateRecipe(r: unknown, label = "recept"): string[] {
   return errors;
 }
 
-export function validateRecurringExpense(e: unknown, label = "pravidelný výdavok"): string[] {
+function validateRecurringExpense(e: unknown, label = "pravidelný výdavok"): string[] {
   if (typeof e !== "object" || e === null || Array.isArray(e)) return [`${label}: musí byť objekt`];
   const o = e as Record<string, unknown>;
   const errors = unknownKeys(o, ["id", "name", "category", "frequency", "amountCents", "startDate", "endDate", "createdAt", "updatedAt"], label);
@@ -266,6 +266,7 @@ export function validateRecurringExpense(e: unknown, label = "pravidelný výdav
   if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť kladné celé číslo v centoch`);
   errors.push(...checkDate(o.startDate, "9999-12-31", `${label}: začiatok`));
   if (o.endDate !== undefined) errors.push(...checkDate(o.endDate, "9999-12-31", `${label}: koniec`));
+  if (typeof o.startDate === "string" && typeof o.endDate === "string" && o.endDate < o.startDate) errors.push(`${label}: koniec nesmie byť pred začiatkom`);
   return errors;
 }
 

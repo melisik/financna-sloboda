@@ -43,8 +43,10 @@ export function autoSnapshot(input: {
   const until = transactions.filter((t) => t.date <= end);
   const { capital } = capitalWithFlags(latest, until);
   const months = monthsBetween(latest.date, end);
+  // Výnos sa počíta len z hodnoty na začiatku obdobia; vklady a výbery v období sa pripočítajú bez výnosu (audit, nález 9).
   const growth = positionsTotalCents === null ? Math.pow(1 + monthlyRate(realReturn), months) : 1;
-  const investmentsCents = positionsTotalCents ?? Math.round(capital.inv * growth);
+  const netInvFlow = capital.inv - latest.investmentsCents;
+  const investmentsCents = positionsTotalCents ?? Math.round(latest.investmentsCents * growth) + netInvFlow;
 
   return {
     id,

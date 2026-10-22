@@ -1,13 +1,13 @@
 import { useState } from "react";
 import type { Repository } from "../../storage/repository";
-import { BUDGET_CATEGORIES, type Budget, type BudgetCategory, type Liability, type Property, type RecurringExpense, type Transaction } from "../../storage/types";
+import { BUDGET_CATEGORIES, type Budget, type Property, type RecurringExpense, type Transaction } from "../../storage/types";
 import { budgetStatus, spentInMonthCents } from "../../domain/budget";
 import { monthSummary } from "../../domain/monthSummary";
 import { monthlyRecurringByCategory } from "../../domain/recurring";
 import { housingFlowCents } from "../../domain/property";
-import { cents, eur, todayIso } from "../../ui/kit/format";
+import { cents, eur } from "../../ui/kit/format";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn, btnPrimary } from "../../ui/kit/controls";
+import { Field, asNum, type NumIn, btnPrimary } from "../../ui/kit/controls";
 
 /** Rozpočet kategórií (D-106): mesačný limit a čo sa za aktuálny mesiac minulo. Prázdny limit = bez rozpočtu. */
 

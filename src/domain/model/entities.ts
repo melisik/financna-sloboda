@@ -88,7 +88,7 @@ export interface RentalEntry {
   note?: string; // max 120 znakov
 }
 
-export interface ExtraPayment {
+interface ExtraPayment {
   id: string;
   date: string; // YYYY-MM-DD, v rozsahu od dátumu zostatku po dnes
   amountCents: number; // kladné

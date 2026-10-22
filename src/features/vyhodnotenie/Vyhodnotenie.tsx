@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Repository } from "../../storage/repository";
-import type { Liability, Property, Position, Snapshot } from "../../storage/types";
+import type { Property, Position, Snapshot } from "../../storage/types";
 import type { Capital } from "../../domain/capital";
 import { checkDate } from "../../storage/validate";
 import { positionsChangedSince, staleValuationNames } from "../../domain/investments";

@@ -3,10 +3,10 @@ import type { Repository } from "../../storage/repository";
 import { BUDGET_CATEGORIES, RECURRING_FREQUENCIES, type BudgetCategory, type RecurringExpense, type RecurringFrequency } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import { annualRecurringTotalCents, endingSoon, isRecurringActive, monthlyRecurringByCategory, monthlyRecurringTotalCents, monthlyShareCents } from "../../domain/recurring";
-import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
+import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Pravidelné výdavky (D-124): zoznam, súčet za mesiac a podľa kategórie, ukončenie. Iba zobrazenie výpočtov. Feature „pravidelne“ (docs/23). */
 

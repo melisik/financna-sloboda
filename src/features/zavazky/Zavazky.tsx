@@ -4,10 +4,10 @@ import { LIABILITY_KINDS, type Liability, type LiabilityKind } from "../../stora
 import { checkDate } from "../../storage/validate";
 import { liabilityInterestCents, liabilitiesTotals, liabilityIsActive } from "../../domain/liabilities";
 import { paymentBelowInterest } from "../../domain/mortgage";
-import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
+import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Záväzky okrem hypotéky (D-103, D-140): úvery a kreditné karty. Hypotéka je v Majetku. Feature „zavazky“ (docs/23). */
 

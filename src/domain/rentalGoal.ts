@@ -17,13 +17,13 @@ export interface Rental {
 }
 
 /** Výsledok výpočtu mesiacov do cieľa. cash_exhausted = hotovosť by klesla pod 0 (FR-02a, D-058). */
-export type GoalMonths =
+type GoalMonths =
   | { kind: "months"; months: number }
   | { kind: "unreachable" }
   | { kind: "cash_exhausted"; month: number };
 
 /** Horizont FR-02a: 50 rokov (O-5). */
-export const RENTAL_HORIZON_MONTHS = 600;
+const RENTAL_HORIZON_MONTHS = 600;
 
 /** Do K sa počíta len prenájom (D-093 a countsInCapital). */
 export function rentalsFor(properties: Property[]): Rental[] {

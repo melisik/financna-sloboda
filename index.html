@@ -2,7 +2,8 @@
 <html lang="sk">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'" />
+    <!-- style-src 'unsafe-inline': appka používa inline štýly (atribút style); výnimka je zdokumentovaná v docs/22 (nález 17). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#2f6b57" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1f2a25" media="(prefers-color-scheme: dark)" />

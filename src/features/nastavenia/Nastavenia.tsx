@@ -4,7 +4,7 @@ import type { Settings } from "../../storage/types";
 import { recommendedSettings } from "../../domain/recommendations";
 import { cents, eur } from "../../ui/kit/format";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, differs, type NumIn, btnPrimary } from "../../ui/kit/controls";
+import { Field, asNum, differs, type NumIn, btnPrimary } from "../../ui/kit/controls";
 
 /** Nastavenia výpočtu (FR-13, D-049, D-118): cieľové výdavky, miera výberu, výnos, rezerva a prah. Feature „nastavenia“ (docs/23). */
 
@@ -25,7 +25,6 @@ export function SettingsSection({ repo, settings, derived, onSaved }: { repo: Re
   // Východiskové hodnoty sa počítajú z práve zadaných výdavkov (R21/R22: jeden zdroj, bez natvrdo zadanej sumy).
   const expCents = typeof v.expenses === "number" ? cents(v.expenses) : 0;
   const rec = recommendedSettings(expCents);
-  const realIn = typeof v.returnPct === "number" ? v.returnPct / 100 : rec.realReturn;
 
   const save = async () => {
     // D-118: ročné výdavky sú povinné; prázdne ostatné polia použijú východiskovú hodnotu.

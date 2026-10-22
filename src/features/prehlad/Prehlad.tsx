@@ -13,7 +13,7 @@ import { nominalFromReal, RETURN_ASSUMPTIONS } from "../../domain/assumptions";
 import { recommendedSettings } from "../../domain/recommendations";
 import { positionsChangedSince } from "../../domain/investments";
 import { propertyChangedSince } from "../../domain/property";
-import { cents, dateSk, eur, monthYear, pctText, todayIso } from "../../ui/kit/format";
+import { dateSk, eur, monthYear, pctText, todayIso } from "../../ui/kit/format";
 import { btn, btnPrimary } from "../../ui/kit/controls";
 import { saveTextFile } from "../../ui/kit/files";
 

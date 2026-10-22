@@ -1,6 +1,6 @@
 import type { BudgetCategory, Transaction, TransactionType } from "./model/entities";
 
-export interface HistoryFilter {
+interface HistoryFilter {
   type?: TransactionType; // undefined = všetky typy
   from?: string; // YYYY-MM-DD, vrátane
   to?: string; // YYYY-MM-DD, vrátane

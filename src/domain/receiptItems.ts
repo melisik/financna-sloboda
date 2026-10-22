@@ -1,6 +1,6 @@
 import type { ReceiptItem } from "./model/entities";
 
-export interface ParsedReceiptItems {
+interface ParsedReceiptItems {
   items: ReceiptItem[];
   /** Riadky, ktoré sa nepodarilo rozpoznať; ukážu sa používateľovi, nič sa potichu nevynechá. */
   unparsed: string[];

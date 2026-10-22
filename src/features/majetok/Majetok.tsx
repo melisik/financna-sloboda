@@ -1,15 +1,15 @@
 import { useState } from "react";
 import type { Repository } from "../../storage/repository";
 import type { Asset, AssetKind, ExtraPaymentMode, Property, PropertyMode, RentalEntry, RentalEntryKind } from "../../storage/types";
-import { ASSET_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RENTAL_ENTRY_KINDS } from "../../storage/types";
+import { ASSET_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
-import { applyExtraPayment, remainingMonths, amortizeMortgage } from "../../domain/mortgage";
+import { applyExtraPayment, remainingMonths } from "../../domain/mortgage";
 import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../../domain/property";
 import { rentalRow11, rentalTotalsForYear, rentalYears } from "../../domain/rental";
-import { cents, dateSk, eur, monthYear, todayIso } from "../../ui/kit/format";
+import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Majetok (Fáza 2, D-080 až D-158): nehnuteľnosti, hypotéka, prenájom, mimoriadne splátky a ďalšie aktíva. Feature „majetok“ (docs/23). */
 

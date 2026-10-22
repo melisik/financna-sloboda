@@ -1,6 +1,6 @@
 import type { Recipe, StockItem } from "./model/entities";
 
-export type CookResult = { ok: true; changed: StockItem[] } | { ok: false; problems: string[] };
+type CookResult = { ok: true; changed: StockItem[] } | { ok: false; problems: string[] };
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 

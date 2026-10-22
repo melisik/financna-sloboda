@@ -12,7 +12,7 @@ export interface OverviewSettings {
 }
 
 /** Jeden riadok Ročného prehľadu. Nehnuteľnosti sa neukladajú do vyhodnotení, preto sú mimo K. */
-export interface OverviewRow {
+interface OverviewRow {
   date: string;
   auto: boolean;
   invCents: number;
@@ -28,7 +28,7 @@ export interface OverviewRow {
 }
 
 /** Ročný súhrn (docs/13, oddiel 4): K na konci roka, zmena za rok, sporenie, výdavky a najväčšia kategória. */
-export interface YearSummary {
+interface YearSummary {
   year: number;
   endK: number | null; // K z posledného vyhodnotenia v roku
   deltaK: number | null; // zmena oproti poslednému vyhodnoteniu pred rokom

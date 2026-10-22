@@ -26,7 +26,7 @@ import { PinSection } from "../features/zamok/Lock";
 import { BackupSection } from "../features/zaloha/BackupSection";
 
 /** Obsah jednej sekcie: ktorá sekcia sa zobrazí a s akými údajmi a callbackmi. Sekcia sa vytvára nanovo pri každej zmene (key v App). */
-export type SectionViewProps = {
+type SectionViewProps = {
   section: SectionId;
   repo: Repository;
   data: AppData;

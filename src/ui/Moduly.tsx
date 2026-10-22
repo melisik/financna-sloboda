@@ -4,7 +4,7 @@ import { CORE_SECTION_IDS, OPTIONAL_MODULES, readModuleChoice, visibleSectionIds
 
 /** Výber modulov (D-162, D-163) a ich zobrazenie: kontext pre celú appku, zaškrtávacie políčka, blok v Nastaveniach. */
 
-export type ModulesValue = { visible: Set<string>; choice: string[] | null; setChoice: (ids: string[]) => void };
+type ModulesValue = { visible: Set<string>; choice: string[] | null; setChoice: (ids: string[]) => void };
 const ModulesCtx = createContext<ModulesValue>({ visible: new Set(CORE_SECTION_IDS), choice: null, setChoice: () => undefined });
 
 /** Výber voliteľných modulov pre celú appku (D-162). Sekcie a navigácia čítajú viditeľnosť odtiaľto. */

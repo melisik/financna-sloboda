@@ -35,6 +35,12 @@ describe("automatické vyhodnotenie (D-116)", () => {
     expect(snap?.investmentsCents).toBe(Math.round(10_000_000 * Math.pow(1.12, 1 / 12)));
   });
 
+  it("vklad do investícií v období sa zhodnotí len od vkladu, nie za celé obdobie (audit, nález 9)", () => {
+    const txs = [tx("d", "2026-10-15", "investicia", 500_000, "z_hotovosti")];
+    const snap = autoSnapshot({ ...base, realReturn: 0.12, transactions: txs, positionsTotalCents: null, today: "2026-11-02" });
+    expect(snap?.investmentsCents).toBe(Math.round(10_000_000 * Math.pow(1.12, 1 / 12)) + 500_000);
+  });
+
   it("ak existujú položky investícií, použije sa ich súčet a výnos sa nepridáva", () => {
     const snap = autoSnapshot({ ...base, realReturn: 0.12, transactions: [], positionsTotalCents: 12_000_000, today: "2026-11-02" });
     expect(snap?.investmentsCents).toBe(12_000_000);

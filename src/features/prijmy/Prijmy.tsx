@@ -6,10 +6,10 @@ import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../../doma
 import { futureOutlook } from "../../domain/outlook";
 import { monthSummary } from "../../domain/monthSummary";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../../storage/feed";
-import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
+import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Pravidelné príjmy (D-102): zoznam, výhľad a rozdiel oproti výdavkom tohto mesiaca. Feature „prijmy“ (docs/23). */
 

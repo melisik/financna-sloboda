@@ -5,7 +5,7 @@ import { housingFlowCents } from "./property";
 import { monthlyRecurringByCategory } from "./recurring";
 
 /** Zatriedenie výdavku: nevyhnutný, nie nevyhnutný, alebo ostatný (iné). Návrh na potvrdenie (D-131). */
-export type Necessity = "nevyhnutne" | "nie_nevyhnutne" | "ostatne";
+type Necessity = "nevyhnutne" | "nie_nevyhnutne" | "ostatne";
 
 export const NECESSITY: Record<BudgetCategory, Necessity> = {
   "bývanie": "nevyhnutne",
@@ -22,7 +22,7 @@ export const NECESSITY: Record<BudgetCategory, Necessity> = {
   "iné": "ostatne",
 };
 
-export interface MonthSummary {
+interface MonthSummary {
   planCents: number; // súčet limitov z Rozpočtu
   plannedSpentCents: number; // minuté v kategóriách, ktoré majú limit
   percent: number | null; // plnenie plánu v %; null, ak plán nie je

@@ -1,7 +1,7 @@
 import { targetDate } from "./goal";
 
 /** Horizont zobrazenia dátumu cieľa: 50 rokov (O-5, GC-12). */
-export const HORIZON_MONTHS = 600;
+const HORIZON_MONTHS = 600;
 
 export type GoalDisplay =
   | { kind: "reached"; date: string }

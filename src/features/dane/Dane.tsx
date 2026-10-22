@@ -1,15 +1,15 @@
 import { useState } from "react";
 import type { Repository } from "../../storage/repository";
-import { DOG_KEEPING_PLACES, DOG_PURPOSES, TAX_REGIMES, type Dog, type DogKeepingPlace, type DogPurpose, type Position, type Property, type TaxRegime } from "../../storage/types";
+import { DOG_KEEPING_PLACES, DOG_PURPOSES, type Dog, type DogKeepingPlace, type DogPurpose, type Position, type Property } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import { DOG_PLACE_LABEL, DOG_PURPOSE_LABEL, activeDogCount } from "../../domain/dogs";
 import { TAX_FORM_PATH, buildTaxFormFields } from "../../domain/taxForm";
 import { TAX_CATALOG, taxScenario } from "../../domain/tax";
-import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
+import { dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { saveBlobFile } from "../../ui/kit/files";
-import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { Field, btn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { fillTaxFormPdf } from "./taxFormPdf";
 
 /** Dane (FR-24, FR-25, D-104, D-159, D-161): daňový rámec investícií, evidencia psov a tlačivo 17-dp-md. Feature „dane“ (docs/23). */

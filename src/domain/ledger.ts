@@ -22,7 +22,7 @@ export function currentCapital(snapshot: Snapshot | null, transactions: Transact
  */
 export { isAfterEvaluation } from "./capital";
 
-export type Shortfall = { inv: number; cash: number };
+type Shortfall = { inv: number; cash: number };
 
 export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transaction[]): { capital: Capital; negative: { inv: boolean; cash: boolean }; shortfall: Shortfall } {
   if (!snapshot) return { capital: { inv: 0, cash: 0 }, negative: { inv: false, cash: false }, shortfall: { inv: 0, cash: 0 } };

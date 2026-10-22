@@ -1,7 +1,7 @@
 import type { IncomeKind, RegularIncome } from "./model/entities";
 
 /** Druhy príjmov vo výhľade (docs/14): dôchodky a dávky, ktoré používateľ zadá ručne. */
-export const OUTLOOK_KINDS: readonly IncomeKind[] = ["starobny_dochodok", "invalidny_dochodok", "socialna_davka"];
+const OUTLOOK_KINDS: readonly IncomeKind[] = ["starobny_dochodok", "invalidny_dochodok", "socialna_davka"];
 
 /**
  * Budúce dôchodky a dávky (dátum začiatku je po dnešku), od najskoršieho. Len zobrazenie zadaných údajov:

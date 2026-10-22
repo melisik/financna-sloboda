@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { buildBackup, parseBackup } from "../src/storage/backup";
 import { openRepository } from "../src/storage/indexeddb";
 import type { AppData, Transaction } from "../src/storage/types";

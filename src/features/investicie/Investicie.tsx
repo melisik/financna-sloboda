@@ -4,10 +4,10 @@ import { BALANCE_INVESTMENT_KINDS, INVESTMENT_KINDS, TAX_REGIMES, type Investmen
 import { checkDate } from "../../storage/validate";
 import { investmentsByKindCents, investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents, staleValuationNames } from "../../domain/investments";
 import { TAX_CATALOG } from "../../domain/tax";
-import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
+import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
-import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Investície (D-101, D-105): ručné položky a ich ocenenie; súčet sa použije vo Vyhodnotení. Feature „investicie“ (docs/23). */
 

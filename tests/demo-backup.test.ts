@@ -2,9 +2,10 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseBackup } from "../src/storage/backup";
+import { todayIso } from "../src/ui/kit/format";
 
 // Testovacia záloha z Návodu (syntetické dáta) musí sa načítať v aktuálnej schéme.
-const TODAY = new Date().toISOString().slice(0, 10); // záloha sa pri nasadení posúva na aktuálny mesiac
+const TODAY = todayIso(); // záloha sa pri nasadení posúva na aktuálny mesiac; lokálny dátum (audit, nález 16)
 
 describe("testovacia záloha", () => {
   it("načíta sa v aktuálnej schéme a obsahuje dáta na ukážku", () => {

@@ -1,6 +1,6 @@
 /** Formátovanie peňazí a dátumov pre používateľa (D-144). Spoločné pre všetky sekcie a zdieľateľné. */
 
-export const MONTHS = ["januára", "februára", "marca", "apríla", "mája", "júna", "júla", "augusta", "septembra", "októbra", "novembra", "decembra"];
+const MONTHS = ["januára", "februára", "marca", "apríla", "mája", "júna", "júla", "augusta", "septembra", "októbra", "novembra", "decembra"];
 export const cents = (x: number) => Math.round(x * 100);
 export const eur = (c: number) => `${(c / 100).toLocaleString("sk-SK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 /** Lokálny dnešný dátum YYYY-MM-DD (R14: nie UTC). */

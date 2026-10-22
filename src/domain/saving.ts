@@ -6,7 +6,7 @@ import type { Transaction } from "./model/entities";
  * delený počtom mesiacov histórie od prvej transakcie, najviac 12.
  * Sumy v centoch.
  */
-export interface MonthlySaving {
+interface MonthlySaving {
   inv: number; // m_inv (investícia)
   cash: number; // m_cash (sporenie)
 }

@@ -2,7 +2,7 @@
  * iPhone a iPad: web-appku na plochu pridá len Safari (D-053, D-168). Chrome, Firefox, Edge, Opera
  * a aplikácie (Facebook, Instagram) to na iOS neponúkajú, preto ich appka neblokuje, len upozorní.
  */
-export function isIosDevice(ua: string): boolean {
+function isIosDevice(ua: string): boolean {
   return /iPhone|iPad|iPod/.test(ua);
 }
 

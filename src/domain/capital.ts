@@ -19,7 +19,7 @@ export function isAfterEvaluation(t: Pick<Transaction, "date" | "createdAt">, sn
 }
 
 /** Celkový kapitál K_L = K_inv + K_cash. */
-export function totalCapital(c: Capital): number {
+function totalCapital(c: Capital): number {
   return c.inv + c.cash;
 }
 
@@ -57,7 +57,7 @@ export function monthsToTargetSplit(
 }
 
 /** Výsledok výdavku alebo presunu: nový stav a prípadné upozornenie (D-021, D-045). */
-export type MoveResult =
+type MoveResult =
   | { ok: true; capital: Capital; warning?: "exhausted" }
   | { ok: false; reason: "insufficient_cash"; suggestion: "investments" };
 

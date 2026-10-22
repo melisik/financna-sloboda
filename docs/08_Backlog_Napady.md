@@ -48,4 +48,4 @@ Personas v `docs/01_Personas.md` sú zatiaľ len zakladateľ (fáza 1) a fáza 2
 
 - **N-14 Súhrnný majetok (odložené, D-137):** spoločný súhrn všetkého majetku. Automobily a ocenitelné práva sa odkladajú, lebo sú skôr zahraničný aspekt.
 - **N-15 Mimoriadna splátka hypotéky (implementované, D-145; dohodnuté 2026-10-21):** pole s dátumom a sumou mimoriadnej splátky. Appka prepočíta zostatok. Používateľ si pri zadaní vyberie, či sa zníži splátka (pri zachovanom termíne), alebo sa skráti termín (pri zachovanej splátke). Súvisí s D-137.
-- **N-16 Pripomienka na starý odhad investícií (schválené 2026-10-21, D-139):** upozornenie, ak je ocenenie staršie ako 3 mesiace.
+- **N-16 Pripomienka na starý odhad investícií (schválené 2026-10-21, D-139):** upozornenie, ak je ocenenie staršie ako 3 mesiace. **Implementované** (Investície a Vyhodnotenie, D-139).

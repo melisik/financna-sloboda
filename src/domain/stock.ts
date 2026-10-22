@@ -1,9 +1,9 @@
 import type { StockItem } from "./model/entities";
 
 /** Počet dní, za ktoré sa upozorní na blížiaci sa dátum spotreby. */
-export const EXPIRY_WARNING_DAYS = 3;
+const EXPIRY_WARNING_DAYS = 3;
 
-export type StockStatus = "bez_datumu" | "prešlo" | "blizi_sa" | "v_poriadku";
+type StockStatus = "bez_datumu" | "prešlo" | "blizi_sa" | "v_poriadku";
 
 /** Počet dní od dneška do dátumu (záporný, ak je dátum prešlý). Výpočet v UTC, bez časového pásma. */
 export function daysUntil(todayIso: string, dateIso: string): number {

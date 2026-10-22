@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Repository } from "../../storage/repository";
 import type { AppData } from "../../storage/types";
 import { checkPin, isValidPin, makePinRecord } from "./pin";
+import { NO_ATTEMPTS, afterFailure, readAttempts, waitSeconds, writeAttempts, type PinAttempts } from "./pinLimit";
 import { Field, btn, inp } from "../../ui/kit/controls";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 
@@ -19,11 +20,45 @@ export function LockScreen({ repo, onUnlock, onWiped }: { repo: Repository; onUn
   const [err, setErr] = useState<string | null>(null);
   const [forgot, setForgot] = useState(false);
   const [understood, setUnderstood] = useState(false);
+  // Obmedzenie pokusov (audit, nález 10): stav z úložiska; čas sa počas blokovania prepočíta každú sekundu.
+  const [attempts, setAttempts] = useState<PinAttempts>(NO_ATTEMPTS);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    void readAttempts(repo).then(setAttempts);
+  }, [repo]);
+  useEffect(() => {
+    if (attempts.lockedUntil <= Date.now()) return;
+    const id = window.setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      if (t >= attempts.lockedUntil) window.clearInterval(id);
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [attempts.lockedUntil]);
+  const wait = waitSeconds(attempts, now);
+  // Synchrónna ochrana: rýchle opakované kliknutia nesmú čítať ten istý stav pokusov naraz.
+  const busy = useRef(false);
   const unlock = async () => {
-    const record = await repo.getMeta("pin");
-    if (record && (await checkPin(pin, record))) return onUnlock();
-    setErr("Nesprávny PIN. Skús znova.");
-    setPin("");
+    if (busy.current) return;
+    busy.current = true;
+    try {
+      const stored = await readAttempts(repo);
+      setAttempts(stored);
+      if (waitSeconds(stored, Date.now()) > 0) return setNow(Date.now());
+      const record = await repo.getMeta("pin");
+      if (record && (await checkPin(pin, record))) {
+        await writeAttempts(repo, NO_ATTEMPTS).catch(() => undefined);
+        return onUnlock();
+      }
+      const next = afterFailure(stored, Date.now());
+      await writeAttempts(repo, next).catch(() => undefined);
+      setAttempts(next);
+      setNow(Date.now());
+      setErr("Nesprávny PIN. Skús znova.");
+      setPin("");
+    } finally {
+      busy.current = false;
+    }
   };
   const wipe = async () => {
     try {
@@ -41,10 +76,11 @@ export function LockScreen({ repo, onUnlock, onWiped }: { repo: Repository; onUn
       <p style={{ color: "var(--muted)" }}>Údaje sú v tomto telefóne. Ak PIN zabudneš, môžeš údaje v zariadení vymazať a obnoviť ich zo zálohy.</p>
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>PIN</span>
-        <input type="password" inputMode="numeric" aria-label="PIN" value={pin} onChange={(e) => setPin(e.target.value)} style={inp} />
+        <input type="password" inputMode="numeric" aria-label="PIN" value={pin} disabled={wait > 0} onChange={(e) => setPin(e.target.value)} style={inp} />
       </label>
+      {wait > 0 && <p style={{ color: "var(--danger)" }}>Príliš veľa pokusov. Skús znova o {wait} s.</p>}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={unlock} style={btn}>Odomknúť</button>
+      <button onClick={unlock} disabled={wait > 0} style={btn}>Odomknúť</button>
       {!forgot ? (
         <p><button onClick={() => setForgot(true)} style={{ ...btn, marginTop: 16 }}>Zabudol som PIN</button></p>
       ) : (
@@ -74,6 +110,7 @@ export function PinSection({ repo, pinSet, onChanged, onLock }: { repo: Reposito
     if (newPin !== repeat) return setErr("PIN sa nezhoduje so zopakovaním.");
     try {
       await repo.setMeta("pin", await makePinRecord(newPin));
+      await writeAttempts(repo, NO_ATTEMPTS).catch(() => undefined);
       setNewPin("");
       setRepeat("");
       setErr(null);
@@ -84,10 +121,19 @@ export function PinSection({ repo, pinSet, onChanged, onLock }: { repo: Reposito
   };
 
   const disable = async () => {
+    const stored = await readAttempts(repo);
+    const blocked = waitSeconds(stored, Date.now());
+    if (blocked > 0) return setErr(`Príliš veľa pokusov. Skús znova o ${blocked} s.`);
     const record = await repo.getMeta("pin");
-    if (!record || !(await checkPin(current, record))) return setErr("Aktuálny PIN nesedí.");
+    if (!record || !(await checkPin(current, record))) {
+      const next = afterFailure(stored, Date.now());
+      await writeAttempts(repo, next).catch(() => undefined);
+      const left = waitSeconds(next, Date.now());
+      return setErr(left > 0 ? `Aktuálny PIN nesedí. Ďalší pokus o ${left} s.` : "Aktuálny PIN nesedí.");
+    }
     try {
       await repo.setMeta("pin", "");
+      await writeAttempts(repo, NO_ATTEMPTS).catch(() => undefined);
       setCurrent("");
       setErr(null);
       onChanged(false);

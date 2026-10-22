@@ -17,7 +17,7 @@ export function rentalYears(entries: RentalEntry[]): number[] {
 }
 
 /** Nezdaniteľná suma z príjmov z prenájmu nehnuteľností podľa § 9 ods. 1 písm. g) zákona (poučenie k DP FO 2025, s. 13). */
-export const RENTAL_EXEMPTION_CENTS = 50_000;
+const RENTAL_EXEMPTION_CENTS = 50_000;
 
 /**
  * Riadok 11 tabuľky 1 (oddiel VI) daňového priznania typ B (poučenie k DP FO 2025, s. 13).

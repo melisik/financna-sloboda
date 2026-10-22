@@ -5,7 +5,7 @@ import type { Repository } from "../../storage/repository";
 import { daysUntil, expiringItems, sortForList, stockStatus } from "../../domain/stock";
 import { findExpiryDate, findProductName } from "../../domain/scan";
 import { cookRecipe } from "../../domain/recipe";
-import { cents, dateSk, todayIso } from "../../ui/kit/format";
+import { dateSk } from "../../ui/kit/format";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { uid } from "../../ui/kit/ids";
 import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
@@ -103,7 +103,7 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
 // Množstvo v desatinnej čiarke, ako ho píše slovenský text.
 const qtyText = (n: number) => String(n).replace(".", ",");
 
-export function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; recipes: Recipe[]; stock: StockItem[]; onSaved: () => void }) {
+function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; recipes: Recipe[]; stock: StockItem[]; onSaved: () => void }) {
   const [editing, setEditing] = useState<Recipe | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
