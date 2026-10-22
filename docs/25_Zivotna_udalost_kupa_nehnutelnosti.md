@@ -24,4 +24,4 @@ Podlahová plocha: pri podiele v tvare 4574/696619 je 4574 dm² = 45,74 m² (D-2
 - Nahrávanie PDF je odložené, lebo by vyžadovalo novú knižnicu na čítanie PDF.
 
 ## 4. Otvorené
-- **Záložné právo:** zatiaľ len upozornenie. Hypotéku appka sama nevytvára, lebo zostatok a splátku z LV nevie. Potvrdenie zakladateľa čaká (otázka zostala bez odpovede).
+- **Záložné právo:** rozhodnuté (D-216): len upozornenie, hypotéku appka nevytvára.
