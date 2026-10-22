@@ -44,10 +44,12 @@ Potrebné pravidlá z overeného zdroja: odpisové skupiny a doby odpisovania, m
 
 **Krok 1b (zapracované, D-157):** pri prenájme priebežná evidencia príjmov a výdavkov (dátum, druh, suma, poznámka) s ročným súčtom. Súčet je podklad pre riadok 11, oddiel VI, tabuľka 1 daňového priznania. Appka nepočíta daň ani sadzby.
 
-**Krok 2 (nezapracovaný, čaká na overenie zdroja):**
-- Miestne dane: editovateľné tlačivo (17-dp-md, slovensko.sk) sa dá vyplniť z údajov o nehnuteľnosti (kúpna zmluva, list vlastníctva). Potrebujeme PDF na zistenie názvov polí, nie je dostupné z prostredia vývoja.
+**Krok 2a (zapracované, D-220):** šablóna XML priznania typu rdp=1, rok 2025, je v `public/tlaciva/dpfo-rdp1-2025-sablona.xml`. Obsahuje len štruktúru a pevné hodnoty (typ, rok, klasifikáciu činnosti, názvy rokov 2020 až 2024). Test `tests/tax-xml-template.test.ts` stráží, že v nej nie sú žiadne údaje daňovníka. Význam s1 a s2 v riadku 11 tabuľky 1 je potvrdený z poučenia k DP FO 2025, s. 13 (pozri sekciu 9). Generovanie XML zostáva odložené.
+
+**Krok 2b (nezapracovaný, čaká na overenie zdroja a na prijatie na portáli):** generovanie XML z ročnej evidencie (D-157). Čaká na overenie zdrojov (sekcia 8) a na to, ako portál prijíma prázdne prepínače (TODO v šablóne).
+
+- Miestne dane: tlačivo 17-dp-md appka už vypĺňa (D-161, D-208). Zostáva overiť zdroje k termínom a správcovi dane (sekcia 8).
 - Daň za psa: rovnaký typ podkladu; sadzby určuje obec (VZN), preto sa zavedie až s konkrétnou obcou.
-- Daň z príjmu: XML pre daňové priznanie typu rdp=1 (šablóna form.621.xml, rok 2025). Význam stĺpcov s1 a s2 v riadku t1r11 treba potvrdiť z tlačiva pred generovaním.
 - Pojem príjmu (dátum prijatia) a uznanie výdavkov (doklady alebo paušál) sa potvrdia pred výpočtom.
 
 ## 8. Stav overenia zdrojov (2026-10-22)
@@ -69,7 +71,7 @@ Dôvod: z prostredia vývoja nie je prístup na stránky Finančnej správy ani 
 
 ## 9. Podklady z oficiálnych tlačív (2026-10-22)
 
-- **Tlačivo 17-dp-md** (priznanie k dani z nehnuteľností, dani za psa, predajné automaty, hracie prístroje): PDF má 1 688 editovateľných polí. Oddiely: I daňovník, II pozemky, III stavby, IV byty, V pes (25 riadkov, dátum vzniku a zániku). Vyplnenie z údajov v appke je technicky možné; zatiaľ nie je implementované.
-- **Poučenie k DP FO 2025 (typ B), s. 13:** riadok 11 tabuľky 1 (oddiel VI). Stĺpec 1 = kladný rozdiel príjmu z prenájmu a 500 € (§ 9 ods. 1 písm. g). Stĺpec 2 = výdavky v rovnakom pomere. Výdavky percentom sa pri prenájme neuplatňujú. Príklad v poučení (3 595,75 €) sa nezhoduje s vzorcom (3 594,76 €) — overiť s účtovníkom.
+- **Tlačivo 17-dp-md** (priznanie k dani z nehnuteľností, dani za psa, predajné automaty, hracie prístroje): PDF má 1 688 editovateľných polí. Oddiely: I daňovník, II pozemky, III stavby, IV byty, V pes (25 riadkov, dátum vzniku a zániku). Vyplnenie z údajov v appke je implementované (D-161, D-208).
+- **Poučenie k DP FO 2025 (typ B), s. 13:** riadok 11 tabuľky 1 (oddiel VI). Stĺpec 1 = kladný rozdiel medzi príjmom z prenájmu a 500 € (§ 9 ods. 1 písm. g). Stĺpec 2 = výdavky × stĺpec 1 / celkový príjem z prenájmu (rovnaký pomer). Riadok 13 tabuľky 1 sa prenáša do riadkov 58 (príjmy) a 59 (výdavky). Výdavky percentom sa pri prenájme neuplatňujú. Príklad v poučení (3 595,75 €) sa nezhoduje s vzorcom (3 594,76 € pri príjme 9 948 € a výdavkoch 3 785 €) — overiť s účtovníkom.
 - **Príjem:** podľa dátumu, kedy prišiel na účet (zadanie zakladateľa). **Výdavky:** doklady sa pripájajú k jednotlivým výdavkom; prílohy zatiaľ nie sú v appke (ďalší krok).
 - **Daň za psa:** evidencia psov je zavedená (D-159): obec, adresa, miesto držania, účel, dátumy vzniku a zániku, počet psov dnes. Sadzby určuje obec a appka ich nepočíta.
