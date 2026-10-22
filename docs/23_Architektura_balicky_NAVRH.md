@@ -1,6 +1,14 @@
 # Architektúra: znovupoužiteľné balíčky (NÁVRH – čaká na schválenie)
 
-Stav: **návrh**. Nič z tohto dokumentu zatiaľ nie je v kóde ani v `decisions/Decisions.md`. Rozhodnutia sa zapíšu po schválení a kroky sa spravia po jednom, každý s zelenými testami.
+Stav: **schválené s úpravami** (D-171, D-172). Rozhodnutia zakladateľa: len tento projekt; jeden repozitár; najprv typy a výpočty.
+
+Hotové v tejto vetve:
+- Krok 1: entity a číselníky sú v `src/domain/model/entities.ts`; `storage/types.ts` ich znovu exportuje.
+- Krok 2: doména (výpočty) importuje len vlastné súbory a nikdy úložisko, aplikáciu ani UI (`tests/architecture.test.ts`).
+
+Zmena oproti návrhu: výpočty ostávajú v `src/domain/` (nie `core/finance/`), aby sa nepremenovalo 31 súborov naraz (D-172). Kroky 3–5 (spoločné prvky, sekcie do features/, samostatné balíky) čakajú na samostatné schválenie.
+
+Ak sa jadro neskôr použije v inom projekte, vyčlení sa ako samostatný balík s verziou (git závislosť), nie kopírovaním, a to len po rozhodnutí podľa CLAUDE.md.
 
 Vzťahuje sa na: `docs/05_Technical_Architecture.md` (pravidlo závislostí, §3), `docs/21_Architektura_moduly_NAVRH.md` (moduly v aplikácii, D-162, D-163), `CLAUDE.md` (nezávislosť od iných projektov).
 

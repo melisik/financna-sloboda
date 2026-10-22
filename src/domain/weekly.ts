@@ -1,4 +1,4 @@
-import type { Transaction } from "../storage/types";
+import type { Transaction } from "./model/entities";
 
 /** Týždenný súhrn výdavkov (N-10): posledných 7 dní vrátane dneška. Len výdavky; nič sa neodosiela. */
 export interface WeeklySummary {

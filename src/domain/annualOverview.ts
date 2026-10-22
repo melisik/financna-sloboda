@@ -1,4 +1,4 @@
-import type { Snapshot, Transaction } from "../storage/types";
+import type { Snapshot, Transaction } from "./model/entities";
 import { goalMonths, type Rental } from "./rentalGoal";
 import { isAfterEvaluation } from "./capital";
 import { goalDisplay, type GoalDisplay } from "./goalDisplay";

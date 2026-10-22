@@ -1,4 +1,4 @@
-import type { Recipe, StockItem } from "../storage/types";
+import type { Recipe, StockItem } from "./model/entities";
 
 export type CookResult = { ok: true; changed: StockItem[] } | { ok: false; problems: string[] };
 

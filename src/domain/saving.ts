@@ -1,4 +1,4 @@
-import type { Transaction } from "../storage/types";
+import type { Transaction } from "./model/entities";
 
 /**
  * Mesačné sporenie odvodené z transakcií (D-031, D-040):

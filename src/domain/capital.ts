@@ -1,4 +1,4 @@
-import type { Snapshot, Transaction } from "../storage/types";
+import type { Snapshot, Transaction } from "./model/entities";
 import { monthlyRate, monthsToTarget } from "./goal";
 
 /** Kapitál rozdelený na dva zásobníky (D-036, D-039, D-041). Sumy v centoch. */

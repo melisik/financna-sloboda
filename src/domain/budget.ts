@@ -1,4 +1,4 @@
-import type { Budget, BudgetCategory, Transaction } from "../storage/types";
+import type { Budget, BudgetCategory, Transaction } from "./model/entities";
 
 /** Výdavky v kategórii za mesiac, do ktorého patrí dnešok (D-106). Nezaradené výdavky sa počítajú len do súčtu bez kategórie. */
 export function spentInMonthCents(transactions: Transaction[], category: BudgetCategory | null, today: string): number {

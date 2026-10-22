@@ -16,11 +16,16 @@ function importsOf(dir: string): { file: string; spec: string }[] {
 }
 
 describe("pravidlo závislostí (D-162)", () => {
-  it("doména nikdy neimportuje UI, aplikačnú vrstvu ani register modulov", () => {
+  it("doména nikdy neimportuje UI, aplikačnú vrstvu, úložisko ani register modulov (D-171)", () => {
     const bad = importsOf(join(SRC, "domain")).filter(
-      (i) => i.spec.startsWith("../ui") || i.spec.startsWith("../app"),
+      (i) => i.spec.startsWith("../ui") || i.spec.startsWith("../app") || i.spec.startsWith("../storage"),
     );
     expect(bad).toEqual([]);
+  });
+
+  it("doména importuje len vlastné súbory (./), nikdy nadradené priečinky (D-171)", () => {
+    const up = importsOf(join(SRC, "domain")).filter((i) => i.spec.startsWith(".."));
+    expect(up).toEqual([]);
   });
 
   it("register modulov je čistý: neimportuje UI ani nič z aplikačnej vrstvy", () => {

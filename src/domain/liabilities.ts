@@ -1,4 +1,4 @@
-import type { Liability } from "../storage/types";
+import type { Liability } from "./model/entities";
 
 /** Mesačný úrok zo zostatku: zostatok × sadzba / 12, v centoch (D-085 pre záväzky). */
 export function liabilityInterestCents(l: Liability): number {

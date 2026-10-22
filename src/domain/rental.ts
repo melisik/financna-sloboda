@@ -1,4 +1,4 @@
-import type { RentalEntry } from "../storage/types";
+import type { RentalEntry } from "./model/entities";
 
 /** Súčty z ročnej evidencie prenájmu (D-157): len podklad na daňové priznanie, nie daňový výpočet. */
 export function rentalTotalsForYear(entries: RentalEntry[], year: number): { incomeCents: number; costsCents: number; count: number } {

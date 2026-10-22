@@ -1,4 +1,4 @@
-import type { Property } from "../storage/types";
+import type { Property } from "./model/entities";
 import { countsInCapital } from "./property";
 import { RETURN_ASSUMPTIONS } from "./assumptions";
 import { monthsToTargetSplit, type Capital } from "./capital";

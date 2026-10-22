@@ -1,4 +1,4 @@
-import type { RegularIncome } from "../storage/types";
+import type { RegularIncome } from "./model/entities";
 
 /** Príjem platí dnes, ak sa dnešný dátum nachádza medzi začiatkom a koncom (koniec bez hodnoty = trvá). */
 export function isIncomeActive(i: RegularIncome, today: string): boolean {

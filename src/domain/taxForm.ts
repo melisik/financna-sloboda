@@ -1,4 +1,4 @@
-import type { Dog, Property } from "../storage/types";
+import type { Dog, Property } from "./model/entities";
 import { DOG_PLACE_LABEL, DOG_PURPOSE_LABEL, activeDogCount } from "./dogs";
 
 /** Tlačivo 17-dp-md (priznanie k dani z nehnuteľností, dani za psa). Umiestnenie v public/ (D-161). */

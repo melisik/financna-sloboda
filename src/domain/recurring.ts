@@ -1,4 +1,4 @@
-import type { BudgetCategory, RecurringExpense } from "../storage/types";
+import type { BudgetCategory, RecurringExpense } from "./model/entities";
 
 /** Pravidelný výdavok platí dnes, ak je dnešný dátum medzi začiatkom a koncom (koniec bez hodnoty = trvá). */
 export function isRecurringActive(e: RecurringExpense, today: string): boolean {

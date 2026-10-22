@@ -1,4 +1,4 @@
-import type { ReceiptItem } from "../storage/types";
+import type { ReceiptItem } from "./model/entities";
 
 export interface ParsedReceiptItems {
   items: ReceiptItem[];

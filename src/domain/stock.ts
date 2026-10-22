@@ -1,4 +1,4 @@
-import type { StockItem } from "../storage/types";
+import type { StockItem } from "./model/entities";
 
 /** Počet dní, za ktoré sa upozorní na blížiaci sa dátum spotreby. */
 export const EXPIRY_WARNING_DAYS = 3;

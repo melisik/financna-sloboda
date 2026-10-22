@@ -1,5 +1,5 @@
-import type { Position, TaxRegime } from "../storage/types";
-import { TAX_REGIMES } from "../storage/types";
+import type { Position, TaxRegime } from "./model/entities";
+import { TAX_REGIMES } from "./model/entities";
 import { positionValueCents } from "./investments";
 
 /**

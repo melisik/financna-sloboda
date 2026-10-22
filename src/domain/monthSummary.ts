@@ -1,4 +1,4 @@
-import type { Budget, BudgetCategory, Liability, Property, RecurringExpense, Transaction } from "../storage/types";
+import type { Budget, BudgetCategory, Liability, Property, RecurringExpense, Transaction } from "./model/entities";
 import { activeLiabilityPaymentCents } from "./liabilities";
 import { spentInMonthCents } from "./budget";
 import { housingFlowCents } from "./property";

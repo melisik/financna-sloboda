@@ -1,4 +1,4 @@
-import type { Dog, DogKeepingPlace, DogPurpose } from "../storage/types";
+import type { Dog, DogKeepingPlace, DogPurpose } from "./model/entities";
 
 /** Popisky miesta držania a účelu podľa tlačiva 17-dp-md, oddiel V (D-159). */
 export const DOG_PLACE_LABEL: Record<DogKeepingPlace, string> = {

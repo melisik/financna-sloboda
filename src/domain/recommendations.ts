@@ -1,4 +1,4 @@
-import type { Settings } from "../storage/types";
+import type { Settings } from "./model/entities";
 import { RETURN_ASSUMPTIONS } from "./assumptions";
 
 /**

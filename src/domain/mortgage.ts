@@ -1,4 +1,4 @@
-import type { ExtraPaymentMode, Property } from "../storage/types";
+import type { ExtraPaymentMode, Property } from "./model/entities";
 import { fullMonthsBetween } from "./dates";
 
 /** Pridá mesiace k dátumu; deň sa orezá na posledný deň cieľového mesiaca. */

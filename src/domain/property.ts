@@ -1,4 +1,4 @@
-import type { Property } from "../storage/types";
+import type { Property } from "./model/entities";
 
 /** Čistá hodnota = odhad mínus zostatok hypotéky (D-080). Môže byť záporná. */
 export function netPropertyValueCents(p: Property): number {
