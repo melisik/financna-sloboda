@@ -8,6 +8,8 @@
 3. **Odkaz Dane a tlačivo** (D-206) sa objaví, keď existuje nehnuteľnosť. Tlačivo 17-dp-md sa vyplní jedným klepnutím (D-208).
 4. Ak LV uvádza záložné právo, appka len upozorní. Hypotéku, jej zostatok a splátku zadáš ručne v karte nehnuteľnosti.
 
+Postup pre používateľa je v `docs/26_Navod_stiahnutie_LV.md`.
+
 ## 2. Čo appka z LV berie a čo nie
 
 Podlahová plocha: pri podiele v tvare 4574/696619 je 4574 dm² = 45,74 m² (D-212). Zaokrúhlené podiely sa nepoužijú.

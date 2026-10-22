@@ -657,6 +657,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       {lvOpen && (
         <div style={{ marginBottom: 12 }}>
         <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+          Ako získať súbor: na katastrálnom portáli otvor výpis z listu vlastníctva a stlač Ctrl+S. V Edge zvoľ „Webová stránka, úplne“, v Chrome „Webová stránka, kompletná“. Potom súbor nahraj tu.
           Skopíruj text z listu vlastníctva a vlož ho sem, alebo nahraj uloženú stránku listu (HTML). Appka doplní údaje pre daň. Text sa neukladá a vlastníkov ani číslo LV appka neberie.
         </p>
         <textarea aria-label="Text z listu vlastníctva" value={lvText} onChange={(e) => setLvText(e.target.value)} rows={6} style={{ width: "100%", boxSizing: "border-box", fontSize: "1rem" }} />
