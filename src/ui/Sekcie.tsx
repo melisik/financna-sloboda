@@ -67,7 +67,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "nova-transakcia":
       return (
         <Section id="nova-transakcia" title="Transakcie">
-          <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} renderAttachments={(id) => <AttachmentsBlock repo={repo} transactionId={id} />} />
+          <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} renderAttachments={(id) => <AttachmentsBlock repo={repo} owner={{ transactionId: id }} />} />
         </Section>
       );
     case "vyhodnotenie":
@@ -79,7 +79,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "majetok":
       return (
         <Section id="majetok" title="Majetok">
-          <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} />
+          <PropertySection repo={repo} properties={data.properties} assets={data.assets} today={todayIso()} onSaved={reload} renderRentalAttachments={(id) => <AttachmentsBlock repo={repo} owner={{ rentalEntryId: id }} />} />
         </Section>
       );
     case "rozpocet":

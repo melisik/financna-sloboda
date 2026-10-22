@@ -29,7 +29,16 @@ describe("prílohy v zálohe (D-160)", () => {
     const record = { ...(await encodeAttachment(att)), transactionId: "chybajuci" };
     const parsed = parseBackup(JSON.parse(JSON.stringify(buildBackup(data, "2026-10-22T10:00:00Z", [record]))), TODAY);
     expect(parsed.ok).toBe(false);
-    expect(parsed.ok ? "" : parsed.errors.join(" ")).toMatch(/výdavku, ktorý v zálohe nie je/);
+    expect(parsed.ok ? "" : parsed.errors.join(" ")).toMatch(/patrí k výdavku alebo záznamu prenájmu, ktorý v zálohe nie je/);
+  });
+
+  it("príloha k výdavku z prenájmu sa obnoví, ak je záznam v zálohe (D-221)", async () => {
+    const property = { id: "m1", name: "Byt syntetický", mode: "prenajom", valueCents: 15000000, valueDate: "2026-10-01", mortgageBalanceCents: 0, createdAt: "2026-10-01T10:00:00Z", updatedAt: "2026-10-01T10:00:00Z", rentalLedger: [{ id: "r1", date: "2026-10-20", kind: "vydavok", amountCents: 3500 }] };
+    const rentalData = { ...data, properties: [property] } as unknown as AppData;
+    const record = { ...(await encodeAttachment({ ...att, transactionId: undefined, rentalEntryId: "r1" })) };
+    const parsed = parseBackup(JSON.parse(JSON.stringify(buildBackup(rentalData, "2026-10-22T10:00:00Z", [record]))), TODAY);
+    expect(parsed.ok).toBe(true);
+    expect(parsed.attachments![0].rentalEntryId).toBe("r1");
   });
 
   it("príloha zlého typu alebo nad 2 MB sa odmietne", async () => {

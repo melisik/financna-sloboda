@@ -37,6 +37,8 @@ export interface Repository {
   listAllAttachments(): Promise<Attachment[]>;
   saveAttachment(a: Attachment): Promise<void>;
   deleteAttachment(id: string): Promise<void>;
+  listRentalAttachments(entryId: string): Promise<Attachment[]>;
+  deleteAttachmentsForRentalEntries(entryIds: string[]): Promise<void>;
   replaceAttachments(list: Attachment[]): Promise<void>;
   deleteDog(id: string): Promise<void>;
   /** Nahradí všetky dáta v jednej transakcii; pri chybe zostanú pôvodné dáta (FR-18, D-018). */

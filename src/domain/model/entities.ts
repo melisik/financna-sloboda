@@ -260,13 +260,14 @@ export type DogKeepingPlace = (typeof DOG_KEEPING_PLACES)[number];
 export const DOG_PURPOSES = ["domaci", "sluzobny", "zvlastny"] as const;
 export type DogPurpose = (typeof DOG_PURPOSES)[number];
 
-/** Prílohy k výdavkom (doklady, fotky účtov; D-160). Obsah sa ukladá ako Blob, v zálohe ako base64. */
+/** Prílohy k výdavkom (doklady, fotky účtov; D-160) a k výdavkom z prenájmu (D-221). Obsah sa ukladá ako Blob, v zálohe ako base64. */
 export const ATTACHMENT_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
 export const ATTACHMENT_MAX_BYTES = 2 * 1024 * 1024;
 
 export interface Attachment {
   id: string;
-  transactionId: string;
+  transactionId?: string; // výdavok z transakcie (D-160)
+  rentalEntryId?: string; // výdavok z prenájmu (D-221); presne jedno z transactionId a rentalEntryId
   name: string; // max 120 znakov
   type: string; // MIME z katalógu ATTACHMENT_TYPES
   size: number; // bajty, najviac ATTACHMENT_MAX_BYTES
@@ -277,13 +278,17 @@ export interface Attachment {
 /** Príloha v zálohe JSON: obsah je zakódovaný base64. */
 export interface AttachmentRecord {
   id: string;
-  transactionId: string;
+  transactionId?: string;
+  rentalEntryId?: string;
   name: string;
   type: string;
   size: number;
   createdAt: string;
   dataBase64: string;
 }
+
+/** Vlastník prílohy: výdavok z transakcie (D-160) alebo výdavok z prenájmu (D-221). Vždy práve jeden. */
+export type AttachmentOwner = { transactionId: string } | { rentalEntryId: string };
 
 /** Pes na evidenciu pre daň za psa (D-159). Podklad pre tlačivo 17-dp-md, sadzby určuje obec. */
 export interface Dog {

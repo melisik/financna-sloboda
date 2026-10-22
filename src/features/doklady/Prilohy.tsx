@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import type { Repository } from "../../storage/repository";
-import type { Attachment } from "../../storage/types";
+import type { Attachment, AttachmentOwner } from "../../storage/types";
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES } from "../../storage/types";
 import { btn, btnDanger } from "../../ui/kit/controls";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 
-/** Prílohy k výdavku (D-160): doklady a fotky, uložené v zariadení a zahrnuté v zálohe. */
-export function AttachmentsBlock({ repo, transactionId }: { repo: Repository; transactionId: string }) {
+/** Prílohy k výdavku (D-160) alebo k výdavku z prenájmu (D-221): doklady a fotky, uložené v zariadení a zahrnuté v zálohe. */
+export function AttachmentsBlock({ repo, owner }: { repo: Repository; owner: AttachmentOwner }) {
+  const ownerKey = "transactionId" in owner ? owner.transactionId : owner.rentalEntryId;
   const [items, setItems] = useState<Attachment[] | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const load = async () => {
     try {
-      setItems(await repo.listAttachments(transactionId));
+      setItems("transactionId" in owner ? await repo.listAttachments(owner.transactionId) : await repo.listRentalAttachments(owner.rentalEntryId));
     } catch {
       setMsg(STORAGE_ERROR);
     }
@@ -22,14 +23,14 @@ export function AttachmentsBlock({ repo, transactionId }: { repo: Repository; tr
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transactionId]);
+  }, [ownerKey]);
 
   const onFile = async (file: File) => {
     if (!(ATTACHMENT_TYPES as readonly string[]).includes(file.type) || file.size > ATTACHMENT_MAX_BYTES) {
       return setMsg("Príloha musí byť JPG, PNG, WEBP alebo PDF, najviac 2 MB.");
     }
     try {
-      await repo.saveAttachment({ id: uid(), transactionId, name: file.name.slice(0, 120) || "príloha", type: file.type, size: file.size, createdAt: new Date().toISOString(), data: file });
+      await repo.saveAttachment({ id: uid(), ...owner, name: file.name.slice(0, 120) || "príloha", type: file.type, size: file.size, createdAt: new Date().toISOString(), data: file });
       setMsg(null);
       await load();
     } catch {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import type { Repository } from "../../storage/repository";
 import type { Asset, AssetKind, ExtraPaymentMode, Property, PropertyMode, RentalEntry, RentalEntryKind } from "../../storage/types";
 import { ASSET_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES } from "../../storage/types";
@@ -27,7 +28,7 @@ const PROPERTY_MODE_LABEL: Record<PropertyMode, string> = {
 
 
 
-export function PropertySection({ repo, properties, assets, today, onSaved }: { repo: Repository; properties: Property[]; assets: Asset[]; today: string; onSaved: () => void }) {
+export function PropertySection({ repo, properties, assets, today, onSaved, renderRentalAttachments }: { repo: Repository; properties: Property[]; assets: Asset[]; today: string; onSaved: () => void; renderRentalAttachments: (entryId: string) => ReactNode }) {
   const [editing, setEditing] = useState<Property | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -106,7 +107,7 @@ export function PropertySection({ repo, properties, assets, today, onSaved }: { 
                 ].filter(Boolean).join(", ")}
               </p>
             )}
-            {p.mode === "prenajom" && <RentalLedger repo={repo} property={p} today={today} onDone={onSaved} />}
+            {p.mode === "prenajom" && <RentalLedger repo={repo} property={p} today={today} onDone={onSaved} renderAttachments={renderRentalAttachments} />}
             {stale && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
             <p style={{ margin: "4px 0" }}>Hypotéka: {eur(p.mortgageBalanceCents)}</p>
             <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
@@ -306,7 +307,7 @@ function AssetForm({ repo, kind, initial, today, onDone, onCancel }: { repo: Rep
 let rentalSaveQueue: Promise<void> = Promise.resolve();
 
 /** Ročná evidencia príjmov a výdavkov z prenájmu (D-157): priebežne počas roka, súčty sú len podklad pre daňové priznanie. */
-function RentalLedger({ repo, property, today, onDone }: { repo: Repository; property: Property; today: string; onDone: () => void }) {
+function RentalLedger({ repo, property, today, onDone, renderAttachments }: { repo: Repository; property: Property; today: string; onDone: () => void; renderAttachments: (entryId: string) => ReactNode }) {
   const entries = property.rentalLedger ?? [];
   const currentYear = Number(today.slice(0, 4));
   const years = [...new Set([currentYear, ...rentalYears(entries)])].sort((a, b) => b - a);
@@ -321,11 +322,13 @@ function RentalLedger({ repo, property, today, onDone }: { repo: Repository; pro
   const yearEntries = entries.filter((e) => e.date.startsWith(`${year}-`)).sort((a, b) => a.date.localeCompare(b.date));
 
   // Zápisy sa radia za sebou a vždy čítajú aktuálne dáta, aby sa rýchly zápis neprepísal (D-157).
-  const save = (mutate: (list: RentalEntry[]) => RentalEntry[]) => {
+  // Voliteľný krok po úspešnom zápise (mazanie príloh výdavku, D-221).
+  const save = (mutate: (list: RentalEntry[]) => RentalEntry[], after?: () => Promise<void>) => {
     rentalSaveQueue = rentalSaveQueue.then(async () => {
       try {
         const fresh = (await repo.getData()).properties.find((p) => p.id === property.id) ?? property;
         await repo.saveProperty({ ...fresh, rentalLedger: mutate(fresh.rentalLedger ?? []), updatedAt: new Date().toISOString() });
+        if (after) await after();
         setErr(null);
         onDone();
       } catch {
@@ -364,12 +367,13 @@ function RentalLedger({ repo, property, today, onDone }: { repo: Repository; pro
             {dateSk(e.date)} · {e.kind === "prijem" ? "príjem" : "výdavok"} · {eur(e.amountCents)}{e.note ? ` (${e.note})` : ""}{" "}
             {confirmId === e.id ? (
               <>
-                <button onClick={() => save((list) => list.filter((x) => x.id !== e.id))} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
+                <button onClick={() => save((list) => list.filter((x) => x.id !== e.id), () => repo.deleteAttachmentsForRentalEntries([e.id]))} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
                 <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
               </>
             ) : (
               <button onClick={() => setConfirmId(e.id)} style={btnDanger}>Zmazať</button>
             )}
+            {e.kind === "vydavok" && <details style={{ margin: "4px 0" }}><summary>Doklady</summary>{renderAttachments(e.id)}</details>}
           </li>
         ))}
       </ul>

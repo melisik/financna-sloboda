@@ -1,15 +1,15 @@
 import { openDB, type IDBPDatabase } from "idb";
 import type { Repository } from "./repository";
-import type { Asset, AppData, Attachment, Budget, Dog, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, Settings, Snapshot, StockItem, Transaction } from "./types";
+import type { Asset, AppData, Attachment, Budget, Dog, Liability, Position, Property, Recipe, RentalEntry, RecurringExpense, RegularIncome, Settings, Snapshot, StockItem, Transaction } from "./types";
 
 const DB_NAME = "financna-sloboda";
-const DB_VERSION = 7; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28); verzia 5 recepty (D-127); verzia 6 psy (D-159); verzia 7 prílohy (D-160)
+const DB_VERSION = 8; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28); verzia 5 recepty (D-127); verzia 6 psy (D-159); verzia 7 prílohy (D-160); verzia 8 prílohy k výdavkom z prenájmu (D-221)
 const SETTINGS_KEY = "current";
 
 /** Otvorí databázu s úložiskami z 05 §4. */
 export async function openRepository(name: string = DB_NAME): Promise<Repository> {
   const db: IDBPDatabase = await openDB(name, DB_VERSION, {
-    upgrade(d, oldVersion) {
+    upgrade(d, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const tx = d.createObjectStore("transactions", { keyPath: "id" });
         tx.createIndex("date", "date");
@@ -41,6 +41,9 @@ export async function openRepository(name: string = DB_NAME): Promise<Repository
       if (oldVersion < 7) {
         const attachments = d.createObjectStore("attachments", { keyPath: "id" });
         attachments.createIndex("transactionId", "transactionId");
+      }
+      if (oldVersion < 8) {
+        transaction.objectStore("attachments").createIndex("rentalEntryId", "rentalEntryId");
       }
     },
   });
@@ -103,6 +106,23 @@ class IdbRepository implements Repository {
     await this.db.delete("attachments", id);
   }
 
+  async listRentalAttachments(entryId: string): Promise<Attachment[]> {
+    return this.db.getAllFromIndex("attachments", "rentalEntryId", entryId);
+  }
+
+  async deleteAttachmentsForRentalEntries(entryIds: string[]): Promise<void> {
+    if (entryIds.length === 0) return;
+    const tx = this.db.transaction("attachments", "readwrite");
+    for (const entryId of entryIds) {
+      let cursor = await tx.objectStore("attachments").index("rentalEntryId").openCursor(entryId);
+      while (cursor) {
+        await cursor.delete();
+        cursor = await cursor.continue();
+      }
+    }
+    await tx.done;
+  }
+
   async replaceAttachments(list: Attachment[]): Promise<void> {
     const tx = this.db.transaction("attachments", "readwrite");
     tx.done.catch(() => undefined);
@@ -144,8 +164,11 @@ class IdbRepository implements Repository {
     await this.db.put("properties", p);
   }
 
+  // Prílohy k výdavkom z prenájmu sa mažú spolu s nehnuteľnosťou (D-221). Pri chybe ostanú osirelé, nie stratené.
   async deleteProperty(id: string): Promise<void> {
+    const ids = ((await this.db.get("properties", id))?.rentalLedger ?? []).map((e: RentalEntry) => e.id);
     await this.db.delete("properties", id);
+    await this.deleteAttachmentsForRentalEntries(ids);
   }
 
   async saveAsset(a: Asset): Promise<void> {

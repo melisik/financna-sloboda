@@ -65,12 +65,14 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
   const errors: string[] = [];
   if (rawAttachments !== undefined && !Array.isArray(rawAttachments)) errors.push("záloha: prílohy musia byť pole");
   const transactionIds = new Set(v.data!.transactions.map((t) => t.id));
+  const rentalEntryIds = new Set(v.data!.properties.flatMap((p) => (p.rentalLedger ?? []).map((e) => e.id)));
   for (const [n, r] of ((Array.isArray(rawAttachments) ? rawAttachments : []) as unknown[]).entries()) {
     const label = `príloha ${n + 1}`;
     const rowErrors = validateAttachmentRecordLocal(r, label);
     if (rowErrors.length) { errors.push(...rowErrors); continue; }
     const rec = r as AttachmentRecord;
-    if (!transactionIds.has(rec.transactionId)) { errors.push(`${label}: patrí k výdavku, ktorý v zálohe nie je`); continue; }
+    const owned = rec.transactionId !== undefined ? transactionIds.has(rec.transactionId) : rec.rentalEntryId !== undefined && rentalEntryIds.has(rec.rentalEntryId);
+    if (!owned) { errors.push(`${label}: patrí k výdavku alebo záznamu prenájmu, ktorý v zálohe nie je`); continue; }
     try {
       attachments.push(decodeAttachmentRecord(rec));
     } catch {

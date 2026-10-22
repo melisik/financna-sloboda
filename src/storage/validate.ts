@@ -201,9 +201,10 @@ function validateReceiptItem(i: unknown, label = "položka dokladu"): string[] {
 export function validateAttachmentRecord(a: unknown, label = "príloha"): string[] {
   if (typeof a !== "object" || a === null || Array.isArray(a)) return [`${label}: musí byť objekt`];
   const o = a as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "transactionId", "name", "type", "size", "createdAt", "dataBase64"], label);
+  const errors = unknownKeys(o, ["id", "transactionId", "rentalEntryId", "name", "type", "size", "createdAt", "dataBase64"], label);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
-  if (typeof o.transactionId !== "string" || o.transactionId.length === 0) errors.push(`${label}: chýba výdavok`);
+  const owners = [o.transactionId, o.rentalEntryId].filter((v) => typeof v === "string" && v.length > 0);
+  if (owners.length !== 1) errors.push(`${label}: príloha musí patriť presne k jednému výdavku alebo záznamu prenájmu`);
   if (typeof o.name !== "string" || o.name.length === 0 || o.name.length > 120) errors.push(`${label}: názov max 120 znakov`);
   if (!(ATTACHMENT_TYPES as readonly unknown[]).includes(o.type)) errors.push(`${label}: typ musí byť JPG, PNG, WEBP alebo PDF`);
   if (typeof o.size !== "number" || !Number.isInteger(o.size) || o.size <= 0 || o.size > ATTACHMENT_MAX_BYTES) errors.push(`${label}: veľkosť musí byť najviac 2 MB`);
