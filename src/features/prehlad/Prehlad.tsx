@@ -80,7 +80,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
             </p>
           )}
           <details style={{ marginTop: 8 }}>
-            <summary style={{ cursor: "pointer", minHeight: 44, display: "inline-flex", alignItems: "center", padding: "8px 14px", border: "1px solid var(--muted)", borderRadius: 6, background: "var(--surface)", listStyle: "none" }}>Podrobnosti ▾</summary>
+            <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Podrobnosti ▾</summary>
             <p>
               Rozsah dátumu: od {scenarioDateText(ctx, ctx.realReturn + 0.02, today, monthYear)} do {scenarioDateText(ctx, Math.max(0, ctx.realReturn - 0.02), today, monthYear)} (opatrný – základný – optimistický).
             </p>
@@ -98,7 +98,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       ) : (
         <p>{ctx.latest ? "" : <>Urob prvé vyhodnotenie vo <a href="#vyhodnotenie">Vyhodnotení</a>. Dátum cieľa sa zobrazí po ňom.</>}</p>
       )}
-      <a href="#nova-transakcia" style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid var(--border-strong)", borderRadius: 4 }}>
+      <a href="#nova-transakcia" style={btnPrimary}>
         Pridať transakciu
       </a>
     </div>

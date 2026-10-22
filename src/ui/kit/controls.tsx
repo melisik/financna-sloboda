@@ -11,7 +11,7 @@ export const inp: CSSProperties = { width: "100%", padding: "8px", fontSize: "1r
 export const btn: CSSProperties = {
   minHeight: 44, padding: "8px 14px", fontSize: "1rem", fontWeight: 600, marginTop: 8,
   border: "1px solid var(--border-strong)", borderRadius: 6, background: "var(--surface)", color: "var(--text)",
-  textDecoration: "none", cursor: "pointer",
+  textDecoration: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", alignSelf: "flex-start",
 };
 /** Hlavná akcia obrazovky (uloženie, pridanie). */
 export const btnPrimary: CSSProperties = { ...btn, background: "var(--primary-bg)", color: "var(--primary-text)", borderColor: "var(--primary-bg)" };
