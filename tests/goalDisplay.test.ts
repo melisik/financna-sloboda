@@ -45,3 +45,11 @@ describe("goalDisplay (FR-02, FR-10, D-019, D-024)", () => {
     expect(goalDisplay(0, DL, DL)).toEqual({ kind: "reached", date: DL });
   });
 });
+
+// GC-13 (docs/07): dnešok sa posunie po poslednom vyhodnotení; dátum cieľa ostane a zostáva 332 mesiacov.
+describe("GC-13: dátum cieľa sa nemení, keď sa posunie dnešok (D-024)", () => {
+  it("dnes = 2026-12-14 bez nového vyhodnotenia: dátum 2054-08-14, zostáva 332 mesiacov", () => {
+    const n = monthsToTarget(eur(100_000), eur(500), 0.04, eur(600_000));
+    expect(goalDisplay(n, DL, "2026-12-14")).toEqual({ kind: "date", date: "2054-08-14", remainingMonths: 332 });
+  });
+});

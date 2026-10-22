@@ -100,3 +100,8 @@ describe("scenáre a hranice (D-050, GC-05, GC-06, GC-23)", () => {
     expect(monthsToTargetSplit(cap, 0, 0, 0, T)).toBeNull();
   });
 });
+
+// GC-15 (docs/07): hodnota a stav sú v teste vyššie; znenie hlásenia nie.
+describe("GC-15: znenie pri vyčerpaní investícií (docs/07)", () => {
+  it.todo("GC-15: pri vyčerpaní K_inv má hlásenie znieť „Hotovosť nestačila; kapitál je 0 €“ (docs/07); UI v Transakcie.tsx má „Investície nestačia. Po uložení bude K_inv 0 €.“ — rozhodnúť znenie");
+});
