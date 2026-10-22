@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../src/app/feedback";
+import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../src/features/spatna-vazba/feedback";
 
 // Pripomienky od testerov (D-149). Odkazy nesmú niesť údaje z appky.
 describe("pripomienky", () => {

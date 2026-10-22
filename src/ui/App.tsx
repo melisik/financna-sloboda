@@ -3,7 +3,7 @@ import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
 import type { AppData } from "../storage/types";
 import { amortizeLoan, amortizeMortgage } from "../domain/mortgage";
-import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../app/feedback";
+import { FeedbackBlock } from "../features/spatna-vazba/Feedback";
 import { investmentsTotalCents } from "../domain/investments";
 import { PHASE2_ENABLED } from "../app/features";
 import { makeCtx } from "../domain/context";
@@ -279,20 +279,6 @@ function IosInstallGate() {
   );
 }
 
-/** Nahlásenie pripomienky (D-149): tester si vyberie GitHub, alebo formulár bez účtu. */
-function Feedback() {
-  const [open, setOpen] = useState(false);
-  if (!open) return <button onClick={() => setOpen(true)} style={{ ...btn, marginTop: 16 }}>Nahlásiť pripomienku</button>;
-  return (
-    <div style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-      <p>Vyber, ako pripomienku pošleš. Nepíš čísla účtov ani osobné údaje.</p>
-      <a href={feedbackIssueUrl()} target="_blank" rel="noopener noreferrer" style={btn}>Mám účet na GitHube</a>{" "}
-      <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" style={btn}>Nemám účet</a>{" "}
-      <button onClick={() => setOpen(false)} style={btn}>Zrušiť</button>
-    </div>
-  );
-}
-
 function Shell({ children, nav }: { children: React.ReactNode; nav?: SectionId }) {
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
@@ -308,7 +294,7 @@ function Shell({ children, nav }: { children: React.ReactNode; nav?: SectionId }
       )}
       {nav && <Nav active={nav} />}
       {children}
-      <Feedback />
+      <FeedbackBlock />
     </main>
   );
 }
