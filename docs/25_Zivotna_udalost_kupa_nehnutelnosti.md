@@ -13,7 +13,7 @@ Postup pre používateľa je v `docs/26_Navod_stiahnutie_LV.md`.
 ## 2. Čo appka z LV berie a čo nie
 
 Podlahová plocha: pri podiele v tvare 4574/696619 je 4574 dm² = 45,74 m² (D-212). Zaokrúhlené podiely sa nepoužijú.
-- **Berie:** obec, katastrálne územie, číslo parcely (všetky), súpisné číslo, číslo bytu, druh objektu (dom alebo byt), podlahovú plochu z nezaokrúhleného podielu (D-212) a fakt, že je záložné právo.
+- **Berie:** obec, katastrálne územie, číslo parcely (všetky), súpisné číslo, číslo bytu, druh objektu (dom alebo byt), podlahovú plochu z nezaokrúhleného podielu (D-212, D-219) a fakt, že je záložné právo.
 - **Nebere a neukladá:** mená, adresy a dátumy vlastníkov, číslo LV, text listu. Dôvod: D-026 (citlivé údaje, bez šifrovania v MVP).
 
 ## 3. Obmedzenia

@@ -1,6 +1,6 @@
 # 26 – Návod: ako získať list vlastníctva a nahrať ho do appky
 
-> Stav: 2026-10-22, vetva `claude/phase2-property-card`. Overené zakladateľom na skutočnom portáli: výpis je dostupný bez registrácie. Neoverené zostáva: poplatok, názvy volieb v Ctrl+S (môžu sa líšiť podľa prehliadača), výber bytu na reálnom LV s viacerými bytmi a prah 10 000 na inom LV. Postup overenia je v kapitole 6.
+> Stav: 2026-10-22, vetva `claude/phase2-property-card`. Overené zakladateľom na skutočnom portáli: výpis je bez registrácie a zadarmo; Ctrl+S funguje; vlastník vyberá byt. Neoverené zostáva: presné názvy volieb v Ctrl+S (môžu sa líšiť podľa prehliadača), výber bytu na reálnom LV s viacerými bytmi a pravidlo menovateľa na inom LV. Postup overenia je v kapitole 6.
 > Súvisí s D-209 (vloženie textu), D-211 (HTML), D-212 (podlahová plocha) a `docs/25`.
 
 ## 1. Prečo HTML a nie PDF
@@ -11,7 +11,7 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 - Prehliadač (Edge alebo Chrome) a internet na otvorenie katastrálneho portálu.
 
 ## 3. Postup
-1. Otvor katastrálny portál a vyhľadaj list vlastníctva podľa čísla LV a katastrálneho územia. Výpis je dostupný bez registrácie (overené 2026-10-22). Poplatok nie je overený; over si podmienky priamo na portáli.
+1. Otvor katastrálny portál a vyhľadaj list vlastníctva podľa čísla LV a katastrálneho územia. Výpis je dostupný bez registrácie a zadarmo (overené zakladateľom 2026-10-22).
 2. Otvor výpis z listu vlastníctva, aby sa zobrazil celý (nie len jeho časť). Výpis sa načítava na stránke.
 3. Ulož stránku: stlač **Ctrl+S** (Mac: Cmd+S).
    - V Edge zvoľ **Webová stránka, úplne** (v angličtine „Webpage, complete“).
@@ -36,14 +36,14 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 - **Chýbajú polia:** skontroluj, že si uložil celú stránku, nie len jej časť. Skús Ctrl+A a Ctrl+C z celej stránky a vlož text.
 - **Stránka je prázdna alebo sa načíta až po chvíli:** počkaj, kým sa výpis úplne zobrazí, a až potom ulož.
 - **Skenovaný LV bez textu:** appka text nepreberie. Údaje zadaj ručne.
-- **Podlahová plocha chýba:** appka ju doplní len vtedy, keď je v podiele nezaokrúhlený zlomok s veľkým menovateľom (D-212). Inak zadaj ručne.
+- **Podlahová plocha chýba:** appka ju doplní len vtedy, keď menovateľ podielu nie je zaokrúhlený (nie je násobkom 100) a je aspoň 10 000 (D-212, D-219). Pri zaokrúhlenom menovateli plochu z listu nevyčítame; zadaj ju ručne.
 - **Viac parciel:** appka uvedie všetky, oddelené čiarkou. Tlačivo 17-dp-md má na parcely obmedzené miesto, preto môže byť potrebné doplniť ich v PDF ručne.
 
 ## 6. Overenie pred vydaním návodu
-- [ ] Prejsť celý postup na skutočnom portáli (kroky 1–3) a potvrdiť názvy volieb v Edge a Chrome.
+- [ ] Prejsť celý postup na skutočnom portáli (kroky 1–3) a potvrdiť názvy volieb v Edge a Chrome. Ctrl+S funguje (overené zakladateľom 2026-10-22); názvy volieb zakladateľ zatiaľ neuviedol.
 - [x] Zistiť, či je výpis na portáli dostupný bez registrácie: áno (overené zakladateľom 2026-10-22).
-- [ ] Zistiť, či výpis na portáli stojí poplatok.
+- [x] Zistiť, či výpis na portáli stojí poplatok: nestojí (overené zakladateľom 2026-10-22).
 - [ ] Overiť, že HTML z portálu má rovnakú štruktúru ako vzor v `tests/fixtures/lv-synthetic.html`.
 - [ ] Overiť, či portál ponúka čiastočný výpis len pre vlastníka alebo byt, a ako sa volá.
-- [ ] Overiť výber bytu na výpise s viacerými bytmi (`tests/fixtures/lv-synthetic-viac-bytov.html` je len syntetický vzor).
-- [ ] Overiť prah 10 000 (D-212) na inom LV s nezaokrúhleným podielom: plocha sa má zobraziť, len ak menovateľ je aspoň 10 000.
+- [ ] Overiť výber bytu na výpise s viacerými bytmi (`tests/fixtures/lv-synthetic-viac-bytov.html` je len syntetický vzor). UX potvrdené zakladateľom: vlastník vyberie, ktorý byt sa načíta; parsovanie na reálnom výpise ostáva neoverené.
+- [ ] Overiť pravidlo menovateľa (D-219) na inom reálnom LV: pri zaokrúhlenom menovateli (násobok 100) plocha chýba; pri nezaokrúhlenom sa zobrazí v m² (čitateľ / 100).

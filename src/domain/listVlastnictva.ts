@@ -54,6 +54,8 @@ export const SHARE_MIN_DENOMINATOR = 10_000;
 export function floorAreaFromShare(numerator: number, denominator: number): number | undefined {
   if (!Number.isInteger(numerator) || !Number.isInteger(denominator)) return undefined;
   if (numerator <= 0 || denominator < SHARE_MIN_DENOMINATOR) return undefined;
+  // Menovateľ zaokrúhlený na stovky, tisíce alebo 10^n znamená zaokrúhlený podiel; plochu z neho nemožno vyčítať (D-219).
+  if (denominator % 100 === 0) return undefined;
   return numerator / 100;
 }
 

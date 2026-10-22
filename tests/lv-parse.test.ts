@@ -76,10 +76,12 @@ describe("predvyplnenie z listu vlastníctva (D-209)", () => {
     expect(floorAreaFromShare(1, 2)).toBeUndefined();
     expect(floorAreaFromShare(35, 100)).toBeUndefined();
     expect(floorAreaFromShare(0, 696619)).toBeUndefined();
+    expect(floorAreaFromShare(4500, 600000)).toBeUndefined(); // zaokrúhlený menovateľ (D-219)
+    expect(floorAreaFromShare(4500, 12300)).toBeUndefined();
   });
 
   it("z textu: podiel za popisom Podiel priestoru, zaokrúhlený podiel 1/1 sa preskočí", () => {
-    const f = parseLvText("Spoluvlastnícky podiel 1/1\nPodiel priestoru na spoločných častiach 4500/600000\n");
+    const f = parseLvText("Spoluvlastnícky podiel 1/1\nPodiel priestoru na spoločných častiach 4500/600037\n");
     expect(f.floorAreaSqm).toBe(45);
     expect(f.found).toContain("podlahová plocha");
   });
