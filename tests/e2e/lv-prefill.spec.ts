@@ -19,7 +19,7 @@ test.describe("predvyplnenie z listu vlastníctva", () => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
-    await page.getByText("Predvyplniť z listu vlastníctva").click();
+    await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
     await page.getByLabel("Text z listu vlastníctva").fill(LV);
     await page.getByRole("button", { name: "Predvyplniť z textu" }).click();
 
@@ -41,7 +41,7 @@ test.describe("predvyplnenie z listu vlastníctva", () => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
-    await page.getByText("Predvyplniť z listu vlastníctva").click();
+    await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
     await page.getByLabel("Text z listu vlastníctva").fill("Obec: Iná obec\nByt č. 12\nZáložné právo v prospech banky\n");
     await page.getByRole("button", { name: "Predvyplniť z textu" }).click();
     await expect(page.getByLabel("Číslo bytu (nepovinné)")).toHaveValue("12");

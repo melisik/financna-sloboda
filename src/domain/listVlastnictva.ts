@@ -8,6 +8,7 @@ export type LvFields = {
   parcelNumber?: string;
   buildingNumber?: string;
   flatNumber?: string;
+  floorAreaSqm?: number;
   taxObjectKind?: "dom" | "byt";
   hasPledge: boolean;
   /** Záložné právo v prospech ostatných vlastníkov bytov (nie hypotéka, D-211). */
@@ -34,8 +35,30 @@ const allValues = (text: string, re: RegExp): string[] => {
   return [...new Set(values)];
 };
 
+/** Najmenší menovateľ, ktorý sa berie ako nezaokrúhlený podiel (D-212). Zaokrúhlené podiely (1/2, 35/100) sa neberú. */
+export const SHARE_MIN_DENOMINATOR = 10_000;
+
+/**
+ * Podlahová plocha v m² z nezaokrúhleného podielu (D-212): čitateľ je podlahová plocha bytu v dm²,
+ * menovateľ je spoločná plocha v dm². Prevod: dm² / 100 = m².
+ */
+export function floorAreaFromShare(numerator: number, denominator: number): number | undefined {
+  if (!Number.isInteger(numerator) || !Number.isInteger(denominator)) return undefined;
+  if (numerator <= 0 || denominator < SHARE_MIN_DENOMINATOR) return undefined;
+  return numerator / 100;
+}
+
 const PARCEL_RE = /(?:Parc\.[^\S\n]*č\.|Parcelné[^\S\n]+číslo|Parcela[^\S\n]+č\.)[^\S\n]*:?[^\S\n]*([0-9]+(?:\/[0-9]+)?)/i;
 const BUILDING_RE = /\bsúp(?:isn[^\s:]*|\.)?[^\S\n]*(?:č\.|čísl[^\s:]*)?[^\S\n]*(?:(?:budov|stavb)[^\s:]*[^\S\n]*)?:?[^\S\n]*([0-9]+)/i;
+
+/** Prvý podiel za popisom „Podiel priestoru“, ktorý vyzerá ako nezaokrúhlený (D-212). */
+function floorFromText(text: string): number | undefined {
+  for (const m of text.matchAll(/Podiel\s+priestoru[\s\S]{0,400}?(\d+)\s*\/\s*(\d+)/gi)) {
+    const area = floorAreaFromShare(Number(m[1]), Number(m[2]));
+    if (area !== undefined) return area;
+  }
+  return undefined;
+}
 
 export function parseLvText(raw: string): LvFields {
   const text = raw.replace(/\r/g, "");
@@ -46,6 +69,7 @@ export function parseLvText(raw: string): LvFields {
   out.parcelNumber = parcels.length > 0 ? parcels.join(", ") : undefined;
   out.buildingNumber = lineValue(text, BUILDING_RE);
   out.flatNumber = lineValue(text, /Byt[^\S\n]*č\.[^\S\n]*:?[^\S\n]*([0-9]+[A-Za-z]?)/i);
+  out.floorAreaSqm = floorFromText(text);
   out.taxObjectKind = out.flatNumber ? "byt" : out.buildingNumber ? "dom" : undefined;
 
   const labels: [keyof LvFields, string][] = [
@@ -54,6 +78,7 @@ export function parseLvText(raw: string): LvFields {
     ["parcelNumber", "číslo parcely"],
     ["buildingNumber", "súpisné číslo"],
     ["flatNumber", "číslo bytu"],
+    ["floorAreaSqm", "podlahová plocha"],
     ["taxObjectKind", "druh objektu"],
   ];
   for (const [key, label] of labels) if (out[key]) out.found.push(label);

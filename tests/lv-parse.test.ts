@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseLvText } from "../src/domain/listVlastnictva";
+import { floorAreaFromShare, parseLvText } from "../src/domain/listVlastnictva";
 
 // Predvyplnenie z listu vlastníctva (D-209). Syntetický text, žiadne reálne údaje.
 const DOM = `LIST VLASTNÍCTVA (syntetický vzor)
@@ -69,5 +69,18 @@ describe("predvyplnenie z listu vlastníctva (D-209)", () => {
     expect(parseLvText("Súp. č. 56, rodinný dom").buildingNumber).toBe("56");
     expect(parseLvText("stavba so súpisným číslom 57").buildingNumber).toBe("57");
     expect(parseLvText("Súpisné číslo budovy 58").buildingNumber).toBe("58");
+  });
+
+  it("podlahová plocha z nezaokrúhleného podielu: dm² čitateľa, prevod na m² (D-212)", () => {
+    expect(floorAreaFromShare(4574, 696619)).toBe(45.74);
+    expect(floorAreaFromShare(1, 2)).toBeUndefined();
+    expect(floorAreaFromShare(35, 100)).toBeUndefined();
+    expect(floorAreaFromShare(0, 696619)).toBeUndefined();
+  });
+
+  it("z textu: podiel za popisom Podiel priestoru, zaokrúhlený podiel 1/1 sa preskočí", () => {
+    const f = parseLvText("Spoluvlastnícky podiel 1/1\nPodiel priestoru na spoločných častiach 4500/600000\n");
+    expect(f.floorAreaSqm).toBe(45);
+    expect(f.found).toContain("podlahová plocha");
   });
 });

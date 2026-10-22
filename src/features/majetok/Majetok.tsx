@@ -545,6 +545,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const [lvText, setLvText] = useState("");
   const [lvNote, setLvNote] = useState<string | null>(null);
   const [lvPledge, setLvPledge] = useState<"none" | "mortgage" | "owners">("none");
+  const [lvOpen, setLvOpen] = useState(false);
   const applyLv = (f: LvFields) => {
     setLvPledge(f.pledgeForOwners ? "owners" : f.hasPledge ? "mortgage" : "none");
     if (f.found.length === 0) return setLvNote("V texte sme nenašli údaje pre daň. Skontroluj, že si vložil celý text alebo celú stránku listu vlastníctva.");
@@ -553,6 +554,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
     if (f.parcelNumber) setParcel(f.parcelNumber);
     if (f.buildingNumber) setBuilding(f.buildingNumber);
     if (f.flatNumber) setFlat(f.flatNumber);
+    if (f.floorAreaSqm !== undefined) setFloorArea(f.floorAreaSqm);
     if (f.taxObjectKind) setTaxKind(f.taxObjectKind);
     setLvNote(`Doplnené: ${f.found.join(", ")}. Skontroluj údaje a ulož nehnuteľnosť.`);
   };
@@ -651,8 +653,9 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <Field label="Dátum obstarania (nepovinné)" value={acqDate} type="date" max={today} onChange={setAcqDate} hint="evidencia pre dane; nepočíta sa" />
       <Field label="Obstarávacia cena (€, nepovinné)" value={acqCost} onChange={setAcqCost} hint="cena pri kúpe, nie odhad; nepočíta sa" />
       {mode === "prenajom" && <Field label="Dátum začiatku prenájmu (nepovinné)" value={rentalStart} type="date" max={today} onChange={setRentalStart} />}
-      <details style={{ marginBottom: 12 }}>
-        <summary style={{ cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Predvyplniť z listu vlastníctva</summary>
+      <button type="button" onClick={() => setLvOpen((o) => !o)} aria-expanded={lvOpen} style={{ ...btn, marginBottom: 8 }}>Predvyplniť z listu vlastníctva</button>
+      {lvOpen && (
+        <div style={{ marginBottom: 12 }}>
         <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
           Skopíruj text z listu vlastníctva a vlož ho sem, alebo nahraj uloženú stránku listu (HTML). Appka doplní údaje pre daň. Text sa neukladá a vlastníkov ani číslo LV appka neberie.
         </p>
@@ -682,7 +685,8 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
             V liste je záložné právo v prospech ostatných vlastníkov bytov. Nie je to hypotéka.
           </p>
         )}
-      </details>
+        </div>
+      )}
       <label style={{ display: "block", marginBottom: 8 }}>
         Druh objektu pre daň (nepovinné)
         <select aria-label="Druh objektu pre daň" value={taxKind} onChange={(e) => setTaxKind(e.target.value as "" | "dom" | "byt")} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>

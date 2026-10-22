@@ -1,4 +1,4 @@
-import type { LvFields } from "../../domain/listVlastnictva";
+import { floorAreaFromShare, type LvFields } from "../../domain/listVlastnictva";
 
 /**
  * Predvyplnenie z uloženej HTML stránky listu vlastníctva (D-211). Berie údaje z buniek tabuliek
@@ -48,6 +48,13 @@ function columnValues(doc: Document, header: string): string[] {
   return values;
 }
 
+/** Podiel z divu, ktorého popis začína „Podiel priestoru“ (D-212). */
+function floorFromShareDiv(doc: Document): number | undefined {
+  const div = Array.from(doc.querySelectorAll("div")).find((d) => text(d).startsWith("Podiel priestoru"));
+  const m = text(div?.nextElementSibling).match(/^(\d+)\/(\d+)$/);
+  return m ? floorAreaFromShare(Number(m[1]), Number(m[2])) : undefined;
+}
+
 export function parseLvHtml(html: string): LvFields {
   const doc = new DOMParser().parseFromString(html, "text/html");
   const parcels = [...new Set([...columnValues(doc, "Parcelné číslo"), ...columnValues(doc, "Na pozemku parcelné číslo")].filter((v) => PARCEL.test(v)))];
@@ -61,6 +68,7 @@ export function parseLvHtml(html: string): LvFields {
     parcelNumber: parcels.length > 0 ? parcels.join(", ") : undefined,
     buildingNumber: buildingRaw && /^\d+$/.test(buildingRaw) ? buildingRaw : undefined,
     flatNumber: flatRaw && /^\d+[A-Za-z]?$/.test(flatRaw) ? flatRaw : undefined,
+    floorAreaSqm: floorFromShareDiv(doc),
     hasPledge: pledges.length > 0,
     pledgeForOwners: pledges.some((t) => /ostatn\S*\s+vlastn/i.test(t)),
     found: [],
@@ -72,6 +80,7 @@ export function parseLvHtml(html: string): LvFields {
     ["parcelNumber", "číslo parcely"],
     ["buildingNumber", "súpisné číslo"],
     ["flatNumber", "číslo bytu"],
+    ["floorAreaSqm", "podlahová plocha"],
     ["taxObjectKind", "druh objektu"],
   ];
   for (const [key, label] of labels) if (out[key]) out.found.push(label);

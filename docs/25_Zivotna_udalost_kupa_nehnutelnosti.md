@@ -9,7 +9,9 @@
 4. Ak LV uvádza záložné právo, appka len upozorní. Hypotéku, jej zostatok a splátku zadáš ručne v karte nehnuteľnosti.
 
 ## 2. Čo appka z LV berie a čo nie
-- **Berie:** obec, katastrálne územie, číslo parcely, súpisné číslo, číslo bytu, druh objektu (dom alebo byt) a fakt, že je záložné právo.
+
+Podlahová plocha: pri podiele v tvare 4574/696619 je 4574 dm² = 45,74 m² (D-212). Zaokrúhlené podiely sa nepoužijú.
+- **Berie:** obec, katastrálne územie, číslo parcely (všetky), súpisné číslo, číslo bytu, druh objektu (dom alebo byt), podlahovú plochu z nezaokrúhleného podielu (D-212) a fakt, že je záložné právo.
 - **Nebere a neukladá:** mená, adresy a dátumy vlastníkov, číslo LV, text listu. Dôvod: D-026 (citlivé údaje, bez šifrovania v MVP).
 
 ## 3. Obmedzenia
