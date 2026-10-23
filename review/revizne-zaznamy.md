@@ -34,7 +34,7 @@
 | V7 | D_L, história m | rozhodnuté | D-040, D-031 |
 | S1 | Scenáre relatívne k r | uzavreté | 04 FR-03 |
 | S2 | Dosiahnutý cieľ a K_pred ≥ T | uzavreté | 04 FR-04 |
-| S3 | Predvolený zdroj úhrady | otvorené | 02 riziká; čaká na rozhodnutie |
+| S3 | Predvolený zdroj úhrady | rozhodnuté | D-014: predvolene z príjmu (aktualizované 2026-10-23) |
 | S4 | CSP len cez meta tag | uzavreté | 05 §7; 07 §7 |
 | S5 | Import a heslo na export | otvorené (heslo) | 05 §4; backlog N-05 |
 | S6 | Dátum platí k D_L | uzavreté | 04 FR-02 |

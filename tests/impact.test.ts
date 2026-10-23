@@ -44,5 +44,6 @@ describe("impactMonths (FR-04, D-004)", () => {
     expect(UNREACHABLE_IMPACT_TEXT).toMatch(/^Po tejto transakcii sa cieľ pri súčasnom sporení a výnose nedosiahne/);
     for (const k of ["(1)", "(2)", "(3)", "(4)"]) expect(UNREACHABLE_IMPACT_TEXT).toContain(k);
     expect(UNREACHABLE_IMPACT_TEXT).toMatch(/nie je finančným poradenstvom/);
+    expect(UNREACHABLE_IMPACT_TEXT).not.toMatch(/zvážiť/); // bez odporúčania (D-061, D-240)
   });
 });
