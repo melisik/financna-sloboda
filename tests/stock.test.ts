@@ -25,6 +25,22 @@ describe("sklad potravín", () => {
     expect(stockStatus(rice, "2026-10-20")).toBe("bez_datumu");
   });
 
+  it("lehota upozornenia je pre každú položku vlastná: 1, 7 alebo 30 dní, predvolene 3 dni (D-239)", () => {
+    const soon = { ...base, id: "w", name: "jogurt", expiryDate: "2026-10-25" }; // o 5 dní
+    expect(stockStatus({ ...milk, warnDays: 1 }, "2026-10-20")).toBe("blizi_sa");
+    expect(stockStatus({ ...soon, warnDays: 1 }, "2026-10-20")).toBe("v_poriadku");
+    expect(stockStatus({ ...soon, warnDays: 7 }, "2026-10-20")).toBe("blizi_sa");
+    expect(stockStatus({ ...soon, warnDays: 30 }, "2026-10-20")).toBe("blizi_sa");
+    expect(stockStatus(soon, "2026-10-20")).toBe("v_poriadku");
+    expect(stockStatus({ ...soon, expiryDate: "2026-10-23" }, "2026-10-20")).toBe("blizi_sa");
+  });
+
+  it("bez upozornenia sa položka neoznačí ako blížiaca sa, prešlá spotreba sa označí aj bez upozornenia (D-239)", () => {
+    expect(stockStatus({ ...milk, warnDays: null }, "2026-10-20")).toBe("v_poriadku");
+    expect(stockStatus({ ...bread, warnDays: null }, "2026-10-20")).toBe("prešlo");
+    expect(expiringItems([{ ...milk, warnDays: null }], "2026-10-20")).toEqual([]);
+  });
+
   it("upozornenia obsahujú prešlé a blížiace sa položky, najskôr končiace hore", () => {
     expect(expiringItems([later, milk, rice, bread], "2026-10-20").map((i) => i.name)).toEqual(["chlieb", "mlieko"]);
   });
@@ -46,6 +62,13 @@ describe("sklad potravín", () => {
     expect(validateStockItem({ ...milk, unit: "kus" }, "položka").some((e) => e.includes("jednotka"))).toBe(true);
     expect(validateStockItem({ ...milk, expiryDate: "2026-13-40" }, "položka").length).toBeGreaterThan(0);
     expect(validateStockItem(milk, "položka")).toEqual([]);
+  });
+
+  it("lehota upozornenia je celé číslo 0 až 30 alebo bez upozornenia (D-239)", () => {
+    expect(validateStockItem({ ...milk, warnDays: 14 }, "položka")).toEqual([]);
+    expect(validateStockItem({ ...milk, warnDays: null }, "položka")).toEqual([]);
+    expect(validateStockItem({ ...milk, warnDays: 31 }, "položka").length).toBeGreaterThan(0);
+    expect(validateStockItem({ ...milk, warnDays: 2.5 }, "položka").length).toBeGreaterThan(0);
   });
 
   it("staršia záloha bez skladu sa načíta s prázdnym zoznamom", () => {

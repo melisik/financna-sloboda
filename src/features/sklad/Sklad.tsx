@@ -2,7 +2,7 @@ import { useState } from "react";
 import { STOCK_UNITS, type Recipe, type RecipeIngredient, type StockItem, type StockUnit } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import type { Repository } from "../../storage/repository";
-import { STOCK_STATUS_TEXT, daysUntil, findItemByBarcode, isValidBarcode, previousProducts, sortForList, stockStatus } from "../../domain/stock";
+import { DEFAULT_WARN_DAYS, STOCK_STATUS_TEXT, WARN_DAY_OPTIONS, daysUntil, findItemByBarcode, isValidBarcode, previousProducts, sortForList, stockStatus } from "../../domain/stock";
 import { StockWarning } from "../../ui/StockWarning";
 import { readBarcode } from "./barcode";
 import { CameraScanner } from "./CameraScanner";
@@ -319,6 +319,8 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
   const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? "");
   const [unit, setUnit] = useState<StockUnit>(initial?.unit ?? "ks");
   const [barcode, setBarcode] = useState(initial?.barcode ?? "");
+  // Lehota upozornenia si vyberie používateľ; null = bez upozornenia (D-239).
+  const [warnDays, setWarnDays] = useState<number | null>(initial?.warnDays === undefined ? DEFAULT_WARN_DAYS : initial.warnDays);
   // Dátum spotreby sa nepredvypĺňa: prázdne pole znamená položku bez dátumu (skener ho môže doplniť).
   const [expiry, setExpiry] = useState(initial?.expiryDate ?? "");
   const [err, setErr] = useState<string | null>(null);
@@ -334,6 +336,7 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
     setName(p.name);
     setUnit(p.unit);
     setBarcode(p.barcode ?? "");
+    setWarnDays(p.warnDays === undefined ? DEFAULT_WARN_DAYS : p.warnDays);
   };
 
   // Čiarový kód (z kamery alebo fotky) určí výrobok: názov a jednotku doplní uložená položka (D-232, D-233).
@@ -405,6 +408,7 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
       updatedAt: now,
       ...(expiry.trim() !== "" ? { expiryDate: expiry.trim() } : {}),
       ...(code !== "" ? { barcode: code } : {}),
+      warnDays,
     };
     try {
       await repo.saveStockItem(item);
@@ -461,6 +465,18 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
         </select>
       </label>
       <Field label="Dátum spotreby (nepovinné, bez dátumu nechajte prázdne)" value={expiry} type="date" onChange={setExpiry} />
+      <label style={{ display: "block", marginBottom: 8 }}>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>Upozorniť na spotrebu</span>
+        <select
+          aria-label="Upozornenie na spotrebu"
+          value={warnDays === null ? "none" : String(warnDays)}
+          onChange={(e) => setWarnDays(e.target.value === "none" ? null : Number(e.target.value))}
+          style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}
+        >
+          {WARN_DAY_OPTIONS.map((d) => <option key={d} value={String(d)}>{d === 1 ? "1 deň vopred" : `${d} dní vopred`}</option>)}
+          <option value="none">bez upozornenia</option>
+        </select>
+      </label>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>Uložiť položku</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>

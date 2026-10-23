@@ -235,6 +235,7 @@ export interface StockItem {
   unit: StockUnit;
   expiryDate?: string; // dátum spotreby, YYYY-MM-DD; bez hodnoty = bez dátumu
   barcode?: string; // čiarový kód EAN-13, EAN-8 alebo UPC-A, len číslice; podľa neho sa pozná výrobok (D-232)
+  warnDays?: number | null; // koľko dní vopred upozorniť na spotrebu; null = bez upozornenia; bez hodnoty = 3 dni (D-239)
   createdAt: string;
   updatedAt: string;
 }

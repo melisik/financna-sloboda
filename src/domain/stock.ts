@@ -1,7 +1,10 @@
 import type { StockItem } from "./model/entities";
 
-/** Počet dní, za ktoré sa upozorní na blížiaci sa dátum spotreby. */
-const EXPIRY_WARNING_DAYS = 3;
+/** Predvolená lehota upozornenia na blížiaci sa dátum spotreby (dni vopred); položka si ju môže zmeniť (D-239). */
+export const DEFAULT_WARN_DAYS = 3;
+
+/** Lehoty, ktoré si používateľ môže zvoliť (dni vopred). */
+export const WARN_DAY_OPTIONS = [1, 3, 7, 14, 30] as const;
 
 export type StockStatus = "bez_datumu" | "prešlo" | "blizi_sa" | "v_poriadku";
 
@@ -16,7 +19,9 @@ export function stockStatus(item: StockItem, today: string): StockStatus {
   if (item.expiryDate === undefined) return "bez_datumu";
   const days = daysUntil(today, item.expiryDate);
   if (days < 0) return "prešlo";
-  if (days <= EXPIRY_WARNING_DAYS) return "blizi_sa";
+  // Bez upozornenia (null) sa pred spotrebou neupozorní; prešlá spotreba sa označí aj tak.
+  if (item.warnDays === null) return "v_poriadku";
+  if (days <= (item.warnDays ?? DEFAULT_WARN_DAYS)) return "blizi_sa";
   return "v_poriadku";
 }
 

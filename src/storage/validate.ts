@@ -176,13 +176,14 @@ export function validateLiability(l: unknown, today: string, label = "záväzok"
 export function validateStockItem(i: unknown, label = "položka skladu"): string[] {
   if (typeof i !== "object" || i === null || Array.isArray(i)) return [`${label}: musí byť objekt`];
   const o = i as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "quantity", "unit", "expiryDate", "barcode", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "quantity", "unit", "expiryDate", "barcode", "warnDays", "createdAt", "updatedAt"], label);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
   if (typeof o.quantity !== "number" || !(o.quantity >= 0)) errors.push(`${label}: množstvo musí byť číslo 0 alebo väčšie`);
   if (!(STOCK_UNITS as readonly unknown[]).includes(o.unit)) errors.push(`${label}: jednotka musí byť z katalógu`);
   if (o.expiryDate !== undefined) errors.push(...checkDate(o.expiryDate, "9999-12-31", `${label}: dátum spotreby`));
   if (o.barcode !== undefined && (typeof o.barcode !== "string" || !isValidBarcode(o.barcode))) errors.push(`${label}: čiarový kód musí byť platný EAN-13, EAN-8 alebo UPC-A`);
+  if (o.warnDays !== undefined && o.warnDays !== null && !(Number.isInteger(o.warnDays) && (o.warnDays as number) >= 0 && (o.warnDays as number) <= 30)) errors.push(`${label}: upozornenie musí byť 0 až 30 dní alebo bez upozornenia`);
   return errors;
 }
 
