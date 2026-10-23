@@ -4,6 +4,14 @@ import { isValidBarcode } from "../../domain/stock";
 import { btn } from "../../ui/kit/controls";
 import { createBarcodeReader } from "./barcode";
 
+/** Hlásenie, keď kamera nejde. Mimo HTTPS (aj na adrese z lokálnej siete) prehliadač kameru vôbec nesprístupní. */
+function cameraError(): string {
+  if (!window.isSecureContext || !navigator.mediaDevices) {
+    return "Kamera funguje len cez HTTPS alebo na localhoste. Na tejto adrese nie je dostupná. Použi fotku obalu.";
+  }
+  return "Kamera nie je dostupná. Povoľ ju v prehliadači alebo použi fotku obalu.";
+}
+
 /** Skenovanie čiarového kódu živou kamerou (D-233): offline, zadná kamera, bez fotky. */
 export function CameraScanner({ onFound, onCancel }: { onFound: (code: string) => void; onCancel: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -33,7 +41,7 @@ export function CameraScanner({ onFound, onCancel }: { onFound: (code: string) =
         const text = result.getText();
         if (alive && isValidBarcode(text)) onFoundRef.current(text);
       } catch {
-        if (alive) setMsg("Kamera nie je dostupná. Povoľ ju v prehliadači alebo použi fotku obalu.");
+        if (alive) setMsg(cameraError());
       }
     })();
     return () => {
