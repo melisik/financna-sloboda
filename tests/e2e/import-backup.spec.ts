@@ -27,7 +27,7 @@ test.describe("import zálohy – D-078, D-134", () => {
     await expect(page.getByText(/Teraz v zariadení: transakcií 0, vyhodnotení 1, /)).toBeVisible();
   });
 
-  test("import nevynucuje sťahovanie zálohy; zálohu stiahne až tlačidlo Exportovať zálohu", async ({ page }) => {
+  test("import nevynucuje sťahovanie zálohy; zálohu stiahne až tlačidlo Exportovať zálohu (D-143)", async ({ page }) => {
     await openApp(page);
     await goTo(page, "zaloha");
     const backupPath = await prepareBackup(page);

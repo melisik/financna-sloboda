@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { openApp } from "./helpers";
 
 // Pripomienky od testerov (D-149): voľba GitHub alebo formulár, bez údajov z appky.
-test.describe("pripomienky", () => {
+test.describe("pripomienky (D-192)", () => {
   test("tlačidlo ponúkne GitHub aj formulár bez účtu", async ({ page }) => {
     await openApp(page);
     await page.getByRole("button", { name: "Nahlásiť pripomienku" }).click();

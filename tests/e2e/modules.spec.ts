@@ -42,7 +42,7 @@ test.describe("moduly (D-162)", () => {
     await expect(page.locator("section#majetok").getByRole("button", { name: "Vyplniť tlačivo (PDF)" })).toHaveCount(0);
   });
 
-  test("moduly sú v Prehľade vpravo na širokej obrazovke a pod obsahom na telefóne", async ({ page }) => {
+  test("moduly sú v Prehľade vpravo na širokej obrazovke a pod obsahom na telefóne (D-164)", async ({ page }) => {
     await openApp(page);
     const moduly = page.getByRole("region", { name: "Moduly" });
     await expect(moduly).toBeVisible();

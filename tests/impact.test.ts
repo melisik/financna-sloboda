@@ -3,7 +3,7 @@ import { formatImpact, impactMonths, UNREACHABLE_IMPACT_TEXT } from "../src/doma
 
 const eur = (x: number) => x * 100;
 
-describe("impactMonths (FR-04)", () => {
+describe("impactMonths (FR-04, D-004)", () => {
   // GC-04: K_L = 100 000, K_pred = 105 000, m = 500, r = 4 % → dopad 5,99 → +6 mesiacov
   it("GC-04: K_pred = 105 000 € dá dopad približne +6 mesiacov", () => {
     const d = impactMonths(eur(100_000), eur(105_000), eur(500), 0.04, eur(600_000));

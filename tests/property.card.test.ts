@@ -27,7 +27,7 @@ describe("karta majetku – výpočet (D-080, D-093)", () => {
     expect(netPropertyValueCents({ ...base, mortgageBalanceCents: 35_000_000 })).toBe(-5_000_000);
   });
 
-  it("mesačné náklady sú splátka plus ostatné; nevyplnené položky sa rátajú ako 0", () => {
+  it("mesačné náklady sú splátka plus ostatné; nevyplnené položky sa rátajú ako 0 (D-100)", () => {
     expect(monthlyCostsCents({ ...base, monthlyPaymentCents: 80_000, monthlyOtherCostsCents: 15_000 })).toBe(95_000);
     expect(monthlyCostsCents({ ...base, monthlyOtherCostsCents: 15_000 })).toBe(15_000);
     expect(monthlyCostsCents(base)).toBe(0);
