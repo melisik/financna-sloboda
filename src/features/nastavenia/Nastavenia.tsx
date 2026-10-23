@@ -70,17 +70,17 @@ export function SettingsSection({ repo, settings, derived, onSaved }: { repo: Re
       )}
       <Field label="Ročné výdavky pri nezávislosti (€)" value={v.expenses} onChange={(x) => setV({ ...v, expenses: x })} />
       <Field label="Miera výberu (%)" value={v.withdrawalPct} step={0.1} onChange={(x) => setV({ ...v, withdrawalPct: x })}
-        hint={`východisková hodnota ${pct(rec.withdrawalRate)}`} changed={differs(v.withdrawalPct, rec.withdrawalRate * 100)} onReset={() => setV({ ...v, withdrawalPct: Number((rec.withdrawalRate * 100).toFixed(6)) })} />
+        hint={`východisková hodnota ${pct(rec.withdrawalRate)} (neoverený predpoklad)`} changed={differs(v.withdrawalPct, rec.withdrawalRate * 100)} onReset={() => setV({ ...v, withdrawalPct: Number((rec.withdrawalRate * 100).toFixed(6)) })} />
       <Field label="Reálny výnos r (%)" value={v.returnPct} step={0.1} onChange={(x) => setV({ ...v, returnPct: x })}
-        hint={`východisková hodnota ${pct(rec.realReturn)}; reálny výnos je po odpočítaní inflácie`} changed={differs(v.returnPct, rec.realReturn * 100)} onReset={() => setV({ ...v, returnPct: Number((rec.realReturn * 100).toFixed(6)) })} />
+        hint={`východisková hodnota ${pct(rec.realReturn)} (neoverený predpoklad); reálny výnos je po odpočítaní inflácie`} changed={differs(v.returnPct, rec.realReturn * 100)} onReset={() => setV({ ...v, returnPct: Number((rec.realReturn * 100).toFixed(6)) })} />
       {typeof v.withdrawalPct === "number" && (v.withdrawalPct < 3 || v.withdrawalPct > 4) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "0.9rem" }}>
-          Miera výberu je mimo bežného rozsahu 3–4 %. Uloženie je možné, ale over si, či je to tvoj zámer.
+          Miera výberu je mimo rozsahu 3–4 %, ktorý je neoverený predpoklad, nie odporúčanie. Uloženie je možné; over si, či je to tvoj zámer.
         </p>
       )}
       {typeof v.returnPct === "number" && (v.returnPct < 2 || v.returnPct > 6) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "0.9rem" }}>
-          Výnos r je mimo bežného rozsahu 2–6 %. Uloženie je možné, ale ide o odhad a dátum cieľa sa výrazne zmení.
+          Výnos r je mimo rozsahu 2–6 %, ktorý je neoverený predpoklad, nie odporúčanie. Uloženie je možné, ale ide o odhad a dátum cieľa sa výrazne zmení.
         </p>
       )}
       <Field label="Rezerva, cieľová hodnota (€)" value={v.reserve} onChange={(x) => setV({ ...v, reserve: x })}

@@ -10,7 +10,7 @@ export const UNREACHABLE_IMPACT_TEXT =
   "(1) zvýšiť mesačné sporenie do investícií alebo hotovosti; " +
   "(2) znížiť ročné výdavky, čím sa zmenší cieľová suma; " +
   "(3) pri výdavku zvoliť zdroj „z príjmu“, ak to ide, aby kapitál zostal; " +
-  "(4) zvážiť vyššiu mieru výberu v rozsahu 3–4 %: cieľová suma sa zníži, ale kapitál by pri zlom vývoji trhu vydržal kratšie. " +
+  "(4) zvážiť vyššiu mieru výberu (vhodná hodnota je neoverený predpoklad, ktorý si nastavuje každý sám): cieľová suma sa zníži, ale kapitál by pri zlom vývoji trhu vydržal kratšie. " +
   "Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.";
 
 /** Priemerný počet dní v mesiaci (FR-04, N1: 1 mesiac = 30,44 dňa). */
