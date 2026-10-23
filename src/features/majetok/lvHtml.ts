@@ -18,11 +18,12 @@ function valueAfter(cells: Element[], idx: number): string | undefined {
   return undefined;
 }
 
-/** Údaj v riadku hlavičky, napr. „Obec : kód názov Čas vyhotovenia : čas“. */
+/** Údaj v hlavičke, napr. „Obec : kód názov“ v riadku tabuľky alebo „Obec“ → „Bratislava-Ružinov“ v divoch. */
 function headerValue(doc: Document, label: string): string | undefined {
-  const td = Array.from(doc.querySelectorAll("td")).find((c) => text(c) === label);
-  const cells = Array.from(td?.parentElement?.children ?? []);
-  return td ? valueAfter(cells, cells.indexOf(td)) : undefined;
+  const el = labelElements(doc, label)[0];
+  if (!el) return undefined;
+  const siblings = Array.from(el.parentElement?.children ?? []);
+  return valueAfter(siblings, siblings.indexOf(el));
 }
 
 /** Vlastný text prvku: len priame textové uzly, bez obsahu vnorených prvkov (portál píše popis pred <br>). */

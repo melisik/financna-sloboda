@@ -21,5 +21,7 @@ test.describe("výber bytu z listu vlastníctva v tvare portálu", () => {
     await expect(page.getByLabel("Číslo bytu (nepovinné)")).toHaveValue("13");
     await expect(page.getByLabel("Podlahová plocha (m², nepovinné)")).toHaveValue("30");
     await expect(page.getByLabel("Súpisné číslo (nepovinné)")).toHaveValue("77");
+    await expect(page.getByLabel("Obec (pre daň z nehnuteľností, nepovinné)")).toHaveValue("Testovacia obec");
+    await expect(page.getByLabel("Katastrálne územie (nepovinné)")).toHaveValue("Testovo");
   });
 });
