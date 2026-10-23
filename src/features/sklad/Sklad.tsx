@@ -353,6 +353,18 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
     const code = barcode.trim();
     if (code !== "" && !isValidBarcode(code)) return setErr("Čiarový kód musí byť platný EAN-13, EAN-8 alebo UPC-A (len číslice).");
     const now = new Date().toISOString();
+    // Rovnaký výrobok (čiarový kód) s rovnakým dátumom spotreby sa pripočíta k jednej položke, nepridá sa druhá (D-234).
+    const sameProduct = !initial && code !== "" ? items.find((i) => i.barcode === code && (i.expiryDate ?? "") === expiry.trim()) : undefined;
+    if (sameProduct) {
+      if (sameProduct.unit !== unit) return setErr(`Výrobok je v sklade v jednotke ${sameProduct.unit}. Zvoľ rovnakú jednotku.`);
+      try {
+        await repo.saveStockItem({ ...sameProduct, quantity: sameProduct.quantity + q, updatedAt: now });
+        onDone();
+      } catch {
+        setErr(STORAGE_ERROR);
+      }
+      return;
+    }
     const item: StockItem = {
       id: initial?.id ?? uid(),
       name: trimmed,
