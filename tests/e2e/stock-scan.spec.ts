@@ -27,6 +27,8 @@ test.describe("skener skladu", () => {
     await page.locator('input[aria-label="Fotka obalu"]').setInputFiles({ name: "obal.png", mimeType: "image/png", buffer });
     await expect(page.getByText(/Navrhnuté:/)).toBeVisible({ timeout: 150_000 });
     await expect(page.getByLabel("Dátum spotreby (nepovinné, bez dátumu nechajte prázdne)")).toHaveValue("2027-03-15");
+    await expect(page.getByText(/Navrhnutý názov z fotky: MLIEKO/i)).toBeVisible();
+    await page.getByRole("button", { name: "Použiť názov" }).click();
     await expect(page.getByLabel("Názov (napr. mlieko)")).toHaveValue(/MLIEKO/i);
   });
 

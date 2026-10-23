@@ -303,6 +303,7 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
   const [scanMsg, setScanMsg] = useState<string | null>(null);
   const [ocrText, setOcrText] = useState<string | null>(null);
   const [camera, setCamera] = useState(false);
+  const [nameSuggestion, setNameSuggestion] = useState<string | null>(null);
 
   // Čiarový kód (z kamery alebo fotky) určí výrobok: názov a jednotku doplní uložená položka (D-232, D-233).
   const applyBarcode = (code: string): string => {
@@ -328,7 +329,8 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
       setOcrText(text);
       const date = findExpiryDate(text);
       const product = findProductName(text);
-      if (product && name.trim() === "" && !known) setName(product);
+      // Názov z textu fotky sa len navrhne, nezapíše sa sám (D-130): OCR pri fotke bez textu vráti šum.
+      setNameSuggestion(product && !known ? product : null);
       if (date) setExpiry(date);
       const ocrMsg = date || product
         ? `Navrhnuté: ${product ?? "názov nenájdený"}, dátum spotreby ${date ?? "nenájdený"}. Skontrolujte údaje a množstvo doplňte ručne.`
@@ -392,6 +394,12 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
         </details>
       )}
       <Field label="Názov (napr. mlieko)" value={name} type="text" onChange={setName} />
+      {nameSuggestion !== null && name.trim() === "" && (
+        <p style={{ fontSize: "0.9rem", margin: "4px 0" }}>
+          Navrhnutý názov z fotky: <strong>{nameSuggestion}</strong>{" "}
+          <button onClick={() => { setName(nameSuggestion); setNameSuggestion(null); }} style={btn}>Použiť názov</button>
+        </p>
+      )}
       <Field label="Čiarový kód (nepovinné)" value={barcode} type="text" onChange={setBarcode} />
       <Field label="Množstvo" value={quantity} step={0.01} onChange={setQuantity} />
       <label style={{ display: "block", marginBottom: 8 }}>
