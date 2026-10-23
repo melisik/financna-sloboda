@@ -234,6 +234,7 @@ export interface StockItem {
   quantity: number; // nezáporné (0 po uvarení receptu), môže byť desatinné
   unit: StockUnit;
   expiryDate?: string; // dátum spotreby, YYYY-MM-DD; bez hodnoty = bez dátumu
+  barcode?: string; // čiarový kód EAN-13, EAN-8 alebo UPC-A, len číslice; podľa neho sa pozná výrobok (D-232)
   createdAt: string;
   updatedAt: string;
 }

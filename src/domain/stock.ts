@@ -43,3 +43,18 @@ export function sortForList(items: StockItem[], today: string): StockItem[] {
     rank(a) - rank(b) || (a.expiryDate ?? "").localeCompare(b.expiryDate ?? "") || a.name.localeCompare(b.name, "sk"),
   );
 }
+
+/** Čiarový kód EAN-13, EAN-8 alebo UPC-A: len číslice a správny kontrolný súčet GS1 (D-232). */
+export function isValidBarcode(code: string): boolean {
+  if (!/^\d+$/.test(code) || ![8, 12, 13].includes(code.length)) return false;
+  const digits = code.split("").map(Number);
+  const check = digits.pop() as number;
+  // Váhy 3 a 1 od pravej strany bez kontrolnej číslice (rovnaké pre EAN-8, UPC-A aj EAN-13).
+  const sum = digits.reverse().reduce((acc, d, i) => acc + d * (i % 2 === 0 ? 3 : 1), 0);
+  return (10 - (sum % 10)) % 10 === check;
+}
+
+/** Položka skladu s rovnakým čiarovým kódom; ak ich je viac, najnovšie upravená (D-232). */
+export function findItemByBarcode(items: StockItem[], code: string): StockItem | undefined {
+  return items.filter((i) => i.barcode === code).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+}

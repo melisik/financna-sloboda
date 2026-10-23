@@ -2,7 +2,8 @@ import { useState } from "react";
 import { STOCK_UNITS, type Recipe, type RecipeIngredient, type StockItem, type StockUnit } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import type { Repository } from "../../storage/repository";
-import { daysUntil, expiringItems, sortForList, stockStatus } from "../../domain/stock";
+import { daysUntil, expiringItems, findItemByBarcode, isValidBarcode, sortForList, stockStatus } from "../../domain/stock";
+import { readBarcode } from "./barcode";
 import { findExpiryDate, findProductName } from "../../domain/scan";
 import { cookRecipe } from "../../domain/recipe";
 import { dateSk } from "../../ui/kit/format";
@@ -87,6 +88,7 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
       {editing ? (
         <StockForm
           repo={repo}
+          items={items}
           initial={editing === "new" ? null : editing}
           onDone={() => { setEditing(null); onSaved(); }}
           onCancel={() => setEditing(null)}
@@ -289,35 +291,50 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
   );
 }
 
-function StockForm({ repo, initial, onDone, onCancel }: { repo: Repository; initial: StockItem | null; onDone: () => void; onCancel: () => void }) {
+function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repository; items: StockItem[]; initial: StockItem | null; onDone: () => void; onCancel: () => void }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? "");
   const [unit, setUnit] = useState<StockUnit>(initial?.unit ?? "ks");
+  const [barcode, setBarcode] = useState(initial?.barcode ?? "");
   // Dátum spotreby sa nepredvypĺňa: prázdne pole znamená položku bez dátumu (skener ho môže doplniť).
   const [expiry, setExpiry] = useState(initial?.expiryDate ?? "");
   const [err, setErr] = useState<string | null>(null);
   const [scanMsg, setScanMsg] = useState<string | null>(null);
   const [ocrText, setOcrText] = useState<string | null>(null);
 
-  // Skener: fotka obalu, offline rozpoznanie; názov a dátum sa len navrhnú, potvrdí ich používateľ.
+  // Skener: fotka obalu. Čiarový kód z fotky (D-232) určí výrobok; názov sa doplní z uloženej položky, dátum sa len navrhne z textu.
   const onPhoto = async (file: File) => {
-    setScanMsg("Rozpoznávam text z fotky…");
+    setScanMsg("Rozpoznávam fotku…");
+    const code = await readBarcode(file);
+    const known = code !== undefined ? findItemByBarcode(items, code) : undefined;
+    if (code !== undefined) {
+      setBarcode(code);
+      if (known) {
+        if (name.trim() === "") setName(known.name);
+        setUnit(known.unit);
+      }
+    }
+    const barcodeMsg = code === undefined
+      ? "Čiarový kód sa z fotky nenašiel."
+      : known
+        ? `Čiarový kód ${code} je v sklade ako „${known.name}“; názov a jednotka sú doplnené.`
+        : `Čiarový kód ${code} zatiaľ nepoznáme. Zadaj názov; pri uložení si ho appka zapamätá.`;
     try {
       const { recognizeImage } = await import("./ocr");
       const text = await recognizeImage(file);
       setOcrText(text);
       const date = findExpiryDate(text);
       const product = findProductName(text);
-      if (product && name.trim() === "") setName(product);
+      if (product && name.trim() === "" && !known) setName(product);
       if (date) setExpiry(date);
-      setScanMsg(date || product
+      const ocrMsg = date || product
         ? `Navrhnuté: ${product ?? "názov nenájdený"}, dátum spotreby ${date ?? "nenájdený"}. Skontrolujte údaje a množstvo doplňte ručne.`
-        : "Text sa nepodarilo rozpoznať. Zadajte údaje ručne.");
+        : "Text sa nepodarilo rozpoznať. Zadajte údaje ručne.";
+      setScanMsg(`${barcodeMsg} ${ocrMsg}`);
     } catch {
-      setScanMsg("Skener sa nepodarilo spustiť. Zadajte údaje ručne.");
+      setScanMsg(`${barcodeMsg} Skener sa nepodarilo spustiť. Zadajte údaje ručne.`);
     }
   };
-
   const save = async () => {
     const trimmed = name.trim();
     if (trimmed.length === 0) return setErr("Vyplň názov.");
@@ -328,6 +345,8 @@ function StockForm({ repo, initial, onDone, onCancel }: { repo: Repository; init
       const dErr = checkDate(expiry.trim(), "9999-12-31", "dátum spotreby");
       if (dErr.length) return setErr(dErr[0]);
     }
+    const code = barcode.trim();
+    if (code !== "" && !isValidBarcode(code)) return setErr("Čiarový kód musí byť platný EAN-13, EAN-8 alebo UPC-A (len číslice).");
     const now = new Date().toISOString();
     const item: StockItem = {
       id: initial?.id ?? uid(),
@@ -337,6 +356,7 @@ function StockForm({ repo, initial, onDone, onCancel }: { repo: Repository; init
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
       ...(expiry.trim() !== "" ? { expiryDate: expiry.trim() } : {}),
+      ...(code !== "" ? { barcode: code } : {}),
     };
     try {
       await repo.saveStockItem(item);
@@ -361,6 +381,7 @@ function StockForm({ repo, initial, onDone, onCancel }: { repo: Repository; init
         </details>
       )}
       <Field label="Názov (napr. mlieko)" value={name} type="text" onChange={setName} />
+      <Field label="Čiarový kód (nepovinné)" value={barcode} type="text" onChange={setBarcode} />
       <Field label="Množstvo" value={quantity} step={0.01} onChange={setQuantity} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Jednotka
