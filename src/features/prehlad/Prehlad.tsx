@@ -177,7 +177,7 @@ function MonthSpendingBlock({ data, today, thresholdCents, incomeVisible }: { da
         </p>
       )}
       <details>
-        <summary style={{ cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Rozpis výdavkov</summary>
+        <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Rozpis výdavkov ▾</summary>
         <ul style={{ paddingLeft: 20 }}>
           <li>Nevyhnutné: {eur(s.byNecessity.nevyhnutne)}</li>
           {s.liabilitiesCents > 0 && <li>Splátky úverov a kariet: {eur(s.liabilitiesCents)}</li>}
