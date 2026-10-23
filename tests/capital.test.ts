@@ -62,7 +62,7 @@ describe("výdavky z kapitálu (D-045)", () => {
   });
 
   // GC-15: dva výdavky po 60 000 € z investícií: K_inv sa zastaví na 0, dopad −154 mesiacov
-  it("GC-15: K_inv nesmie byť záporný; dopad je −154 mesiacov", () => {
+  it("GC-15: K_inv nesmie byť záporný (D-059); dopad je −154 mesiacov", () => {
     let c = { inv: eur(100_000), cash: 0 };
     const first = payFromInvestments(c, eur(60_000));
     expect(first.ok).toBe(true);

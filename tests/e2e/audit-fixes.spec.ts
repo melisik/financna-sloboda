@@ -16,7 +16,7 @@ test.describe("záporné sporenie v nastaveniach (nález 1)", () => {
   });
 });
 
-test.describe("prečerpanie investícií v Prehľade (nález 3)", () => {
+test.describe("prečerpanie investícií v Prehľade (nález 3, D-059, D-167)", () => {
   test("výdavok nad K_inv ukáže sumu prečerpania", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nastavenia");
@@ -33,6 +33,7 @@ test.describe("prečerpanie investícií v Prehľade (nález 3)", () => {
     await page.getByLabel("Rozumiem, investície sa vyčerpajú a K_inv bude 0 €.").check();
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 
+    await expect(page.locator("section#nova-transakcia")).toContainText("prečerpanie 50,00 € nad K_inv");
     await goTo(page, "prehlad");
     await expect(page.locator("section#prehlad")).toContainText("Prečerpanie investícií: 50,00 €");
   });
@@ -54,7 +55,7 @@ test.describe("iPhone, Safari (D-053)", () => {
   });
 });
 
-test.describe("splátka pod úrokom (nález 8)", () => {
+test.describe("splátka pod úrokom (nález 8, D-169)", () => {
   test("pri zápise záväzku splátka pod úrokom dostane upozornenie", async ({ page }) => {
     await openApp(page);
     await goTo(page, "zavazky");

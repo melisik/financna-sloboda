@@ -9,7 +9,11 @@ describe("výnosové predpoklady (D-050, D-062 až D-065)", () => {
     expect(recommendedSettings(2_400_000).realReturn).toBe(RETURN_ASSUMPTIONS.realReturn);
   });
 
-  it("nominálny ekvivalent: (1 + 3,5 %)(1 + 2 %) − 1 ≈ 5,57 %", () => {
+  it("predvolená miera výberu je 3,7 % a neupravuje sa (D-069)", () => {
+    expect(recommendedSettings(2_400_000).withdrawalRate).toBe(0.037);
+  });
+
+  it("nominálny ekvivalent (zobrazenie, D-077): (1 + 3,5 %)(1 + 2 %) − 1 ≈ 5,57 %", () => {
     expect(nominalFromReal(0.035, 0.02)).toBeCloseTo(0.0557, 6);
   });
 

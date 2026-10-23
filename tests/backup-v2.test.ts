@@ -59,7 +59,7 @@ describe("záloha verzie 2 a import verzie 1 (FR-28)", () => {
   });
 });
 
-describe("záporné mesačné sporenie v zálohe (nález 1)", () => {
+describe("záporné mesačné sporenie v zálohe (nález 1, D-165)", () => {
   it("záloha s kladným sporením sa načíta bez upozornenia", () => {
     const json = JSON.parse(readFileSync(path.resolve("public/testovacia-zaloha.json"), "utf8"));
     json.settings = { ...json.settings, savingInvCents: 1_000 };

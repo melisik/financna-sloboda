@@ -81,7 +81,7 @@ describe("záväzky – stav splatenia a splátky (D-140)", () => {
   });
 });
 
-describe("splátka pod úrokom (nález 8)", () => {
+describe("splátka pod úrokom (nález 8, D-169)", () => {
   it("splátka, ktorá nepokryje mesačný úrok, sa označí", () => {
     // zostatok 1 000 €, úrok 12 % p. a. = 10 € za mesiac
     expect(paymentBelowInterest(100_000, 0.12, 1_000)).toBe(true);
