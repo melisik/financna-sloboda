@@ -6,6 +6,7 @@ import { daysUntil, expiringItems, findItemByBarcode, isValidBarcode, sortForLis
 import { readBarcode } from "./barcode";
 import { CameraScanner } from "./CameraScanner";
 import { findExpiryDate, findProductName } from "../../domain/scan";
+import { plural } from "../../domain/impact";
 import { cookRecipe } from "../../domain/recipe";
 import { dateSk } from "../../ui/kit/format";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
@@ -49,21 +50,10 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
     }
   };
 
-  return (
-    <section>
-      <p style={{ color: "var(--muted)" }}>Potraviny doma a ich dátum spotreby. Názov a dátum môžete doplniť z fotky obalu; množstvo zadajte ručne.</p>
-      {warnings.length > 0 && (
-        <div style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, marginBottom: 12 }}>
-          <strong>Pozor:</strong>
-          <ul style={{ paddingLeft: 20, margin: "4px 0" }}>
-            {warnings.map((w) => <li key={w.id}>{w.name}: {STOCK_STATUS_TEXT[stockStatus(w, today)]} ({dateSk(w.expiryDate ?? "")})</li>)}
-          </ul>
-        </div>
-      )}
-      {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané položky skladu.</p>}
-      {sortForList(items, today).map((i) => (
+  // Karta jednej dávky položky; firstToUse označí dávku, ktorú treba spotrebovať ako prvú (D-236).
+  const itemCard = (i: StockItem, firstToUse = false) => (
         <div key={i.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
-          <p style={{ margin: 0 }}><strong>{i.name}</strong></p>
+          <p style={{ margin: 0 }}><strong>{i.name}</strong>{firstToUse ? <> · <strong>Použiť ako prvé</strong></> : null}</p>
           <p style={{ margin: "4px 0" }}>{i.quantity} {i.unit}{i.quantity === 0 ? " · došlo" : ""}</p>
           <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
             {i.expiryDate ? `Spotrebovať do ${dateSk(i.expiryDate ?? "")} (${dniText(daysUntil(today, i.expiryDate))})` : "Bez dátumu spotreby"}
@@ -85,7 +75,53 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
             </>
           )}
         </div>
-      ))}
+  );
+
+  // Viac dávok toho istého výrobku (rovnaký čiarový kód) je jedna skupina; dávky sa dajú rozkliknúť (D-236).
+  const groupCard = (batches: StockItem[]) => {
+    const units = new Set(batches.map((b) => b.unit));
+    const total = batches.reduce((sum, b) => sum + b.quantity, 0);
+    const first = batches.find((b) => b.quantity > 0);
+    return (
+      <div key={batches[0].barcode} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+        <p style={{ margin: 0 }}><strong>{batches[0].name}</strong></p>
+        <p style={{ margin: "4px 0" }}>
+          {units.size === 1 ? `Spolu ${total} ${batches[0].unit}` : "Spolu (rôzne jednotky)"} · {batches.length} {plural(batches.length, "dávka", "dávky", "dávok")}
+        </p>
+        <details>
+          <summary style={{ cursor: "pointer" }}>Dávky a dátumy</summary>
+          {batches.map((b) => itemCard(b, b === first))}
+        </details>
+      </div>
+    );
+  };
+
+  const sorted = sortForList(items, today);
+  const byBarcode = new Map<string, StockItem[]>();
+  for (const i of sorted) if (i.barcode) byBarcode.set(i.barcode, [...(byBarcode.get(i.barcode) ?? []), i]);
+  const shownGroups = new Set<string>();
+  const rows = sorted.flatMap((i) => {
+    const code = i.barcode;
+    const group = code ? byBarcode.get(code) ?? [] : [];
+    if (!code || group.length < 2) return [itemCard(i)];
+    if (shownGroups.has(code)) return [];
+    shownGroups.add(code);
+    return [groupCard(group)];
+  });
+
+  return (
+    <section>
+      <p style={{ color: "var(--muted)" }}>Potraviny doma a ich dátum spotreby. Názov a dátum môžete doplniť z fotky obalu; množstvo zadajte ručne.</p>
+      {warnings.length > 0 && (
+        <div style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, marginBottom: 12 }}>
+          <strong>Pozor:</strong>
+          <ul style={{ paddingLeft: 20, margin: "4px 0" }}>
+            {warnings.map((w) => <li key={w.id}>{w.name}: {STOCK_STATUS_TEXT[stockStatus(w, today)]} ({dateSk(w.expiryDate ?? "")})</li>)}
+          </ul>
+        </div>
+      )}
+      {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané položky skladu.</p>}
+      {rows}
       {editing ? (
         <StockForm
           repo={repo}
