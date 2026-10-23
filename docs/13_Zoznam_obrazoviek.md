@@ -1,6 +1,6 @@
 # 13 – Zoznam obrazoviek a rozhodnutí
 
-> Stav k 2026-10-20 (aktualizované v kroku 1 plánu Fázy 2). Zoznam sa priebežne upravuje; zmeny ide zapísať sem a rozhodnutia do `decisions/Decisions.md`. Stav „na vetve“ znamená, že kód nie je na `main`.
+> Stav k 2026-10-23 (aktualizované po auditu 2026-10-23, `docs/24_Audit_2026-10-23.md`). Zoznam sa priebežne upravuje; zmeny ide zapísať sem a rozhodnutia do `decisions/Decisions.md`. Stav „na vetve“ znamená, že kód nie je na `main`.
 
 ## 1. Obrazovky
 
@@ -13,9 +13,10 @@
 | Investície | na vetve | ručné položky (D-101); tu pribudnú tretí pilier a ciele (D-105) |
 | Záväzky | na vetve (vlastná sekcia, D-103) | vlastná sekcia (D-103); okrem hypotéky |
 | Pravidelné príjmy | na vetve (len zobrazenie, D-102) | len zobrazenie; m sa mení pri vyhodnotení (D-102) |
-| Pravidelné výdavky | navrhnuté | predplatné, poistky, paušály |
+| Pravidelné výdavky | na vetve | predplatné, poistky, paušály |
 | Rozpočet kategórií | na vetve (D-106) | limit na kategóriu za mesiac (D-106) |
-| Dane | navrhnuté | len po overení pravidiel (D-104) |
+| Sklad | na vetve (D-232 až D-239) | položky potravín: čiarový kód, dátum spotreby, dávky, výber predchádzajúceho výrobku, lehota upozornenia |
+| Dane | na vetve (sekcia existuje) | daňové pravidlá len po overení (D-104) |
 | Ročný prehľad | na vetve (docs/13, oddiel 4) | história kapitálu a dátumu cieľa |
 | Scenáre | navrhnuté | porovnanie nastavení, len na vyžiadanie |
 | Pripomienky | schválené; na vetve: zmeškané vyhodnotenie, blížiaci sa koniec mesiaca (okno 3 dni, potvrdené D-227), záloha (7 dní), kontrola nastavení; testy `tests/reminders.test.ts` | koniec mesiaca a záloha (D-107) |
