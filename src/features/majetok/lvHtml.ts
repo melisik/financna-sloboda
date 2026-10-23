@@ -25,10 +25,34 @@ function headerValue(doc: Document, label: string): string | undefined {
   return td ? valueAfter(cells, cells.indexOf(td)) : undefined;
 }
 
-/** Hodnota v div, ktorý nasleduje po div s popisom v danom bloku (napr. „Číslo bytu“ → „25“). */
-function blockValue(block: Element | Document, label: string): string | undefined {
-  const div = Array.from(block.querySelectorAll("div")).find((d) => text(d) === label);
-  return text(div?.nextElementSibling) || undefined;
+/** Vlastný text prvku: len priame textové uzly, bez obsahu vnorených prvkov (portál píše popis pred <br>). */
+function ownText(el: Element): string {
+  return Array.from(el.childNodes)
+    .filter((n) => n.nodeType === Node.TEXT_NODE)
+    .map((n) => n.textContent ?? "")
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Prvky s popisom: div (starší tvar) alebo bunka tabuľky (portál: popis, <br> a hodnota v odkaze). */
+function labelElements(root: Element | Document, label: string, startsWith = false): Element[] {
+  return Array.from(root.querySelectorAll("div, td, th")).filter((el) => (startsWith ? ownText(el).startsWith(label) : ownText(el) === label));
+}
+
+/** Hodnota popisu: text za popisom v tom istom prvku, inak nasledujúci súrodenec. */
+function valueFor(el: Element, label: string): string | undefined {
+  const same = text(el).startsWith(label) ? text(el).slice(label.length).trim() : "";
+  return same || text(el.nextElementSibling) || undefined;
+}
+
+/** Prvá hodnota popisu v bloku, ktorá prejde kontrolou (napr. „Číslo bytu“ → „25“). */
+function blockValue(block: Element | Document, label: string, valid: (v: string) => boolean = () => true): string | undefined {
+  for (const el of labelElements(block, label)) {
+    const v = valueFor(el, label);
+    if (v && valid(v)) return v;
+  }
+  return undefined;
 }
 
 /** Všetky hodnoty v stĺpci tabuľky, ktorého hlavička má zadaný text; každá bunka sa rozdelí na divy. */
@@ -50,16 +74,15 @@ function columnValues(doc: Document, header: string): string[] {
 
 /** Tabuľky bytov: každá tabuľka, ktorá obsahuje popis „Číslo bytu“ (D-214). */
 function flatTables(doc: Document): HTMLTableElement[] {
-  const tables = Array.from(doc.querySelectorAll("div"))
-    .filter((d) => text(d) === "Číslo bytu")
-    .map((d) => d.closest("table"));
+  const tables = labelElements(doc, "Číslo bytu").map((el) => el.closest("table"));
   return [...new Set(tables)].filter((t): t is HTMLTableElement => t !== null);
 }
 
 /** Podlahová plocha z podielu v bloku bytu (D-212). */
 function blockShare(block: Element): number | undefined {
-  const div = Array.from(block.querySelectorAll("div")).find((d) => text(d).startsWith("Podiel priestoru"));
-  const m = text(div?.nextElementSibling).match(/^(\d+)\/(\d+)$/);
+  const el = labelElements(block, "Podiel priestoru", true)[0];
+  if (!el) return undefined;
+  const m = text(el).match(/(\d+)\/(\d+)$/) ?? text(el.nextElementSibling).match(/^(\d+)\/(\d+)$/);
   return m ? floorAreaFromShare(Number(m[1]), Number(m[2])) : undefined;
 }
 
@@ -74,9 +97,9 @@ export function parseLvHtml(html: string): LvFields {
 
   const flats: LvFlatChoice[] = [];
   for (const block of flatTables(doc)) {
-    const flat = blockValue(block, "Číslo bytu");
-    const floor = blockValue(block, "Poschodie");
-    const building = blockValue(block, "Súpisné číslo");
+    const flat = blockValue(block, "Číslo bytu", (v) => /^\d+[A-Za-z]?$/.test(v));
+    const floor = blockValue(block, "Poschodie", (v) => /^\d+$/.test(v));
+    const building = blockValue(block, "Súpisné číslo", (v) => /^\d+$/.test(v));
     if (!flat || !/^\d+[A-Za-z]?$/.test(flat)) continue;
     const label = [`byt č. ${flat}`, floor && /^\d+$/.test(floor) ? `poschodie ${floor}` : "", building && /^\d+$/.test(building) ? `súp. č. ${building}` : ""]
       .filter(Boolean)
@@ -93,7 +116,7 @@ export function parseLvHtml(html: string): LvFields {
     });
   }
 
-  const documentBuilding = blockValue(doc, "Súpisné číslo") ?? columnValues(doc, "Súpisné číslo").find((v) => /^\d+$/.test(v));
+  const documentBuilding = blockValue(doc, "Súpisné číslo", (v) => /^\d+$/.test(v)) ?? columnValues(doc, "Súpisné číslo").find((v) => /^\d+$/.test(v));
   const base: LvTaxFields = flats.length > 0
     ? flats[0].fields
     : { ...shared, buildingNumber: documentBuilding && /^\d+$/.test(documentBuilding) ? documentBuilding : undefined, taxObjectKind: documentBuilding ? "dom" : undefined };
