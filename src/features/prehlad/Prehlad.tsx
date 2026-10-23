@@ -94,6 +94,9 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
             <p>
               Výnos: {pctText(ctx.realReturn)} reálne po poplatkoch, nominálne ≈ {pctText(nominalFromReal(ctx.realReturn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 % (predpoklad).
             </p>
+            {ctx.settings && (
+              <p>Miera výberu: {pctText(ctx.settings.withdrawalRate)} (predpoklad, zdroj neoverený).</p>
+            )}
             <p>Kapitál: investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}. Rezerva: {eur(ctx.reserve)}.</p>
             <p>
               Predbežný dopad posledných transakcií:{" "}
