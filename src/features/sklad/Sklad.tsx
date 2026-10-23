@@ -382,7 +382,7 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
       )}
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Fotka obalu (záložne, ak kamera nejde)</span>
-        <input type="file" accept="image/*" capture="environment" aria-label="Fotka obalu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); }} />
+        <input type="file" accept="image/*" aria-label="Fotka obalu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); }} />
       </label>
       {scanMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{scanMsg}</p>}
       {ocrText !== null && (

@@ -300,7 +300,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           )}
           <label style={{ display: "block", margin: "4px 0" }}>
             <span style={{ display: "block", fontSize: "0.9rem" }}>Alebo nafoťte QR kód z dokladu</span>
-            <input type="file" accept="image/*" capture="environment" aria-label="Fotka QR kódu dokladu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void scanReceipt(f); }} />
+            <input type="file" accept="image/*" aria-label="Fotka QR kódu dokladu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void scanReceipt(f); }} />
           </label>
           {qrMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{qrMsg}</p>}
           {/* Číslo dokladu sa nezobrazuje a nedá sa zadať ručne; používa sa len na overenie (D-133). */}
