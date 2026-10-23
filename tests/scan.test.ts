@@ -38,3 +38,22 @@ describe("skener obalu: dátum spotreby a názov", () => {
     expect(findProductName("Nestle CINI Minis\n10.2027")).toBe("Nestle CINI Minis");
   });
 });
+
+// Ďalšie tvary dátumu na obaloch a chyby OCR (D-130). Syntetické texty.
+describe("skener obalu: ďalšie tvary dátumu", () => {
+  it("medzery, rok na začiatku, skrátený rok s mesiacom a kľúčové slovo Najlepšie pred", () => {
+    expect(findExpiryDate("Spotrebujte do 15 03 2027")).toBe("2027-03-15");
+    expect(findExpiryDate("Spotrebujte do 2027.03.15")).toBe("2027-03-15");
+    expect(findExpiryDate("EXP 03/27")).toBe("2027-03-31");
+    expect(findExpiryDate("Najlepšie pred 15.03.2027")).toBe("2027-03-15");
+  });
+
+  it("chyby OCR v číslicách dátumu (O namiesto 0, l namiesto 1)", () => {
+    expect(findExpiryDate("Spotrebujte do l5.O3.2O27")).toBe("2027-03-15");
+  });
+
+  it("dátum výroby bez kľúčového slova sa nepoužije ako dátum spotreby", () => {
+    expect(findExpiryDate("Vyrobené 01.02.2026")).toBeUndefined();
+    expect(findExpiryDate("Vyrobené 01.09.2026 Spotrebujte do 15.03.2027")).toBe("2027-03-15");
+  });
+});
