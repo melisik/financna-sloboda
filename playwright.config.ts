@@ -1,7 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
+import { writeCameraFixture } from "./tests/e2e/camera-fixture";
 
 // Zostava s Fázou 2 pre testy (D-125). Nastavuje sa tu, nie v príkaze, aby config fungoval aj na Windows (audit, nález 13).
 process.env.VITE_PHASE2 = "1";
+
+// Falošná kamera prehliadača číta syntetický EAN-13 zo súboru Y4M (skenovanie kamerou, D-233).
+const cameraArgs = [
+  "--use-fake-ui-for-media-stream",
+  "--use-fake-device-for-media-stream",
+  `--use-file-for-fake-video-capture=${writeCameraFixture("test-results/ean13-camera.y4m", "4006381333931")}`,
+];
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -15,7 +23,7 @@ export default defineConfig({
     timeout: 120_000,
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile-390", use: { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true } },
+    { name: "desktop", use: { ...devices["Desktop Chrome"], launchOptions: { args: cameraArgs } } },
+    { name: "mobile-390", use: { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, launchOptions: { args: cameraArgs } } },
   ],
 });

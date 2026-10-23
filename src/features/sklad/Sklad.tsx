@@ -4,6 +4,7 @@ import { checkDate } from "../../storage/validate";
 import type { Repository } from "../../storage/repository";
 import { daysUntil, expiringItems, findItemByBarcode, isValidBarcode, sortForList, stockStatus } from "../../domain/stock";
 import { readBarcode } from "./barcode";
+import { CameraScanner } from "./CameraScanner";
 import { findExpiryDate, findProductName } from "../../domain/scan";
 import { cookRecipe } from "../../domain/recipe";
 import { dateSk } from "../../ui/kit/format";
@@ -301,24 +302,26 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
   const [err, setErr] = useState<string | null>(null);
   const [scanMsg, setScanMsg] = useState<string | null>(null);
   const [ocrText, setOcrText] = useState<string | null>(null);
+  const [camera, setCamera] = useState(false);
 
-  // Skener: fotka obalu. Čiarový kód z fotky (D-232) určí výrobok; názov sa doplní z uloženej položky, dátum sa len navrhne z textu.
+  // Čiarový kód (z kamery alebo fotky) určí výrobok: názov a jednotku doplní uložená položka (D-232, D-233).
+  const applyBarcode = (code: string): string => {
+    setBarcode(code);
+    const known = findItemByBarcode(items, code);
+    if (known) {
+      if (name.trim() === "") setName(known.name);
+      setUnit(known.unit);
+      return `Čiarový kód ${code} je v sklade ako „${known.name}“; názov a jednotka sú doplnené.`;
+    }
+    return `Čiarový kód ${code} zatiaľ nepoznáme. Zadaj názov; pri uložení si ho appka zapamätá.`;
+  };
+
+  // Záložný skener: fotka obalu. Čiarový kód z fotky sa použije rovnako; dátum sa len navrhne z textu.
   const onPhoto = async (file: File) => {
     setScanMsg("Rozpoznávam fotku…");
     const code = await readBarcode(file);
+    const barcodeMsg = code === undefined ? "Čiarový kód sa z fotky nenašiel." : applyBarcode(code);
     const known = code !== undefined ? findItemByBarcode(items, code) : undefined;
-    if (code !== undefined) {
-      setBarcode(code);
-      if (known) {
-        if (name.trim() === "") setName(known.name);
-        setUnit(known.unit);
-      }
-    }
-    const barcodeMsg = code === undefined
-      ? "Čiarový kód sa z fotky nenašiel."
-      : known
-        ? `Čiarový kód ${code} je v sklade ako „${known.name}“; názov a jednotka sú doplnené.`
-        : `Čiarový kód ${code} zatiaľ nepoznáme. Zadaj názov; pri uložení si ho appka zapamätá.`;
     try {
       const { recognizeImage } = await import("./ocr");
       const text = await recognizeImage(file);
@@ -369,8 +372,16 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku skladu" : "Nová položka skladu"}</h4>
+      {camera ? (
+        <CameraScanner
+          onFound={(code) => { setCamera(false); setScanMsg(applyBarcode(code)); }}
+          onCancel={() => setCamera(false)}
+        />
+      ) : (
+        <button onClick={() => setCamera(true)} style={{ ...btn, margin: "8px 0" }}>Skenovať kódom kamerou</button>
+      )}
       <label style={{ display: "block", margin: "8px 0" }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>Fotka obalu (navrhne názov a dátum spotreby)</span>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>Fotka obalu (záložne, ak kamera nejde)</span>
         <input type="file" accept="image/*" capture="environment" aria-label="Fotka obalu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); }} />
       </label>
       {scanMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{scanMsg}</p>}
