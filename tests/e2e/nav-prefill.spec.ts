@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { goTo, navTo, openApp } from "./helpers";
 
 // D-095: navigácia medzi sekciami; D-096 (N-04): vyhodnotenie sa predvyplní z aktuálneho kapitálu.
-test.describe("navigácia a predvyplnenie vyhodnotenia", () => {
+test.describe("navigácia a predvyplnenie vyhodnotenia (D-191)", () => {
   test("horný panel obsahuje skupiny a odkazy menia kotvu", async ({ page }) => {
     await openApp(page);
     const nav = page.getByRole("navigation", { name: "Hlavná navigácia" });

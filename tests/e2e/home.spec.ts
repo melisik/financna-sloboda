@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { goTo, openApp } from "./helpers";
 
 test.describe("domovská obrazovka a úprava (M4, FR-09, FR-14)", () => {
-  test("úprava, zmazanie s vrátením späť a prehľad", async ({ page }) => {
+  test("úprava, zmazanie s vrátením späť a prehľad (D-054)", async ({ page }) => {
     await openApp(page);
     await expect(page.locator("section#prehlad")).toBeVisible();
 

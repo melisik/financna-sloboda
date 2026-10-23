@@ -17,7 +17,7 @@ test.describe("záporné sporenie v nastaveniach (nález 1)", () => {
 });
 
 test.describe("prečerpanie investícií v Prehľade (nález 3, D-059, D-167)", () => {
-  test("výdavok nad K_inv ukáže sumu prečerpania", async ({ page }) => {
+  test("výdavok nad K_inv ukáže sumu prečerpania a poznámku (D-066)", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nastavenia");
     await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
@@ -39,7 +39,7 @@ test.describe("prečerpanie investícií v Prehľade (nález 3, D-059, D-167)", 
   });
 });
 
-test.describe("iPhone, Chrome (nález 4, D-168)", () => {
+test.describe("iPhone, Chrome (nález 4, D-042, D-068, D-075, D-168)", () => {
   test.use({ userAgent: CHROME_IPHONE });
   test("appku neblokuje a povie, ako ju pridať na plochu", async ({ page }) => {
     await openApp(page);
@@ -47,7 +47,7 @@ test.describe("iPhone, Chrome (nález 4, D-168)", () => {
   });
 });
 
-test.describe("iPhone, Safari (D-053)", () => {
+test.describe("iPhone, Safari (D-042, D-053, D-068, D-075)", () => {
   test.use({ userAgent: SAFARI_IPHONE });
   test("zostáva s výzvou na plochu", async ({ page }) => {
     await page.goto("/");

@@ -19,7 +19,7 @@ describe("investície", () => {
 });
 
 describe("staré ocenenie investícií", () => {
-  it("ocenenie staršie ako 3 mesiace sa označí, čerstvé nie", () => {
+  it("ocenenie staršie ako 3 mesiace sa označí, čerstvé nie (D-139)", () => {
     const old = { ...base, id: "o", name: "starý", valueDate: "2026-06-30" };
     const fresh = { ...base, id: "f", name: "čerstvý", valueDate: "2026-08-15" };
     expect(staleValuationNames([old, fresh], "2026-10-21")).toEqual(["starý"]);

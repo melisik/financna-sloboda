@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { goTo, openApp } from "./helpers";
 
 // Predvyplnenie z uloženej HTML stránky listu vlastníctva (D-211). Syntetický súbor z tests/fixtures.
-test.describe("predvyplnenie z uloženej HTML stránky listu", () => {
+test.describe("predvyplnenie z uloženej HTML stránky listu (D-210, D-211)", () => {
   test("nahratý HTML súbor doplní údaje z buniek tabuliek, aj viac parciel a súpisné číslo", async ({ page }) => {
     await openApp(page);
     await goTo(page, "majetok");

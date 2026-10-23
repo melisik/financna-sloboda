@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { goTo, openApp } from "./helpers";
 
 // Výpis s viacerými byty v tvare portálu (popis a hodnota v jednej bunke, hodnota v odkaze): výber bytu ako pri D-214. Syntetický súbor.
-test.describe("výber bytu z listu vlastníctva v tvare portálu", () => {
+test.describe("výber bytu z listu vlastníctva v tvare portálu (D-229, D-230)", () => {
   test("pri viacerých bytoch appka neberie prvý potichu, ale ukáže výber", async ({ page }) => {
     await openApp(page);
     await goTo(page, "majetok");

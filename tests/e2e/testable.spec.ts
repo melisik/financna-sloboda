@@ -26,7 +26,7 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await expect(page.locator("p", { hasText: "Dátum cieľa:" }).first()).toBeVisible();
   });
 
-  test("bez dát sa nezobrazí výzva na zálohu; navigácia na telefóne zobrazí všetky sekcie a nerozťahuje stránku", async ({ page }) => {
+  test("bez dát sa nezobrazí výzva na zálohu; navigácia na telefóne zobrazí všetky sekcie a nerozťahuje stránku (D-097, D-099)", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await openApp(page);
     await expect(page.getByText("Záloha ešte nebola exportovaná")).toHaveCount(0);

@@ -9,7 +9,7 @@ function expense(id: string, date: string, createdAt: string, amountCents: numbe
   return { id, date, type: "vydavok", amountCents, source: "z_investicii", createdAt } as Transaction;
 }
 
-describe("prečerpanie investícií (nález 3, D-167)", () => {
+describe("prečerpanie investícií (nález 3, D-167, D-215)", () => {
   it("suma nad K_inv sa zobrazí ako prečerpanie a do K sa nezapočíta", () => {
     const r = capitalWithFlags(snap, [expense("x", "2026-10-21", "2026-10-21T09:00:00.000Z", 31_050_000)]);
     expect(r.capital.inv).toBe(0);

@@ -34,7 +34,7 @@ describe("predvyplnenie z listu vlastníctva (D-209)", () => {
     expect(f.hasPledge).toBe(false);
   });
 
-  it("byt sa pozná podľa čísla bytu a záložné právo sa len označí", () => {
+  it("byt sa pozná podľa čísla bytu a záložné právo sa len označí (D-216)", () => {
     const f = parseLvText(BYT);
     expect(f.flatNumber).toBe("12");
     expect(f.taxObjectKind).toBe("byt");

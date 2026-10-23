@@ -6,7 +6,7 @@ const tx = (date: string, type: Transaction["type"], amountCents: number): Trans
   id: `${date}-${type}`, date, type, amountCents, createdAt: date, updatedAt: date,
 });
 
-describe("odvodené mesačné sporenie m (D-031, D-040)", () => {
+describe("odvodené mesačné sporenie m (D-017, D-031, D-040)", () => {
   // GC-16: tri mesiace sporenia po 500 € → m = 1 500 / 3 = 500 (nie 125)
   it("GC-16: tri mesiace po 500 € dajú m = 500 €", () => {
     const txs = [

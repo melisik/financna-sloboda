@@ -9,7 +9,7 @@ describe("výnosové predpoklady (D-050, D-062 až D-065)", () => {
     expect(recommendedSettings(2_400_000).realReturn).toBe(RETURN_ASSUMPTIONS.realReturn);
   });
 
-  it("predvolená miera výberu je 3,7 % a neupravuje sa (D-069)", () => {
+  it("predvolená miera výberu je 3,7 % a neupravuje sa (D-051, D-069)", () => {
     expect(recommendedSettings(2_400_000).withdrawalRate).toBe(0.037);
   });
 

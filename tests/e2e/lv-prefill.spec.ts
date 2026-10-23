@@ -37,7 +37,7 @@ test.describe("predvyplnenie z listu vlastníctva", () => {
     await expect(page.locator("section#majetok")).toContainText("parcela 123/4");
   });
 
-  test("záložné právo v LV len upozorní a hypotéku nevytvorí", async ({ page }) => {
+  test("záložné právo v LV len upozorní a hypotéku nevytvorí (D-216)", async ({ page }) => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();

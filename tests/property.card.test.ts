@@ -19,7 +19,7 @@ const base: Property = {
 };
 
 describe("karta majetku – výpočet (D-080, D-093)", () => {
-  it("čistá hodnota je odhad mínus zostatok hypotéky", () => {
+  it("čistá hodnota je odhad mínus zostatok hypotéky (D-092)", () => {
     expect(netPropertyValueCents(base)).toBe(15_000_000);
   });
 

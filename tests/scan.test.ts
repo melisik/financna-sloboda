@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { findExpiryDate, findProductName } from "../src/domain/scan";
 
 // Čítanie údajov z textu obalu (sklad). Syntetické texty.
-describe("skener obalu: dátum spotreby a názov", () => {
+describe("skener obalu: dátum spotreby a názov (D-235)", () => {
   it("dátum s kľúčovým slovom má prednosť pred ostatnými dátumami", () => {
     expect(findExpiryDate("Vyrobené 01.02.2026\nSpotrebujte do 15.03.2027")).toBe("2027-03-15");
   });

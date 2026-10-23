@@ -12,7 +12,7 @@ const SECTIONS: SectionId[] = [
 const isLocal = (url: string, origin: string): boolean =>
   url.startsWith("data:") || url.startsWith("blob:") || new URL(url).origin === origin;
 
-test.describe("sieťová izolácia (A-15)", () => {
+test.describe("sieťová izolácia (A-15, D-009)", () => {
   test("žiadna sekcia, skener, fotka obalu ani import listu nepošle cudziu požiadavku", async ({ page }) => {
     test.setTimeout(300_000);
     const urls: string[] = [];

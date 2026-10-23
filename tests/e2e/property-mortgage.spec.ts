@@ -56,7 +56,7 @@ test.describe("majetok a hypotéka", () => {
     await expect(card).toContainText("skrátený termín");
   });
 
-  test("mimoriadna splátka: prázdna suma sa pomenuje, riadok ukáže termín a splátku sa dá vrátiť", async ({ page }) => {
+  test("mimoriadna splátka: prázdna suma sa pomenuje, riadok ukáže termín a splátku sa dá vrátiť (D-150)", async ({ page }) => {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     await openApp(page);

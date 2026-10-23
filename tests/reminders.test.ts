@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { backupOverdue, monthEndApproaching, settingsCheckOverdue, reviewOverdue } from "../src/domain/reminders";
 
-describe("pripomienka vyhodnotenia (FR-10)", () => {
+describe("pripomienka vyhodnotenia (FR-10, D-027)", () => {
   it("v tom istom mesiaci nie je pripomienka", () => {
     expect(reviewOverdue("2026-10-14", "2026-10-30")).toBe(false);
   });

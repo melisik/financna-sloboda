@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { NO_ATTEMPTS, afterFailure, lockSeconds, readAttempts, waitSeconds, writeAttempts } from "../src/features/zamok/pinLimit";
 
 // Obmedzenie pokusov pri PIN-e (audit, nález 10). Syntetické hodnoty.
-describe("obmedzenie pokusov pri PIN-e", () => {
+describe("obmedzenie pokusov pri PIN-e (D-203)", () => {
   it("prvé štyri nesprávne pokusy neblokujú", () => {
     for (let n = 0; n < 5; n++) expect(lockSeconds(n)).toBe(0);
   });

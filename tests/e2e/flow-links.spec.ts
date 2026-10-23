@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { goTo, openApp } from "./helpers";
 
 // Skryté odkazy na ďalší krok (D-206): objavia sa, až keď ich dáta potrebujú. Syntetické hodnoty.
-test.describe("prepojenia medzi sekciami", () => {
+test.describe("prepojenia medzi sekciami (D-204)", () => {
   test("bez nehnuteľnosti a investícií Dane ponúknu Majetok a Investície", async ({ page }) => {
     await openApp(page);
     await goTo(page, "dane");

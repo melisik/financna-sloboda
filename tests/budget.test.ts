@@ -16,7 +16,7 @@ const vydavok = (id: string, date: string, amountCents: number, category?: Trans
   updatedAt: "2026-10-19T10:00:00Z",
 });
 
-describe("rozpočet kategórií (D-106)", () => {
+describe("rozpočet kategórií (D-106, D-136)", () => {
   const list = [
     vydavok("a", "2026-10-02", 12_000, "jedlo"),
     vydavok("b", "2026-10-15", 5_000, "jedlo"),

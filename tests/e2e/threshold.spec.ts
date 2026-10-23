@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { goTo, openApp } from "./helpers";
 
 // D-120 + D-048: výdavok nad prahom sa označí aj bez uložených Nastavení (predvolený prah 100 €).
-test("výdavok 600 € je označený „nad prahom“, výdavok 10 € nie", async ({ page }) => {
+test("výdavok 600 € je označený „nad prahom“, výdavok 10 € nie (D-012)", async ({ page }) => {
   await openApp(page);
   await goTo(page, "vyhodnotenie");
   await page.getByLabel("Hodnota investícií (€)").fill("100000");

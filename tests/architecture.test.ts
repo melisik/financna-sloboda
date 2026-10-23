@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -16,7 +16,7 @@ function importsOf(dir: string, prefix = ""): { file: string; spec: string }[] {
   });
 }
 
-describe("pravidlo závislostí (D-162)", () => {
+describe("pravidlo závislostí (D-020, D-162)", () => {
   it("doména nikdy neimportuje UI, aplikačnú vrstvu, úložisko ani register modulov (D-171)", () => {
     const bad = importsOf(join(SRC, "domain")).filter(
       (i) => i.spec.startsWith("../ui") || i.spec.startsWith("../app") || i.spec.startsWith("../storage"),
@@ -58,5 +58,27 @@ describe("pravidlo závislostí (D-162)", () => {
   it("register modulov je čistý: neimportuje UI ani nič z aplikačnej vrstvy", () => {
     const bad = importsOf(join(SRC, "app")).filter((i) => i.file === "modules.ts" && i.spec.startsWith("."));
     expect(bad).toEqual([]);
+  });
+});
+
+function allFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? allFiles(join(dir, e.name)) : [join(dir, e.name)]));
+}
+
+// Štruktúra podľa docs/23: D-172, D-175, D-176, D-177, D-178, D-179, D-180, D-181, D-182, D-183, D-184, D-185, D-186, D-187, D-188, D-189, D-191, D-192, D-194, D-195, D-196, D-197.
+describe("štruktúra a názvy podľa rozhodnutí D-172 až D-197 a D-202", () => {
+  it("každá sekcia má svoj priečinok vo features a vrstva UI má svoje súbory", () => {
+    const paths = [
+      "features/zamok", "features/sklad", "features/dane", "features/zavazky", "features/investicie", "features/prijmy",
+      "features/rozpocet", "features/pravidelne", "features/majetok", "features/transakcie", "features/vyhodnotenie",
+      "features/nastavenia", "features/prehlad", "features/rocny-prehlad", "features/doklady", "features/spatna-vazba",
+      "ui/Sprievodca.tsx", "ui/Navigacia.tsx", "ui/Shell.tsx", "ui/useAutomaticUpdates.ts", "ui/Sekcie.tsx",
+    ];
+    expect(paths.filter((p) => !existsSync(join(SRC, p)))).toEqual([]);
+  });
+
+  it("názvy súborov sa nelíšia len veľkosťou písmen (Windows nerozlišuje, D-202)", () => {
+    const names = allFiles(SRC).map((f) => f.toLowerCase());
+    expect(names.filter((f, i) => names.indexOf(f) !== i)).toEqual([]);
   });
 });

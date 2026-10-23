@@ -5,7 +5,7 @@ import { validateTransaction } from "../src/storage/validate";
 // Číslo dokladu z QR kódu (D-126). Syntetické hodnoty (skutočné čísla dokladov do repozitára nepatria).
 const SAMPLE = "O-A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6";
 
-describe("číslo dokladu", () => {
+describe("číslo dokladu (D-128)", () => {
   it("prijme vzorku z portálu a odmietne príliš krátke alebo cudzie znaky", () => {
     expect(isReceiptId(SAMPLE)).toBe(true);
     expect(isReceiptId("O-123")).toBe(false);

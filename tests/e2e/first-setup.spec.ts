@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 // FR-12, D-117 (docs/20): sprievodca má päť krokov a výsledok; každý krok sa dá preskočiť.
-test.describe("sprievodca prvým nastavením (FR-12, D-117)", () => {
+test.describe("sprievodca prvým nastavením (FR-12, D-117, D-152)", () => {
   test("celý tok od úvodu po výsledok a otvorenie prehľadu", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Vitaj" })).toBeVisible();

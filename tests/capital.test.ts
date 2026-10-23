@@ -21,7 +21,7 @@ describe("monthsToTargetSplit (D-046)", () => {
   });
 
   // GC-21: ako GC-20, ale K_cash = 100 € navyše → dopad ≈ 0,06 mesiaca ≈ 1,7 dňa
-  it("GC-21: 100 € v hotovosti dá dopad približne 1,7 dňa", () => {
+  it("GC-21 (D-073): 100 € v hotovosti dá dopad približne 1,7 dňa", () => {
     const d = impactMonthsSplit(
       { inv: eur(100_000), cash: 0 },
       { inv: eur(100_000), cash: eur(100) },
@@ -56,7 +56,7 @@ describe("výdavky z kapitálu (D-045)", () => {
     expect(inv.ok && inv.capital.inv).toBe(eur(85_000));
   });
 
-  it("výdavok z hotovosti nad K_cash je zamietnutý a navrhne sa zdroj z investícií", () => {
+  it("výdavok z hotovosti nad K_cash je zamietnutý a navrhne sa zdroj z investícií (D-074)", () => {
     const r = payFromCash({ inv: eur(100_000), cash: eur(20_000) }, eur(25_000));
     expect(r).toEqual({ ok: false, reason: "insufficient_cash", suggestion: "investments" });
   });
