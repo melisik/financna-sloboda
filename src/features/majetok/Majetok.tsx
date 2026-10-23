@@ -303,6 +303,13 @@ function AssetForm({ repo, kind, initial, today, onDone, onCancel }: { repo: Rep
   );
 }
 
+/** Upozornenie k podlahovej ploche z listu (D-231): z podielu sa nedá vždy vyčítať, preto ju overí vlastník. */
+function floorWarning(area: number | undefined): string {
+  return area === undefined
+    ? "Podlahovú plochu z podielu nevieme vyčítať. Zadaj ju sám z kúpnej zmluvy alebo z listu, ak je v ňom uvedená."
+    : "Podlahová plocha je vypočítaná z podielu spoluvlastníctva. Over ju s kúpnou zmluvou.";
+}
+
 /** Front zápisov do evidencie prenájmu (D-157): jeden zápis naraz, aby sa žiadny neprepísal. */
 let rentalSaveQueue: Promise<void> = Promise.resolve();
 
@@ -551,6 +558,8 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const [lvPledge, setLvPledge] = useState<"none" | "mortgage" | "owners">("none");
   const [lvOpen, setLvOpen] = useState(false);
   const [lvFlats, setLvFlats] = useState<LvFlatChoice[]>([]);
+  const [flatIdx, setFlatIdx] = useState("");
+  const [lvWarn, setLvWarn] = useState<string | null>(null);
   const applyFields = (x: LvTaxFields) => {
     if (x.taxMunicipality) setTaxMuni(x.taxMunicipality);
     if (x.cadastralArea) setCadastral(x.cadastralArea);
@@ -563,15 +572,25 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   const applyLv = (f: LvFields) => {
     setLvPledge(f.pledgeForOwners ? "owners" : f.hasPledge ? "mortgage" : "none");
     setLvFlats(f.flats ?? []);
+    setFlatIdx("");
+    setLvWarn(null);
     if (f.found.length === 0) return setLvNote("V texte sme nenašli údaje pre daň. Skontroluj, že si vložil celý text alebo celú stránku listu vlastníctva.");
+    if (f.flats) {
+      // Údaje bytu sa nedoplnia sami: vlastník vyberie svoj byt, inak by sa doplnil cudzí byt (D-231).
+      applyFields({ taxMunicipality: f.taxMunicipality, cadastralArea: f.cadastralArea, parcelNumber: f.parcelNumber, buildingNumber: f.buildingNumber });
+      setLvNote(`V liste je ${f.flats.length} bytov. Vyber svoj byt v zozname; jeho údaje sa doplnia po výbere.`);
+      return;
+    }
     applyFields(f);
-    const more = f.flats ? `V liste je ${f.flats.length} bytov. Vyber svoj v zozname. ` : "";
-    setLvNote(`${more}Doplnené: ${f.found.join(", ")}. Skontroluj údaje a ulož nehnuteľnosť.`);
+    setLvNote(`Doplnené: ${f.found.join(", ")}. Skontroluj údaje a ulož nehnuteľnosť.`);
+    if (f.flatNumber) setLvWarn(floorWarning(f.floorAreaSqm));
   };
   const chooseFlat = (c: LvFlatChoice) => {
     setFlat(c.fields.flatNumber ?? "");
     setFloorArea(c.fields.floorAreaSqm ?? "");
     applyFields(c.fields);
+    setLvNote(`Údaje vybraného bytu (${c.label}) sú doplnené. Skontroluj ich a ulož nehnuteľnosť.`);
+    setLvWarn(floorWarning(c.fields.floorAreaSqm));
   };
   const fillFromText = () => {
     const f = /<(?:table|td|html)\b/i.test(lvText) ? parseLvHtml(lvText) : parseLvText(lvText);
@@ -691,10 +710,20 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
           />
         </label>
         {lvNote && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{lvNote}</p>}
+        {lvWarn && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>{lvWarn}</p>}
         {lvFlats.length > 1 && (
           <label style={{ display: "block", margin: "8px 0" }}>
             <span style={{ display: "block", fontSize: "0.9rem" }}>Ktorý byt je tvoj?</span>
-            <select aria-label="Byt v liste vlastníctva" defaultValue="0" onChange={(e) => chooseFlat(lvFlats[Number(e.target.value)])} style={{ minHeight: 44, width: "100%" }}>
+            <select
+              aria-label="Byt v liste vlastníctva"
+              value={flatIdx}
+              onChange={(e) => {
+                setFlatIdx(e.target.value);
+                if (e.target.value !== "") chooseFlat(lvFlats[Number(e.target.value)]);
+              }}
+              style={{ minHeight: 44, width: "100%" }}
+            >
+              <option value="">Vyber byt</option>
               {lvFlats.map((c, i) => <option key={i} value={i}>{c.label}</option>)}
             </select>
           </label>

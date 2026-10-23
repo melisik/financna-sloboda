@@ -11,11 +11,16 @@ test.describe("výber bytu z listu vlastníctva", () => {
     await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
     await page.getByLabel("Nahrať uloženú stránku listu vlastníctva").setInputFiles(path.resolve("tests/fixtures/lv-synthetic-viac-bytov.html"));
 
-    await expect(page.getByText("V liste je 2 bytov. Vyber svoj v zozname.")).toBeVisible();
+    await expect(page.getByText("V liste je 2 bytov. Vyber svoj byt v zozname; jeho údaje sa doplnia po výbere.")).toBeVisible();
     const select = page.getByLabel("Byt v liste vlastníctva");
-    await expect(select.locator("option")).toHaveCount(2);
+    await expect(select.locator("option")).toHaveCount(3);
+    await expect(page.getByLabel("Číslo bytu (nepovinné)")).toHaveValue("");
+    await expect(page.getByLabel("Podlahová plocha (m², nepovinné)")).toHaveValue("");
+
+    await select.selectOption("0");
     await expect(page.getByLabel("Číslo bytu (nepovinné)")).toHaveValue("12");
     await expect(page.getByLabel("Podlahová plocha (m², nepovinné)")).toHaveValue("45");
+    await expect(page.getByText("Podlahová plocha je vypočítaná z podielu spoluvlastníctva. Over ju s kúpnou zmluvou.")).toBeVisible();
 
     await select.selectOption("1");
     await expect(page.getByLabel("Číslo bytu (nepovinné)")).toHaveValue("13");

@@ -23,7 +23,7 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 
 ## 3a. Čiastočný výpis a viac bytov
 - **Čiastočný výpis** (vygenerovaný len pre teba alebo tvoj byt) je pre appku lepší: obsahuje menej údajov iných osôb a jednoznačne ukazuje tvoj byt. Ak portál túto možnosť ponúka, zvoľ ju. Overiť treba na portáli (kapitola 6).
-- Ak je v liste **viac bytov**, appka nevyberie prvý potichu. Zobrazí zoznam bytov (číslo, poschodie, súpisné číslo). Vyber svoj. Údaje a podlahová plocha sa berú z tvojho bytu.
+- Ak je v liste **viac bytov**, appka nedoplní žiadny byt sama. Zobrazí zoznam bytov (číslo, poschodie, súpisné číslo). Vyber svoj byt; až potom sa doplnia jeho údaje a podlahová plocha. Over, že vybraný byt je tvoj, podľa kúpnej zmluvy.
 - Pri jednom byte sa výber nezobrazí a údaje sa doplnia hneď.
 
 ## 4. Čo appka z listu berie a čo nie
@@ -35,7 +35,7 @@ PDF rozloží text podľa polohy na strane, takže hodnota sa môže dostať do 
 - **Chýbajú polia:** skontroluj, že si uložil celú stránku, nie len jej časť. Skús Ctrl+A a Ctrl+C z celej stránky a vlož text.
 - **Stránka je prázdna alebo sa načíta až po chvíli:** počkaj, kým sa výpis úplne zobrazí, a až potom ulož.
 - **Skenovaný LV bez textu:** appka text nepreberie. Údaje zadaj ručne.
-- **Podlahová plocha chýba:** appka ju doplní len vtedy, keď menovateľ podielu nie je zaokrúhlený (nie je násobkom 100) a je aspoň 10 000 (D-212, D-219). Pri zaokrúhlenom menovateli plochu z listu nevyčítame; zadaj ju ručne.
+- **Podlahová plocha chýba alebo nie je správna:** appka ju z podielu vyčíta len vtedy, keď menovateľ nie je zaokrúhlený (nie je násobkom 100) a je aspoň 10 000 (D-212, D-219). Inak plochu zadaj sám z kúpnej zmluvy alebo z listu, ak je v ňom uvedená. Plochu vyčítanú z podielu over s kúpnou zmluvou; niektoré katastrálne úrady plochu do listu neuvádzajú.
 - **Viac parciel:** appka uvedie všetky, oddelené čiarkou. Tlačivo 17-dp-md má na parcely obmedzené miesto, preto môže byť potrebné doplniť ich v PDF ručne.
 
 ## 6. Overenie pred vydaním návodu
