@@ -3,6 +3,7 @@ import type { AppData, Transaction } from "../../storage/types";
 import type { Ctx } from "../../domain/context";
 import { scenarioDateText } from "../../domain/scenario";
 import { backupOverdue, monthEndApproaching, reviewOverdue, settingsCheckOverdue } from "../../domain/reminders";
+import { StockWarning } from "../../ui/StockWarning";
 import { monthSummary } from "../../domain/monthSummary";
 import { monthlyIncomeCents } from "../../domain/income";
 import { endingSoon } from "../../domain/recurring";
@@ -42,6 +43,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
           Koniec mesiaca sa blíži. Vyhodnotenie za tento mesiac urob do konca mesiaca.
         </p>
       )}
+      <StockWarning items={data.stockItems} today={today} />
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
           Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.

@@ -3,7 +3,7 @@ import type { StockItem } from "./model/entities";
 /** Počet dní, za ktoré sa upozorní na blížiaci sa dátum spotreby. */
 const EXPIRY_WARNING_DAYS = 3;
 
-type StockStatus = "bez_datumu" | "prešlo" | "blizi_sa" | "v_poriadku";
+export type StockStatus = "bez_datumu" | "prešlo" | "blizi_sa" | "v_poriadku";
 
 /** Počet dní od dneška do dátumu (záporný, ak je dátum prešlý). Výpočet v UTC, bez časového pásma. */
 export function daysUntil(todayIso: string, dateIso: string): number {
@@ -19,6 +19,14 @@ export function stockStatus(item: StockItem, today: string): StockStatus {
   if (days <= EXPIRY_WARNING_DAYS) return "blizi_sa";
   return "v_poriadku";
 }
+
+/** Text stavu dátumu spotreby pre zobrazenie. */
+export const STOCK_STATUS_TEXT: Record<StockStatus, string> = {
+  prešlo: "dátum spotreby prešiel",
+  blizi_sa: "dátum spotreby sa blíži",
+  v_poriadku: "v poriadku",
+  bez_datumu: "bez dátumu spotreby",
+};
 
 /** Položky, ktorých dátum spotreby je prešlý alebo sa blíži; najskôr končiace hore. Položky, ktoré došli, sa nerátajú. */
 export function expiringItems(items: StockItem[], today: string): StockItem[] {

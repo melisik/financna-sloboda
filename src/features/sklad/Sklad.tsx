@@ -2,7 +2,8 @@ import { useState } from "react";
 import { STOCK_UNITS, type Recipe, type RecipeIngredient, type StockItem, type StockUnit } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import type { Repository } from "../../storage/repository";
-import { daysUntil, expiringItems, findItemByBarcode, isValidBarcode, sortForList, stockStatus } from "../../domain/stock";
+import { STOCK_STATUS_TEXT, daysUntil, findItemByBarcode, isValidBarcode, sortForList, stockStatus } from "../../domain/stock";
+import { StockWarning } from "../../ui/StockWarning";
 import { readBarcode } from "./barcode";
 import { CameraScanner } from "./CameraScanner";
 import { findExpiryDate, findProductName } from "../../domain/scan";
@@ -14,13 +15,6 @@ import { uid } from "../../ui/kit/ids";
 import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 
 /** Sklad potravín a recepty (D-127, D-141, D-155): položky, dátumy spotreby, uvarenie a skener obalu. Feature „sklad“ (docs/23). */
-
-const STOCK_STATUS_TEXT: Record<string, string> = {
-  prešlo: "dátum spotreby prešiel",
-  blizi_sa: "dátum spotreby sa blíži",
-  v_poriadku: "v poriadku",
-  bez_datumu: "bez dátumu spotreby",
-};
 
 /** Sklad potravín (samostatná sekcia): položky, množstvo, dátum spotreby a upozornenia. */
 /** Počet dní od dneška slovami: „dnes“, „za 1 deň“, „za 3 dni“, „pred 2 dňami“. */
@@ -34,7 +28,6 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
   const [editing, setEditing] = useState<StockItem | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const warnings = expiringItems(items, today);
 
   // Recept, ktorý používa položku, sa po jej zmazaní nedá uvariť; preto sa to ukáže pri potvrdení.
   const usedIn = (id: string) => recipes.filter((r) => r.ingredients.some((ing) => ing.stockItemId === id)).map((r) => r.name);
@@ -112,14 +105,7 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
   return (
     <section>
       <p style={{ color: "var(--muted)" }}>Potraviny doma a ich dátum spotreby. Názov a dátum môžete doplniť z fotky obalu; množstvo zadajte ručne.</p>
-      {warnings.length > 0 && (
-        <div style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, marginBottom: 12 }}>
-          <strong>Pozor:</strong>
-          <ul style={{ paddingLeft: 20, margin: "4px 0" }}>
-            {warnings.map((w) => <li key={w.id}>{w.name}: {STOCK_STATUS_TEXT[stockStatus(w, today)]} ({dateSk(w.expiryDate ?? "")})</li>)}
-          </ul>
-        </div>
-      )}
+      <StockWarning items={items} today={today} />
       {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané položky skladu.</p>}
       {rows}
       {editing ? (
