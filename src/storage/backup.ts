@@ -38,7 +38,7 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
   if (o.schemaVersion > SCHEMA_VERSION) return { ok: false, errors: ["záloha pochádza z novšej verzie aplikácie"] };
   if (!(READABLE_SCHEMA_VERSIONS as readonly number[]).includes(o.schemaVersion)) return { ok: false, errors: [`neznáma verzia schémy ${o.schemaVersion}`] };
   if (typeof o.exportedAt !== "string") return { ok: false, errors: ["chýba dátum exportu"] };
-  // Obalové polia overené vyššie; validácia obsahu vidí len nastavenia, transakcie a vyhodnotenia.
+  // Obalové polia overené vyššie; validáciu obsahu prejdú všetky kolekcie (validateAppData, A-07).
   const { app: _app, schemaVersion: _schema, exportedAt: _exp, attachments: rawAttachments, ...content } = o;
   // Verzia 1 nemá majetok: načíta sa prázdny zoznam, dáta sa nestratia (FR-28).
   const base = o.schemaVersion === 1 ? { ...content, properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [] } : content;

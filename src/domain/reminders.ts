@@ -16,7 +16,7 @@ export function reviewOverdue(lastReviewIso: string | null, todayIso: string): b
 }
 
 /** Okno pred koncom mesiaca, v ktorom sa upozorní na chýbajúce vyhodnotenie tohto mesiaca (D-107). Posledné 3 dni (D-227, potvrdené zakladateľom). */
-export const MONTH_END_WINDOW_DAYS = 3;
+const MONTH_END_WINDOW_DAYS = 3;
 
 /** Blíži sa koniec mesiaca a vyhodnotenie za tento mesiac ešte nie je (D-107, D-227). Prvé vyhodnotenie rieši výzva (L6). */
 export function monthEndApproaching(lastReviewIso: string | null, todayIso: string, windowDays = MONTH_END_WINDOW_DAYS): boolean {

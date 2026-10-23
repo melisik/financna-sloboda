@@ -34,12 +34,21 @@ export function CameraScanner({ onFound, onCancel }: { onFound: (code: string) =
         video.srcObject = stream;
         // Čítanie treba spustiť pred prehrávaním: knižnica čaká na udalosť načítania videa, ktorá by sa inak zmeškala.
         reader = createBarcodeReader();
-        const decoding = reader.decodeFromVideoElement(video);
+        // Čítanie beží, kým nepríde platný kód; neplatný len zobrazí hlásenie a pokus pokračuje (A-17).
+        let found = false;
+        const decoding = reader.decodeFromVideoElementContinuously(video, (result) => {
+          if (!alive || found || !result) return;
+          const text = result.getText();
+          if (isValidBarcode(text)) {
+            found = true;
+            onFoundRef.current(text);
+          } else {
+            setMsg("Kód nie je platný. Namier kameru znova.");
+          }
+        });
         void video.play().catch(() => undefined);
         setMsg("Namier kameru na čiarový kód.");
-        const result = await decoding;
-        const text = result.getText();
-        if (alive && isValidBarcode(text)) onFoundRef.current(text);
+        await decoding;
       } catch {
         if (alive) setMsg(cameraError());
       }

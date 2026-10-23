@@ -5,14 +5,15 @@ import { describe, expect, it } from "vitest";
 // Vertikálne pravidlo (D-162, docs/21): doména ani jadro nesmú závisieť od UI ani od stavu modulov.
 const SRC = join(__dirname, "..", "src");
 
-function importsOf(dir: string): { file: string; spec: string }[] {
-  return readdirSync(dir)
-    .filter((f) => f.endsWith(".ts"))
-    .flatMap((f) => {
-      const file = join(dir, f);
-      const text = readFileSync(file, "utf8");
-      return [...text.matchAll(/from "([^"]+)"/g)].map((m) => ({ file: f, spec: m[1] }));
-    });
+// Zachytí statický import, dynamický import("…") a import bez mena ("…") v celom priečinku vrátane podpriečinkov (A-14).
+function importsOf(dir: string, prefix = ""): { file: string; spec: string }[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const rel = `${prefix}${entry.name}`;
+    if (entry.isDirectory()) return importsOf(join(dir, entry.name), `${rel}/`);
+    if (!entry.name.endsWith(".ts")) return [];
+    const text = readFileSync(join(dir, entry.name), "utf8");
+    return [...text.matchAll(/(?:from\s+|import\s*\(\s*|import\s+)["']([^"']+)["']/g)].map((m) => ({ file: rel, spec: m[1] }));
+  });
 }
 
 describe("pravidlo závislostí (D-162)", () => {

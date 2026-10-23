@@ -21,7 +21,7 @@ export const SECTION_LABELS: Record<SectionId, string> = {
   zaloha: "Záloha",
 };
 
-export type NavGroup = { id: string; label: string; sections: SectionId[] };
+type NavGroup ={ id: string; label: string; sections: SectionId[] };
 
 /** Päť skupín v poradí zobrazenia. Klepnutie na skupinu otvorí jej prvú sekciu. */
 export const NAV_GROUPS: NavGroup[] = [

@@ -14,6 +14,8 @@ export function decodeAttachmentRecord(r: AttachmentRecord): Attachment {
   const bin = atob(r.dataBase64);
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  // Deklarovaná veľkosť musí zodpovedať obsahu; inak je príloha v zálohe poškodená (A-09).
+  if (bytes.length !== r.size) throw new Error("veľkosť prílohy nesúhlasí s obsahom");
   const { dataBase64: _base64, ...meta } = r;
   return { ...meta, data: new Blob([bytes], { type: r.type }) };
 }

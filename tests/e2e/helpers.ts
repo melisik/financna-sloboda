@@ -34,3 +34,10 @@ export async function openApp(page: Page) {
   if (await skip.isVisible().catch(() => false)) await skip.click();
   await expect(page.locator("section#prehlad")).toBeVisible();
 }
+
+/** Lokálny dátum YYYY-MM-DD posunutý o počet dní; aplikácia počíta s lokálnym dátumom, nie s UTC (A-12). */
+export function localIsoDay(offsetDays: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}

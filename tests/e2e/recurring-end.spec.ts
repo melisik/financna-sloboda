@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, localIsoDay, openApp } from "./helpers";
 
 // Pravidelné výdavky: ročný súčet, upozornenie na koniec a ukončenie bez mazania (D-124). Syntetické hodnoty.
-const isoDay = (offsetDays: number) => new Date(Date.now() + offsetDays * 86_400_000).toISOString().slice(0, 10);
+const isoDay = localIsoDay;
 
 test.describe("pravidelné výdavky: ročný súčet a ukončenie", () => {
   test("ročný súčet, upozornenie na koniec a ukončenie od zajtra", async ({ page }) => {

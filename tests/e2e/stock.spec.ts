@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, localIsoDay, openApp } from "./helpers";
 
 // Sklad potravín: upozornenia na prešlý a blížiaci sa dátum spotreby. Syntetické hodnoty.
-const isoDay = (offsetDays: number) => new Date(Date.now() + offsetDays * 86_400_000).toISOString().slice(0, 10);
+const isoDay = localIsoDay;
 
 test.describe("sklad potravín", () => {
   test("položky s blížiacim sa a prešlým dátumom sa upozornia, po zmazaní zmiznú", async ({ page }) => {

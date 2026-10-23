@@ -78,6 +78,7 @@ describe("predvyplnenie z listu vlastníctva (D-209)", () => {
     expect(floorAreaFromShare(0, 696619)).toBeUndefined();
     expect(floorAreaFromShare(4500, 600000)).toBeUndefined(); // zaokrúhlený menovateľ (D-219)
     expect(floorAreaFromShare(4500, 12300)).toBeUndefined();
+    expect(floorAreaFromShare(700000, 600037)).toBeUndefined(); // podiel väčší než 1 (A-10)
   });
 
   it("z textu: podiel za popisom Podiel priestoru, zaokrúhlený podiel 1/1 sa preskočí", () => {

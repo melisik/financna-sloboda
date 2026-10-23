@@ -8,6 +8,9 @@ import { floorAreaFromShare, type LvFields, type LvFlatChoice, type LvTaxFields 
 const text = (el: Element | null | undefined): string => (el?.textContent ?? "").replace(/\s+/g, " ").trim();
 const PARCEL = /^\d+(?:\/\d+)?$/;
 
+/** Najväčšia nahrávaná stránka listu (2 MB, ako prílohy); väčší súbor sa neotvára (A-08). */
+export const LV_MAX_FILE_BYTES = 2 * 1024 * 1024;
+
 /** Hodnota za popisom v riadku tabuľky; preskočí dvojbodku a čisto číselný kód obce alebo k. ú. */
 function valueAfter(cells: Element[], idx: number): string | undefined {
   for (let j = idx + 1; j < cells.length; j++) {

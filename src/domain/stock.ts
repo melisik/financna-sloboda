@@ -6,7 +6,7 @@ export const DEFAULT_WARN_DAYS = 3;
 /** Lehoty, ktoré si používateľ môže zvoliť (dni vopred). */
 export const WARN_DAY_OPTIONS = [1, 3, 7, 14, 30] as const;
 
-export type StockStatus = "bez_datumu" | "prešlo" | "blizi_sa" | "v_poriadku";
+type StockStatus = "bez_datumu" | "prešlo" | "blizi_sa" | "v_poriadku";
 
 /** Počet dní od dneška do dátumu (záporný, ak je dátum prešlý). Výpočet v UTC, bez časového pásma. */
 export function daysUntil(todayIso: string, dateIso: string): number {

@@ -1,4 +1,4 @@
-import { isValidBarcode } from "../domain/stock";
+import { WARN_DAY_OPTIONS, isValidBarcode } from "../domain/stock";
 import { isReceiptId } from "../domain/receipt";
 import { ASSET_KINDS, ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Dog, type Recipe, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type Settings, type Snapshot, type Transaction } from "./types";
 
@@ -183,7 +183,7 @@ export function validateStockItem(i: unknown, label = "položka skladu"): string
   if (!(STOCK_UNITS as readonly unknown[]).includes(o.unit)) errors.push(`${label}: jednotka musí byť z katalógu`);
   if (o.expiryDate !== undefined) errors.push(...checkDate(o.expiryDate, "9999-12-31", `${label}: dátum spotreby`));
   if (o.barcode !== undefined && (typeof o.barcode !== "string" || !isValidBarcode(o.barcode))) errors.push(`${label}: čiarový kód musí byť platný EAN-13, EAN-8 alebo UPC-A`);
-  if (o.warnDays !== undefined && o.warnDays !== null && !(Number.isInteger(o.warnDays) && (o.warnDays as number) >= 0 && (o.warnDays as number) <= 30)) errors.push(`${label}: upozornenie musí byť 0 až 30 dní alebo bez upozornenia`);
+  if (o.warnDays !== undefined && o.warnDays !== null && !(WARN_DAY_OPTIONS as readonly unknown[]).includes(o.warnDays)) errors.push(`${label}: upozornenie musí byť ${WARN_DAY_OPTIONS.join(", ")} dní alebo bez upozornenia`);
   return errors;
 }
 

@@ -12,7 +12,7 @@ import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { parseLvText, type LvFields, type LvFlatChoice, type LvTaxFields } from "../../domain/listVlastnictva";
-import { parseLvHtml } from "./lvHtml";
+import { LV_MAX_FILE_BYTES, parseLvHtml } from "./lvHtml";
 import { NextStep } from "../../ui/kit/NextStep";
 
 /** Majetok (Fáza 2, D-080 až D-158): nehnuteľnosti, hypotéka, prenájom, mimoriadne splátky a ďalšie aktíva. Feature „majetok“ (docs/23). */
@@ -598,6 +598,10 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
     applyLv(f);
   };
   const fillFromFile = (file: File) => {
+    if (file.size > LV_MAX_FILE_BYTES) {
+      setLvNote("Súbor je väčší než 2 MB. Ulož stránku listu bez obrázkov alebo vlož text z listu.");
+      return;
+    }
     void file.text().then((html) => applyLv(parseLvHtml(html)));
   };
   const [floorArea, setFloorArea] = useState<NumIn>(initial?.floorAreaSqm !== undefined ? initial.floorAreaSqm : "");

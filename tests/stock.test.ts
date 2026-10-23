@@ -64,9 +64,12 @@ describe("sklad potravín", () => {
     expect(validateStockItem(milk, "položka")).toEqual([]);
   });
 
-  it("lehota upozornenia je celé číslo 0 až 30 alebo bez upozornenia (D-239)", () => {
+  it("lehota upozornenia je len z ponuky 1, 3, 7, 14, 30 alebo bez upozornenia (D-239, A-11)", () => {
     expect(validateStockItem({ ...milk, warnDays: 14 }, "položka")).toEqual([]);
+    expect(validateStockItem({ ...milk, warnDays: 7 }, "položka")).toEqual([]);
     expect(validateStockItem({ ...milk, warnDays: null }, "položka")).toEqual([]);
+    expect(validateStockItem({ ...milk, warnDays: 0 }, "položka").length).toBeGreaterThan(0);
+    expect(validateStockItem({ ...milk, warnDays: 2 }, "položka").length).toBeGreaterThan(0);
     expect(validateStockItem({ ...milk, warnDays: 31 }, "položka").length).toBeGreaterThan(0);
     expect(validateStockItem({ ...milk, warnDays: 2.5 }, "položka").length).toBeGreaterThan(0);
   });

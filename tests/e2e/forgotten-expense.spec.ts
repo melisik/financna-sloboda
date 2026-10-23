@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, localIsoDay, openApp } from "./helpers";
 
 // Zabudnutý výdavok s dátumom pred vyhodnotením sa odpočíta z Kapitálu (D-123). Syntetické hodnoty.
 test.describe("zabudnutý výdavok (D-123)", () => {
@@ -16,7 +16,7 @@ test.describe("zabudnutý výdavok (D-123)", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
     // Výdavok z investícií za včerajší deň, zadaný až teraz.
-    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const yesterday = localIsoDay(-1);
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Dátum", { exact: true }).fill(yesterday);
     await page.getByLabel("Zdroj úhrady").selectOption("z_investicii");
