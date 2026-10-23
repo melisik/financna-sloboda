@@ -2,7 +2,7 @@ import { useState } from "react";
 import { STOCK_UNITS, type Recipe, type RecipeIngredient, type StockItem, type StockUnit } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import type { Repository } from "../../storage/repository";
-import { STOCK_STATUS_TEXT, daysUntil, findItemByBarcode, isValidBarcode, sortForList, stockStatus } from "../../domain/stock";
+import { STOCK_STATUS_TEXT, daysUntil, findItemByBarcode, isValidBarcode, previousProducts, sortForList, stockStatus } from "../../domain/stock";
 import { StockWarning } from "../../ui/StockWarning";
 import { readBarcode } from "./barcode";
 import { CameraScanner } from "./CameraScanner";
@@ -326,6 +326,15 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
   const [ocrText, setOcrText] = useState<string | null>(null);
   const [camera, setCamera] = useState(false);
   const [nameSuggestion, setNameSuggestion] = useState<string | null>(null);
+  // Výber z výrobkov, ktoré už boli v sklade: doplní názov, jednotku a čiarový kód; množstvo a dátum sa zadajú ručne (D-238).
+  const previous = previousProducts(items);
+  const pickPrevious = (id: string) => {
+    const p = previous.find((x) => x.id === id);
+    if (!p) return;
+    setName(p.name);
+    setUnit(p.unit);
+    setBarcode(p.barcode ?? "");
+  };
 
   // Čiarový kód (z kamery alebo fotky) určí výrobok: názov a jednotku doplní uložená položka (D-232, D-233).
   const applyBarcode = (code: string): string => {
@@ -426,6 +435,15 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
           <summary>Rozpoznaný text z fotky</summary>
           <pre style={{ whiteSpace: "pre-wrap", background: "var(--surface-2)", padding: 8, borderRadius: 4 }}>{ocrText.trim() || "(žiadny text)"}</pre>
         </details>
+      )}
+      {!initial && previous.length > 0 && (
+        <label style={{ display: "block", marginBottom: 8 }}>
+          <span style={{ display: "block", fontSize: "0.9rem" }}>Vybrať z predchádzajúcich výrobkov</span>
+          <select aria-label="Predchádzajúce výrobky" value="" onChange={(e) => pickPrevious(e.target.value)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+            <option value="">— vyber výrobok —</option>
+            {previous.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </label>
       )}
       <Field label="Názov (napr. mlieko)" value={name} type="text" onChange={setName} />
       {nameSuggestion !== null && name.trim() === "" && (

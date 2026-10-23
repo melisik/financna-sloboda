@@ -66,3 +66,16 @@ export function isValidBarcode(code: string): boolean {
 export function findItemByBarcode(items: StockItem[], code: string): StockItem | undefined {
   return items.filter((i) => i.barcode === code).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
 }
+
+/**
+ * Výrobky, ktoré už boli v sklade: jedna položka na výrobok (čiarový kód alebo názov), najnovšie upravená.
+ * Podklad pre výber pri zadávaní novej položky; zoradené podľa názvu.
+ */
+export function previousProducts(items: StockItem[]): StockItem[] {
+  const latest = new Map<string, StockItem>();
+  for (const i of [...items].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))) {
+    const key = i.barcode ?? i.name.trim().toLowerCase();
+    if (!latest.has(key)) latest.set(key, i);
+  }
+  return [...latest.values()].sort((a, b) => a.name.localeCompare(b.name, "sk"));
+}
