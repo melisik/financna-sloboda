@@ -20,12 +20,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      # D-142: verejná zostava obsahuje Fázu 2 (rozhodnutie zakladateľa).
+      # D-248: verejná zostava neobsahuje Fázu 2 (VITE_PHASE2 "0"); D-142 zostáva odložené.
       # Testovacia záloha má dátumy v aktuálnom mesiaci (pri každom nasadení).
       - run: node scripts/make-test-backup.mjs
       - run: npm run build
         env:
-          VITE_PHASE2: "1"
+          VITE_PHASE2: "0"
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test
       # Verejné repo dostane iba obsah dist/ (žiadne dokumenty, rozhodnutia ani review).

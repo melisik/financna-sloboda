@@ -8,4 +8,10 @@ describe("nasadenie na verejnú stránku (D-056)", () => {
     const yml = readFileSync(join(__dirname, "..", ".github", "workflows", "pages.yml"), "utf8");
     expect(yml).toMatch(/branches:\s*\[main\]/);
   });
+
+  it("verejná zostava nemá Fázu 2 (VITE_PHASE2 \"0\", D-248)", () => {
+    const yml = readFileSync(join(__dirname, "..", ".github", "workflows", "pages.yml"), "utf8");
+    expect(yml).toMatch(/VITE_PHASE2:\s*"0"/);
+    expect(yml).not.toMatch(/VITE_PHASE2:\s*"1"/);
+  });
 });
