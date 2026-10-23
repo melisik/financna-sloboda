@@ -30,7 +30,7 @@
 - **Sieťová politika:** Content-Security-Policy v `index.html` má `connect-src 'self'`. Appka teda nemá technicky povolené posielať dáta na iné servery.
 - **Externé odkazy, ktoré používateľ otvorí sám:**
   - overenie dokladu na portáli `opd.financnasprava.sk` (`src/domain/receipt.ts`). Číslo dokladu sa skopíruje do schránky a používateľ ho vloží na portáli.
-  - formulár pripomienok (Google Forms) a GitHub Issues (`src/app/feedback.ts`). Do odkazov sa nepridávajú údaje z appky.
+  - formulár pripomienok (Google Forms) a GitHub Issues (`src/features/spatna-vazba/feedback.ts`). Do odkazov sa nepridávajú údaje z appky.
 - **Analytika, reklamy, sledovanie:** v kóde nenájdené (overiť externe v build výstupe).
 
 ## 4. Riziká na posúdenie

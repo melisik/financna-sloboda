@@ -8,7 +8,7 @@ Hotové v tejto vetve:
 - Krok 3: spoločné prvky sú v `src/ui/kit/` (`format.ts`, `controls.tsx`, D-173); kit nesmie importovať doménu, úložisko ani sekcie (`tests/architecture.test.ts`).
 - Krok 4: features hotové: záloha (`src/features/zaloha/`, D-174), zámok (`src/features/zamok/`, D-175), sklad (`src/features/sklad/`, D-176), dane (`src/features/dane/`, D-177), záväzky (`src/features/zavazky/`, D-178), investície (`src/features/investicie/`, D-179), príjmy (`src/features/prijmy/`, D-180), rozpočet (`src/features/rozpocet/`, D-181), pravidelné výdavky (`src/features/pravidelne/`, D-182), majetok (`src/features/majetok/`, D-183), transakcie (`src/features/transakcie/`, D-184), vyhodnotenie (`src/features/vyhodnotenie/`, D-185), nastavenia (`src/features/nastavenia/`, D-186), prehľad (`src/features/prehlad/`, D-187), ročný prehľad (`src/features/rocny-prehlad/`, D-189), návod (`src/features/prehlad/Navod.tsx`, D-190). Sprievodca (`src/ui/Sprievodca.tsx`) a výber modulov (`src/ui/Moduly.tsx`) sú v `src/ui/`, nie v `features/` (D-188): skladajú viac features a feature nesmie importovať inú. Ročný prehľad (`src/features/rocny-prehlad/`, D-189). Návod je v `src/features/prehlad/Navod.tsx` (D-190). Zostáva už len zloženie a navigácia v `App.tsx` (396 riadkov). Pravidlo: feature neimportuje `src/app`, `App` ani iné features.
 - Navigácia (D-191): `SectionId`, zoznam sekcií, výber z kotvy a horný panel sú v `src/ui/Navigacia.tsx`. `Shell` a iOS brána sú v `src/ui/Shell.tsx` (D-194); `App.tsx` má 267 riadkov.
-- Spätná väzba (D-192): tlačidlo a odkazy (`FeedbackBlock`) a pomocník `feedback.ts` sú v `src/features/spatna-vazba/`. Pomocník sa presunul z `src/app/`, lebo feature nesmie importovať `/app/`.
+- Spätná väzba (D-192): tlačidlo a odkazy (`SpatnaVazba.tsx`) a pomocník `feedback.ts` sú v `src/features/spatna-vazba/`. Pomocník sa presunul z `src/app/`, lebo feature nesmie importovať `/app/`.
 - Doklady (D-195): prílohy sú v `src/features/doklady/`; kamera a sken QR sú v `src/ui/`. `App.tsx` má 268 riadkov.
 - Automatika (D-196): automatické vyhodnotenie a splácanie sú v `src/ui/useAutomaticUpdates.ts`. `App.tsx` má 230 riadkov; zostáva routing.
 - Routing sekcií (D-197): `SectionView` v `src/ui/Sekcie.tsx`. `App.tsx` má 138 riadkov a zostáva so stavom, načítaním a zložením.
@@ -107,7 +107,7 @@ Každá sekcia z `App.tsx` sa presunie do vlastného priečinka. Každý prieči
 | `sklad` | `StockSection`, `RecipesBlock`, `RecipeForm`, `StockForm` | core/finance (stock, recipe), ui-kit |
 | `doklady` | prílohy: `features/doklady/Prilohy.tsx` (do transakcií cez `renderAttachments`); kamera a sken QR: `ui/ReceiptCamera.tsx`, `ui/receiptScan.ts` | features cez verejné funkcie, ui-kit |
 | `zaloha` | `BackupSection`, import/export | core/data |
-| `zamok` | PIN, `LockScreen` | ui-kit, `app/pin.ts` |
+| `zamok` | PIN, `Lock.tsx` | ui-kit, `features/zamok/pin.ts` |
 | `sprievodca` (nie feature, D-188) | `src/ui/Sprievodca.tsx`: `FirstSetup`, `ONBOARD_*`; moduly v `src/ui/Moduly.tsx` | features cez verejné funkcie (záloha, zámok/pin), ui-kit |
 | `prehlad` | `HomeSection`, `MonthSpendingBlock`, `WeeklySummaryBlock`, `Návod` | core, ui-kit, ostatné features len cez čisté dáta |
 | `rocny-prehlad` | `RocnyPrehladSection`, `goalShiftText` | core (`annualOverview`, `yearlySummary`, `goalDateText`), ui-kit |
