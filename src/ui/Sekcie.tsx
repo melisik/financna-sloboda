@@ -12,6 +12,7 @@ import { HomeSection } from "../features/prehlad/Prehlad";
 import { NavodBlock } from "../features/prehlad/Navod";
 import { TransactionSection } from "../features/transakcie/Transakcie";
 import { ScenarVydavkuSection } from "../features/scenar-vydavku/ScenarVydavku";
+import { MesacnyVydavokSection } from "../features/mesacny-vydavok/MesacnyVydavok";
 import { AttachmentsBlock } from "../features/doklady/Prilohy";
 import { SnapshotSection } from "../features/vyhodnotenie/Vyhodnotenie";
 import { PropertySection } from "../features/majetok/Majetok";
@@ -75,6 +76,12 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
       return (
         <Section id="scenar-vydavku" title="Veľký výdavok (scenár)">
           <ScenarVydavkuSection ctx={ctx} />
+        </Section>
+      );
+    case "mesacny-vydavok":
+      return (
+        <Section id="mesacny-vydavok" title="Mesačný výdavok (scenár)">
+          <MesacnyVydavokSection ctx={ctx} />
         </Section>
       );
     case "vyhodnotenie":
