@@ -4,7 +4,7 @@ import type { Repository } from "../../storage/repository";
 import type { Asset, AssetKind, ExtraPaymentMode, Property, PropertyMode, RentalEntry, RentalEntryKind } from "../../storage/types";
 import { ASSET_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
-import { applyExtraPayment, remainingMonths } from "../../domain/mortgage";
+import { applyExtraPayment, paymentBelowInterest, remainingMonths } from "../../domain/mortgage";
 import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../../domain/property";
 import { rentalRow11, rentalTotalsForYear, rentalYears } from "../../domain/rental";
 import { cents, dateSk, eur } from "../../ui/kit/format";
@@ -110,6 +110,11 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
             {p.mode === "prenajom" && <RentalLedger repo={repo} property={p} today={today} onDone={onSaved} renderAttachments={renderRentalAttachments} />}
             {stale && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
             <p style={{ margin: "4px 0" }}>Hypotéka: {eur(p.mortgageBalanceCents)}</p>
+            {paymentBelowInterest(p.mortgageBalanceCents, p.mortgageRate ?? 0, p.monthlyPaymentCents ?? 0) && (
+              <p role="note" style={{ margin: "4px 0", background: "var(--warn-bg)", padding: 6, borderRadius: 6, fontSize: "0.9rem" }}>
+                Splátka {eur(p.monthlyPaymentCents ?? 0)} nepokrýva nominálny úrok ({eur(splitPayment(p).interestCents)} mesačne pri sadzbe {String(Number(((p.mortgageRate ?? 0) * 100).toFixed(4)))} % p. a.). Zostatok hypotéky sa nezníži.
+              </p>
+            )}
             <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
               {p.mode === "prenajom" && <><dt>Nájom</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(p.monthlyRentCents ?? 0)}</dd></>}
               <dt>Splátka hypotéky</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(p.monthlyPaymentCents ?? 0)}</dd>
@@ -133,7 +138,7 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
               <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
                 {(() => {
                   const months = remainingMonths(p.mortgageBalanceCents, p.mortgageRate ?? 0, p.monthlyPaymentCents ?? 0);
-                  return months === null ? "Splátka nepokrýva úrok, zostatok nekleslo." : `Pri tejto splátke sa zostatok splatí za ${months} mesiacov.`;
+                  return months === null ? null : `Pri tejto splátke sa zostatok splatí za ${months} mesiacov.`;
                 })()}
               </p>
             )}
