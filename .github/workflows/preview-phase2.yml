@@ -5,8 +5,8 @@ on:
     branches: [claude/phase2-property-card]
   workflow_dispatch:
 
-# D-270: náhľad ide len na súkromnú adresu za Cloudflare Access. Verejné Pages zostávajú z main s VITE_PHASE2 "0" (D-056, D-248).
-# Job sa spustí až po nastavení Cloudflare Access a premennej PHASE2_PREVIEW; inak sa nič nenasadí.
+# D-270, D-271: náhľad ide len na súkromnú adresu za heslom (Pages Functions). Verejné Pages zostávajú z main s VITE_PHASE2 "0" (D-056, D-248).
+# Job sa spustí až po nastavení premennej PHASE2_PREVIEW a hesla PREVIEW_PASSWORD v Cloudflare; inak sa nič nenasadí.
 concurrency:
   group: preview-phase2
   cancel-in-progress: true
@@ -30,7 +30,9 @@ jobs:
       - run: npm run build
         env:
           VITE_PHASE2: "1"
-      # Adresa náhľadu: https://phase2.financna-sloboda-preview.pages.dev (za Access prihlásením)
+      # Kontrola hesla (D-271) sa pridá len do náhľadu; verejné Pages ju nedostanú.
+      - run: cp preview/_worker.js dist/_worker.js
+      # Adresa náhľadu: https://phase2.financna-sloboda-preview.pages.dev (po zadaní hesla)
       - uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
