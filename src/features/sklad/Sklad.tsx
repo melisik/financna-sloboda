@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { STOCK_UNITS, type Recipe, type RecipeIngredient, type StockItem, type StockUnit } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import type { Repository } from "../../storage/repository";
 import { DEFAULT_WARN_DAYS, STOCK_STATUS_TEXT, WARN_DAY_OPTIONS, daysUntil, findItemByBarcode, isValidBarcode, previousProducts, sortForList, stockStatus } from "../../domain/stock";
 import { StockWarning } from "../../ui/StockWarning";
-import { readBarcode } from "./barcode";
+import { preloadBarcodeReader, readBarcode } from "./barcode";
 import { CameraScanner } from "./CameraScanner";
 import { findExpiryDate, findProductName } from "../../domain/scan";
 import { plural } from "../../domain/impact";
@@ -30,6 +30,8 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
   const [editing, setEditing] = useState<StockItem | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  // Skener sa načíta pri otvorení Skladu, nie pri štarte appky; potom funguje aj offline (D-284).
+  useEffect(() => preloadBarcodeReader(), []);
 
   // Recept, ktorý používa položku, sa po jej zmazaní nedá uvariť; preto sa to ukáže pri potvrdení.
   const usedIn = (id: string) => recipes.filter((r) => r.ingredients.some((ing) => ing.stockItemId === id)).map((r) => r.name);

@@ -7,6 +7,7 @@ import { Section, btn } from "./kit/controls";
 import { NextStep } from "./kit/NextStep";
 import { todayIso } from "./kit/format";
 import { ModulesBlock, useModules } from "./Moduly";
+import { useMediaQuery } from "./kit/useMediaQuery";
 import type { SectionId } from "./Navigacia";
 import { HomeSection } from "../features/prehlad/Prehlad";
 import { NavodBlock } from "../features/prehlad/Navod";
@@ -50,6 +51,8 @@ type SectionViewProps = {
 
 export function SectionView({ section, repo, data, ctx, reload, lastExport, setLastExport, budgetFlash, setBudgetFlash, settingsFlash, setSettingsFlash, pinSet, setPinSet, setLocked, setWizardOpen }: SectionViewProps) {
   const { visible } = useModules();
+  // D-164: od šírky 700 px sú moduly v pravom stĺpci Prehľadu; na telefóne zbalené pod obsahom (D-283).
+  const wide = useMediaQuery("(min-width: 700px)");
   switch (section) {
     case "prehlad":
       return (
@@ -59,10 +62,16 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
               <HomeSection data={data} ctx={ctx} lastExport={lastExport} incomeVisible={visible.has("prijmy")} />
               <NavodBlock />
             </div>
-            {PHASE2_ENABLED && (
+            {PHASE2_ENABLED && wide && (
               <aside style={{ flex: "1 1 260px", maxWidth: "100%", background: "var(--surface)", padding: 12, borderRadius: 8 }}>
                 <ModulesBlock style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }} />
               </aside>
+            )}
+            {PHASE2_ENABLED && !wide && (
+              <details style={{ flex: "1 1 100%", background: "var(--surface)", padding: 12, borderRadius: 8 }}>
+                <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Moduly ▾</summary>
+                <ModulesBlock heading={false} style={{ marginTop: 8, borderTop: "none", paddingTop: 0 }} />
+              </details>
             )}
           </div>
         </Section>

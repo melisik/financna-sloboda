@@ -23,5 +23,6 @@ test("po preskočení sprievodcu appka funguje a ukáže, čo ešte chýba", asy
   await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
 
   await goTo(page, "prehlad");
-  await expect(page.getByText(/Cieľová suma:\s*\D*648/)).toBeVisible();
+  // Po vyhodnotení je cieľová suma v riadku Pokrok (D-283).
+  await expect(page.getByText(/Pokrok: \d+\s% \(.+ z \D*648/)).toBeVisible();
 });

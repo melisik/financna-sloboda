@@ -6,7 +6,7 @@
 
 | Obrazovka | Stav | Poznámka |
 |---|---|---|
-| Prehľad | na main | cieľ, dátum, vyhodnotenie, podrobnosti |
+| Prehľad | na main | cieľ, dátum, vyhodnotenie, podrobnosti; na vetve aj pokrok a posun dátumu cieľa na prvej obrazovke (D-283) |
 | Transakcie | na main | sporenie, investícia, výdavok, rezerva, výber z rezervy |
 | Vyhodnotenie | na vetve (zoznam a mazanie vyhodnotení); mesačné zadanie na main | mesačné zadanie; investície sa odvodia zo súčtu položiek (D-101) |
 | Majetok | na vetve | nehnuteľnosť (hypotéka, splátka s úrokom), automobil, ocenitelné právo |

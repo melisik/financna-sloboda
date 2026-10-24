@@ -42,15 +42,22 @@ test.describe("moduly (D-162)", () => {
     await expect(page.locator("section#majetok").getByRole("button", { name: "Vyplniť tlačivo (PDF)" })).toHaveCount(0);
   });
 
-  test("moduly sú v Prehľade vpravo na širokej obrazovke a pod obsahom na telefóne (D-164)", async ({ page }) => {
+  test("moduly sú v Prehľade vpravo na širokej obrazovke; na telefóne zbalené pod obsahom a rozbalia sa ťuknutím (D-164, D-283)", async ({ page }) => {
     await openApp(page);
     const moduly = page.getByRole("region", { name: "Moduly" });
-    await expect(moduly).toBeVisible();
     const navod = await page.locator("section#prehlad details#navod").boundingBox();
-    const box = await moduly.boundingBox();
-    expect(navod && box).toBeTruthy();
     const width = page.viewportSize()?.width ?? 0;
-    if (width >= 700) expect(box!.x).toBeGreaterThan(navod!.x + navod!.width - 1);
-    else expect(box!.y).toBeGreaterThan(navod!.y);
+    if (width >= 700) {
+      await expect(moduly).toBeVisible();
+      const box = await moduly.boundingBox();
+      expect(box!.x).toBeGreaterThan(navod!.x + navod!.width - 1);
+    } else {
+      const summary = page.locator("section#prehlad summary", { hasText: "Moduly" });
+      await expect(summary).toBeVisible();
+      await expect(moduly).toBeHidden();
+      expect((await summary.boundingBox())!.y).toBeGreaterThan(navod!.y);
+      await summary.click();
+      await expect(moduly.getByRole("checkbox").first()).toBeVisible();
+    }
   });
 });

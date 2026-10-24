@@ -30,11 +30,17 @@ export function CameraScanner({ onFound, onCancel }: { onFound: (code: string) =
     const video = videoRef.current;
     (async () => {
       try {
+        // Knižnica sa načíta ešte pred kamerou (D-284), aby čítanie začalo hneď po pripojení videa.
+        reader = await createBarcodeReader();
+        if (!alive) return;
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        if (!alive || !video) return;
+        if (!alive || !video) {
+          // Skener sa medzičasom zavrel: kameru hneď vypni, upratanie už prebehlo bez nej.
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         video.srcObject = stream;
         // Čítanie treba spustiť pred prehrávaním: knižnica čaká na udalosť načítania videa, ktorá by sa inak zmeškala.
-        reader = createBarcodeReader();
         // Čítanie beží, kým nepríde platný kód; neplatný len zobrazí hlásenie a pokus pokračuje (A-17).
         let found = false;
         const decoding = reader.decodeFromVideoElementContinuously(video, (result) => {

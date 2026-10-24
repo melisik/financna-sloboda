@@ -14,6 +14,8 @@ import { UNREACHABLE_IMPACT_TEXT, formatImpactOutcome } from "../../domain/impac
 import { NextStep } from "../../ui/kit/NextStep";
 import { RETURN_ASSUMPTIONS } from "../../domain/assumptions";
 import { returnLine } from "./returnLine";
+import { goalDateShift, goalProgress } from "../../domain/progress";
+import { progressLine, shiftLine } from "./progressText";
 import { recommendedSettings } from "../../domain/recommendations";
 import { positionsChangedSince } from "../../domain/investments";
 import { propertyChangedSince } from "../../domain/property";
@@ -23,7 +25,7 @@ import { saveTextFile } from "../../ui/kit/files";
 import { calloutStyle } from "../../ui/kit/controls";
 import { hintStyle } from "../../ui/kit/controls";
 
-/** Prehľad (domovská obrazovka): mesačný prehľad, týždenný súhrn a pripomienky. Feature „prehlad“ (docs/23). */
+/** Prehľad (domovská obrazovka): dátum cieľa a pokrok, hlavná akcia, pripomienky, mesačný prehľad a týždenný súhrn. Feature „prehlad“ (docs/23, D-283). */
 
 export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: AppData; ctx: Ctx; lastExport: string | null; incomeVisible: boolean }) {
   const today = todayIso();
@@ -31,42 +33,20 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
     ctx.latest && ctx.target !== null && ctx.settings
       ? impactWithRentals({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target, ctx.rentals)
       : null;
+  // Pokrok a posun počítajú s tým istým kapitálom ako zobrazený dátum cieľa (D-283).
+  const progress = ctx.latest && ctx.target !== null ? goalProgress(ctx.capital, ctx.target, ctx.rentals) : null;
+  const previous = [...data.snapshots].sort((a, b) => a.date.localeCompare(b.date)).at(-2) ?? null;
+  const shift =
+    ctx.latest && ctx.target !== null
+      ? goalDateShift({ previous, latestDate: ctx.latest.date, capital: ctx.capital, mInv: ctx.mInv, mCash: ctx.mCash, rate: ctx.realReturn, targetCents: ctx.target, rentals: ctx.rentals })
+      : null;
+  const threshold = ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents;
+  // Poradie (D-283, docs/43 A1): cieľ a pokrok, hlavná akcia, upozornenia, potom mesiac a týždeň.
   return (
     <div>
-      {ctx.latest && positionsChangedSince(data.investments, ctx.latest.createdAt) && (
-        <p style={calloutStyle("warn")}>
-          Investície sa zmenili od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.
-        </p>
+      {ctx.target === null && (
+        <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v Nastaveniach; ostatné hodnoty sú predvolené. <NextStep to="nastavenia">Nastavenia</NextStep></p>
       )}
-      {ctx.latest && propertyChangedSince(data.properties, ctx.latest.createdAt) && (
-        <p style={calloutStyle("warn")}>
-          Majetok sa zmenil od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.
-        </p>
-      )}
-      {!reviewOverdue(ctx.latest?.date ?? null, today) && monthEndApproaching(ctx.latest?.date ?? null, today) && (
-        <p style={calloutStyle("warn")}>
-          Koniec mesiaca sa blíži. Vyhodnotenie za tento mesiac urob do konca mesiaca.
-        </p>
-      )}
-      <StockWarning items={data.stockItems} today={today} />
-      {reviewOverdue(ctx.latest?.date ?? null, today) && (
-        <p style={calloutStyle("warn")}>
-          Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep>
-        </p>
-      )}
-      {data.settings !== null && settingsCheckOverdue(data.settings.checkedAt, today) && (
-        <p style={calloutStyle("warn")}>
-          Nastavenia sa ešte neoverili alebo sú staršie ako rok. Skontroluj infláciu, rezervu a mieru výberu v sekcii <a href="#nastavenia">Nastavenia</a>.
-        </p>
-      )}
-      {(data.snapshots.length > 0 || data.transactions.length > 0 || data.settings !== null) && backupOverdue(lastExport, today) && (
-        <p style={calloutStyle("warn")}>
-          Záloha ešte nebola exportovaná alebo je staršia ako 7 dní. Dáta sú len v tomto zariadení.
-        </p>
-      )}
-      <MonthSpendingBlock incomeVisible={incomeVisible} data={data} today={today} thresholdCents={ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents} />
-      <WeeklySummaryBlock transactions={data.transactions} today={today} thresholdCents={ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents} />
-      {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v Nastaveniach; ostatné hodnoty sú predvolené. <NextStep to="nastavenia">Nastavenia</NextStep></p>}
       {(ctx.negative.cash || ctx.negative.inv) && (
         <p style={calloutStyle("error")}>
           Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení.
@@ -74,9 +54,14 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
           {ctx.shortfall.cash > 0 && <> Prečerpanie hotovosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do hodnoty K sa nezapočíta.</>}
         </p>
       )}
-      {ctx.latest && ctx.target !== null ? (
+      {ctx.latest && ctx.target !== null && progress ? (
         <>
-          <p>Dátum cieľa: <strong>{scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</strong></p>
+          <p style={{ fontSize: "var(--font-heading)", margin: "8px 0 4px" }}>Dátum cieľa: <strong>{scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</strong></p>
+          <p style={{ margin: "4px 0" }}>{progressLine(progress)}</p>
+          <div aria-hidden="true" style={{ height: 8, borderRadius: 4, background: "var(--border-soft)", overflow: "hidden", margin: "4px 0 8px" }}>
+            <div style={{ width: `${progress.percent}%`, height: "100%", background: "var(--primary-bg)" }} />
+          </div>
+          {shift && <p style={{ margin: "4px 0" }}>{shiftLine(shift)}</p>}
           <p style={hintStyle}>Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
           <p style={hintStyle}>
             Posledné vyhodnotenie: <strong>{dateSk(ctx.latest.date)}</strong>. Dátum sa zmení až po ďalšom vyhodnotení.
@@ -110,11 +95,49 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
           </details>
         </>
       ) : (
-        <p>{ctx.latest ? "" : <>Urob prvé vyhodnotenie. Dátum cieľa sa zobrazí po ňom. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></>}</p>
+        <>
+          {ctx.target !== null && <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p>}
+          {!ctx.latest && <p>Urob prvé vyhodnotenie. Dátum cieľa sa zobrazí po ňom. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
+        </>
       )}
-      <a href="#nova-transakcia" style={btnPrimary}>
-        Pridať transakciu
-      </a>
+      <p style={{ margin: "12px 0 16px" }}>
+        <a href="#nova-transakcia" style={{ ...btnPrimary, marginTop: 0 }}>
+          Pridať transakciu
+        </a>
+      </p>
+      {ctx.latest && positionsChangedSince(data.investments, ctx.latest.createdAt) && (
+        <p style={calloutStyle("warn")}>
+          Investície sa zmenili od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.
+        </p>
+      )}
+      {ctx.latest && propertyChangedSince(data.properties, ctx.latest.createdAt) && (
+        <p style={calloutStyle("warn")}>
+          Majetok sa zmenil od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.
+        </p>
+      )}
+      {!reviewOverdue(ctx.latest?.date ?? null, today) && monthEndApproaching(ctx.latest?.date ?? null, today) && (
+        <p style={calloutStyle("warn")}>
+          Koniec mesiaca sa blíži. Vyhodnotenie za tento mesiac urob do konca mesiaca.
+        </p>
+      )}
+      <StockWarning items={data.stockItems} today={today} />
+      {reviewOverdue(ctx.latest?.date ?? null, today) && (
+        <p style={calloutStyle("warn")}>
+          Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep>
+        </p>
+      )}
+      {data.settings !== null && settingsCheckOverdue(data.settings.checkedAt, today) && (
+        <p style={calloutStyle("warn")}>
+          Nastavenia sa ešte neoverili alebo sú staršie ako rok. Skontroluj infláciu, rezervu a mieru výberu v sekcii <a href="#nastavenia">Nastavenia</a>.
+        </p>
+      )}
+      {(data.snapshots.length > 0 || data.transactions.length > 0 || data.settings !== null) && backupOverdue(lastExport, today) && (
+        <p style={calloutStyle("warn")}>
+          Záloha ešte nebola exportovaná alebo je staršia ako 7 dní. Dáta sú len v tomto zariadení.
+        </p>
+      )}
+      <MonthSpendingBlock incomeVisible={incomeVisible} data={data} today={today} thresholdCents={threshold} />
+      <WeeklySummaryBlock transactions={data.transactions} today={today} thresholdCents={threshold} />
     </div>
   );
 }

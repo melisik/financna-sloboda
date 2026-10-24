@@ -37,14 +37,17 @@ export function ModuleCheckboxes({ selected, onChange }: { selected: string[]; o
   );
 }
 
-/** Nastavenia → Moduly. Vypnutie skryje sekcie; údaje ostanú a výpočty sa nemenia (D-162). */
-export function ModulesBlock({ style }: { style?: React.CSSProperties }) {
+/**
+ * Nastavenia → Moduly. Vypnutie skryje sekcie; údaje ostanú a výpočty sa nemenia (D-162).
+ * `heading={false}`: nadpis nahrádza súhrn zbaleného bloku na telefóne (D-283).
+ */
+export function ModulesBlock({ style, heading = true }: { style?: React.CSSProperties; heading?: boolean }) {
   const { choice, setChoice } = useModules();
   if (!PHASE2_ENABLED) return null;
   const selected = choice ?? OPTIONAL_MODULES.map((m) => m.id);
   return (
     <section aria-label="Moduly" style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12, ...style }}>
-      <h3 style={{ fontSize: "var(--font-text)" }}>Moduly</h3>
+      {heading && <h3 style={{ fontSize: "var(--font-text)" }}>Moduly</h3>}
       <p style={hintStyle}>
         Vypnutá sekcia sa skryje. Údaje v nej ostanú uložené a výpočty v appke sa nemenia.
       </p>
