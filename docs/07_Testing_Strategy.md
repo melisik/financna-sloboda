@@ -154,7 +154,7 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 
 ### Výsledok manuálnej kontroly na iPhone (2026-10-23)
 
-- **Zariadenie, iOS a verzia Safari:** neuvedené. Tabuľka vyššie predpokladá iPhone 16 a iOS 26.6.2; treba potvrdiť.
+- **Zariadenie a verzia:** iOS 26.6.2 (potvrdené testerom). Safari na iOS nemá samostatné číslo verzie, je súčasťou iOS. Model iPhone sa nepotvrdil; tabuľka vyššie predpokladá iPhone 16.
 - **Výsledky:**
   - Plocha, výzva na inštaláciu (D-042): OK.
   - Zadanie (východiskové hodnoty, výdavok, Prehľad): OK.
