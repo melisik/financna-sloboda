@@ -85,14 +85,14 @@ Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnos
 
 **Predpoklady [predpoklad, overiť]:**
 - A1: všetky sumy sú v dnešných cenách (D-063). `V`, `N` a `P` sú počas roka konštantné; `V` sa mení len pri ročnej aktualizácii (D-089).
-- A2: `i_h` sa odvodí z nominálnej sadzby hypotéky a inflácie `π = 2 %` (D-063, zdroj treba overiť).
+- A2: `i_h` sa odvodí z nominálnej sadzby hypotéky a inflácie `π = 4,2 %` (D-263: Eurostat HICP, Slovensko, ročná miera za 2025; hodnotu uviedol zakladateľ 2026-10-23, z tohto prostredia nebola overená).
 - A3: úrok je súčasťou `P`; delenie na úrok a istinu je v `Z(k)` cez `i_h` (D-085).
 
 **Golden cases (overené nezávislým výpočtom 2026-10-20; v kóde neimplementované):**
-- **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 2 %`, `P = 1 000`, `N = 1 200`. Výsledok: `i_h ≈ 0,0813 %` mesačne, `n ≈ 257,58` mesiaca (≈ 21 rokov a 5 mesiacov; splatenie v mesiaci ≈ 219; pred opravou T1 bolo 257,25), dátum = D_L + 258 mesiacov (zaokrúhlenie hore podľa FR-02).
-- **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. `K_cash(k) = 10 000 − 400·k`: hotovosť je 0 v mesiaci 25; v mesiaci 26 je −400, preto sa výpočet zastaví s hlásením „nedostatok hotovosti v mesiaci 26“ (bez dátumu; K_L v tom čase ≈ 229 000 €, cieľ sa nedosiahol).
+- **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 4,2 %`, `P = 1 000`, `N = 1 200`. Výsledok: `i_h ≈ −0,0965 %` mesačne, `n ≈ 237,63` mesiaca (≈ 19 rokov a 10 mesiacov; splatenie v mesiaci ≈ 183), dátum = D_L + 238 mesiacov (zaokrúhlenie hore podľa FR-02). Pred zmenou inflácie bolo 257,58 (π = 2 %).
+- **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. `K_cash(k) = 10 000 − 400·k`: hotovosť je 0 v mesiaci 25; v mesiaci 26 je −400, preto sa výpočet zastaví s hlásením „nedostatok hotovosti v mesiaci 26“ (bez dátumu; K_L v tom čase ≈ 238 000 € pri π = 4,2 %, cieľ sa nedosiahol).
 - **GC-P2-03 (vlastné bývanie nevplýva na K, D-093):** `K_inv = 100 000`, `m_inv = 500`, `r = 3,5 %`, `T = 600 000`, plus nehnuteľnosť v režime „vlastné bývanie“ s hodnotami z GC-P2-01 (`V = 300 000`, `Z0 = 200 000`, `P = 1 000`, `N = 1 200`). Výsledok musí byť rovnaký ako bez nehnuteľnosti: `n ≈ 362,10` mesiaca (rovnaké ako regresný príklad vyššie).
-- **GC-P2-04 (splátka nepokrýva úrok):** ako GC-P2-01, ale `P = 100`. Úrok za mesiac je ≈ 162,7 €, takže zostatok hypotéky rastie a `K_cash(k) = 1 100·k`. Výsledok: `n ≈ 273,08` mesiaca. Zostatok hypotéky pri cieli ≈ 219 000 € (rast od 200 000 €); tento prípad musí zobraziť upozornenie (FR-22).
+- **GC-P2-04 (malá splátka):** ako GC-P2-01, ale `P = 100`. Pri `π = 4,2 %` je reálna sadzba hypotéky záporná (−0,0965 % mesačne), takže zostatok hypotéky klesá aj pri splátke 100 €, a `K_cash(k) = 1 100·k`. Výsledok: `n ≈ 226,39` mesiaca. Zostatok hypotéky pri cieli ≈ 140 000 € (pokles od 200 000 €). Pôvodný popis „splátka nepokrýva úrok“ platil pri π = 2 %. Či má tento prípad zobraziť upozornenie (FR-22), je otvorená otázka zakladateľa.
 
 **Stav kódu (2026-10-20):** FR-02a je implementovaný na vetve `claude/phase2-property-card` (`src/domain/rentalGoal.ts`), nie na `main`. Do K vstupuje len prenájom (D-093). GC-P2-01 až GC-P2-04 a regresia FR-02 sú overené jednotkovými testami (`tests/rentalGoal.test.ts`). Predpoklady, ktoré treba overiť: ostatné náklady znižujú čistý nájom `N`; inflácia π = 2 % (A2). E2E test prenájmu zatiaľ kontroluje len text v Majetku, nie dátum cieľa.
 
