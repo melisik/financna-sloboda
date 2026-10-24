@@ -73,7 +73,7 @@ Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnos
   `Z(k) = Z0·(1+i_h)^k − P·((1+i_h)^k − 1)/i_h`, `i_h` je reálna mesačná úroková sadzba. Pri `i_h = 0` platí `Z(k) = Z0 − P·k`.
 - `K_L(k) = K_inv(k) + K_cash(k) + K_nem(k)`.
 
-**Dátum cieľa:** najmenšie celé `k`, pri ktorom `K_L(k) ≥ T`; zlomok sa získa lineárnou interpoláciou medzi `k−1` a `k` (ako D-046). Ak `K_L(k) < T` ani pri `k = 600` (50 rokov), cieľ je nedosiahnuteľný (O-5).
+**Dátum cieľa:** najmenšie celé `k`, pri ktorom `K_L(k) ≥ T`; zlomok sa získa lineárnou interpoláciou medzi `k−1` a `k` (ako D-046). Výpočet pokračuje do 1 200 rokov (`k = 14 400`). Ak `K_L(k) < T` ani potom a K stále rastie, dátum sa nezobrazí a zobrazí sa „Viac ako 50 rokov“ (O-5, D-019, D-256). Cieľ je nedosiahnuteľný len vtedy, keď K nerastie.
 
 **Uzavretý tvar neexistuje:** kombinácia exponenciálnych a lineárnych členov nedáva jednoduchý vzorec, preto sa `n` počíta iteráciou aj pri nehnuteľnosti.
 
