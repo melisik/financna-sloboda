@@ -43,11 +43,11 @@ test.describe("M3 – zadanie transakcií", () => {
     await setupGoalAndEvaluation(page);
     await page.getByLabel("Suma (€)").fill("50");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("výdavok · 50,00 € (z hotovosti)").first()).toBeVisible();
+    await expect(page.getByText("výdavok · 50,00 € (z príjmu)").first()).toBeVisible();
     await expect(page.getByText("pod prahom")).toHaveCount(0);
     await page.getByLabel("Suma (€)").fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(page.getByText("výdavok · 150,00 € (z hotovosti) · nad prahom").first()).toBeVisible();
+    await expect(page.getByText("výdavok · 150,00 € (z príjmu) · nad prahom").first()).toBeVisible();
   });
 
   test("prázdna alebo nulová suma sa neuloží a zobrazí chybu", async ({ page }) => {

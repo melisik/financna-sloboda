@@ -44,4 +44,25 @@ test.describe("zadanie výdavku a história (A3)", () => {
     await form.getByRole("button", { name: "Vrátiť späť" }).click();
     await expect(form.locator("li", { hasText: "výdavok · 40,00 €" })).toBeVisible();
   });
+
+  test("Uložiť a predbežný dopad sú pri 390 aj 320 px na obrazovke bez posúvania (D-287, P1)", async ({ page }) => {
+    // Predbežný dopad potrebuje cieľ, teda ročné výdavky v Nastaveniach.
+    await goTo(page, "nastavenia");
+    await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
+    await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
+    await goTo(page, "nova-transakcia");
+    const form = page.locator("section#nova-transakcia");
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await form.getByLabel("Suma (€)").fill("12");
+      await expect(form.getByRole("button", { name: "Uložiť transakciu" })).toBeInViewport();
+      await expect(form.getByText("Predbežný dopad:")).toBeInViewport();
+    }
+  });
+
+  test("nový výdavok má predvolený zdroj z príjmu (D-014, D-288)", async ({ page }) => {
+    await expect(page.locator("section#nova-transakcia").getByLabel("Zdroj úhrady")).toHaveValue("z_prijmu");
+  });
 });
+

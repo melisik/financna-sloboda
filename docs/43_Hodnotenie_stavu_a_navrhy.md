@@ -1,6 +1,6 @@
 # 43 – Hodnotenie stavu a návrhy (2026-10-24)
 
-> Stav: **čiastočne schválené a implementované** (2026-10-24). Zakladateľ schválil A1, C1 a C2 a zbalenie Modulov na telefóne. A1 a zbalenie Modulov sú D-283, C1 je D-284, A3 je D-286 (oddiel 8). C2 už bolo vyriešené skôr (D-132), pozri opravu v oddiele 3. Výsledok je v oddiele 6. Ostatné body čakajú na rozhodnutie.
+> Stav: **čiastočne schválené a implementované** (2026-10-24). Zakladateľ schválil A1, C1 a C2 a zbalenie Modulov na telefóne. A1 a zbalenie Modulov sú D-283, C1 je D-284, A3 je D-286 a prilepené Uložiť (P1) je D-287 (oddiel 8). Predvolený zdroj výdavku „z príjmu“ je D-288. C2 už bolo vyriešené skôr (D-132), pozri opravu v oddiele 3. Výsledok je v oddiele 6. Ostatné body čakajú na rozhodnutie.
 >
 > Hodnotenie písal ten istý autor ako väčšinu kódu a dokumentov, preto **nie je nezávislou revíziou**. Každé tvrdenie je podložené meraním alebo odkazom; odporúčam ho dať na externú revíziu (samostatná konverzácia, CLAUDE.md).
 >
@@ -204,7 +204,9 @@ Pokrok z A1 počítal s tým istým kapitálom ako dátum, aby si čísla neodpo
 | **P1 Prilepený pruh dole:** Predbežný dopad a Uložiť sú na telefóne stále na spodku obrazovky | 836 px | 836 px | Nič sa neskrýva; tlačidlo je vždy na tom istom mieste. Pruh zakrýva spodných asi 100 px obsahu, kým sa nescrolluje. Na iPhone treba overiť správanie s otvorenou klávesnicou. |
 | **P2 Dva stĺpce** (Typ a Zdroj, Kategória a Dátum vedľa seba) **a Poznámka v zbalenom bloku** | odhad asi 815 px | odhad asi 995 px | Odhad zložený z dvoch samostatných meraní (stĺpce −109 px, poznámka −68 px pri 390 px). Pri 320 px sa stĺpce zložia pod seba, takže pomôže len poznámka. Poznámku používa väčšina záznamov v testovacích dátach, takže by pribudlo ťuknutie. |
 
-Odporúčam **P1**: funguje pri každej šírke a nič neskrýva.
+Odporúčam **P1**: funguje pri každej šírke a nič neskrýva. **Zakladateľ zvolil P1 (D-287), implementované:** predbežný dopad, prípadná chyba a tlačidlá Uložiť (v úprave aj Zrušiť úpravu) sú v pruhu prilepenom na spodku obrazovky. Upozornenia a potvrdenie vyčerpania investícií ostávajú vo formulári nad pruhom. Uložiť je pri 390 aj 320 px na 836 px, v svetlom aj tmavom režime, bez vodorovného presahu. Na iPhone treba overiť správanie pri otvorenej klávesnici.
+
+![P1 po implementácii, 390 px](obrazky/43/a3-p1-prilepene-ulozit-390.png)
 
 ![Prototyp P1, 390 px](obrazky/43/a3-prototyp-prilepene-ulozit-390.png)
 
@@ -215,7 +217,8 @@ Odporúčam **P1**: funguje pri každej šírke a nič neskrýva.
   - v histórii je pri zázname len Upraviť;
   - úprava sa ukáže hore, v úprave sú Prílohy a Zmazať a zmazanie sa dá vrátiť.
 - Upravené na nový postup: `home`, `attachments`, `receipt-items`, `receipt-camera`, `transactions-filter`.
-- Overenie: `tsc` bez chýb, `vitest` 511 testov (90 súborov), Playwright 428 testov (214 × 2).
+- P1 a D-288: `tests/e2e/transactions-quick.spec.ts` (Uložiť a predbežný dopad sú pri 390 aj 320 px na obrazovke; predvolený zdroj „z príjmu“). V `m3-transactions` a `threshold` sa zmenil len očakávaný text riadku na „(z príjmu)“.
+- Overenie: `tsc` bez chýb, `vitest` 511 testov (90 súborov), Playwright 428 testov (214 × 2) po A3 a 432 testov (216 × 2) po P1 a D-288.
 
-**Nález mimo A3:** D-014 a `docs/03` určujú predvolený zdroj výdavku „z príjmu“. Formulár má od revízie 2026-10-15 predvolene „z hotovosti“ (`useState<Source>("z_hotovosti")`). Rozhodnutie, ktoré by D-014 menilo, som nenašiel. Nemenil som to; rozhodne zakladateľ.
+**Nález mimo A3:** D-014 a `docs/03` určujú predvolený zdroj výdavku „z príjmu“. Formulár mal od revízie 2026-10-15 predvolene „z hotovosti“ a rozhodnutie, ktoré by D-014 menilo, som nenašiel. **Zakladateľ potvrdil „z príjmu“ (D-288), opravené:** nový výdavok má predvolene „z príjmu“. Pri takom výdavku sa kapitál nemení a predbežný dopad je „bez zmeny“, preto som túto vetu doplnil do úlohy 2 v `docs/41`. Scenár Veľký výdavok má vlastný predvolený zdroj „z hotovosti“ (D-274) a nemení sa.
 

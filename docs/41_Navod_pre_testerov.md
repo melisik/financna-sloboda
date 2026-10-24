@@ -36,7 +36,7 @@ Každá úloha trvá 2 až 5 minút. Nemusíte robiť všetky; aj jedna poctivo 
 | # | Úloha | Kde | Na čo sa zamerať |
 | --- | --- | --- | --- |
 | 1 | Zorientovať sa | Prehľad | Viete bez návodu, čo je hlavná akcia? Je jasné, čo znamená dátum cieľa? |
-| 2 | Pridať výdavok | Peniaze → Transakcie | Pred uložením sa ukáže predbežný dopad na cieľ. Uložený výdavok je v histórii. |
+| 2 | Pridať výdavok | Peniaze → Transakcie | Pred uložením sa ukáže predbežný dopad na cieľ. Pri predvolenom zdroji „z príjmu“ sa kapitál nemení („bez zmeny“); vyskúšajte aj „z hotovosti“. Uložený výdavok je v histórii, upraviť alebo zmazať ho viete cez Upraviť. |
 | 3 | Veľký výdavok | Peniaze → Veľký výdavok (scenár) | Zadajte napríklad 5 000 € a skúste rôzne zdroje. Je výsledok zrozumiteľný? Do transakcií sa nič nesmie zapísať. |
 | 4 | Mesačný výdavok | Peniaze → Mesačný výdavok (scenár) | Zadajte napríklad 50 €. Rozumiete, koľko mesiacov vás to stojí? |
 | 5 | Ročný prehľad | Plán a výsledky → Ročný prehľad | Výdavky podľa kategórií a súhrn po rokoch. Dávajú zmysel? |

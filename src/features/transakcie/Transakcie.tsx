@@ -38,7 +38,8 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const [type, setType] = useState<TransactionType>("vydavok");
   const [amount, setAmount] = useState<NumIn>("");
   const [date, setDate] = useState(todayIso());
-  const [source, setSource] = useState<Source>("z_hotovosti");
+  // Predvolený zdroj výdavku je „z príjmu“ (D-014, D-288).
+  const [source, setSource] = useState<Source>("z_prijmu");
   const [category, setCategory] = useState<BudgetCategory | "">("");
   const [note, setNote] = useState("");
   const [receiptId, setReceiptId] = useState("");
@@ -143,7 +144,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setType(t.type);
     setAmount(t.amountCents / 100);
     setDate(t.date);
-    setSource(t.source ?? "z_hotovosti");
+    setSource(t.source ?? "z_prijmu");
     setCategory(t.category ?? "");
     setNote(t.note ?? "");
     setReceiptId(t.receiptId ?? "");
@@ -266,7 +267,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const docShown = docOpen || cameraOn || qrMsg !== null || receiptId !== "" || itemsText.trim() !== "";
   const docAssigned = receiptId !== "" || storedItems.length > 0;
 
-  // Poradie (D-286, docs/43 A3): suma, typ, zdroj, kategória, dátum, poznámka; doklad zbalený; potom dopad a uloženie.
+  // Poradie (D-286, docs/43 A3): suma, typ, zdroj, kategória, dátum, poznámka; doklad zbalený; potom upozornenia a prilepený pruh s dopadom a uložením (D-287).
   return (
     <section>
       {!ctx.latest && <p style={calloutStyle("warn")}>Najprv urob vyhodnotenie, potom môžeš zapisovať transakcie. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
@@ -366,13 +367,6 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           </div>
         </details>
       )}
-      {preview && (
-        <p>
-          {preview.blocked
-            ? preview.message
-            : <>Predbežný dopad: <strong>{formatImpactOutcome(preview.impact)}</strong></>}
-        </p>
-      )}
       {preview && !preview.blocked && preview.note && (
         <p style={calloutStyle("warn")}>{preview.note}</p>
       )}
@@ -384,9 +378,19 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       {inEdit && date <= (ctx.latest?.date ?? "") && (
         <p style={{ color: "var(--muted)" }}>Zmena neovplyvní oficiálny cieľ, kým neurobíte nové vyhodnotenie.</p>
       )}
-      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
-      <button onClick={save} style={btnPrimary}>{inEdit ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
-      {inEdit && <button onClick={resetForm} style={{ ...btn, marginLeft: 8 }}>Zrušiť úpravu</button>}
+      {/* Predbežný dopad a uloženie sú prilepené na spodku obrazovky, kým je formulár dlhší než obrazovka (D-287). */}
+      <div style={{ position: "sticky", bottom: 0, zIndex: 1, background: "var(--page)", borderTop: "1px solid var(--border-soft)", padding: "4px 0 8px" }}>
+        {preview && (
+          <p style={{ margin: "4px 0" }}>
+            {preview.blocked
+              ? preview.message
+              : <>Predbežný dopad: <strong>{formatImpactOutcome(preview.impact)}</strong></>}
+          </p>
+        )}
+        {err && <p style={{ color: "var(--danger)", margin: "4px 0" }}>{err}</p>}
+        <button onClick={save} style={btnPrimary}>{inEdit ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
+        {inEdit && <button onClick={resetForm} style={{ ...btn, marginLeft: 8 }}>Zrušiť úpravu</button>}
+      </div>
       {undo && (
         <p style={{ background: "var(--banner)", padding: 8, borderRadius: 6 }}>
           Transakcia bola zmazaná. <button onClick={restore} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Vrátiť späť</button>
