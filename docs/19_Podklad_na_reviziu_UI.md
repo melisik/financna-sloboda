@@ -6,7 +6,7 @@
 
 - **Rozsah:** len obrazovky, ktoré sú dnes v hlavnej vetve (`main`): Prehľad, Transakcie, Vyhodnotenie, Nastavenia, Záloha a Návod. Fázu 2 (majetok, investície, záväzky, rozpočet, príjmy) nehodnoťte, nie je v tomto builde.
 - **Dáta:** screenshoty sú zo syntetických dát (testovacia záloha v repozitári). Nejde o skutočného používateľa.
-- **Cieľová skupina:** ľudia na autistickom spektre, ich blízki a ďalší používatelia (CLAUDE.md). Hodnoťte z pohľadu človeka, ktorý finančnú teóriu nepozná a ktorý potrebuje predvídateľnosť a nízku kognitívnu záťaž.
+- **Cieľová skupina:** najprv zakladateľ, potom používatelia v EÚ s rôznou úrovňou finančnej gramotnosti (`docs/00_Project_Vision.md`, `docs/01_Personas.md`). Hodnoťte z pohľadu človeka, ktorý finančnú teóriu nepozná. Appka má podľa `docs/03_UX_Principles.md` mať nízku kognitívnu záťaž a byť predvídateľná.
 - **Čo hodnotiť:** zrozumiteľnosť textov, poradie a rozloženie, nejasné pojmy, chybové hlášky, dôveryhodnosť čísel, prístupnosť na telefóne (390 px).
 - **Čo nehodnotiť:** správnosť výpočtov (samostatné testy), právne otázky ochrany dát (D-090), dostupnosť podľa M6 (čítačky, axe-core), ktorá ešte nebola spustená.
 - **Výstup:** zoznam nálezov, každý s obrazovkou, citáciou textu, závažnosťou (vysoká, stredná, nízka) a návrhom, ak ho máte. Nálezy zoraďte podľa závažnosti.
