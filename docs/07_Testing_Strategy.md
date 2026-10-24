@@ -152,6 +152,20 @@ Pre náhodné vstupy (K ∈ [0, 10 000 000], m ∈ [0, 10 000], r ∈ [0; 0,10],
 
 **Kontrolné body:** dotykové plochy aspoň 44 × 44 px [predpoklad]; žiadny horizontálny scroll; offline tok funguje po prvom načítaní.
 
+### Výsledok manuálnej kontroly na iPhone (2026-10-23)
+
+- **Zariadenie, iOS a verzia Safari:** neuvedené. Tabuľka vyššie predpokladá iPhone 16 a iOS 26.6.2; treba potvrdiť.
+- **Výsledky:**
+  - Plocha, výzva na inštaláciu (D-042): OK.
+  - Zadanie (východiskové hodnoty, výdavok, Prehľad): OK.
+  - Dotyky (prvé klepnutie, bez prekryvov): OK.
+  - Offline po prvom načítaní, otvorenie z plochy: OK.
+  - Uchovanie dát (zatvorenie, export, stiahnutie súboru): OK.
+  - **Neaktivita 7 dní (D-035, D-042): neoverené v tomto vydaní.** Tester uviedol, že fungovalo pri predchádzajúcom testovaní. Dátum a trvanie tohto testu nie sú zaznamenané.
+  - Pripomienka zálohy po 7 dňoch (FR-19): OK. Ide o rovnaký 7-dňový interval, preto sa potvrdí spolu s novým testom neaktivity.
+  - VoiceOver, hlavné tlačidlá (voliteľné): OK.
+- **Záver:** Kontrola je splnená okrem 7-dňového testu neaktivity, ktorý zostáva otvorený pred ďalším vydaním.
+
 ## 9. Dostupnosť (WCAG 2.2 AA)
 - axe-core: nulové kritické a vážne porušenia pre zlúčenie.
 - Klávesnica: všetky akcie dosiahnuteľné, viditeľný focus.
