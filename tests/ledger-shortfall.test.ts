@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { capitalWithFlags } from "../src/domain/ledger";
+import { payFromCash, payFromInvestments, transferToInvestments } from "../src/domain/capital";
 import type { Snapshot, Transaction } from "../src/storage/types";
 
 const eur = (x: number) => x * 100;
@@ -53,5 +54,10 @@ describe("výdavky nad kapitál: prečerpanie a zdroj úhrady (D-045, D-059, D-1
 
   // nález T6 (docs/30): doména prijme zápornú sumu presunu alebo výdavku a zvýši K. UI to blokuje (Transakcie.tsx:79, 187),
   // takže ide o obranu do hĺbky. Test: payFromCash(K_cash 100 €, suma −50 €) dá K_cash 150 € (src/domain/capital.ts:68-70).
-  it.todo("nález T6: záporná suma výdavku nesmie zvýšiť K (kladná suma je invariant, docs/05 §4)");
+  it("nález T6: záporná suma výdavku ani presunu nesmie zvýšiť K (kladná suma je invariant, docs/05 §4)", () => {
+    const c = { inv: eur(100), cash: eur(100) };
+    expect(payFromCash(c, -eur(50))).toEqual({ ok: false, reason: "invalid_amount" });
+    expect(payFromInvestments(c, -eur(50))).toEqual({ ok: false, reason: "invalid_amount" });
+    expect(transferToInvestments(c, -eur(50))).toEqual({ ok: false, reason: "invalid_amount" });
+  });
 });
