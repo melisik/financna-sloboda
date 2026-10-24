@@ -22,11 +22,11 @@ const mainRental: Rental = {
 };
 
 describe("FR-02a – golden cases", () => {
-  // Po splatení (≈ mesiac 219) sa splátka neplatí a čistý nájom ide do m (D-087, nález T1); pred T1 bolo 257,25.
-  it("GC-P2-01: n ≈ 257,58 mesiaca", () => {
+  // Po splatení (≈ mesiac 183) sa splátka neplatí a čistý nájom ide do m (D-087, nález T1). Inflácia π = 4,2 % (D-263); pred tým bolo 257,58 (π 2 %).
+  it("GC-P2-01: n ≈ 237,63 mesiaca", () => {
     const res = monthsToTargetWithRentals(base, 0, 0, r, T, [mainRental]);
     expect(res.kind).toBe("months");
-    if (res.kind === "months") expect(res.months).toBeCloseTo(257.58, 1);
+    if (res.kind === "months") expect(res.months).toBeCloseTo(237.63, 1);
   });
 
   it("GC-P2-02: hotovosť sa vyčerpá v mesiaci 26", () => {
@@ -36,10 +36,11 @@ describe("FR-02a – golden cases", () => {
     expect(res).toEqual({ kind: "cash_exhausted", month: 26 });
   });
 
-  it("GC-P2-04: splátka nepokrýva úrok, n ≈ 273,08 mesiaca", () => {
+  // Pri π = 4,2 % je reálna sadzba hypotéky záporná (−0,0965 % mesačne), takže splátka 100 € je v reálnych hodnotách nad úrokom (D-263).
+  it("GC-P2-04: splátka 100 €, záporná reálna sadzba, n ≈ 226,39 mesiaca", () => {
     const res = monthsToTargetWithRentals(base, 0, 0, r, T, [{ ...mainRental, paymentCents: 10_000 }]);
     expect(res.kind).toBe("months");
-    if (res.kind === "months") expect(res.months).toBeCloseTo(273.08, 1);
+    if (res.kind === "months") expect(res.months).toBeCloseTo(226.39, 1);
   });
 
   it("GC-P2-03: vlastné bývanie do K nevstupuje, výsledok je 362,10 mesiaca", () => {

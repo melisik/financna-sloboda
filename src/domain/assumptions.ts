@@ -7,7 +7,7 @@ export const RETURN_ASSUMPTIONS = {
   /** Reálny výnos investovaného kapitálu pred daňou a poplatkami (D-050). */
   realReturn: 0.035,
   /** Predpoklad inflácie pre nominálne zobrazenie (D-063) [predpoklad, zdroj treba overiť]. */
-  inflation: 0.02,
+  inflation: 0.042, // D-263: Eurostat HICP, Slovensko, ročná miera za 2025 (uviedol zakladateľ 2026-10-23)
   /** Stav overenia zdroja (RR29: zatiaľ neoverené). */
   status: "predpoklad" as const,
   verifiedOn: null as string | null,
