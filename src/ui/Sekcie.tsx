@@ -104,7 +104,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "investicie":
       return (
         <Section id="investicie" title="Investície">
-          <InvestmentSection repo={repo} positions={data.investments} today={todayIso()} onSaved={reload} />
+          <InvestmentSection repo={repo} positions={data.investments} goals={data.goals} today={todayIso()} onSaved={reload} />
         </Section>
       );
     case "pravidelne-vydavky":

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { Repository } from "../../storage/repository";
-import { BALANCE_INVESTMENT_KINDS, INVESTMENT_KINDS, TAX_REGIMES, type InvestmentKind, type Position, type TaxRegime } from "../../storage/types";
+import { BALANCE_INVESTMENT_KINDS, INVESTMENT_KINDS, TAX_REGIMES, type InvestmentGoal, type InvestmentKind, type Position, type TaxRegime } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
-import { investmentsByKindCents, investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents, staleValuationNames } from "../../domain/investments";
+import { goalProgress, groupByGoal, investmentsByKindCents, investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents, staleValuationNames } from "../../domain/investments";
 import { TAX_CATALOG } from "../../domain/tax";
 import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
@@ -26,10 +26,29 @@ const INVESTMENT_KIND_LABEL: Record<InvestmentKind, string> = {
 };
 
 /** Sekcia Investície (D-101, možnosť A): ručné položky; súčet sa použije vo Vyhodnotení. */
-export function InvestmentSection({ repo, positions, today, onSaved }: { repo: Repository; positions: Position[]; today: string; onSaved: () => void }) {
+export function InvestmentSection({ repo, positions, goals, today, onSaved }: { repo: Repository; positions: Position[]; goals: InvestmentGoal[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<Position | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [addingGoal, setAddingGoal] = useState(false);
+  const [goalConfirm, setGoalConfirm] = useState<string | null>(null);
+
+  // Zmazanie cieľa nezmaže položky; odpojí ich od cieľa. updatedAt sa nemení, lebo nejde o zmenu ocenenia (D-101).
+  const removeGoal = async (id: string) => {
+    try {
+      for (const p of positions) {
+        if (p.goalId !== id) continue;
+        const { goalId: _goalId, ...detached } = p;
+        await repo.savePosition(detached);
+      }
+      await repo.deleteGoal(id);
+      setGoalConfirm(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
 
   const remove = async (id: string) => {
     try {
@@ -67,7 +86,43 @@ export function InvestmentSection({ repo, positions, today, onSaved }: { repo: R
       {monthlyContributionsTotalCents(positions) > 0 && (
         <p style={{ color: "var(--muted)" }}>Mesačné vklady do tretieho piliera a iných položiek: {eur(monthlyContributionsTotalCents(positions))} (len zobrazenie)</p>
       )}
-      {positions.map((p) => (
+      <h4 style={{ fontSize: "1rem", marginBottom: 4 }}>Ciele</h4>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 0 }}>
+        Položky môžeš zoskupiť do cieľa. Ciele sú len zobrazenie a nemenia výpočet cieľa nezávislosti.
+      </p>
+      {goals.map((g) => (
+        <div key={g.id} style={{ marginBottom: 6 }}>
+          <p style={{ margin: "4px 0" }}>
+            <strong>{g.name}</strong> · cieľová suma {eur(g.targetCents)}
+          </p>
+          {goalConfirm === g.id ? (
+            <div>
+              <p>Naozaj zmazať cieľ „{g.name}“? Položky zostanú, len sa odpoja od cieľa.</p>
+              <button onClick={() => removeGoal(g.id)} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
+              <button onClick={() => setGoalConfirm(null)} style={btn}>Zrušiť</button>
+            </div>
+          ) : (
+            <button onClick={() => setGoalConfirm(g.id)} style={btnDanger}>Zmazať cieľ</button>
+          )}
+        </div>
+      ))}
+      {addingGoal ? (
+        <GoalForm repo={repo} onDone={() => { setAddingGoal(false); onSaved(); }} onCancel={() => setAddingGoal(false)} />
+      ) : (
+        <button onClick={() => setAddingGoal(true)} style={btn}>Pridať cieľ</button>
+      )}
+      {groupByGoal(positions, goals).map((g) => {
+        const prog = g.goal ? goalProgress(g.totalCents, g.goal.targetCents) : null;
+        return (
+          <div key={g.goal?.id ?? "bez-cieľa"} style={{ marginBottom: 12 }}>
+            {goals.length > 0 && (
+              <p style={{ margin: "10px 0 4px", fontWeight: 600 }}>
+                {g.goal ? g.goal.name : "Bez cieľa"}: {eur(g.totalCents)}
+                {g.goal && prog && (prog.reached ? <span style={{ fontWeight: 400 }}> · cieľ dosiahnutý</span> : <span style={{ fontWeight: 400 }}> · {prog.percent} % z {eur(g.goal.targetCents)}</span>)}
+              </p>
+            )}
+            {g.goal && g.positions.length === 0 && <p style={{ color: "var(--muted)" }}>Zatiaľ žiadna položka v tomto cieli.</p>}
+            {g.positions.map((p) => (
         <div key={p.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}</p>
           {(BALANCE_INVESTMENT_KINDS as readonly string[]).includes(p.kind) ? (
@@ -95,12 +150,16 @@ export function InvestmentSection({ repo, positions, today, onSaved }: { repo: R
             </div>
           )}
         </div>
-      ))}
+            ))}
+          </div>
+        );
+      })}
       {editing !== null ? (
         <InvestmentForm
           key={editing === "new" ? "new" : editing.id}
           repo={repo}
           initial={editing === "new" ? null : editing}
+          goals={goals}
           today={today}
           onDone={() => { setEditing(null); onSaved(); }}
           onCancel={() => setEditing(null)}
@@ -113,7 +172,7 @@ export function InvestmentSection({ repo, positions, today, onSaved }: { repo: R
   );
 }
 
-function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: Position | null; today: string; onDone: () => void; onCancel: () => void }) {
+function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { repo: Repository; initial: Position | null; goals: InvestmentGoal[]; today: string; onDone: () => void; onCancel: () => void }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [kind, setKind] = useState<InvestmentKind>(initial?.kind ?? "etf");
   const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? "");
@@ -123,6 +182,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
   const [contribution, setContribution] = useState<NumIn>(initial?.monthlyContributionCents !== undefined ? initial.monthlyContributionCents / 100 : "");
   const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
   const [taxRegime, setTaxRegime] = useState<TaxRegime>(initial?.taxRegime ?? "nezadane");
+  const [goalId, setGoalId] = useState(initial?.goalId ?? "");
   const [err, setErr] = useState<string | null>(null);
   const balance = (BALANCE_INVESTMENT_KINDS as readonly string[]).includes(kind);
   const code = balance ? "EUR" : currency.trim().toUpperCase();
@@ -158,6 +218,7 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
       updatedAt: now,
       ...(balance && vklad > 0 ? { monthlyContributionCents: cents(vklad) } : {}),
       taxRegime,
+      ...(goalId ? { goalId } : {}),
     };
     try {
       await repo.savePosition(position);
@@ -192,6 +253,13 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
           {!isEur && <Field label="Kurz: koľko € za 1 jednotku meny" value={fx} step={0.0001} onChange={setFx} hint="zadaj kurz v deň ocenenia" />}
         </>
       )}
+      <label style={{ display: "block", marginBottom: 8 }}>
+        Cieľ (nepovinné)
+        <select aria-label="Cieľ položky" value={goalId} onChange={(e) => setGoalId(e.target.value)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+          <option value="">Bez cieľa</option>
+          {goals.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+        </select>
+      </label>
       <Field label="Dátum ocenenia" value={valueDate} type="date" max={today} onChange={setValueDate} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Daňový režim (zatiaľ bez výpočtu, FR-24)
@@ -201,6 +269,39 @@ function InvestmentForm({ repo, initial, today, onDone, onCancel }: { repo: Repo
       </label>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>Uložiť položku</button>{" "}
+      <button onClick={onCancel} style={btn}>Zrušiť</button>
+    </div>
+  );
+}
+
+/** Nový cieľ investícií (D-105): názov a cieľová suma. Cieľ nemení výpočet cieľa nezávislosti. */
+function GoalForm({ repo, onDone, onCancel }: { repo: Repository; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState("");
+  const [target, setTarget] = useState<NumIn>("");
+  const [err, setErr] = useState<string | null>(null);
+
+  const save = async () => {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return setErr("Vyplň názov cieľa.");
+    if (trimmed.length > 80) return setErr("Názov cieľa môže mať najviac 80 znakov.");
+    const sum = asNum(target);
+    if (Number.isNaN(sum) || !(sum > 0)) return setErr("Vyplň cieľovú sumu väčšiu ako 0.");
+    const now = new Date().toISOString();
+    try {
+      await repo.saveGoal({ id: uid(), name: trimmed, targetCents: cents(sum), createdAt: now, updatedAt: now });
+      onDone();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
+  return (
+    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)", marginBottom: 8 }}>
+      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>Nový cieľ</h4>
+      <Field label="Názov cieľa" value={name} type="text" onChange={setName} />
+      <Field label="Cieľová suma (€)" value={target} onChange={setTarget} />
+      {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
+      <button onClick={save} style={btnPrimary}>Uložiť cieľ</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );

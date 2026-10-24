@@ -1,4 +1,4 @@
-import type { Position } from "./model/entities";
+import type { InvestmentGoal, Position } from "./model/entities";
 import { fullMonthsBetween } from "./dates";
 
 /** Hodnota položky v centoch: počet × cena × kurz k euru (D-101). */
@@ -31,4 +31,29 @@ export function positionsChangedSince(positions: Position[], isoTime: string): b
 /** Názvy položiek, ktorých ocenenie je staršie ako daný počet mesiacov (N-16, schválené 3 mesiace). */
 export function staleValuationNames(positions: Position[], today: string, months = 3): string[] {
   return positions.filter((p) => fullMonthsBetween(p.valueDate, today) >= months).map((p) => p.name);
+}
+
+/** Skupina položiek podľa cieľa (D-105). Cieľ null = položky bez cieľa alebo s cieľom, ktorý neexistuje. Len zobrazenie. */
+export interface GoalGroup {
+  goal: InvestmentGoal | null;
+  positions: Position[];
+  totalCents: number;
+}
+
+/** Zoskupí položky podľa cieľov v poradí, v akom sú ciele. Skupina bez cieľa vznikne, len ak sú takéto položky (D-105). */
+export function groupByGoal(positions: Position[], goals: InvestmentGoal[]): GoalGroup[] {
+  const groups: GoalGroup[] = goals.map((goal) => {
+    const own = positions.filter((p) => p.goalId === goal.id);
+    return { goal, positions: own, totalCents: investmentsTotalCents(own) };
+  });
+  const orphans = positions.filter((p) => p.goalId === undefined || !goals.some((g) => g.id === p.goalId));
+  if (orphans.length > 0) groups.push({ goal: null, positions: orphans, totalCents: investmentsTotalCents(orphans) });
+  return groups;
+}
+
+/** Pokrok skupiny k cieľovej sume: percento 0 až 100 a či je cieľ dosiahnutý (D-105). Nad cieľom sa zobrazí 100 %. */
+export function goalProgress(totalCents: number, targetCents: number): { percent: number; reached: boolean } {
+  const reached = totalCents >= targetCents;
+  const percent = reached ? 100 : Math.max(0, Math.floor((totalCents / targetCents) * 100));
+  return { percent, reached };
 }
