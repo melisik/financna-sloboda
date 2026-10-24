@@ -11,6 +11,7 @@ import type { SectionId } from "./Navigacia";
 import { HomeSection } from "../features/prehlad/Prehlad";
 import { NavodBlock } from "../features/prehlad/Navod";
 import { TransactionSection } from "../features/transakcie/Transakcie";
+import { ScenarVydavkuSection } from "../features/scenar-vydavku/ScenarVydavku";
 import { AttachmentsBlock } from "../features/doklady/Prilohy";
 import { SnapshotSection } from "../features/vyhodnotenie/Vyhodnotenie";
 import { PropertySection } from "../features/majetok/Majetok";
@@ -68,6 +69,12 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
       return (
         <Section id="nova-transakcia" title="Transakcie">
           <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} renderAttachments={(id) => <AttachmentsBlock repo={repo} owner={{ transactionId: id }} />} />
+        </Section>
+      );
+    case "scenar-vydavku":
+      return (
+        <Section id="scenar-vydavku" title="Veľký výdavok (scenár)">
+          <ScenarVydavkuSection ctx={ctx} />
         </Section>
       );
     case "vyhodnotenie":

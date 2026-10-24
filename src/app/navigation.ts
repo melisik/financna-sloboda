@@ -2,11 +2,12 @@
  * Navigácia medzi sekciami (D-205). Sekcie a ich skupiny sú v čistom zozname bez UI,
  * aby ich mohli používať aj testy. Horný panel ich zobrazuje v dvoch riadkoch.
  */
-export type SectionId = "prehlad" | "nova-transakcia" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "dane" | "sklad" | "rocny-prehlad" | "nastavenia" | "zaloha";
+export type SectionId = "prehlad" | "nova-transakcia" | "scenar-vydavku" | "prijmy" | "rozpocet" | "vyhodnotenie" | "majetok" | "zavazky" | "investicie" | "pravidelne-vydavky" | "dane" | "sklad" | "rocny-prehlad" | "nastavenia" | "zaloha";
 
 export const SECTION_LABELS: Record<SectionId, string> = {
   prehlad: "Prehľad",
   "nova-transakcia": "Transakcie",
+  "scenar-vydavku": "Veľký výdavok (scenár)",
   prijmy: "Príjmy",
   rozpocet: "Rozpočet",
   vyhodnotenie: "Vyhodnotenie",
@@ -26,7 +27,7 @@ type NavGroup ={ id: string; label: string; sections: SectionId[] };
 /** Päť skupín v poradí zobrazenia. Klepnutie na skupinu otvorí jej prvú sekciu. */
 export const NAV_GROUPS: NavGroup[] = [
   { id: "prehlad", label: "Prehľad", sections: ["prehlad"] },
-  { id: "peniaze", label: "Peniaze", sections: ["nova-transakcia", "prijmy", "rozpocet", "pravidelne-vydavky"] },
+  { id: "peniaze", label: "Peniaze", sections: ["nova-transakcia", "scenar-vydavku", "prijmy", "rozpocet", "pravidelne-vydavky"] },
   { id: "majetok", label: "Majetok a zásoby", sections: ["majetok", "sklad", "zavazky", "investicie", "dane"] },
   { id: "plan", label: "Plán a výsledky", sections: ["vyhodnotenie", "rocny-prehlad"] },
   { id: "nastavenia", label: "Nastavenia a záloha", sections: ["nastavenia", "zaloha"] },
