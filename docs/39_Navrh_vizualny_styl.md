@@ -75,3 +75,17 @@ Mimo rozsahu: prepísanie všetkých 517 inline štýlov naraz. Zmena sa robí l
 - **Ostáva inline:** varianty, ktoré sa presne nezhodujú so vzorom (napr. karta s vlastným okrajom, varovanie s inou veľkosťou písma). Nemenil som ich, aby sa nezmenilo rozloženie; dajú sa migrovať postupne.
 - **Hlavná akcia:** na obrazovkách Prehľad, Transakcie a Dane je hlavná akcia na konci formulára alebo bloku. Umiestnenie na ostatných obrazovkách som neprepracoval.
 - **Overenie:** `tsc` bez chýb, `vitest` 483 testov (85 súborov), Playwright 392 testov vrátane testov dostupnosti WCAG 2.1 AA. Kontrola vodorovného posúvania všetkých 16 sekcií pri 390 px a 1280 px bez nálezu. Snímky Prehľadu, Transakcií a Daní pri 390 a 1280 px skontrolované.
+
+## 8. Doplnenie (2026-10-24, druhá časť)
+
+- **Menu a nadpis sekcie:** ťuknutie na už aktívnu sekciu v menu nechá stránku na začiatku. Predtým prehliadač skočil na kotvu a nadpis aj prvé pole skončili pod prilepeným menu (Transakcie, Vyhodnotenie, Majetok, Nastavenia; na telefóne nadpis 16 px, menu do 267 px). Test: `tests/e2e/nav-scroll.spec.ts`.
+- **Hlavná akcia:** prešiel som poradie prvkov vo všetkých 16 sekciách. Hlavná akcia je na konci formulára alebo bloku. Na Prehľade bolo „Uložiť týždenný súhrn“ zmenené na sekundárne tlačidlo, aby jedinou hlavnou akciou ostalo „Pridať transakciu“. Sklad (sklad a recepty) a Dane (psy a tlačivo) majú hlavnú akciu v každom z dvoch blokov.
+- **Ďalšie inline štýly:** pomocný text 33×, upozornenia 11×, karty 16× (so zachovaním vlastných okrajov). `calloutStyle` používa `marginTop` a `marginBottom`, aby sa nemiešal so skratkou `margin`.
+- **Textové odkazy:** jednotná farba `a { color: var(--link); }`.
+- **Testy dostupnosti:** doplnené o Veľký a Mesačný výdavok (svetlý aj tmavý režim, 320 px).
+- **Overenie:** `tsc` bez chýb, `vitest` 484 testov (85 súborov), Playwright 406 testov, šírky 390 a 1280 px bez vodorovného posúvania vo všetkých sekciách.
+
+### Návrh na neskôr (potrebuje rozhodnutie)
+
+- **Výška menu na telefóne:** prilepené menu pri otvorenej skupine Peniaze zaberá až 267 px (štyri riadky) z výšky 844 px. Možnosti: jeden vodorovne posúvateľný riadok pre skupiny a jeden pre sekcie, alebo menu, ktoré sa pri posúvaní nadol skryje. Obe menia správanie menu, preto ich nerobím bez schválenia.
+
