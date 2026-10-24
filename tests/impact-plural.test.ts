@@ -26,4 +26,13 @@ describe("formatImpact: skloňovanie mesiacov a dní (FR-04, N1)", () => {
     expect(formatImpact(3 * DAY)).toBe("predbežne +3 dni");
     expect(formatImpact(5 * DAY)).toBe("predbežne +5 dní");
   });
+
+  // nález T3 (docs/30; docs/29 nález 2): plural() v src/domain/impact.ts vracia jednotný tvar
+  // pre každé číslo končiace na 1 okrem 11, takže 21 dá „21 mesiac“. Správne je genitív plurálu (21 mesiacov, 31 mesiacov, 21 dní).
+  it("nález T3: čísla končiace na 1 (okrem 11) sa skloňujú ako 5 a viac (21 mesiacov, 31 mesiacov, 21 dní)", () => {
+    expect(formatImpact(21)).toBe("predbežne +21 mesiacov");
+    expect(formatImpact(-31)).toBe("predbežne −31 mesiacov");
+    expect(formatImpact(101)).toBe("predbežne +101 mesiacov");
+    expect(formatImpact(21 * DAY)).toBe("predbežne +21 dní");
+  });
 });
