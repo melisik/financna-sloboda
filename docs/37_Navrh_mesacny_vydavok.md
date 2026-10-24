@@ -1,6 +1,6 @@
 # 37 – Návrh: mesačný výdavok (N-12b)
 
-> Stav: **implementované** (D-275, commit `$(git rev-parse --short HEAD)`). Schválené zakladateľom 2026-10-24 („pokračuj s N-12b“; voľba 3 v `docs/36`: samostatne). Zdroj: `docs/36`, oddiel 7, bod 3: opakované menšie výdavky oddaľujú finančnú slobodu viac než jeden veľký.
+> Stav: **implementované** (D-275, commit `9fd9338`). Schválené zakladateľom 2026-10-24 („pokračuj s N-12b“; voľba 3 v `docs/36`: samostatne). Zdroj: `docs/36`, oddiel 7, bod 3: opakované menšie výdavky oddaľujú finančnú slobodu viac než jeden veľký.
 
 ## 1. Účel
 
