@@ -1,9 +1,9 @@
 import type { AppData } from "../../storage/types";
 import type { Ctx } from "../../domain/context";
-import { annualOverview, yearlySummary, type OverviewSettings } from "../../domain/annualOverview";
+import { annualOverview, categoryComparison, yearlySummary, type OverviewSettings } from "../../domain/annualOverview";
 import { plural } from "../../domain/impact";
 import { goalDateText } from "../../domain/goalText";
-import { dateSk, eur, monthYear } from "../../ui/kit/format";
+import { dateSk, eur, monthYear, todayIso } from "../../ui/kit/format";
 
 /** Zmena dátumu cieľa v mesiacoch, slovne (docs/13, oddiel 4). */
 function goalShiftText(d: number): string {
@@ -20,10 +20,31 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
   const years = yearlySummary(data.snapshots, data.transactions);
   if (rows.length === 0) return <p>Zatiaľ nie sú vyhodnotenia. Prehľad sa zobrazí po prvom vyhodnotení.</p>;
   const savingZero = ctx.mInv + ctx.mCash === 0;
+  // N-11: porovnanie kategórií za rovnaké obdobie; ak je najnovší rok aktuálny, len mesiace do dneška.
+  // Riadky vznikajú zo snapshotov (aspoň jeden tu je), preto je latestYear konečné.
+  const latestYear = Math.max(...data.transactions.map((x) => Number(x.date.slice(0, 4))), ...data.snapshots.map((x) => Number(x.date.slice(0, 4))));
+  const today = todayIso();
+  const throughMonth = latestYear === Number(today.slice(0, 4)) ? Number(today.slice(5, 7)) : 12;
+  const comparison = categoryComparison(data.transactions, latestYear, latestYear - 1, throughMonth);
   return (
     <div>
       <p style={{ color: "var(--muted)" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K a z aktuálnych Nastavení, bez nehnuteľností.</p>
       {!s && <p style={{ color: "var(--muted)" }}>Nastavenia nie sú zadané; zobrazí sa len K.</p>}
+      <h3 style={{ fontSize: "1rem", marginTop: 16 }}>Výdavky podľa kategórií</h3>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 0 }}>
+        {latestYear - 1} a {latestYear}{throughMonth < 12 ? `, mesiace 1 až ${throughMonth}` : ""}. Porovnanie je za rovnaké obdobie.
+      </p>
+      {comparison.length === 0 ? (
+        <p>Zatiaľ nie sú výdavky na porovnanie.</p>
+      ) : (
+        <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+          {comparison.map((c) => (
+            <p key={c.category} style={{ margin: "4px 0" }}>
+              <strong>{c.category}</strong>: {eur(c.curCents)} (minulý rok {eur(c.prevCents)}, zmena {c.diffCents >= 0 ? "+" : "−"}{eur(Math.abs(c.diffCents))})
+            </p>
+          ))}
+        </div>
+      )}
       <h3 style={{ fontSize: "1rem", marginTop: 16 }}>Súhrn po rokoch</h3>
       {years.map((y) => (
         <div key={y.year} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>

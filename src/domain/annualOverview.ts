@@ -144,3 +144,40 @@ export function yearlySummary(snapshots: Snapshot[], transactions: Transaction[]
     };
   });
 }
+
+/** Výdavky jednej kategórie v dvoch rokoch za rovnaké obdobie (N-11). */
+export interface CategoryRow {
+  category: string;
+  prevCents: number;
+  curCents: number;
+  diffCents: number;
+}
+
+/**
+ * Porovnanie výdavkov podľa kategórie medzi dvoma rokmi (N-11, docs/08). Počítajú sa len výdavky (všetky zdroje),
+ * len mesiace 1 až throughMonth v oboch rokoch. Bez zaradenia je „nezaradené“. Zoradené podľa výdavkov v novšom roku.
+ */
+export function categoryComparison(transactions: Transaction[], year: number, prevYear: number, throughMonth: number): CategoryRow[] {
+  const totals = (y: number): Record<string, number> => {
+    const out: Record<string, number> = {};
+    for (const t of transactions) {
+      if (t.type !== "vydavok") continue;
+      if (Number(t.date.slice(0, 4)) !== y || Number(t.date.slice(5, 7)) > throughMonth) continue;
+      const key = t.category ?? "nezaradené";
+      out[key] = (out[key] ?? 0) + t.amountCents;
+    }
+    return out;
+  };
+  const cur = totals(year);
+  const prev = totals(prevYear);
+  const keys = [...new Set([...Object.keys(cur), ...Object.keys(prev)])];
+  return keys
+    .map((category) => ({
+      category,
+      prevCents: prev[category] ?? 0,
+      curCents: cur[category] ?? 0,
+      diffCents: (cur[category] ?? 0) - (prev[category] ?? 0),
+    }))
+    .sort((a, b) => b.curCents - a.curCents || b.prevCents - a.prevCents || a.category.localeCompare(b.category, "sk"));
+}
+
