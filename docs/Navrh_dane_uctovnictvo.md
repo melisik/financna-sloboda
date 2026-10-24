@@ -83,8 +83,8 @@ Dôvod: z prostredia vývoja nie je prístup na stránky Finančnej správy ani 
 | 1. Overenie zdrojov | odložiť | odložené | D-267 |
 | 2. Pojem príjmu | platí dátum prijatia pre celé priznanie | rozhodnuté | D-266 |
 | 3. Uznanie výdavkov | paušál neexistuje, rozdiel len pri obchodnom majetku | rozhodnuté (obchodný majetok mimo rozsahu) | D-266 |
-| 4. Nezhoda v príklade poučenia (3 595,75 € vs 3 594,76 €) | overí zakladateľ | otvorené | — |
+| 4. Nezhoda v príklade poučenia (3 595,75 € vs 3 594,76 €) | irelevantná, formulár počíta správne | uzavreté | D-268 |
 | 5. Registrácia na daňovom úrade | vždy povinná | rozhodnuté | D-267 |
-| 6. Papierové podanie a portál | papierovo možné, ak nie sú iné príjmy; portál vyskúša zakladateľ | otvorené (test na portáli) | D-267 |
+| 6. Papierové podanie a portál | papierovo možné, ak nie sú iné príjmy; podanie cez portál: prihlásiť sa a nahrať dokumenty (potvrdené zakladateľom z vlastnej skúsenosti) | postup potvrdený; test šablóny s prázdnymi prepínačmi zostáva otvorený | D-267 |
 
-Krok 2b (generovanie XML) zostáva nezapracovaný, kým sa neoverí bod 1 a bod 6.
+Oficiálnu príručku 6/EK/2023/IM sa nepodarilo načítať (stránka Finančnej správy nie je z tohto prostredia dostupná). Popis postupu z tretích strán (prihlásenie, Katalóg formulárov, Načítať zo súboru, Kontrolovať, Podať EZ-ou, História komunikácie) je len orientačný. Krok 2b (generovanie XML) zostáva nezapracovaný, kým sa neotestuje šablóna s prázdnymi prepínačmi na portáli.
