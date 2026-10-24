@@ -10,6 +10,7 @@ import { endingSoon } from "../../domain/recurring";
 import { weeklySummary } from "../../domain/weekly";
 import { impactWithRentals } from "../../domain/rentalGoal";
 import { UNREACHABLE_IMPACT_TEXT, formatImpactOutcome } from "../../domain/impact";
+import { NextStep } from "../../ui/kit/NextStep";
 import { nominalFromReal, RETURN_ASSUMPTIONS } from "../../domain/assumptions";
 import { recommendedSettings } from "../../domain/recommendations";
 import { positionsChangedSince } from "../../domain/investments";
@@ -46,7 +47,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       <StockWarning items={data.stockItems} today={today} />
       {reviewOverdue(ctx.latest?.date ?? null, today) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
-          Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení.
+          Vyhodnotenie za predchádzajúci mesiac chýba. Dátum cieľa sa mení len pri vyhodnotení. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep>
         </p>
       )}
       {data.settings !== null && settingsCheckOverdue(data.settings.checkedAt, today) && (
@@ -61,7 +62,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       )}
       <MonthSpendingBlock incomeVisible={incomeVisible} data={data} today={today} thresholdCents={ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents} />
       <WeeklySummaryBlock transactions={data.transactions} today={today} thresholdCents={ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents} />
-      {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v <a href="#nastavenia">Nastaveniach</a>; ostatné hodnoty sú predvolené.</p>}
+      {ctx.target !== null ? <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p> : <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v Nastaveniach; ostatné hodnoty sú predvolené. <NextStep to="nastavenia">Nastavenia</NextStep></p>}
       {(ctx.negative.cash || ctx.negative.inv) && (
         <p style={{ background: "var(--err-bg)", padding: 8, borderRadius: 6 }}>
           Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení.
@@ -106,7 +107,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
           </details>
         </>
       ) : (
-        <p>{ctx.latest ? "" : <>Urob prvé vyhodnotenie vo <a href="#vyhodnotenie">Vyhodnotení</a>. Dátum cieľa sa zobrazí po ňom.</>}</p>
+        <p>{ctx.latest ? "" : <>Urob prvé vyhodnotenie. Dátum cieľa sa zobrazí po ňom. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></>}</p>
       )}
       <a href="#nova-transakcia" style={btnPrimary}>
         Pridať transakciu

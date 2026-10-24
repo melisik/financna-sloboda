@@ -8,6 +8,7 @@ import { formatImpactOutcome } from "../../domain/impact";
 import { SOURCES, type Source } from "../../storage/types";
 import { cents, monthYear, todayIso } from "../../ui/kit/format";
 import { Field, asNum, inp, type NumIn } from "../../ui/kit/controls";
+import { NextStep } from "../../ui/kit/NextStep";
 
 const SOURCE_LABEL: Record<Source, string> = { z_prijmu: "z príjmu", z_hotovosti: "z hotovosti", z_investicii: "z investícií" };
 
@@ -16,7 +17,13 @@ export function ScenarVydavkuSection({ ctx }: { ctx: Ctx }) {
   const [amount, setAmount] = useState<NumIn>("");
   const [source, setSource] = useState<Source>("z_hotovosti");
   if (!ctx.latest || ctx.target === null) {
-    return <p>Najprv zadaj nastavenia a aspoň jedno vyhodnotenie, aby sa dal dopad vyčísliť.</p>;
+    return (
+      <div>
+        <p>Dopad sa dá vyčísliť až po nastaveniach a vyhodnotení.</p>
+        {ctx.target === null && <NextStep to="nastavenia">Nastavenia</NextStep>}
+        {!ctx.latest && <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep>}
+      </div>
+    );
   }
   const today = todayIso();
   const savingZero = ctx.mInv + ctx.mCash === 0;

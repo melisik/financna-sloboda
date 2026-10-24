@@ -4,6 +4,7 @@ import { annualOverview, categoryComparison, yearlySummary, type OverviewSetting
 import { plural } from "../../domain/impact";
 import { goalDateText } from "../../domain/goalText";
 import { dateSk, eur, monthYear, todayIso } from "../../ui/kit/format";
+import { NextStep } from "../../ui/kit/NextStep";
 
 /** Zmena dátumu cieľa v mesiacoch, slovne (docs/13, oddiel 4). */
 function goalShiftText(d: number): string {
@@ -18,7 +19,7 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
     ctx.settings && ctx.target !== null ? { target: ctx.target, realReturn: ctx.realReturn, mInv: ctx.mInv, mCash: ctx.mCash } : null;
   const rows = annualOverview(data.snapshots, s, data.transactions, ctx.rentals);
   const years = yearlySummary(data.snapshots, data.transactions);
-  if (rows.length === 0) return <p>Zatiaľ nie sú vyhodnotenia. Prehľad sa zobrazí po prvom vyhodnotení.</p>;
+  if (rows.length === 0) return <p>Zatiaľ nie sú vyhodnotenia. Prehľad sa zobrazí po prvom vyhodnotení. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>;
   const savingZero = ctx.mInv + ctx.mCash === 0;
   // N-11: porovnanie kategórií za rovnaké obdobie; ak je najnovší rok aktuálny, len mesiace do dneška.
   // Riadky vznikajú zo snapshotov (aspoň jeden tu je), preto je latestYear konečné.
@@ -29,7 +30,7 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
   return (
     <div>
       <p style={{ color: "var(--muted)" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K a z aktuálnych Nastavení, bez nehnuteľností.</p>
-      {!s && <p style={{ color: "var(--muted)" }}>Nastavenia nie sú zadané; zobrazí sa len K.</p>}
+      {!s && <p style={{ color: "var(--muted)" }}>Nastavenia nie sú zadané; zobrazí sa len K. <NextStep to="nastavenia">Nastavenia</NextStep></p>}
       <h3 style={{ fontSize: "1rem", marginTop: 16 }}>Výdavky podľa kategórií</h3>
       <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 0 }}>
         {latestYear - 1} a {latestYear}{throughMonth < 12 ? `, mesiace 1 až ${throughMonth}` : ""}. Porovnanie je za rovnaké obdobie.

@@ -256,7 +256,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
 
   return (
     <section>
-      {!ctx.latest && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Najprv urob vyhodnotenie vo <a href="#vyhodnotenie">Vyhodnotení</a>, potom môžeš zapisovať transakcie.</p>}
+      {!ctx.latest && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Najprv urob vyhodnotenie, potom môžeš zapisovať transakcie. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
       {inEdit && <h2 style={{ fontSize: "1.1rem" }}>Úprava transakcie</h2>}
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "0.9rem" }}>Typ</span>

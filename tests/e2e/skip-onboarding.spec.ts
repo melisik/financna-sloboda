@@ -10,7 +10,7 @@ test("po preskočení sprievodcu appka funguje a ukáže, čo ešte chýba", asy
 
   await goTo(page, "nova-transakcia");
   await expect(page.getByText("Najprv urob vyhodnotenie")).toBeVisible();
-  await page.getByRole("link", { name: "Vyhodnotení" }).first().click();
+  await page.locator("section#nova-transakcia").getByRole("link", { name: "Vyhodnotenie" }).click();
   await expect(page.locator("section#vyhodnotenie")).toBeVisible();
 
   await goTo(page, "vyhodnotenie");

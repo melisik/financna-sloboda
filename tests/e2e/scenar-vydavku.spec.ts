@@ -31,6 +31,19 @@ test.describe("scenár veľkého výdavku", () => {
     await expect(page.getByText(/5\D?000,00 €/)).toHaveCount(0);
   });
 
+  test("bez nastavení a vyhodnotenia tlačidlá otvoria príslušnú sekciu", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "scenar-vydavku");
+    const scenario = page.locator("section#scenar-vydavku");
+    await expect(scenario.getByText("Dopad sa dá vyčísliť až po nastaveniach a vyhodnotení.")).toBeVisible();
+    await scenario.getByRole("link", { name: "Nastavenia" }).click();
+    await expect(page.getByLabel("Ročné výdavky pri nezávislosti (€)")).toBeVisible();
+
+    await goTo(page, "scenar-vydavku");
+    await scenario.getByRole("link", { name: "Vyhodnotenie" }).click();
+    await expect(page.getByLabel("Dátum vyhodnotenia", { exact: true })).toBeVisible();
+  });
+
   test("výdavok väčší než hotovosť ukáže vysvetlenie a zdroj z investícií", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nastavenia");
