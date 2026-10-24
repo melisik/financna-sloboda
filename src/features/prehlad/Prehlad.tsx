@@ -12,7 +12,8 @@ import { weeklyMailto, weeklySummaryLines } from "./weeklyMail";
 import { impactWithRentals } from "../../domain/rentalGoal";
 import { UNREACHABLE_IMPACT_TEXT, formatImpactOutcome } from "../../domain/impact";
 import { NextStep } from "../../ui/kit/NextStep";
-import { nominalFromReal, RETURN_ASSUMPTIONS } from "../../domain/assumptions";
+import { RETURN_ASSUMPTIONS } from "../../domain/assumptions";
+import { returnLine } from "./returnLine";
 import { recommendedSettings } from "../../domain/recommendations";
 import { positionsChangedSince } from "../../domain/investments";
 import { propertyChangedSince } from "../../domain/property";
@@ -76,6 +77,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       {ctx.latest && ctx.target !== null ? (
         <>
           <p>Dátum cieľa: <strong>{scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</strong></p>
+          <p style={hintStyle}>Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
           <p style={hintStyle}>
             Posledné vyhodnotenie: <strong>{dateSk(ctx.latest.date)}</strong>. Dátum sa zmení až po ďalšom vyhodnotení.
           </p>
@@ -95,9 +97,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
             <p>
               Rozsah dátumu: od {scenarioDateText(ctx, ctx.realReturn + 0.02, today, monthYear)} do {scenarioDateText(ctx, Math.max(0, ctx.realReturn - 0.02), today, monthYear)} (opatrný – základný – optimistický).
             </p>
-            <p>
-              Výnos: {pctText(ctx.realReturn)} reálne po poplatkoch, nominálne ≈ {pctText(nominalFromReal(ctx.realReturn, RETURN_ASSUMPTIONS.inflation))} pri inflácii 2 % (predpoklad).
-            </p>
+            <p>{returnLine(ctx.realReturn, RETURN_ASSUMPTIONS.inflation)}</p>
             {ctx.settings && (
               <p>Miera výberu: {pctText(ctx.settings.withdrawalRate)} (predpoklad, zdroj neoverený).</p>
             )}

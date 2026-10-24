@@ -52,6 +52,7 @@
 5. Stačí šifrovanie zálohy heslom, alebo je nutné šifrovanie údajov v zariadení (D-026, D-108)?
 6. Aké sú podmienky pre účty a synchronizáciu, ak sa neskôr zavedú (N-07, D-148 odkladá)?
 7. Aké riziká prináša zverejnenie čísel dokladov a skladu v zálohe pre testerov?
+8. Stačí, ak je upozornenie na skúšobnú verziu (bez záruky, nie je finančné poradenstvo, riziko straty údajov) pri prvom otvorení rozbalené a po potvrdení používateľom zbalené na jednu vetu? Alebo musia byť „bez záruky“ a „nie je finančné poradenstvo“ viditeľné stále (D-144, D-281)?
 
 ## 6. Bezpečnostný audit: rozsah
 - Kód: validácia zálohy pri importe (`src/storage/validate.ts`), PIN a jeho obnova (`src/features/zamok/pin.ts`, `src/features/zamok/Lock.tsx`), CSP a závislosti (`npm audit`).
@@ -59,5 +60,5 @@
 - Mimo rozsahu tohto dokumentu: hostovanie na GitHub Pages, DNS, nasadzovací proces.
 
 ## 7. Stav v repozitári
-- Dokumenty: `decisions/Decisions.md` (D-026, D-090, D-094, D-108, D-133, D-135, D-142, D-144), `docs/08_Backlog_Napady.md`.
+- Dokumenty: `decisions/Decisions.md` (D-026, D-090, D-094, D-108, D-133, D-135, D-142, D-144, D-281), `docs/08_Backlog_Napady.md`.
 - Tento dokument sa aktualizuje po každom rozhodnutí, ktoré mení údaje alebo odkazy von.

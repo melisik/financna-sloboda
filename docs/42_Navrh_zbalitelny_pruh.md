@@ -1,6 +1,6 @@
 # 42 – Návrh: zbaliteľný pruh „Skúšobná verzia“
 
-> Stav: **návrh na schválenie** (2026-10-24). Nadväzuje na `docs/40`, oddiel 6. Merané 2026-10-24 v Playwright na zostave s Fázou 2 pri šírke 320, 390 a 1280 px (výška 844 a 800 px). Varianty som vyskúšal len úpravou stránky v prehliadači; kód sa zatiaľ nemení. Obsah upozornenia predpisuje D-144 a zostáva rovnaký. Mení sa len to, kedy je celý text rozbalený.
+> Stav: **schválené (variant A, otázky 2 a 3 podľa odporúčania) a implementované** (D-281, 2026-10-24). Oprava z oddielu 8 je D-282. Nadväzuje na `docs/40`, oddiel 6. Merané 2026-10-24 v Playwright na zostave s Fázou 2 pri šírke 320, 390 a 1280 px (výška 844 a 800 px). Varianty som vyskúšal len úpravou stránky v prehliadači; kód sa zatiaľ nemení. Obsah upozornenia predpisuje D-144 a zostáva rovnaký. Mení sa len to, kedy je celý text rozbalený.
 
 ## 1. Problém
 
@@ -76,3 +76,30 @@ Zbalený pruh je vysoký 63 px pri 320 a 390 px a 44 px pri 1280 px. Vo všetký
 ## 8. Nález mimo tohto návrhu
 
 Prehľad píše „nominálne ≈ … pri inflácii 2 % (predpoklad)“ (`src/features/prehlad/Prehlad.tsx:99`). Výpočet však od D-263 používa infláciu 4,2 %, takže text uvádza iné číslo, než z ktorého počíta. Je to zavádzajúce finančné tvrdenie. Oprava je samostatná: text bude brať hodnotu z `RETURN_ASSUMPTIONS.inflation` a test overí, že sa zhoduje.
+
+## 9. Výsledok implementácie (2026-10-24)
+
+- `src/ui/trialNotice.ts`: súhrn, celý text, kľúč voľby `fs-trial-note-collapsed-v1` a čítanie a uloženie voľby. Keď úložisko nie je dostupné, pruh je rozbalený.
+- `src/ui/Shell.tsx`: pruh je `details` vo vnútri `role="note"`. Pamätá si, ako ho používateľ nechal: zbalí ho tlačidlo **Rozumiem, zbaliť** aj ťuknutie na súhrn. Odkaz **Záloha** je na konci textu. Nezobrazuje sa v sekcii Záloha ani na obrazovkách bez menu (zámok, sprievodca, načítavanie), kde by nič neotvoril. Úvodná veta nad menu zmizla.
+- `src/features/prehlad/Prehlad.tsx`: pod dátumom cieľa je veta „Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.“ Riadok výnosu skladá `returnLine` (`src/features/prehlad/returnLine.ts`) z tej istej inflácie, z ktorej počíta (D-282).
+- Namerané na zostave s Fázou 2:
+
+| Stav | 320 px: menu | 390 px: menu | 390 px: nadpis Transakcií | 1280 px: nadpis Transakcií |
+| --- | --- | --- | --- | --- |
+| Pred zmenou | 383 px | 338 px | 521 px | 434 px |
+| Prvé otvorenie (rozbalený) | 381 px | 360 px | 543 px | 461 px |
+| Zbalený | 159 px | 159 px | 342 px | 325 px |
+
+  Rozbalený pruh je o 22 px vyšší, ako ukazoval prototyp, lebo pribudol odkaz Záloha a tlačidlo má 44 px. Ukáže sa tak len do prvého zbalenia. Vodorovný presah je 0 px pri všetkých šírkach, v svetlom aj tmavom režime.
+
+| Rozbalený (390 px) | Zbalený, tmavý režim (390 px) |
+| --- | --- |
+| ![Rozbalený](obrazky/42/po-rozbaleny-390.png) | ![Zbalený](obrazky/42/po-zbaleny-390-tmavy.png) |
+
+- Testy:
+  - `tests/trial-notice.test.ts`: obsah podľa D-144, súhrn, verzia kľúča, zapamätanie a nedostupné úložisko.
+  - `tests/return-line.test.ts`: inflácia v texte je tá istá ako vo výpočte.
+  - `tests/e2e/trial-notice.spec.ts`: prvé otvorenie, zbalenie po obnovení, odkaz Záloha (aj jeho skrytie bez menu) a menu pri 390 px najviac 170 px.
+  - `tests/e2e/details-control.spec.ts`: veta o dani a „pri inflácii 4,2 %“ na Prehľade.
+- Overenie: `tsc` bez chýb, `vitest` 499 testov (88 súborov), Playwright 418 testov (209 × 2) vrátane testov dostupnosti.
+
