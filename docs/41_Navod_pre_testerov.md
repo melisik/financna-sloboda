@@ -47,8 +47,7 @@ Každá úloha trvá 2 až 5 minút. Nemusíte robiť všetky; aj jedna poctivo 
 
 ## 5. Ako nahlásiť pripomienku
 
-1. Dole na stránke ťuknite na **Nahlásiť pripomienku** → **Nemám účet**. Otvorí sa formulár.
-   - **Nepoužívajte „Mám účet na GitHube“.** Hlásenia na GitHube sú verejné a mohli by zverejniť obsah, ktorý ešte nie je vo verejnej verzii.
+1. Dole na stránke ťuknite na **Nahlásiť pripomienku** → **Otvoriť formulár**. Odpovede vo formulári nie sú verejné.
 2. Napíšte:
    - zariadenie a prehliadač (napríklad iPhone 15, Safari),
    - sekciu, v ktorej ste boli,
