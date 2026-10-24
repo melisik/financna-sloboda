@@ -3,6 +3,8 @@
 const MONTHS = ["januára", "februára", "marca", "apríla", "mája", "júna", "júla", "augusta", "septembra", "októbra", "novembra", "decembra"];
 export const cents = (x: number) => Math.round(x * 100);
 export const eur = (c: number) => `${(c / 100).toLocaleString("sk-SK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+/** Suma, ktorá sa nezalomí pred „€“ (tisíce oddeľuje nezalomiteľná medzera už `toLocaleString`). */
+export const eurKeep = (c: number) => eur(c).replace(/ €$/, "\u00a0€");
 /** Lokálny dnešný dátum YYYY-MM-DD (R14: nie UTC). */
 export const todayIso = () => {
   const d = new Date();

@@ -1,6 +1,6 @@
 # 45 – Návrh: opakované výdavky a dátum cieľa (B1)
 
-> Stav: **návrh na schválenie** (2026-10-24). Nadväzuje na `docs/43`, návrh B1. Kód sa zatiaľ nemení.
+> Stav: **schválené (U1, V3, S1, doplnenie zálohy) a implementované** (D-290, 2026-10-24). Otázka 5 (D-153 a D-285) **čaká na rozhodnutie zakladateľa**. Nadväzuje na `docs/43`, návrh B1. Výsledok je v oddiele 9.
 >
 > Čísla v náčrte vypočítala funkcia appky `goalMonths`. Vstupy sú syntetické: kapitál 304 000 €, cieľová suma 600 000 €, r 3,5 %, sporenie 500 € mesačne do investícií. Dnes je cieľ o 171 mesiacov.
 
@@ -118,3 +118,62 @@ Rozsah: 1 až 2 dni.
 3. Testovacia záloha (pri otázke 4 áno) a kontrola testov, ktoré ju používajú.
 4. Overenie: `tsc`, `vitest`, celé Playwright, snímky pri 320, 390 a 1280 px v svetlom aj tmavom režime.
 5. Zápis rozhodnutia do `decisions/Decisions.md`.
+
+## 9. Výsledok implementácie (2026-10-24)
+
+**Kód**
+- `src/domain/recurringImpact.ts`: čisté funkcie.
+  - `averageWindow` vráti posledné 3 celé kalendárne mesiace.
+  - `hasHistory`: prvá transakcia najneskôr v prvý deň okna.
+  - `categoryAverages`: všetky zdroje úhrady; bez kategórie je „nezaradené“ a patrí k „ostatným“.
+  - `recurringImpact` vytvorí položky, skupiny a mesiace. Počíta z kapitálu pri vyhodnotení (D-285) a sumu pripočíta k sporeniu do investícií (S1).
+- `src/features/mesacny-vydavok/OpakovaneVydavky.tsx`: blok pod scenárom v sekcii Mesačný výdavok (U1), skupiny v poradí nie nevyhnutné, ostatné, nevyhnutné (V3).
+- `src/features/mesacny-vydavok/recurringText.ts`: „o N mesiacov skôr“; pod pol mesiaca „menej ako 1 mesiac skôr“.
+- `src/ui/kit/format.ts`: `eurKeep`, suma, ktorá sa nezalomí pred „€“. Používa ju aj riadok pokroku na Prehľade.
+- Na úzkej obrazovke sa výsledok riadku presunie pod názov.
+- V tej istej sekcii scenár Mesačný výdavok naďalej počíta z pracovného kapitálu (D-285, `docs/43` oddiel 7). Riadky B1 ukazujú len posun v mesiacoch, nie dátum, takže rozdiel základu je malý; zapísané pre revíziu.
+
+**Testovacia záloha** (`public/testovacia-zaloha.json`, otázka 4)
+- 11 syntetických transakcií za júl až september:
+  - sporenie 500 € mesačne;
+  - nákupy, MHD, kino, koncert, víkend na horách, tričko.
+- 4 pravidelné výdavky: nájom 650 €, internet a telefón 25 €, streaming 12 €, poistenie domácnosti 120 € ročne.
+- Odvodené sporenie ostáva 500 € (D-031). Kapitál pri vyhodnoteniach a tok medzi nimi sa nezmenili; septembrové doplnky sú „z príjmu“.
+- `scripts/make-test-backup.mjs` zálohu ďalej posúva na aktuálny mesiac (overené posunom na 12/2026).
+- Testy, ktoré kontrolovali počet transakcií v zálohe (12), teraz čakajú 23: `tests/demo-backup.test.ts`, `tests/backup-v2.test.ts` (2×), `tests/e2e/testable.spec.ts`.
+
+**S testovacou zálohou** (390 px):
+- Nie nevyhnutné:
+  - voľný čas a dovolenka 53,33 € mesačne, o 6 mesiacov skôr;
+  - internet a telefón 25 €, o 3 mesiace skôr;
+  - zábava 14 €, o 2 mesiace skôr;
+  - streaming 12 €, o 1 mesiac skôr;
+  - oblečenie 11,67 €, o 1 mesiac skôr.
+- Nevyhnutné:
+  - nájom 650 €, o 55 mesiacov skôr;
+  - jedlo 47,90 €, o 6 mesiacov skôr;
+  - doprava 12 €, o 1 mesiac skôr;
+  - poistenie 10 € mesačne, o 1 mesiac skôr.
+- Vodorovný presah je 0 px pri 320, 390 a 1280 px, v svetlom aj tmavom režime.
+
+| 390 px | 320 px |
+| --- | --- |
+| ![390 px](obrazky/45/implementacia-390.png) | ![320 px](obrazky/45/implementacia-320.png) |
+
+**Testy**
+- Jednotkové, `tests/recurring-impact.test.ts` (9 testov):
+  - okno a história;
+  - priemery kategórií;
+  - 500 € mesačne = o 100 mesiacov skôr pri r = 0;
+  - ročný, ukončený a budúci pravidelný výdavok;
+  - poradie skupín;
+  - kratšia história;
+  - nedosiahnuteľný cieľ;
+  - text riadku.
+- E2E, `tests/e2e/recurring-impact.spec.ts`:
+  - skupiny a riadky s testovacou zálohou;
+  - kontrola dostupnosti (axe);
+  - 320 px bez presahu;
+  - kratšia história.
+- Overenie: `tsc` bez chýb, `vitest` 529 testov (93 súborov), Playwright 442 testov (221 × 2).
+

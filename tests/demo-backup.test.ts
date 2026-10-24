@@ -14,7 +14,7 @@ describe("testovacia záloha", () => {
     const parsed = parseBackup(json, TODAY);
     expect(parsed.ok, parsed.ok ? "" : parsed.errors.join("; ")).toBe(true);
     if (!parsed.ok) return;
-    expect(parsed.counts).toEqual({ transactions: 12, snapshots: 2 });
+    expect(parsed.counts).toEqual({ transactions: 23, snapshots: 2 }); // D-290: doplnená história júl až september
     expect(parsed.data?.transactions.some((t) => (t.receiptItems ?? []).length === 3)).toBe(true);
     expect(parsed.data?.transactions.some((t) => t.category === "jedlo")).toBe(true);
   });

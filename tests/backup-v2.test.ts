@@ -30,7 +30,7 @@ describe("záloha verzie 2 a import verzie 1 (FR-28)", () => {
     expect(parsed.data?.liabilities).toEqual([]);
     expect(parsed.data?.incomes).toEqual([]);
     expect(parsed.data?.budgets).toEqual([]);
-    expect(parsed.data?.transactions.length).toBe(12);
+    expect(parsed.data?.transactions.length).toBe(23); // D-290
     expect(parsed.data?.snapshots.length).toBe(2);
   });
 
@@ -76,6 +76,6 @@ describe("záporné mesačné sporenie v zálohe (nález 1, D-165, D-218)", () =
     expect(r.notes?.length).toBe(1);
     expect(r.data?.settings?.savingInvCents).toBeUndefined();
     expect(r.data?.settings?.savingCashCents).toBe(2_000);
-    expect(r.counts).toEqual({ transactions: 12, snapshots: 2 });
+    expect(r.counts).toEqual({ transactions: 23, snapshots: 2 }); // D-290
   });
 });

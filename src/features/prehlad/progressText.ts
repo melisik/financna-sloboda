@@ -2,10 +2,7 @@ import type { GoalDateShift, GoalProgress } from "../../domain/progress";
 import type { HistoryShift } from "../../domain/progressHistory";
 import type { GoalDisplay } from "../../domain/goalDisplay";
 import { plural } from "../../domain/impact";
-import { dateSk, eur } from "../../ui/kit/format";
-
-/** Suma, ktorá sa nezalomí pred „€“ (tisíce oddeľuje nezalomiteľná medzera už `toLocaleString`). */
-const eurKeep = (c: number) => eur(c).replace(/ €$/, "\u00a0€");
+import { dateSk, eurKeep } from "../../ui/kit/format";
 
 /** Riadok pokroku na Prehľade (D-283): vecne, bez hodnotenia (docs/03, zásada 2). */
 export function progressLine(p: GoalProgress): string {

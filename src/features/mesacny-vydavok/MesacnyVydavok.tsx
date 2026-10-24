@@ -8,9 +8,11 @@ import { cents, eur, monthYear, todayIso } from "../../ui/kit/format";
 import { Field, asNum, type NumIn } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
 import { card, hintStyle } from "../../ui/kit/controls";
+import type { AppData } from "../../storage/types";
+import { OpakovaneVydavkyBlock } from "./OpakovaneVydavky";
 
 /** Mesačný výdavok (N-12b, docs/37). Nič sa neukladá: výsledok existuje len na obrazovke. */
-export function MesacnyVydavokSection({ ctx }: { ctx: Ctx }) {
+export function MesacnyVydavokSection({ ctx, data }: { ctx: Ctx; data: AppData }) {
   const [amount, setAmount] = useState<NumIn>("");
   if (!ctx.latest || ctx.target === null) {
     const text =
@@ -63,6 +65,7 @@ export function MesacnyVydavokSection({ ctx }: { ctx: Ctx }) {
       )}
       {outcome && outcome.ok && <Result outcome={outcome} today={today} />}
       <p style={hintStyle}>Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.</p>
+      <OpakovaneVydavkyBlock data={data} ctx={ctx} />
     </div>
   );
 }

@@ -91,7 +91,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "mesacny-vydavok":
       return (
         <Section id="mesacny-vydavok" title="Mesačný výdavok (scenár)">
-          <MesacnyVydavokSection ctx={ctx} />
+          <MesacnyVydavokSection ctx={ctx} data={data} />
         </Section>
       );
     case "vyhodnotenie":
