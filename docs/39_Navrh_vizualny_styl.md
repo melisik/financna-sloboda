@@ -1,6 +1,6 @@
 # 39 – Návrh: jednotný vizuálny štýl (tokeny)
 
-> Stav: **návrh, čaká na schválenie zakladateľa.** Implementácia len po schválení, v krokoch uvedených v oddiele 5. Mení sa len vzhľad: žiadne výpočty, dáta, texty tlačidiel ani popisky polí (E2E testy na nich stoja).
+> Stav: **schválené a implementované** (D-278, 2026-10-24). Schválené s odporúčanými voľbami z oddielu 6. Mení sa len vzhľad: žiadne výpočty, dáta, texty tlačidiel ani popisky polí.
 
 ## 1. Stav (zistené 2026-10-24)
 
@@ -64,3 +64,14 @@ Mimo rozsahu: prepísanie všetkých 517 inline štýlov naraz. Zmena sa robí l
 2. **Pomocné odkazy:** textové odkazy `btnLink` (odporúčam), nie rámiky.
 3. **Tóny upozornení:** `info`, `warn`, `ok`, `error` stačia?
 4. **Rozsah:** tokeny, komponenty a najčastejšie opakovania (odporúčam), nie všetky 517 inline štýlov naraz.
+
+## 7. Výsledok implementácie (2026-10-24)
+
+- **Tokeny** v `index.html`: `--focus`, `--link`, `--warn-border` vo svetlom aj v oboch tmavých režimoch; `--font-text`, `--font-small`, `--font-heading`, `--font-title`; `:focus-visible` s okrajom 3 px. Test: `tests/design-tokens.test.ts`.
+- **Komponenty** v `src/ui/kit/controls.tsx`: `btnLink`, `card`, `hintStyle`, `calloutStyle` a `Callout` (tóny info, warn, ok, error). `btn`, `inp`, `Section` a popisky polí používajú typografické tokeny.
+- **Pomocné odkazy:** `NextStep` používa `btnLink` (textový odkaz, bez rámika). Záporný zvislý okraj zachová dotykovú výšku 44 px a nezväčší riadok textu.
+- **Výška tlačidiel:** `btn` a `btnLink` majú `box-sizing: border-box`. Odkazy v štýle tlačidla mali predtým 60 až 62 px, teraz majú 44 px rovnako ako tlačidlá.
+- **Obrazovky:** veľkosti písma v 27 súboroch prešli na tokeny (odchýlky 0,85; 0,95; 1,05; 1,1 rem na najbližší token). Presné vzory: pomocný text 26×, varovanie 18×, ok 1×, chyba 1×, karta 2×.
+- **Ostáva inline:** varianty, ktoré sa presne nezhodujú so vzorom (napr. karta s vlastným okrajom, varovanie s inou veľkosťou písma). Nemenil som ich, aby sa nezmenilo rozloženie; dajú sa migrovať postupne.
+- **Hlavná akcia:** na obrazovkách Prehľad, Transakcie a Dane je hlavná akcia na konci formulára alebo bloku. Umiestnenie na ostatných obrazovkách som neprepracoval.
+- **Overenie:** `tsc` bez chýb, `vitest` 483 testov (85 súborov), Playwright 392 testov vrátane testov dostupnosti WCAG 2.1 AA. Kontrola vodorovného posúvania všetkých 16 sekcií pri 390 px a 1280 px bez nálezu. Snímky Prehľadu, Transakcií a Daní pri 390 a 1280 px skontrolované.
