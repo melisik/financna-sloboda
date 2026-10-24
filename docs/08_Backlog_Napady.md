@@ -22,7 +22,7 @@
 ## N-04 Predvyplnenie nasporenej sumy (zaradené do MVP, D-096)
 - Pri vyhodnotení predvyplniť K z predchádzajúceho stavu a od D_L pridať sporenie. Znižuje riziko ručného zadávania chyby (recenzia S7).
 
-## N-05 Voliteľné heslo na export (odložené, D-096)
+## N-05 Voliteľné heslo na export (odložené, D-096) — implementované (D-276), návrh v `docs/38`
 - Export zašifrovaný heslom cez Web Crypto, voliteľný. Nie je to šifrovanie v kľude, ktoré je mimo MVP (D-026). Zmierňuje riziko úniku exportného súboru (recenzia S5).
 
 ## N-06 Viac kapitálových typov a daňových režimov v jednom modeli
