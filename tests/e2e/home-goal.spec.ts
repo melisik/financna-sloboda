@@ -26,4 +26,40 @@ test.describe("Prehľad: cieľ na prvej obrazovke", () => {
       expect(box!.y + box!.height).toBeLessThanOrEqual(844);
     }
   });
+
+  test("výdavok po vyhodnotení nezmení dátum cieľa ani pokrok; ukáže sa len predbežne (D-285, FR-04)", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "nastavenia");
+    await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
+    await page.getByLabel("Miera výberu (%)").fill("4");
+    await page.getByLabel("Reálny výnos r (%)").fill("3.5");
+    await page.getByLabel("Mesačné sporenie do investícií (€), prázdne = odvodené").fill("500");
+    await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
+    await goTo(page, "vyhodnotenie");
+    await page.getByLabel("Hodnota investícií (€)").fill("100000");
+    await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
+    await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
+
+    await goTo(page, "prehlad");
+    const home = page.locator("section#prehlad");
+    const date = home.locator("p", { hasText: "Dátum cieľa:" });
+    const progress = home.locator("p", { hasText: "Pokrok:" });
+    await expect(progress).toContainText("120");
+    const dateBefore = await date.innerText();
+    const progressBefore = await progress.innerText();
+
+    await goTo(page, "nova-transakcia");
+    await page.getByLabel("Zdroj úhrady").selectOption("z_hotovosti");
+    await page.getByLabel("Suma (€)").fill("19000");
+    await page.getByRole("button", { name: "Uložiť transakciu" }).click();
+    await expect(page.locator("section#nova-transakcia")).toContainText("19 000,00");
+
+    await goTo(page, "prehlad");
+    await expect(date).toHaveText(dateBefore);
+    await expect(progress).toHaveText(progressBefore);
+    await home.locator("summary", { hasText: "Podrobnosti" }).click();
+    await expect(home).toContainText("Po transakciách od vyhodnotenia (predbežne): investície");
+    await expect(home.locator("p", { hasText: "Predbežný dopad posledných transakcií" })).not.toContainText("bez zmeny");
+  });
 });
+

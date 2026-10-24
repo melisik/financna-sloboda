@@ -33,12 +33,12 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
     ctx.latest && ctx.target !== null && ctx.settings
       ? impactWithRentals({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target, ctx.rentals)
       : null;
-  // Pokrok a posun počítajú s tým istým kapitálom ako zobrazený dátum cieľa (D-283).
-  const progress = ctx.latest && ctx.target !== null ? goalProgress(ctx.capital, ctx.target, ctx.rentals) : null;
+  // Dátum cieľa, pokrok a posun sú z kapitálu pri poslednom vyhodnotení (D-283, D-285, FR-04).
+  const progress = ctx.latest && ctx.target !== null ? goalProgress(ctx.evaluated, ctx.target, ctx.rentals) : null;
   const previous = [...data.snapshots].sort((a, b) => a.date.localeCompare(b.date)).at(-2) ?? null;
   const shift =
     ctx.latest && ctx.target !== null
-      ? goalDateShift({ previous, latestDate: ctx.latest.date, capital: ctx.capital, mInv: ctx.mInv, mCash: ctx.mCash, rate: ctx.realReturn, targetCents: ctx.target, rentals: ctx.rentals })
+      ? goalDateShift({ previous, latestDate: ctx.latest.date, capital: ctx.evaluated, mInv: ctx.mInv, mCash: ctx.mCash, rate: ctx.realReturn, targetCents: ctx.target, rentals: ctx.rentals })
       : null;
   const threshold = ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents;
   // Poradie (D-283, docs/43 A1): cieľ a pokrok, hlavná akcia, upozornenia, potom mesiac a týždeň.
@@ -86,7 +86,10 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
             {ctx.settings && (
               <p>Miera výberu: {pctText(ctx.settings.withdrawalRate)} (predpoklad, zdroj neoverený).</p>
             )}
-            <p>Kapitál: investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}. Rezerva: {eur(ctx.reserve)}.</p>
+            <p>Kapitál pri vyhodnotení: investície {eur(ctx.evaluated.inv)}, hotovosť {eur(ctx.evaluated.cash)}. Rezerva: {eur(ctx.reserve)}.</p>
+            {(ctx.capital.inv !== ctx.evaluated.inv || ctx.capital.cash !== ctx.evaluated.cash) && (
+              <p>Po transakciách od vyhodnotenia (predbežne): investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}.</p>
+            )}
             <p>
               Predbežný dopad posledných transakcií:{" "}
               <strong>{pending === null ? UNREACHABLE_IMPACT_TEXT : formatImpactOutcome(pending)}</strong>

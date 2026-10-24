@@ -21,7 +21,7 @@ test.describe("tlačidlo Podrobnosti", () => {
     const control = page.locator("section#prehlad summary", { hasText: "Podrobnosti ▾" });
     await expect(control).toBeVisible();
     await control.click();
-    await expect(page.locator("section#prehlad")).toContainText("Kapitál: investície");
+    await expect(page.locator("section#prehlad")).toContainText("Kapitál pri vyhodnotení: investície");
     // Text uvádza tú istú infláciu, z ktorej počíta (D-263, D-282).
     await expect(page.locator("section#prehlad")).toContainText("nominálne ≈ 7,8 % pri inflácii 4,2 % (predpoklad)");
   });

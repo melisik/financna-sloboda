@@ -30,6 +30,8 @@ test.describe("transakcia v deň vyhodnotenia (D-121)", () => {
 
     await goTo(page, "prehlad");
     await page.getByText("Podrobnosti").click();
-    await expect(page.locator("section#prehlad")).toContainText("Kapitál: investície 309 850,00 €");
+    // Výdavok je v pracovnom kapitáli; oficiálny kapitál pri vyhodnotení sa nemení (D-285, FR-04).
+    await expect(page.locator("section#prehlad")).toContainText("Po transakciách od vyhodnotenia (predbežne): investície 309 850,00 €");
+    await expect(page.locator("section#prehlad")).toContainText("Kapitál pri vyhodnotení: investície 310 000,00 €");
   });
 });

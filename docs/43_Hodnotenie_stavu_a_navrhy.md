@@ -108,7 +108,7 @@ Náročnosť: S = do pol dňa, M = 1 až 2 dni, L = viac. Každý návrh by pre�
 **A1 Prehľad (D-283)**
 - Nové poradie Prehľadu:
   1. dátum cieľa (väčším písmom);
-  2. pokrok, napr. „Pokrok: 50 % (304 342,80 € z 600 000,00 €)“, s pruhom;
+  2. pokrok, napr. „Pokrok: 50 % (304 000,00 € z 600 000,00 €)“, s pruhom;
   3. posun od predchádzajúceho vyhodnotenia, napr. „Od vyhodnotenia 31.08.2026 sa dátum cieľa posunul o 13 mesiacov bližšie.“;
   4. veta o dani, posledné vyhodnotenie a Podrobnosti;
   5. Pridať transakciu;
@@ -155,7 +155,7 @@ Náročnosť: S = do pol dňa, M = 1 až 2 dni, L = viac. Každý návrh by pre�
   - `tests/e2e/skip-onboarding.spec.ts`: cieľová suma v riadku Pokrok.
 - Overenie: `tsc` bez chýb, `vitest` 508 testov (90 súborov), Playwright 422 testov (211 × 2) vrátane skenovania falošnou kamerou.
 
-## 7. Nový nález: dátum cieľa a transakcie po vyhodnotení
+## 7. Nález: dátum cieľa a transakcie po vyhodnotení (vyriešené, D-285)
 
 Prehľad počíta dátum cieľa z kapitálu, ktorý obsahuje aj transakcie po poslednom vyhodnotení (`ctx.capital` v `src/domain/context.ts`, D-121). Skúšobný výpočet (`makeCtx` a `scenarioDateText`):
 - posledné vyhodnotenie 100 000 € investícií a 20 000 € hotovosti;
@@ -167,5 +167,15 @@ Dokumentácia pritom hovorí inak:
 - D-024: dátum sa „mení len pri novom vyhodnotení“.
 - Text pod dátumom: „Dátum sa zmení až po ďalšom vyhodnotení.“
 
-Pokrok z A1 počíta s tým istým kapitálom ako dátum, aby si čísla neodporovali. Rozhodnutie je na zakladateľovi: buď dátum počítať z kapitálu pri vyhodnotení (podľa FR-04), alebo zmeniť FR-04, D-024 a text. Kód sa v tomto bode zatiaľ nemenil.
+Pokrok z A1 počítal s tým istým kapitálom ako dátum, aby si čísla neodporovali.
+
+**Rozhodnutie (2026-10-24, D-285):** zakladateľ zvolil možnosť A, teda dátum podľa FR-04.
+- Oficiálny dátum cieľa, jeho rozsah, upozornenie na dlhý horizont, pokrok a posun sa počítajú z kapitálu pri poslednom vyhodnotení (`ctx.evaluated`, K_L).
+- Transakcie po vyhodnotení menia len pracovný kapitál (`ctx.capital`, K_pred) a predbežný dopad.
+- V Podrobnostiach je „Kapitál pri vyhodnotení“. Ak sa pracovný kapitál líši, pod ním je aj riadok „Po transakciách od vyhodnotenia (predbežne)“.
+- Scenáre Veľký a Mesačný výdavok aj predbežný dopad vo formulári transakcie ostávajú na pracovnom kapitáli (FR-04, `docs/36`). Ich „dátum cieľa bez výdavku“ sa preto môže líšiť od dátumu na Prehľade, kým sa transakcie po vyhodnotení neprenesú do nového vyhodnotenia.
+- Testy:
+  - `tests/context.test.ts`: výdavok po vyhodnotení nezmení dátum ani rozsah;
+  - `tests/e2e/home-goal.spec.ts`: dátum a pokrok sa po výdavku nezmenia, predbežný dopad áno;
+  - `same-day-evaluation` a `forgotten-expense` kontrolujú pracovný kapitál v novom riadku.
 

@@ -10,6 +10,9 @@ import { capitalWithFlags, reserveBalance } from "./ledger";
 export interface Ctx {
   settings: Settings | null;
   latest: Snapshot | null;
+  /** Kapitál pri poslednom vyhodnotení (K_L): z neho je oficiálny dátum cieľa a pokrok (FR-04, D-024, D-285). */
+  evaluated: Capital;
+  /** Pracovný kapitál (K_pred): K_L a transakcie po vyhodnotení (D-121). Len pre predbežný dopad, nie pre oficiálny cieľ. */
   capital: Capital;
   negative: { inv: boolean; cash: boolean };
   shortfall: { inv: number; cash: number };
@@ -33,10 +36,12 @@ export function makeCtx(data: AppData): Ctx {
   const mCash = s?.savingCashCents ?? derived.cash;
   const realReturn = netRealReturn(s?.realReturn ?? RETURN_ASSUMPTIONS.realReturn, s?.feesRate ?? 0);
   const rentals = rentalsFor(data.properties);
-  const g = latest && target !== null ? goalMonths(flags.capital, mInv, mCash, realReturn, target, rentals) : null;
+  const evaluated: Capital = latest ? { inv: latest.investmentsCents, cash: latest.cashCents } : { inv: 0, cash: 0 };
+  const g = latest && target !== null ? goalMonths(evaluated, mInv, mCash, realReturn, target, rentals) : null;
   return {
     settings: s,
     latest,
+    evaluated,
     capital: flags.capital,
     negative: flags.negative,
     shortfall: flags.shortfall,

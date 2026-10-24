@@ -80,6 +80,7 @@ describe("scenarioDateText: dátum cieľa pre mieru výnosu (FR-02, FR-03, D-019
     const ctx: Ctx = {
       settings: null,
       latest: snapshot(0, eur(10_000)),
+      evaluated: { inv: 0, cash: eur(10_000) },
       capital: { inv: 0, cash: eur(10_000) },
       negative: { inv: false, cash: false },
       shortfall: { inv: 0, cash: 0 },

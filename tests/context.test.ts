@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeCtx } from "../src/domain/context";
+import { scenarioDateText } from "../src/domain/scenario";
 import type { AppData, Settings, Snapshot, Transaction } from "../src/storage/types";
 
 const eur = (x: number) => x * 100;
@@ -136,3 +137,31 @@ describe("makeCtx: kontext prehľadu (FR-01, FR-02, FR-04, D-121)", () => {
     expect(short.longHorizon).toBe(false);
   });
 });
+
+// D-285 (FR-04, D-024): oficiálny dátum cieľa a pokrok počítajú s kapitálom pri poslednom vyhodnotení (K_L).
+// Transakcie po vyhodnotení menia len pracovný kapitál (K_pred) a predbežný dopad.
+describe("oficiálny cieľ z kapitálu pri vyhodnotení (D-285)", () => {
+  const withSaving: Settings = { ...settings, savingInvCents: eur(500), savingCashCents: 0 };
+  const expense = tx({ id: "v", date: "2026-10-10", type: "vydavok", source: "z_hotovosti", amountCents: eur(19_000), createdAt: "2026-10-10T10:00:00Z" });
+
+  it("kapitál pri vyhodnotení je K_L; pracovný kapitál obsahuje transakcie po ňom", () => {
+    const ctx = makeCtx(emptyData({ settings: withSaving, snapshots: [snap], transactions: [expense] }));
+    expect(ctx.evaluated).toEqual({ inv: eur(100_000), cash: eur(20_000) });
+    expect(ctx.capital).toEqual({ inv: eur(100_000), cash: eur(1_000) });
+  });
+
+  it("výdavok po vyhodnotení nezmení dátum cieľa ani jeho rozsah", () => {
+    const fmt = (iso: string) => iso.slice(0, 7);
+    const before = makeCtx(emptyData({ settings: withSaving, snapshots: [snap] }));
+    const after = makeCtx(emptyData({ settings: withSaving, snapshots: [snap], transactions: [expense] }));
+    for (const rate of [0.015, 0.035, 0.055]) {
+      expect(scenarioDateText(after, rate, "2026-10-24", fmt)).toBe(scenarioDateText(before, rate, "2026-10-24", fmt));
+    }
+    expect(after.longHorizon).toBe(before.longHorizon);
+  });
+
+  it("bez vyhodnotenia je kapitál pri vyhodnotení 0", () => {
+    expect(makeCtx(emptyData({ settings })).evaluated).toEqual({ inv: 0, cash: 0 });
+  });
+});
+

@@ -7,13 +7,14 @@ import { goalDateText } from "./goalText";
 /**
  * Dátum cieľa pre danú mieru výnosu (FR-02, FR-03). Dnešný dátum a formátovanie mesiaca
  * dostane ako parameter, aby funkcia zostala čistá a dala sa testovať.
+ * Predvolene z kapitálu pri poslednom vyhodnotení: transakcie po ňom dátum nemenia (FR-04, D-024, D-285).
  */
 export function scenarioDateText(
   ctx: Ctx,
   rate: number,
   today: string,
   formatDate: (iso: string) => string,
-  capital: Capital = ctx.capital,
+  capital: Capital = ctx.evaluated,
 ): string {
   if (!ctx.latest || ctx.target === null) return "—";
   const g = goalMonths(capital, ctx.mInv, ctx.mCash, rate, ctx.target, ctx.rentals);
