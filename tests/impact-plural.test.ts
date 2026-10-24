@@ -36,6 +36,19 @@ describe("formatImpact: skloňovanie mesiacov a dní (FR-04, N1)", () => {
     expect(formatImpact(21 * DAY)).toBe("predbežne +21 dní");
   });
 
+  // Pokračovanie T3 (docs/30, jazyková kontrola; D-289): zložená číslovka končiaca na 2 až 4, písaná dovedna
+  // (dvadsaťdva, šesťdesiattri), má podstatné meno v genitíve plurálu: 22 mesiacov, 63 mesiacov, 24 dní.
+  it("čísla 22 až 24, 32 až 34 a pod. sa skloňujú ako 5 a viac; 2 až 4 ostávajú", () => {
+    expect(formatImpact(22)).toBe("predbežne +22 mesiacov");
+    expect(formatImpact(-23)).toBe("predbežne −23 mesiacov");
+    expect(formatImpact(34)).toBe("predbežne +34 mesiacov");
+    expect(formatImpact(63)).toBe("predbežne +63 mesiacov");
+    expect(formatImpact(102)).toBe("predbežne +102 mesiacov");
+    expect(formatImpact(24 * DAY)).toBe("predbežne +24 dní");
+    expect(formatImpact(2)).toBe("predbežne +2 mesiace");
+    expect(formatImpact(4 * DAY)).toBe("predbežne +4 dni");
+  });
+
   // nález T7 (docs/30; docs/29 nález 6): NaN nemá stráž, takže text vznikne ako „−NaN dní“.
   it("nález T7: NaN na vstupe nesmie vyjsť do textu dopadu", () => {
     expect(formatImpact(NaN)).not.toMatch(/NaN/);

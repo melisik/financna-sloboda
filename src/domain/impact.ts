@@ -50,12 +50,13 @@ export function formatImpactOutcome(i: Impact): string {
   }
 }
 
-/** Slovenské skloňovanie čísla pri jednotkách: 1 mesiac / 2–4 mesiace / 5+ mesiacov. */
+/**
+ * Slovenské skloňovanie čísla pri jednotkách: 1 mesiac / 2–4 mesiace / ostatné mesiacov.
+ * Zložené číslovky písané dovedna (21, 22, 63 …) majú genitív plurálu: 22 mesiacov (T3, D-289).
+ */
 export function plural(n: number, one: string, few: string, many: string): string {
-  const last = n % 10;
-  const lastTwo = n % 100;
   if (n === 1) return one;
-  if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return few;
+  if (n >= 2 && n <= 4) return few;
   return many;
 }
 

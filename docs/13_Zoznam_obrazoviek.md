@@ -6,7 +6,7 @@
 
 | Obrazovka | Stav | Poznámka |
 |---|---|---|
-| Prehľad | na main | cieľ, dátum, vyhodnotenie, podrobnosti; na vetve aj pokrok a posun dátumu cieľa na prvej obrazovke (D-283) |
+| Prehľad | na main | cieľ, dátum, vyhodnotenie, podrobnosti; na vetve aj pokrok a posun dátumu cieľa na prvej obrazovke (D-283) a zbalený Vývoj v čase (D-289) |
 | Transakcie | na main | sporenie, investícia, výdavok, rezerva, výber z rezervy; na vetve suma ako prvé pole, doklad zbalený, Prílohy a Zmazať v úprave (D-286) |
 | Vyhodnotenie | na vetve (zoznam a mazanie vyhodnotení); mesačné zadanie na main | mesačné zadanie; investície sa odvodia zo súčtu položiek (D-101) |
 | Majetok | na vetve | nehnuteľnosť (hypotéka, splátka s úrokom), automobil, ocenitelné právo |

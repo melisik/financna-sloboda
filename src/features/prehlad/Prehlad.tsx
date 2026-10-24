@@ -16,6 +16,7 @@ import { RETURN_ASSUMPTIONS } from "../../domain/assumptions";
 import { returnLine } from "./returnLine";
 import { goalDateShift, goalProgress } from "../../domain/progress";
 import { progressLine, shiftLine } from "./progressText";
+import { VyvojBlock } from "./Vyvoj";
 import { recommendedSettings } from "../../domain/recommendations";
 import { positionsChangedSince } from "../../domain/investments";
 import { propertyChangedSince } from "../../domain/property";
@@ -96,6 +97,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
             </p>
             <p style={{ color: "var(--muted)" }}>Transakcií: {data.transactions.length}</p>
           </details>
+          <VyvojBlock data={data} ctx={ctx} />
         </>
       ) : (
         <>

@@ -1,6 +1,6 @@
 # 44 – Návrh: vývoj v čase (A2)
 
-> Stav: **návrh na schválenie** (2026-10-24). Nadväzuje na `docs/43`, návrh A2. Kód sa zatiaľ nemení.
+> Stav: **schválené (U1, A, N1, oprava textu) a implementované** (D-289, 2026-10-24). Nadväzuje na `docs/43`, návrh A2. Výsledok je v oddiele 10.
 >
 > Náčrty sú zo syntetických dát:
 > - 12 mesačných vyhodnotení, kapitál z 230 000 € na 304 000 €;
@@ -94,8 +94,51 @@ Rozsah: 1 až 2 dni.
      - pri 320 a 390 px nie je vodorovný presah;
      - test dostupnosti prejde.
 2. Kód:
-   - `src/ui/kit/lineChart.ts`: čistá funkcia, ktorá z hodnôt vypočíta body;
+   - `src/ui/kit/chartGeometry.ts`: čistá funkcia, ktorá z hodnôt vypočíta body;
    - `src/ui/kit/LineChart.tsx`: SVG;
    - `src/features/prehlad/Vyvoj.tsx`: blok Vývoj, používa `annualOverview`.
 3. Overenie: `tsc`, `vitest`, celé Playwright, snímky pri 320, 390 a 1280 px v svetlom aj tmavom režime.
 4. Zápis rozhodnutia do `decisions/Decisions.md`.
+
+## 10. Výsledok implementácie (2026-10-24)
+
+**Kód**
+- `src/ui/kit/chartGeometry.ts`: čisté funkcie `chartY`, `chartPoints` a `chartMaxY` (mierka od 0, rezerva 5 %, hodnoty mimo mierky ostanú v grafe).
+- `src/ui/kit/LineChart.tsx`: SVG s `role="img"` a popisom.
+- `src/domain/progressHistory.ts`: `historyShift` (posun od prvého po posledné vyhodnotenie).
+- `src/features/prehlad/progressText.ts`: `historyLine` a `goalCell` (mesiace v tvare MM/RRRR).
+- `src/features/prehlad/Vyvoj.tsx`: blok „Vývoj ▾“ pod „Podrobnosti ▾“ na Prehľade.
+- Oprava textu v Ročnom prehľade (oddiel 7): „…z uloženého K, z dnešných Nastavení a z dnešných hodnôt nehnuteľností v prenájme.“
+
+**Merané** s testovacou zálohou, pruh zbalený, blok Vývoj zbalený:
+- Spodok tlačidla „Pridať transakciu“:
+  - pri 390 px na 777 px (predtým 725 px), stále na prvej obrazovke;
+  - pri 1280 px na 684 px;
+  - pri 320 × 844 px na 873 px, teda pod okrajom. Zariadenia so šírkou 320 px majú výšku obrazovky okolo 568 px, takže sa tam nezmestil ani predtým.
+- Vodorovný presah je 0 px pri 320, 390 a 1280 px, v svetlom aj tmavom režime.
+
+| Implementácia, 12 syntetických vyhodnotení (390 px) | Tmavý režim |
+| --- | --- |
+| ![Implementácia](obrazky/44/implementacia-390.png) | ![Tmavý režim](obrazky/44/implementacia-390-tmavy.png) |
+
+**Oprava skloňovania (pokračovanie T3 z `docs/30`)**
+- Snímka ukázala „o 63 mesiace“. Funkcia `plural` (`src/domain/impact.ts`) dávala tvar „mesiace“ pre každé číslo končiace na 2 až 4.
+- Zložená číslovka písaná dovedna má podstatné meno v genitíve plurálu: 22 mesiacov, 63 mesiacov, 24 dní. Tvar „mesiace“ ostáva len pre 2, 3 a 4.
+- Oprava platí všade, kde appka skloňuje: predbežný dopad, posuny dátumu cieľa, Ročný prehľad, Sklad.
+- Test GC-15 očakával „−154 mesiace“; `docs/07` aj názov testu uvádzajú „−154 mesiacov“, takže očakávanie som zosúladil s `docs/07`.
+
+**Testy**
+- Jednotkové:
+  - `tests/chart-geometry.test.ts`;
+  - `tests/progress-history.test.ts`;
+  - nový prípad v `tests/impact-plural.test.ts`.
+- E2E `tests/e2e/progress-history.spec.ts`:
+  - Vývoj je zbalený;
+  - po otvorení je graf s popisom, veta a tabuľka so všetkými vyhodnoteniami;
+  - kontrola dostupnosti (axe) s otvoreným blokom;
+  - 320 px bez presahu;
+  - pri jednom vyhodnotení je len oznam;
+  - pri nehnuteľnosti v prenájme sa zobrazí veta N1;
+  - opravený text v Ročnom prehľade.
+- Overenie: `tsc` bez chýb, `vitest` 520 testov (92 súborov), Playwright 438 testov (219 × 2).
+

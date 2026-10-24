@@ -74,7 +74,7 @@ describe("výdavky z kapitálu (D-045)", () => {
     expect(second.capital.inv).toBe(0);
     const d = impactMonthsSplit({ inv: eur(100_000), cash: 0 }, second.capital, eur(500), 0, 0.04, T600);
     expect(d!).toBeCloseTo(-154.1, 1);
-    expect(formatImpact(d!)).toBe("predbežne −154 mesiace");
+    expect(formatImpact(d!)).toBe("predbežne −154 mesiacov"); // docs/07 GC-15; skloňovanie podľa D-289
   });
 
   it("presun do investícií nemení K a nesmie vyčerpať viac než K_cash (D-058)", () => {

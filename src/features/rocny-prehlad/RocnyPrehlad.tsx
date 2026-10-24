@@ -30,7 +30,7 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
   const comparison = categoryComparison(data.transactions, latestYear, latestYear - 1, throughMonth);
   return (
     <div>
-      <p style={{ color: "var(--muted)" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K a z aktuálnych Nastavení, bez nehnuteľností.</p>
+      <p style={{ color: "var(--muted)" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K, z dnešných Nastavení a z dnešných hodnôt nehnuteľností v prenájme.</p>
       {!s && <p style={{ color: "var(--muted)" }}>Nastavenia nie sú zadané; zobrazí sa len K. <NextStep to="nastavenia">Nastavenia</NextStep></p>}
       <h3 style={{ fontSize: "var(--font-text)", marginTop: 16 }}>Výdavky podľa kategórií</h3>
       <p style={{ ...hintStyle, marginTop: 0 }}>
