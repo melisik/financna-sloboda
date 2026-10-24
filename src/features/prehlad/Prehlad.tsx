@@ -8,6 +8,7 @@ import { monthSummary } from "../../domain/monthSummary";
 import { monthlyIncomeCents } from "../../domain/income";
 import { endingSoon } from "../../domain/recurring";
 import { weeklySummary } from "../../domain/weekly";
+import { weeklyMailto, weeklySummaryLines } from "./weeklyMail";
 import { impactWithRentals } from "../../domain/rentalGoal";
 import { UNREACHABLE_IMPACT_TEXT, formatImpactOutcome } from "../../domain/impact";
 import { NextStep } from "../../ui/kit/NextStep";
@@ -123,21 +124,8 @@ function WeeklySummaryBlock({ transactions, today, thresholdCents }: { transacti
   const [err, setErr] = useState<string | null>(null);
   const s = weeklySummary(transactions, today, thresholdCents);
   const save = async () => {
-    const lines = [
-      "Týždenný súhrn výdavkov",
-      `Obdobie: ${dateSk(s.fromIso)} – ${dateSk(s.toIso)}`,
-      `Výdavky spolu: ${eur(s.totalCents)}`,
-      `Počet zápisov: ${s.count}`,
-      `Nad prahom: ${s.overThresholdCount}`,
-      "",
-      "Podľa kategórií:",
-      ...(s.byCategory.length === 0 ? ["(žiadne výdavky)"] : s.byCategory.map((c) => `- ${c.category}: ${eur(c.cents)}`)),
-      "",
-      "Súhrn je len prehľad zadaných údajov, nie finančné poradenstvo.",
-      "Obsahuje finančné údaje: neukladaj ho do verejných priečinkov.",
-    ];
     try {
-      await saveTextFile(`financna-sloboda-tyzden-${today}.txt`, lines.join("\n"));
+      await saveTextFile(`financna-sloboda-tyzden-${today}.txt`, weeklySummaryLines(s).join("\n"));
       setErr(null);
     } catch {
       setErr("Súhrn sa nepodarilo uložiť. Skús to znova.");
@@ -148,6 +136,7 @@ function WeeklySummaryBlock({ transactions, today, thresholdCents }: { transacti
       <p style={{ margin: 0 }}><strong>Týždenný súhrn</strong></p>
       <p style={{ margin: "4px 0" }}>{dateSk(s.fromIso)} – {dateSk(s.toIso)}: výdavky spolu <strong>{eur(s.totalCents)}</strong>, zápisov {s.count}.</p>
       <button onClick={save} style={btnPrimary}>Uložiť týždenný súhrn</button>
+      <a href={weeklyMailto(s)} style={{ ...btn, marginLeft: 8 }}>Poslať mailom</a>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </div>
   );
