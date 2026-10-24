@@ -10,7 +10,8 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 export function checkDate(value: unknown, today: string, label: string): string[] {
   if (typeof value !== "string" || !ISO_DATE.test(value)) return [`${label}: dátum musí mať tvar RRRR-MM-DD`];
   const [y, m, d] = value.split("-").map(Number);
-  const real = new Date(Date.UTC(y, m - 1, d));
+  const real = new Date(0);
+  real.setUTCFullYear(y, m - 1, d); // Date.UTC by roky 0–99 posunulo do 1900–1999
   if (real.getUTCFullYear() !== y || real.getUTCMonth() !== m - 1 || real.getUTCDate() !== d) {
     return [`${label}: neexistujúci dátum`];
   }

@@ -42,4 +42,10 @@ describe("checkDate: platnosť dátumu vo vstupe (D-144)", () => {
   it("správa nesie označenie poľa", () => {
     expect(checkDate("zle", TODAY, "nastavenia: D_L")).toEqual(["nastavenia: D_L: dátum musí mať tvar RRRR-MM-DD"]);
   });
+
+  // nález T8 (docs/30): Date.UTC mapuje roky 0–99 na 1900–1999, takže platný ISO dátum s rokom 0050 sa odmietne.
+  // Nízka závažnosť: aplikácia takéto roky nepoužíva.
+  it("nález T8: rok 0050 je platný ISO dátum a nemá dať chybu „neexistujúci dátum“", () => {
+    expect(checkDate("0050-01-01", TODAY, "d")).toEqual([]);
+  });
 });
