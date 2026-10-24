@@ -75,3 +75,16 @@ Dôvod: z prostredia vývoja nie je prístup na stránky Finančnej správy ani 
 - **Poučenie k DP FO 2025 (typ B), s. 13:** riadok 11 tabuľky 1 (oddiel VI). Stĺpec 1 = kladný rozdiel medzi príjmom z prenájmu a 500 € (§ 9 ods. 1 písm. g). Stĺpec 2 = výdavky × stĺpec 1 / celkový príjem z prenájmu (rovnaký pomer). Riadok 13 tabuľky 1 sa prenáša do riadkov 58 (príjmy) a 59 (výdavky). Výdavky percentom sa pri prenájme neuplatňujú. Príklad v poučení (3 595,75 €) sa nezhoduje s vzorcom (3 594,76 € pri príjme 9 948 € a výdavkoch 3 785 €) — overiť s účtovníkom.
 - **Príjem:** podľa dátumu, kedy prišiel na účet (zadanie zakladateľa). **Výdavky:** doklady sa pripájajú k jednotlivým výdavkom z prenájmu (D-221) aj k výdavkom z transakcií (D-160). Prílohy sa zálohujú spolu s dátami.
 - **Daň za psa:** evidencia psov je zavedená (D-159): obec, adresa, miesto držania, účel, dátumy vzniku a zániku, počet psov dnes. Sadzby určuje obec a appka ich nepočíta.
+
+## 10. Stav po odpovediach zakladateľa (2026-10-23)
+
+| Bod | Odpoveď | Stav | Rozhodnutie |
+|---|---|---|---|
+| 1. Overenie zdrojov | odložiť | odložené | D-267 |
+| 2. Pojem príjmu | platí dátum prijatia pre celé priznanie | rozhodnuté | D-266 |
+| 3. Uznanie výdavkov | paušál neexistuje, rozdiel len pri obchodnom majetku | rozhodnuté (obchodný majetok mimo rozsahu) | D-266 |
+| 4. Nezhoda v príklade poučenia (3 595,75 € vs 3 594,76 €) | overí zakladateľ | otvorené | — |
+| 5. Registrácia na daňovom úrade | vždy povinná | rozhodnuté | D-267 |
+| 6. Papierové podanie a portál | papierovo možné, ak nie sú iné príjmy; portál vyskúša zakladateľ | otvorené (test na portáli) | D-267 |
+
+Krok 2b (generovanie XML) zostáva nezapracovaný, kým sa neoverí bod 1 a bod 6.
