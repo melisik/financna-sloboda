@@ -10,7 +10,7 @@
 
 ## Krok 2 – heslo v Cloudflare (pred prvým nasadením)
 
-1. Cloudflare dashboard → **Workers & Pages** → projekt `financna-sloboda-preview` → **Settings** → **Environment variables**.
+1. Cloudflare dashboard → **Workers & Pages** → projekt `financna-sloboda-preview` → **Settings** → **Variables and secrets**.
 2. Pridaj premennú pre prostredie **Production**. Náhľad sa nasadzuje do produkčnej vetvy projektu `main` (D-272):
    - **Variable name:** `PREVIEW_PASSWORD`
    - **Value:** tvoje heslo. Odporúčam aspoň 16 znakov, len ASCII (bez diakritiky), nepoužité inde.
