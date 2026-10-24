@@ -38,8 +38,17 @@ test.describe("scenár veľkého výdavku", () => {
     await expect(scenario.getByText("Dopad sa dá vyčísliť až po nastaveniach a vyhodnotení.")).toBeVisible();
     await scenario.getByRole("link", { name: "Nastavenia" }).click();
     await expect(page.getByLabel("Ročné výdavky pri nezávislosti (€)")).toBeVisible();
+    await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
+    await page.getByLabel("Miera výberu (%)").fill("4");
+    await page.getByLabel("Reálny výnos r (%)").fill("3.5");
+    await page.getByLabel("Rezerva, cieľová hodnota (€)").fill("6000");
+    await page.getByLabel("Prah výdavkov (€)").fill("100");
+    await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
 
+    // Nastavenia sú hotové, výzva smie chýbajúce vyhodnotenie a nesmie pýtať nastavenia.
     await goTo(page, "scenar-vydavku");
+    await expect(scenario.getByText("Dopad sa dá vyčísliť až po vyhodnotení.")).toBeVisible();
+    await expect(scenario.getByRole("link", { name: "Nastavenia" })).toHaveCount(0);
     await scenario.getByRole("link", { name: "Vyhodnotenie" }).click();
     await expect(page.getByLabel("Dátum vyhodnotenia", { exact: true })).toBeVisible();
   });

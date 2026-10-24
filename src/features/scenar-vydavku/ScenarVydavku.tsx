@@ -17,9 +17,15 @@ export function ScenarVydavkuSection({ ctx }: { ctx: Ctx }) {
   const [amount, setAmount] = useState<NumIn>("");
   const [source, setSource] = useState<Source>("z_hotovosti");
   if (!ctx.latest || ctx.target === null) {
+    const text =
+      ctx.target === null && !ctx.latest
+        ? "Dopad sa dá vyčísliť až po nastaveniach a vyhodnotení."
+        : ctx.target === null
+          ? "Dopad sa dá vyčísliť až po nastaveniach."
+          : "Dopad sa dá vyčísliť až po vyhodnotení.";
     return (
       <div>
-        <p>Dopad sa dá vyčísliť až po nastaveniach a vyhodnotení.</p>
+        <p>{text}</p>
         {ctx.target === null && <NextStep to="nastavenia">Nastavenia</NextStep>}
         {!ctx.latest && <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep>}
       </div>
