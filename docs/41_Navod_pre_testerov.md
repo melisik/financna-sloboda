@@ -1,6 +1,6 @@
 # 41 – Návod pre testerov (náhľad Fázy 2)
 
-> Stav: pripravené 2026-10-24 pre testerov súkromného náhľadu (D-270 až D-273, D-279). Heslo dostanete osobne; v tomto návode nie je. Text je určený na poslanie testerom.
+> Stav: pripravené 2026-10-24 pre testerov súkromného náhľadu (D-270 až D-273, D-279). Heslo dostanete osobne; v tomto návode nie je. Text je určený na poslanie testerom. Stránka na zdieľanie: https://claude.ai/artifact/2WhrQGtkHfUeNPUYLaX9pQ (súkromná, kým ju zakladateľ nezdieľa).
 
 ## Čo testujete
 
