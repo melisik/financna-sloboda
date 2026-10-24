@@ -60,6 +60,7 @@ Rozpočet kategórií je schválený (D-106). Pripomienky sú schválené (D-107
 - **Dátum cieľa v minulosti:** počíta sa z uloženého stavu K a z **aktuálnych** Nastavení, nie z nastavení platných v čase vyhodnotenia. Text to hovorí výslovne.
 - **Bez dát:** „Zatiaľ nie sú vyhodnotenia.“ Bez Nastavení sa zobrazí len K.
 - **Rozsah:** len zobrazenie, bez úprav a bez exportu. Nemení dátum cieľa ani výpočty.
+- **Výdavky podľa kategórií (N-11, D-269):** nad súhrnom po rokoch porovnáva výdavky najnovšieho roka s predchádzajúcim za rovnaké obdobie (pri aktuálnom roku do aktuálneho mesiaca). Počítajú sa len výdavky; sporenie a investície nie. Len zobrazenie.
 - **Predpoklad [overiť]:** vlastník chce vidieť zmenu K a dátumu medzi vyhodnoteniami, nie tabuľku všetkých polí transakcií.
 
 ## 5. Nálezy kroku 1 (2026-10-20)
