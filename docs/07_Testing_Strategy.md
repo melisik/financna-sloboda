@@ -69,7 +69,7 @@ Hodnoty sú overené uzavretým vzorcom (FR-02). GC-03 a GC-07 sú navyše overe
 | GC-06 | K = 100 000, m = 500, r = 1,5 % (opatrný = základ 3,5 % − 2 p. b., D-050) | n = 556,46 → **557** | FR-03, D-050 |
 | GC-07 | K = 100 000, m = 0, r = 4 % | n = 548,21 → **549** (≈ 45,7 roka, dátum sa zobrazí, pretože je do 50 rokov) | FR-02, D-019 |
 | GC-08 | K = 0, m = 0, r = 4 % | bez dátumu: „Pri tomto sporení cieľ nedosiahneš. Zadaj mesačné sporenie.“ (nulové sporenie; pri zadanom sporení „Pri súčasnom sporení a výnose sa cieľ nedosiahne“; D-224) | D-019 |
-| GC-09 | K = 0, m = 500, r = 4 % | n = 488,02 → **489** | FR-02 |
+| GC-09 | K = 0, m = 500, r = 4 %, T = 600 000 € | n = 488,02 → **489** | FR-02 |
 | GC-10 | K = 100 000, T = 600 000, m = 500, r = 0 % | n = (T − K) / m = **1 000** (presne celé číslo; `ceil(n − 1e-6)` musí dať 1 000, nie 1 001) | FR-02 |
 | GC-11 | K_L ≥ T | cieľ dosiahnutý, dátum = D_L (dátum posledného vyhodnotenia) | FR-02, D-024 |
 | GC-12 | K = 100 000, m = 500, r = 4 %, T = 2 000 000 | n ≈ 655,4 → **656 mesiacov** (≈ 54,6 roka); zobrazí sa „viac ako 50 rokov“ | FR-02, D-019 |

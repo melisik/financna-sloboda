@@ -19,7 +19,7 @@
 | Investície a dane | pozície, hodnoty, režim (Fáza 2) | Vysoká |
 | Príjmy a pravidelné výdavky | suma, periodicita, zdroj | Stredná až vysoká |
 | Rozpočet a sklad | limity, položky skladu, recepty | Nízka až stredná |
-| PIN | len hash PBKDF2-SHA256 so soľou (`src/app/pin.ts`) | Vysoká (hash) |
+| PIN | len hash PBKDF2-SHA256 so soľou (`src/features/zamok/pin.ts`) | Vysoká (hash) |
 
 Údaje o iných osobách: appka neeviduje mená osôb, ale môže obsahovať údaje o domácnosti (napr. splátky za partnera, výdavky na dieťa). Treba posúdiť.
 
@@ -54,7 +54,7 @@
 7. Aké riziká prináša zverejnenie čísel dokladov a skladu v zálohe pre testerov?
 
 ## 6. Bezpečnostný audit: rozsah
-- Kód: validácia zálohy pri importe (`src/storage/validate.ts`), PIN a jeho obnova (`src/app/pin.ts`), CSP a závislosti (`npm audit`).
+- Kód: validácia zálohy pri importe (`src/storage/validate.ts`), PIN a jeho obnova (`src/features/zamok/pin.ts`, `src/features/zamok/Lock.tsx`), CSP a závislosti (`npm audit`).
 - Testy: 244 jednotkových a 256 E2E testov prechádza (stav 2026-10-21).
 - Mimo rozsahu tohto dokumentu: hostovanie na GitHub Pages, DNS, nasadzovací proces.
 

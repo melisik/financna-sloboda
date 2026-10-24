@@ -12,9 +12,9 @@
 | Majetok | na vetve | nehnuteľnosť (hypotéka, splátka s úrokom), automobil, ocenitelné právo |
 | Investície | na vetve | ručné položky (D-101); tu pribudnú tretí pilier a ciele (D-105) |
 | Záväzky | na vetve (vlastná sekcia, D-103) | vlastná sekcia (D-103); okrem hypotéky |
-| Pravidelné príjmy | na vetve (len zobrazenie, D-102) | len zobrazenie; m sa mení pri vyhodnotení (D-102) |
+| Príjmy | na vetve (len zobrazenie, D-102) | len zobrazenie; m sa mení pri vyhodnotení (D-102) |
 | Pravidelné výdavky | na vetve | predplatné, poistky, paušály |
-| Rozpočet kategórií | na vetve (D-106) | limit na kategóriu za mesiac (D-106) |
+| Rozpočet | na vetve (D-106) | limit na kategóriu za mesiac (D-106) |
 | Sklad | na vetve (D-232 až D-239) | položky potravín: čiarový kód, dátum spotreby, dávky, výber predchádzajúceho výrobku, lehota upozornenia |
 | Dane | na vetve (sekcia existuje) | daňové pravidlá len po overení (D-104) |
 | Ročný prehľad | na vetve (docs/13, oddiel 4) | história kapitálu a dátumu cieľa |
