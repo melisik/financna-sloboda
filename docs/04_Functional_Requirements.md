@@ -251,6 +251,7 @@ Ak neboli exportované dáta viac ako 7 dní (alebo nikdy), zobrazí sa jemná p
 ### FR-22 – Záväzok (hypotéka)
 - Evidujú sa: zostatok, úroková sadzba, aktuálna splátka podľa zmluvy, dátum splatenia (D-084).
 - Splátka sa delí na úrok a istinu. Istina znižuje zostatok, úrok je výdavok z toku (D-085).
+- Upozornenie (D-265): ak splátka nepokryje nominálny úrok za mesiac (zostatok × nominálna sadzba / 12), karta nehnuteľnosti zobrazí výstrahu, že zostatok sa nezníži. Projekcia FR-02a počíta v reálnych hodnotách (A2), výstraha používa nominálny úrok.
 
 ### FR-23 – Nájom a tok
 - Nájom sa eviduje ako mesačný príjem.
