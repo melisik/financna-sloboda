@@ -52,7 +52,9 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
           )}
           {r.sporenieCents !== null && r.vydavkyCents !== null && r.ostatneCents !== null && (
             <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
-              z toho sporenie {eur(r.sporenieCents)}, výdavky −{eur(r.vydavkyCents)}, výnos a ostatné {r.ostatneCents >= 0 ? "+" : "−"}{eur(Math.abs(r.ostatneCents))}
+              z toho sporenie {eur(r.sporenieCents)}, výdavky −{eur(r.vydavkyCents)}
+              {r.rezervaCents !== null && r.rezervaCents !== 0 && <>, rezerva {r.rezervaCents >= 0 ? "+" : "−"}{eur(Math.abs(r.rezervaCents))}</>}
+              , výnos a ostatné {r.ostatneCents >= 0 ? "+" : "−"}{eur(Math.abs(r.ostatneCents))}
             </p>
           )}
           {r.goal && <p style={{ margin: "4px 0" }}>Dátum cieľa: <strong>{goalDateText(r.goal, savingZero, monthYear)}</strong></p>}

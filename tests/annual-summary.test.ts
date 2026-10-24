@@ -18,14 +18,14 @@ describe("tok peňazí medzi vyhodnoteniami", () => {
       tx("d", "2026-01-10", "vydavok", 5, { source: "z_hotovosti", category: "jedlo" }),
       tx("e", "2026-01-11", "vydavok", 7, { source: "z_prijmu", category: "jedlo" }),
     ];
-    expect(flowsBetween(txs, snap("p", "2026-01-01", 0, 0), "2026-02-01")).toEqual({ sporenie: 30, vydavky: 5 });
+    expect(flowsBetween(txs, snap("p", "2026-01-01", 0, 0), "2026-02-01")).toEqual({ sporenie: 30, vydavky: 5, rezerva: 0 });
   });
 
   it("výdavok z dňa vyhodnotenia zapísaný po ňom sa rátа do ďalšieho obdobia; pred ním nie (nález 7, D-169)", () => {
     const prev: Snapshot = { id: "p", date: "2026-10-05", investmentsCents: 0, cashCents: 0, createdAt: "2026-10-05T08:00:00.000Z" };
     const before = tx("b", "2026-10-05", "vydavok", 3, { source: "z_hotovosti", category: "jedlo", createdAt: "2026-10-05T07:00:00.000Z" });
     const after = tx("a", "2026-10-05", "vydavok", 10, { source: "z_hotovosti", category: "jedlo", createdAt: "2026-10-05T20:00:00.000Z" });
-    expect(flowsBetween([before, after], prev, "2026-10-20")).toEqual({ sporenie: 0, vydavky: 10 });
+    expect(flowsBetween([before, after], prev, "2026-10-20")).toEqual({ sporenie: 0, vydavky: 10, rezerva: 0 });
   });
 
   it("Ročný prehľad počíta dátum cieľa s nehnuteľnosťami v prenájme rovnako ako hlavný cieľ (nález 6, D-169)", () => {
@@ -58,5 +58,14 @@ describe("ročné súhrny", () => {
     expect(years.map((y) => y.year)).toEqual([2025, 2026]);
     expect(years[0]).toMatchObject({ endK: 100, deltaK: null, sporenieCents: 0 });
     expect(years[1]).toMatchObject({ endK: 150, deltaK: 50, sporenieCents: 10, vydavkyCents: 14, topCategory: { name: "doprava", cents: 9 } });
+  });
+
+  // Rovnako ako rozpis riadku: investícia z príjmu je sporenie, presun z hotovosti do investícií nie (D-045).
+  it("ročný súhrn počíta investíciu z príjmu do sporenia a presun z hotovosti nie", () => {
+    const years = yearlySummary(
+      [snap("a", "2025-12-31", 100, 0)],
+      [tx("i1", "2026-02-01", "investicia", 7, { source: "z_prijmu" }), tx("i2", "2026-02-02", "investicia", 4, { source: "z_hotovosti" })],
+    );
+    expect(years[1]).toMatchObject({ sporenieCents: 7 });
   });
 });

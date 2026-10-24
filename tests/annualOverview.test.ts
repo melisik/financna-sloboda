@@ -24,6 +24,23 @@ describe("Ročný prehľad", () => {
     expect(rows[1].deltaGoalMonths).toBeLessThan(0);
   });
 
+  // Investícia z príjmu zvyšuje K, rezerva ho mení (nie je to výnos ani trhová zmena).
+  it("riadok rozpíše investíciu z príjmu do sporenia a rezervu osobitne, zvyšok je výnos", () => {
+    const tx = (id: string, date: string, extra: object) => ({ id, date, amountCents: 5_000, createdAt: `${date}T10:00:00Z`, updatedAt: `${date}T10:00:00Z`, ...extra });
+    const transactions = [
+      tx("i1", "2026-02-01", { type: "investicia", source: "z_prijmu" }),
+      tx("r1", "2026-03-01", { type: "rezerva" }),
+    ] as never[];
+    const rows = annualOverview(
+      [snap("2026-01-01", 0, 10_000_000), snap("2026-07-01", 5_000, 9_995_000)],
+      settings,
+      transactions,
+    );
+    expect(rows[1].sporenieCents).toBe(5_000);
+    expect(rows[1].rezervaCents).toBe(-5_000);
+    expect(rows[1].ostatneCents).toBe(0);
+  });
+
   it("K je súčet investícií a hotovosti; dátum cieľa je v rámci 50 rokov", () => {
     const [row] = annualOverview([snap("2026-01-01", 30_000_000, 5_000_000)], settings);
     expect(row.totalCents).toBe(35_000_000);

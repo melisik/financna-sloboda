@@ -22,8 +22,9 @@ interface OverviewRow {
   goal: GoalDisplay | null; // null, ak nie sú Nastavenia
   deltaGoalMonths: number | null; // zmena dátumu cieľa v mesiacoch, + = neskôr
   // Rozpis zmeny K od predchádzajúceho vyhodnotenia (null pri prvom riadku). Výnos a ostatné je zvyšok.
-  sporenieCents: number | null;
+  sporenieCents: number | null; // sporenie a investície z príjmu (vklady, ktoré zvyšujú K)
   vydavkyCents: number | null; // výdavky z hotovosti alebo z investícií (z príjmu nemenia K)
+  rezervaCents: number | null; // zmena K od rezervy: výber (+) a vklad (−)
   ostatneCents: number | null; // zvyšok: výnos a trhové zmeny
 }
 
@@ -44,12 +45,17 @@ interface YearSummary {
 export function flowsBetween(transactions: Transaction[], prev: Snapshot, toInclusive: string) {
   let sporenie = 0;
   let vydavky = 0;
+  let rezerva = 0;
   for (const t of transactions) {
     if (!isAfterEvaluation(t, prev) || t.date > toInclusive) continue;
     if (t.type === "sporenie") sporenie += t.amountCents;
+    // Investícia z príjmu zvyšuje K; presun z hotovosti do investícií K nemení (D-045).
+    if (t.type === "investicia" && t.source !== "z_hotovosti") sporenie += t.amountCents;
     if (t.type === "vydavok" && (t.source === "z_hotovosti" || t.source === "z_investicii")) vydavky += t.amountCents;
+    if (t.type === "rezerva") rezerva -= t.amountCents;
+    if (t.type === "vyber_rezervy") rezerva += t.amountCents;
   }
-  return { sporenie, vydavky };
+  return { sporenie, vydavky, rezerva };
 }
 
 /** Mesiac v čase ako celé číslo (rok · 12 + mesiac) na porovnanie dátumov cieľa. */
@@ -92,7 +98,8 @@ export function annualOverview(snapshots: Snapshot[], s: OverviewSettings | null
       deltaGoalMonths: prevGoalIdx !== null && goalIdx !== null ? goalIdx - prevGoalIdx : null,
       sporenieCents: flows && deltaTotalCents !== null ? flows.sporenie : null,
       vydavkyCents: flows && deltaTotalCents !== null ? flows.vydavky : null,
-      ostatneCents: flows && deltaTotalCents !== null ? deltaTotalCents - flows.sporenie + flows.vydavky : null,
+      rezervaCents: flows && deltaTotalCents !== null ? flows.rezerva : null,
+      ostatneCents: flows && deltaTotalCents !== null ? deltaTotalCents - flows.sporenie + flows.vydavky - flows.rezerva : null,
     });
     prevTotal = totalCents;
     prevSnap = snap;
@@ -115,7 +122,9 @@ export function yearlySummary(snapshots: Snapshot[], transactions: Transaction[]
     const prevK = prev ? prev.investmentsCents + prev.cashCents : null;
 
     const txs = transactions.filter((t) => yearOf(t.date) === year);
-    const sporenie = txs.filter((t) => t.type === "sporenie").reduce((sum, t) => sum + t.amountCents, 0);
+    const sporenie = txs
+      .filter((t) => t.type === "sporenie" || (t.type === "investicia" && t.source !== "z_hotovosti"))
+      .reduce((sum, t) => sum + t.amountCents, 0);
     const expenses = txs.filter((t) => t.type === "vydavok");
     const vydavky = expenses.reduce((sum, t) => sum + t.amountCents, 0);
     const byCat: Record<string, number> = {};
