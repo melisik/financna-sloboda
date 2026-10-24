@@ -3,7 +3,7 @@
 ## Stav projektu
 Fáza: MVP je zadefinovaný rozhodnutiami (`decisions/Decisions.md`, D-001 až D-253; D-132 v tabuľke chýba) a čiastočne implementovaný. Cieľ, cieľová skupina a rozsah MVP vyplývajú z týchto rozhodnutí; nie sú to predpoklady. Kód je v `src/` (doménová vrstva, úložisko, UI), testy v `tests/` a `tests/e2e/`.
 
-Stav overený 2026-10-23 (vetva `claude/phase2-property-card`): `tsc` bez chýb, `vitest` 414 jednotkových testov prejde (75 súborov; 0 `it.todo`, 0 preskočených), `vite build` (dist-test) bez chýb, `playwright` 362 E2E testov (181 × 2 profily) bez zlyhaní. Audit a stav nálezov sú v `docs/22_Audit_2026-10-22.md`, `docs/24_Audit_2026-10-23.md` a `docs/27_Audit_2026-10-23.md`; úplnosť milníkov a otvorené nálezy revízie sú v `review/revizia-revizny-balik-2026-10-15.md`; brána M1 je potvrdená zakladateľom 2026-10-22 (D-225).
+Stav overený 2026-10-23 (vetva `claude/phase2-property-card`): `tsc` bez chýb, `vitest` 427 jednotkových testov prejde (77 súborov; 0 `it.todo`, 0 preskočených), `vite build` (dist-test) bez chýb, `playwright` 364 E2E testov (182 × 2 profily) bez zlyhaní. Audit a stav nálezov sú v `docs/22_Audit_2026-10-22.md`, `docs/24_Audit_2026-10-23.md` a `docs/27_Audit_2026-10-23.md`; úplnosť milníkov a otvorené nálezy revízie sú v `review/revizia-revizny-balik-2026-10-15.md`; brána M1 je potvrdená zakladateľom 2026-10-22 (D-225).
 
 Všetko, čo nie je v `docs/` alebo `decisions/`, je predpoklad a treba ho ako predpoklad označiť.
 
