@@ -28,6 +28,7 @@ function totalCapital(c: Capital): number {
  * Ak m_cash = 0, platí uzavretý tvar pre K_inv s T − K_cash (D-039).
  * Ak m_cash > 0, hľadáme najmenšie celé k, pre ktoré K_inv(k) + K_cash + m_cash·k ≥ T,
  * a zlomok získame lineárnou interpoláciou medzi k−1 a k.
+ * Ak cieľ nie je dosiahnutý do MAX_MONTHS (1 200 rokov), vráti Infinity; zobrazí sa ako viac ako 50 rokov (D-019, nález T5).
  */
 export function monthsToTargetSplit(
   c: Capital,
@@ -53,7 +54,7 @@ export function monthsToTargetSplit(
       return k - 1 + (targetCents - a) / (b - a);
     }
   }
-  return null;
+  return Infinity;
 }
 
 /** Výsledok výdavku alebo presunu: nový stav a prípadné upozornenie (D-021, D-045). */
