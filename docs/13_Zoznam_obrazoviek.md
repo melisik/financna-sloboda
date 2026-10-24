@@ -10,7 +10,7 @@
 | Transakcie | na main | sporenie, investícia, výdavok, rezerva, výber z rezervy |
 | Vyhodnotenie | na vetve (zoznam a mazanie vyhodnotení); mesačné zadanie na main | mesačné zadanie; investície sa odvodia zo súčtu položiek (D-101) |
 | Majetok | na vetve | nehnuteľnosť (hypotéka, splátka s úrokom), automobil, ocenitelné právo |
-| Investície | na vetve | ručné položky (D-101); tu pribudnú tretí pilier a ciele (D-105) |
+| Investície | na vetve | ručné položky (D-101); tretí pilier a ciele zoskupenia so súčtom a pokrokom (D-105, D-258) |
 | Záväzky | na vetve (vlastná sekcia, D-103) | vlastná sekcia (D-103); okrem hypotéky |
 | Príjmy | na vetve (len zobrazenie, D-102) | len zobrazenie; m sa mení pri vyhodnotení (D-102) |
 | Pravidelné výdavky | na vetve | predplatné, poistky, paušály |

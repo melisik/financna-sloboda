@@ -1,6 +1,6 @@
 # 34 – Návrh: ciele v sekcii Investície (D-105)
 
-> Stav: návrh na schválenie. Kód sa nemení, kým zakladateľ nepotvrdí variant. Zdroj: D-105 („Ciele sa v Investíciách zoskupujú: skupina položiek s cieľovou sumou“) a `docs/13_Zoznam_obrazoviek.md` (riadok Investície: „tu pribudnú tretí pilier a ciele“).
+> Stav: schválené (variant B, D-258), implementované v commitoch `9916a0b` (schéma 12, úložisko, záloha) a `b4b3ffa` (zoskupenie a UI). Zdroj: D-105 („Ciele sa v Investíciách zoskupujú: skupina položiek s cieľovou sumou“) a `docs/13_Zoznam_obrazoviek.md` (riadok Investície: „tu pribudnú tretí pilier a ciele“).
 
 ## 1. Stav
 
