@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { goalMonths, type Rental } from "../src/domain/rentalGoal";
+import { goalDisplay } from "../src/domain/goalDisplay";
 
 const eur = (x: number) => x * 100;
 
@@ -41,8 +42,11 @@ describe("nehnuteľnosť v K: FR-02a (Fáza 2, D-080, D-087, D-058)", () => {
     expect(r.kind).not.toBe("cash_exhausted");
   });
 
-  // Rozpor dokumentov (nie jasná chyba kódu): FR-02a (docs/04) hovorí, že pri k = 600 je cieľ nedosiahnuteľný,
-  // kým D-019 a GC-12 chcú pri cieli nad 50 rokov text „Viac ako 50 rokov“ a FR-02 bez nehnuteľnosti vráti číslo (610).
-  // Nález T2 v docs/30: rozhodnutie zakladateľa, ktoré správanie platí.
-  it.todo("nález T2: nehnuteľnosť, cieľ za viac ako 600 mesiacov: FR-02a (nedosiahnuteľný) alebo D-019 (viac ako 50 rokov)");
+  // nález T2 (docs/30; D-256): cieľ nad 600 mesiacov (50 rokov) pri rastúcom K sa zobrazí ako „Viac ako 50 rokov“ (D-019),
+  // nie ako nedosiahnuteľný. Čistý nájom 100 € mesačne, bez hypotéky a investícií: 600 000 € je po 6 000 mesiacoch.
+  it("nález T2: nehnuteľnosť s rastúcim K a cieľom nad 600 mesiacov je over50, nie nedosiahnuteľný", () => {
+    const slow: Rental = { ...noRental, netRentCents: eur(100) };
+    const res = goalMonths({ inv: 0, cash: 0 }, 0, 0, 0, eur(600_000), [slow]);
+    expect(goalDisplay(res.kind === "months" ? res.months : null, "2026-10-01", "2026-10-23")).toEqual({ kind: "over50" });
+  });
 });

@@ -22,8 +22,8 @@ type GoalMonths =
   | { kind: "unreachable" }
   | { kind: "cash_exhausted"; month: number };
 
-/** Horizont FR-02a: 50 rokov (O-5). */
-const RENTAL_HORIZON_MONTHS = 600;
+/** Strop výpočtu FR-02a: 1 200 rokov. Horizont 50 rokov (O-5) rieši zobrazenie (goalDisplay, D-019, D-256). */
+const MAX_RENTAL_MONTHS = 14_400;
 
 /** Do K sa počíta len prenájom (D-093 a countsInCapital). */
 export function rentalsFor(properties: Property[]): Rental[] {
@@ -47,6 +47,7 @@ function mortgageMonthlyRate(r: Rental): number {
  * Splátka P sa platí len do splatenia; posledná je zmenšená na zostatok a po splatení ide do m čistý nájom N (D-087, nález T1).
  * K_cash(k) = K_cash(k−1) + m_cash + Σ(N − p_j(k)), kde p_j(k) je splátka j-tej nehnuteľnosti v mesiaci k.
  * Najprv sa kontroluje hotovosť (K_cash(k) ≥ 0), potom cieľ; zlomok je lineárna interpolácia (D-046).
+ * Ak cieľ nie je dosiahnutý do 1 200 rokov a K stále rastie, vráti Infinity (D-256).
  */
 export function monthsToTargetWithRentals(
   c: Capital,
@@ -69,7 +70,8 @@ export function monthsToTargetWithRentals(
   };
 
   let prev = at(0);
-  for (let k = 0; k <= RENTAL_HORIZON_MONTHS; k++) {
+  let growth = 0;
+  for (let k = 0; k <= MAX_RENTAL_MONTHS; k++) {
     if (k > 0) {
       kCash += mCash;
       rentals.forEach((r, j) => {
@@ -85,9 +87,11 @@ export function monthsToTargetWithRentals(
       if (k === 0) return { kind: "months", months: 0 };
       return { kind: "months", months: k - 1 + (targetCents - prev.total) / (cur.total - prev.total) };
     }
+    growth = cur.total - prev.total;
     prev = cur;
   }
-  return { kind: "unreachable" };
+  // Ak K po 1 200 rokoch stále rastie, ide o horizont nad 50 rokov (D-256); inak cieľ nie je dosiahnuteľný.
+  return growth > 0 ? { kind: "months", months: Infinity } : { kind: "unreachable" };
 }
 
 /** Mesiace do cieľa: bez nehnuteľností cesta MVP (monthsToTargetSplit), s nimi FR-02a. */
