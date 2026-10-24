@@ -41,7 +41,8 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
   // Obalové polia overené vyššie; validáciu obsahu prejdú všetky kolekcie (validateAppData, A-07).
   const { app: _app, schemaVersion: _schema, exportedAt: _exp, attachments: rawAttachments, ...content } = o;
   // Verzia 1 nemá majetok: načíta sa prázdny zoznam, dáta sa nestratia (FR-28).
-  const base = o.schemaVersion === 1 ? { ...content, properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [] } : content;
+  // Verzia 2 nemá rozpočty (pridané bez zvýšenia verzie, commit 85864ea): načíta sa prázdny zoznam.
+  const base = o.schemaVersion === 1 ? { ...content, properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [] } : o.schemaVersion === 2 ? { budgets: [], ...content } : content;
   // Verzie 1 a 2 nemajú pravidelné výdavky: načíta sa prázdny zoznam (D-124).
   // Staršie zálohy nemajú pravidelné výdavky (v3), sklad (v4), recepty (v5) ani položky dokladu (v6): načíta sa prázdny zoznam (D-124, D-127, D-129).
   // Záporné mesačné sporenie vznikalo pred opravou uloženia (nález 1). Pri obnove sa pole vynechá,
