@@ -68,7 +68,7 @@ Ak m = 0 a r > 0, dátum existuje aj bez sporenia (rastie len výnos), len môž
 Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnosti. Výpočet sa robí po mesiacoch od D_L (k = 0, 1, 2, …):
 
 - `K_inv(k) = K_inv·(1+i)^k + m_inv·((1+i)^k − 1)/i`, kde `i = (1+r)^(1/12) − 1` (ako vyššie).
-- `K_cash(k) = K_cash + (m_cash + N − P)·k`, kde `N` je čistý nájom po nákladoch a `P` je aktuálna splátka hypotéky podľa zmluvy (D-084).
+- `K_cash(k) = K_cash(k−1) + m_cash + N − p(k)`, kde `N` je čistý nájom po nákladoch, `P` je aktuálna splátka hypotéky podľa zmluvy (D-084) a `p(k)` je splátka v mesiaci `k`: `P`, kým hypotéka nie je splatená, inak `0` (D-087, nález T1).
 - `K_nem(k) = V − Z(k)`, kde `V` je odhad hodnoty nehnuteľnosti (D-089) a `Z(k)` je zostatok hypotéky:
   `Z(k) = Z0·(1+i_h)^k − P·((1+i_h)^k − 1)/i_h`, `i_h` je reálna mesačná úroková sadzba. Pri `i_h = 0` platí `Z(k) = Z0 − P·k`.
 - `K_L(k) = K_inv(k) + K_cash(k) + K_nem(k)`.
@@ -79,6 +79,8 @@ Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnos
 
 **Obmedzenie hotovosti (D-058, D-074):** pre všetky `k ≤ n` musí platiť `K_cash(k) ≥ 0`. Ak doplácanie vyčerpá hotovosť skôr, výpočet sa zastaví, nezobrazí sa dátum a zobrazí sa mesiac vyčerpania hotovosti.
 
+**Splatenie hypotéky (D-087, T1):** splátka `P` sa platí len do splatenia. Posledná splátka je zmenšená na zostatok, `p(k) = min(P, Z(k−1)·(1+i_h))`; potom `Z(k) = 0`, `K_nem(k) = V` a čistý nájom `N` ide do `m` ako ostatné sporenie. Vzorec pre `Z(k)` platí len pred splatením; preplatok sa nezarátava ako majetok.
+
 **Regresia:** pre `V = 0`, `Z0 = 0`, `N = P = 0` sa výsledok rovná pôvodnému FR-02 (overené: 362,10 mesiaca pre `K = 100 000`, `m = 500`, `T = 600 000`, `r = 3,5 %`).
 
 **Predpoklady [predpoklad, overiť]:**
@@ -87,7 +89,7 @@ Pri nehnuteľnosti sa K_L rozšíri o tretí člen, čistú hodnotu nehnuteľnos
 - A3: úrok je súčasťou `P`; delenie na úrok a istinu je v `Z(k)` cez `i_h` (D-085).
 
 **Golden cases (overené nezávislým výpočtom 2026-10-20; v kóde neimplementované):**
-- **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 2 %`, `P = 1 000`, `N = 1 200`. Výsledok: `i_h ≈ 0,0813 %` mesačne, `n ≈ 257,25` mesiaca (≈ 21 rokov a 5 mesiacov), dátum = D_L + 258 mesiacov (zaokrúhlenie hore podľa FR-02).
+- **GC-P2-01:** `K_inv = 100 000`, `K_cash = 0`, `m = 0`, `r = 3,5 %`, `T = 600 000`, `V = 300 000`, `Z0 = 200 000`, nominálna hypotéka 3 %, `π = 2 %`, `P = 1 000`, `N = 1 200`. Výsledok: `i_h ≈ 0,0813 %` mesačne, `n ≈ 257,58` mesiaca (≈ 21 rokov a 5 mesiacov; splatenie v mesiaci ≈ 219; pred opravou T1 bolo 257,25), dátum = D_L + 258 mesiacov (zaokrúhlenie hore podľa FR-02).
 - **GC-P2-02 (blokovaný prípad):** rovnaké vstupy, ale `K_cash = 10 000`, `N = 600`. `K_cash(k) = 10 000 − 400·k`: hotovosť je 0 v mesiaci 25; v mesiaci 26 je −400, preto sa výpočet zastaví s hlásením „nedostatok hotovosti v mesiaci 26“ (bez dátumu; K_L v tom čase ≈ 229 000 €, cieľ sa nedosiahol).
 - **GC-P2-03 (vlastné bývanie nevplýva na K, D-093):** `K_inv = 100 000`, `m_inv = 500`, `r = 3,5 %`, `T = 600 000`, plus nehnuteľnosť v režime „vlastné bývanie“ s hodnotami z GC-P2-01 (`V = 300 000`, `Z0 = 200 000`, `P = 1 000`, `N = 1 200`). Výsledok musí byť rovnaký ako bez nehnuteľnosti: `n ≈ 362,10` mesiaca (rovnaké ako regresný príklad vyššie).
 - **GC-P2-04 (splátka nepokrýva úrok):** ako GC-P2-01, ale `P = 100`. Úrok za mesiac je ≈ 162,7 €, takže zostatok hypotéky rastie a `K_cash(k) = 1 100·k`. Výsledok: `n ≈ 273,08` mesiaca. Zostatok hypotéky pri cieli ≈ 219 000 € (rast od 200 000 €); tento prípad musí zobraziť upozornenie (FR-22).

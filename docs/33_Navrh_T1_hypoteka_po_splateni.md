@@ -1,6 +1,6 @@
 # 33 – Návrh opravy T1: projekcia hypotéky po splatení
 
-> Stav: návrh na schválenie. Kód sa nemení, kým zakladateľ nepotvrdí variant. Nález T1 v `docs/30_Testy_2026-10-23.md`, oddiel 3. Súvisí s D-087 a FR-02a v `docs/04_Functional_Requirements.md`. Fáza 2: vo verejnej zostave sa nenachádza (`VITE_PHASE2 "0"`, D-248).
+> Stav: schválené (variant A, D-255), opravené v commite `0a7f536`. Nález T1 v `docs/30_Testy_2026-10-23.md`, oddiel 3. Súvisí s D-087 a FR-02a v `docs/04_Functional_Requirements.md`. Fáza 2: vo verejnej zostave sa nenachádza (`VITE_PHASE2 "0"`, D-248).
 
 ## 1. Problém
 
