@@ -5,7 +5,8 @@ export interface PreviewEnv {
   ASSETS: { fetch(request: Request): Promise<Response> };
 }
 
-export function isAuthorized(header: string | null, password: string | undefined): boolean;
+export function makeToken(password: string, expires: number): Promise<string>;
+export function isValidToken(token: string | null, password: string | undefined, now?: number): Promise<boolean>;
 
 declare const worker: {
   fetch(request: Request, env: PreviewEnv): Promise<Response>;

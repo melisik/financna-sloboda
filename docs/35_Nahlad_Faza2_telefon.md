@@ -1,6 +1,6 @@
 # 35 – Súkromný náhľad Fázy 2 na telefóne
 
-> Stav: nastavenie pripravené (D-270, D-271). Ochrana je heslom cez Pages Functions, nie Cloudflare Access, lebo Access vyžaduje platobný spôsob. Workflow `.github/workflows/preview-phase2.yml` sa spustí až po krokoch 2–4.
+> Stav: nastavenie pripravené (D-270, D-271, D-273). Ochrana je heslom cez Pages Functions, nie Cloudflare Access, lebo Access vyžaduje platobný spôsob. Workflow `.github/workflows/preview-phase2.yml` sa spustí až po krokoch 2–4.
 
 Účel: zakladateľ vidí Fázu 2 z vetvy `claude/phase2-property-card` na telefóne bez počítača. Verejné Pages zostávajú bez Fázy 2 (D-248). Fáza 2 pre používateľov ostáva viazaná na G1–G5 (D-217).
 
@@ -42,13 +42,13 @@ Repozitár `melisik/financna-sloboda` → **Settings** → **Secrets and variabl
 ## Krok 6 – telefón
 
 1. Safari → `https://financna-sloboda-preview.pages.dev`.
-2. Prehliadač zobrazí okno na prihlásenie. Meno: `zakladatel`. Heslo: z kroku 2. Ulož ho do iCloud Keychain, ak sa to ponúkne.
-3. Zdieľať → **Pridať na plochu** → **Pridať**.
-4. Pri spustení z plochy môže Safari heslo pýtať znova. Ak áno, napíš mi, lebo to overím na tvojom telefóne.
+2. Zobrazí sa prihlasovací formulár. Zadaj heslo z kroku 2 a potvrď.
+3. Zdieľať → **Pridať na plochu** → **Pridať**. Ak si ikonu pridal skôr, otvor ju z plochy a v nej sa raz prihlás.
+4. Prihlásenie platí 30 dní. Po zmene hesla v Cloudflare sa treba prihlásiť znova.
 
 ## Poznámky
 
 - Náhľad obsahuje syntetickú testovaciu zálohu (`scripts/make-test-backup.mjs`), nie reálne dáta. Tvoje dáta zostávajú v telefóne (D-026).
 - Appka nerobí sieťové volania (D-009). Cloudflare slúži len na doručenie súborov a kontrolu hesla.
-- **Obmedzenia (D-271):** je to jedno heslo, nie prihlásenie e-mailom. Overenie beží na serveri a bez hesla náhľad zlyhá zatvorene (503). Správanie pri prekročení denného limitu funkcií v bezplatnom pláne som neoveril. Ak sa ti zdá, že náhľad je dostupný bez hesla, okamžite zmaž premennú `PHASE2_PREVIEW` v GitHube.
+- **Obmedzenia (D-271, D-273):** heslo je jedno a nie je tu obmedzenie počtu pokusov, preto odporúčam dlhé heslo. Overenie beží na serveri a bez hesla náhľad zlyhá zatvorene (503). Správanie pri prekročení denného limitu funkcií v bezplatnom pláne som neoveril. Ak sa ti zdá, že náhľad je dostupný bez hesla, okamžite zmaž premennú `PHASE2_PREVIEW` v GitHube.
 - Ak neskôr získaš platobný spôsob, Cloudflare Access je silnejšia ochrana (prihlásenie e-mailom). Dá sa prepnúť bez zmeny appky.

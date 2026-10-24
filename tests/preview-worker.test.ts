@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import worker, { isAuthorized } from "../preview/_worker";
+import worker, { isValidToken, makeToken } from "../preview/_worker";
 
-// Heslo na súkromný náhľad Fázy 2 (D-270, D-271). Syntetické hodnoty.
+// Prihlásenie do súkromného náhľadu Fázy 2: formulár a cookie na 30 dní (D-271, D-273). Syntetické hodnoty.
 const PASSWORD = "test-heslo-123";
-const USER = "zakladatel";
-const basic = (user: string, pass: string) => "Basic " + btoa(`${user}:${pass}`);
+const BASE = "https://náhľad.test";
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function assets() {
   const calls: Request[] = [];
@@ -17,50 +17,100 @@ function assets() {
   };
 }
 
-describe("náhľad Fázy 2: HTTP Basic Auth", () => {
-  it("bez hlavičky Authorization vráti 401 a výzvu na prihlásenie, obsah nepustí", async () => {
+function loginForm(heslo: string): Request {
+  return new Request(`${BASE}/prihlasenie`, {
+    method: "POST",
+    body: new URLSearchParams({ heslo }),
+  });
+}
+
+function cookieFrom(res: Response): string {
+  const header = res.headers.get("Set-Cookie") ?? "";
+  const match = header.match(/nahlad=([^;]+)/);
+  expect(match).not.toBeNull();
+  return match![1];
+}
+
+describe("náhľad Fázy 2: prihlásenie formulárom a cookie", () => {
+  it("bez cookie presmeruje na prihlásenie a obsah nepustí", async () => {
     const a = assets();
-    const res = await worker.fetch(new Request("https://náhľad.test/"), { PREVIEW_PASSWORD: PASSWORD, ASSETS: a });
-    expect(res.status).toBe(401);
-    expect(res.headers.get("WWW-Authenticate")).toContain("Basic");
+    const res = await worker.fetch(new Request(`${BASE}/`), { PREVIEW_PASSWORD: PASSWORD, ASSETS: a });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toBe("/prihlasenie");
     expect(a.calls).toHaveLength(0);
   });
 
-  it("zlé heslo vráti 401", async () => {
+  it("GET na prihlásenie zobrazí formulár s poľom pre heslo", async () => {
+    const res = await worker.fetch(new Request(`${BASE}/prihlasenie`), { PREVIEW_PASSWORD: PASSWORD, ASSETS: assets() });
+    expect(res.status).toBe(200);
+    const body = await res.text();
+    expect(body).toContain('type="password"');
+    expect(body).toContain('name="heslo"');
+  });
+
+  it("správne heslo nastaví cookie na 30 dní, HttpOnly a Secure, a presmeruje na úvod", async () => {
+    const res = await worker.fetch(loginForm(PASSWORD), { PREVIEW_PASSWORD: PASSWORD, ASSETS: assets() });
+    expect(res.status).toBe(303);
+    expect(res.headers.get("Location")).toBe("/");
+    const setCookie = res.headers.get("Set-Cookie") ?? "";
+    expect(setCookie).toContain("Max-Age=2592000");
+    expect(setCookie).toContain("HttpOnly");
+    expect(setCookie).toContain("Secure");
+    expect(setCookie).toContain("Path=/");
+  });
+
+  it("zlé heslo vráti 401, nenastaví cookie a obsah nepustí", async () => {
     const a = assets();
-    const req = new Request("https://náhľad.test/", { headers: { Authorization: basic(USER, "zle") } });
-    const res = await worker.fetch(req, { PREVIEW_PASSWORD: PASSWORD, ASSETS: a });
+    const res = await worker.fetch(loginForm("zle-heslo"), { PREVIEW_PASSWORD: PASSWORD, ASSETS: a });
     expect(res.status).toBe(401);
+    expect(res.headers.get("Set-Cookie")).toBeNull();
     expect(a.calls).toHaveLength(0);
   });
 
-  it("zlé meno so správnym heslom vráti 401", async () => {
+  it("platná cookie pustí požiadavku na statické súbory", async () => {
+    const token = await makeToken(PASSWORD, Date.now() + DAY_MS);
     const a = assets();
-    const req = new Request("https://náhľad.test/", { headers: { Authorization: basic("iny", PASSWORD) } });
-    const res = await worker.fetch(req, { PREVIEW_PASSWORD: PASSWORD, ASSETS: a });
-    expect(res.status).toBe(401);
-    expect(a.calls).toHaveLength(0);
-  });
-
-  it("správne meno a heslo pustí požiadavku na statické súbory", async () => {
-    const a = assets();
-    const req = new Request("https://náhľad.test/", { headers: { Authorization: basic(USER, PASSWORD) } });
+    const req = new Request(`${BASE}/`, { headers: { Cookie: `nahlad=${token}` } });
     const res = await worker.fetch(req, { PREVIEW_PASSWORD: PASSWORD, ASSETS: a });
     expect(res.status).toBe(200);
     expect(a.calls).toHaveLength(1);
   });
 
-  it("bez nastaveného hesla vráti 503 a obsah nikdy nepustí (zlyhá zatvorené)", async () => {
+  it("cookie z prihlásenia funguje pri ďalšej požiadavke", async () => {
+    const env = { PREVIEW_PASSWORD: PASSWORD, ASSETS: assets() };
+    const login = await worker.fetch(loginForm(PASSWORD), env);
+    const req = new Request(`${BASE}/`, { headers: { Cookie: `nahlad=${cookieFrom(login)}` } });
+    const res = await worker.fetch(req, env);
+    expect(res.status).toBe(200);
+  });
+
+  it("cookie podpísaná iným heslom neprejde", async () => {
+    const forged = await makeToken("iné-heslo-999", Date.now() + DAY_MS);
     const a = assets();
-    const req = new Request("https://náhľad.test/", { headers: { Authorization: basic(USER, "") } });
-    const res = await worker.fetch(req, { ASSETS: a });
-    expect(res.status).toBe(503);
+    const req = new Request(`${BASE}/`, { headers: { Cookie: `nahlad=${forged}` } });
+    const res = await worker.fetch(req, { PREVIEW_PASSWORD: PASSWORD, ASSETS: a });
+    expect(res.status).toBe(302);
     expect(a.calls).toHaveLength(0);
   });
 
-  it("poškodená hlavička neprejde", () => {
-    expect(isAuthorized("Basic !!!nie-base64", PASSWORD)).toBe(false);
-    expect(isAuthorized("Bearer " + PASSWORD, PASSWORD)).toBe(false);
-    expect(isAuthorized(null, PASSWORD)).toBe(false);
+  it("expirovaná cookie neprejde", async () => {
+    const expired = await makeToken(PASSWORD, Date.now() - 1000);
+    expect(await isValidToken(expired, PASSWORD)).toBe(false);
+  });
+
+  it("poškodená cookie neprejde", async () => {
+    expect(await isValidToken("nie-je-token", PASSWORD)).toBe(false);
+    expect(await isValidToken(null, PASSWORD)).toBe(false);
+  });
+
+  it("bez nastaveného hesla vráti 503 na každej ceste a obsah nikdy nepustí (zlyhá zatvorene)", async () => {
+    const a = assets();
+    const token = await makeToken(PASSWORD, Date.now() + DAY_MS);
+    const req = new Request(`${BASE}/`, { headers: { Cookie: `nahlad=${token}` } });
+    const res = await worker.fetch(req, { ASSETS: a });
+    expect(res.status).toBe(503);
+    const login = await worker.fetch(loginForm(PASSWORD), { ASSETS: a });
+    expect(login.status).toBe(503);
+    expect(a.calls).toHaveLength(0);
   });
 });
