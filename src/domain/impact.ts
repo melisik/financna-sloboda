@@ -64,6 +64,7 @@ export function plural(n: number, one: string, few: string, many: string): strin
  * Presne nula sa zobrazí ako „bez zmeny“; nenulový dopad pod pol dňa ako „menej ako 1 deň“ so znamienkom (R26).
  */
 export function formatImpact(delta: number): string {
+  if (!Number.isFinite(delta)) return "dopad sa nedá vyčísliť";
   if (Math.abs(delta) >= 1) {
     const k = Math.round(Math.abs(delta)); // symetricky: −2,5 a +2,5 dajú 3 mesiace
     if (k === 0) return "bez zmeny";

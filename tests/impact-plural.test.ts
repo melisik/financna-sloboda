@@ -35,4 +35,10 @@ describe("formatImpact: skloňovanie mesiacov a dní (FR-04, N1)", () => {
     expect(formatImpact(101)).toBe("predbežne +101 mesiacov");
     expect(formatImpact(21 * DAY)).toBe("predbežne +21 dní");
   });
+
+  // nález T7 (docs/30; docs/29 nález 6): NaN nemá stráž, takže text vznikne ako „−NaN dní“.
+  it("nález T7: NaN na vstupe nesmie vyjsť do textu dopadu", () => {
+    expect(formatImpact(NaN)).not.toMatch(/NaN/);
+    expect(formatImpact(Infinity)).not.toMatch(/Infinity/);
+  });
 });
