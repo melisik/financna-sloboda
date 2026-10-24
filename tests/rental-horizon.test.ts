@@ -27,6 +27,20 @@ describe("nehnuteľnosť v K: FR-02a (Fáza 2, D-080, D-087, D-058)", () => {
     });
   });
 
+  // nález T1 (docs/30; docs/33): po splatení hypotéky sa splátka P neplatí a čistý nájom N ide do m (D-087).
+  // Z0 = 1 000 €, P = 500 €, N = 300 €, K_cash = 1 000 €: hotovosť sa po splatení (mesiac 2) nevyčerpá, rastie o N.
+  it("nález T1: po splatení hypotéky sa splátka neplatí a hotovosť sa nevyčerpá (D-087)", () => {
+    const payoff: Rental = {
+      valueCents: eur(50_000),
+      mortgageBalanceCents: eur(1_000),
+      mortgageRate: 0,
+      paymentCents: eur(500),
+      netRentCents: eur(300),
+    };
+    const r = goalMonths({ inv: 0, cash: eur(1_000) }, 0, 0, 0, eur(100_000), [payoff]);
+    expect(r.kind).not.toBe("cash_exhausted");
+  });
+
   // Rozpor dokumentov (nie jasná chyba kódu): FR-02a (docs/04) hovorí, že pri k = 600 je cieľ nedosiahnuteľný,
   // kým D-019 a GC-12 chcú pri cieli nad 50 rokov text „Viac ako 50 rokov“ a FR-02 bez nehnuteľnosti vráti číslo (610).
   // Nález T2 v docs/30: rozhodnutie zakladateľa, ktoré správanie platí.

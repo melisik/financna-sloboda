@@ -41,16 +41,11 @@ function mortgageMonthlyRate(r: Rental): number {
   return Math.pow((1 + r.mortgageRate) / (1 + RETURN_ASSUMPTIONS.inflation), 1 / 12) - 1;
 }
 
-/** Zostatok hypotéky Z(k) po k mesiacoch (FR-02a). Pri i_h = 0 lineárne. */
-function mortgageBalanceAt(r: Rental, ih: number, k: number): number {
-  if (Math.abs(ih) < 1e-12) return r.mortgageBalanceCents - r.paymentCents * k;
-  const g = Math.pow(1 + ih, k);
-  return r.mortgageBalanceCents * g - (r.paymentCents * (g - 1)) / ih;
-}
-
 /**
  * Mesiace do cieľa s nehnuteľnosťami v K (FR-02a). Iteruje po mesiacoch od D_L.
- * K_L(k) = K_inv(k) + K_cash(k) + Σ(V − Z(k)); K_cash(k) = K_cash + (m_cash + Σ(N − P))·k.
+ * K_L(k) = K_inv(k) + K_cash(k) + Σ(V − B_j(k)); B_j je zostatok hypotéky j-tej nehnuteľnosti.
+ * Splátka P sa platí len do splatenia; posledná je zmenšená na zostatok a po splatení ide do m čistý nájom N (D-087, nález T1).
+ * K_cash(k) = K_cash(k−1) + m_cash + Σ(N − p_j(k)), kde p_j(k) je splátka j-tej nehnuteľnosti v mesiaci k.
  * Najprv sa kontroluje hotovosť (K_cash(k) ≥ 0), potom cieľ; zlomok je lineárna interpolácia (D-046).
  */
 export function monthsToTargetWithRentals(
@@ -63,18 +58,27 @@ export function monthsToTargetWithRentals(
 ): GoalMonths {
   const i = monthlyRate(annualRate);
   const ihs = rentals.map(mortgageMonthlyRate);
-  const netCashPerMonth = mCash + rentals.reduce((s, r) => s + r.netRentCents - r.paymentCents, 0);
+  const balances = rentals.map((r) => r.mortgageBalanceCents);
+  let kCash = c.cash;
 
   const at = (k: number) => {
     const g = Math.pow(1 + i, k);
     const kInv = c.inv * g + (i > 0 ? (mInv * (g - 1)) / i : mInv * k);
-    const kCash = c.cash + netCashPerMonth * k;
-    const kNem = rentals.reduce((s, r, j) => s + r.valueCents - mortgageBalanceAt(r, ihs[j], k), 0);
+    const kNem = rentals.reduce((s, r, j) => s + r.valueCents - balances[j], 0);
     return { total: kInv + kCash + kNem, kCash };
   };
 
   let prev = at(0);
   for (let k = 0; k <= RENTAL_HORIZON_MONTHS; k++) {
+    if (k > 0) {
+      kCash += mCash;
+      rentals.forEach((r, j) => {
+        const owed = balances[j];
+        const payment = owed > 0 ? Math.min(r.paymentCents, owed * (1 + ihs[j])) : 0;
+        balances[j] = owed > 0 ? owed * (1 + ihs[j]) - payment : 0;
+        kCash += r.netRentCents - payment;
+      });
+    }
     const cur = at(k);
     if (cur.kCash < 0) return { kind: "cash_exhausted", month: k };
     if (cur.total >= targetCents) {

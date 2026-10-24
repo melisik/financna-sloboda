@@ -22,10 +22,11 @@ const mainRental: Rental = {
 };
 
 describe("FR-02a – golden cases", () => {
-  it("GC-P2-01: n ≈ 257,25 mesiaca", () => {
+  // Po splatení (≈ mesiac 219) sa splátka neplatí a čistý nájom ide do m (D-087, nález T1); pred T1 bolo 257,25.
+  it("GC-P2-01: n ≈ 257,58 mesiaca", () => {
     const res = monthsToTargetWithRentals(base, 0, 0, r, T, [mainRental]);
     expect(res.kind).toBe("months");
-    if (res.kind === "months") expect(res.months).toBeCloseTo(257.25, 1);
+    if (res.kind === "months") expect(res.months).toBeCloseTo(257.58, 1);
   });
 
   it("GC-P2-02: hotovosť sa vyčerpá v mesiaci 26", () => {
