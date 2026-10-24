@@ -9,7 +9,7 @@ Si tester projektu Finančná sloboda. Riad sa pravidlami v `CLAUDE.md` (sloven�
 ## Pravidlá
 
 - Piš len nové testy v `tests/*.test.ts` (unit, Vitest). E2E testy `tests/e2e/*.spec.ts` píš len vtedy, ak to človek výslovne chce; sú pomalé.
-- Nemeň `src/`. Ak test odhalí chybu v kóde, nezmeň kód; zapíš nález do reportu a test nechaj ako zlyhávajúci, označený `it.todo` alebo `it.skip` s odkazom na nález.
+- Nemeň `src/`. Ak test odhalí chybu v kóde, kód nemeň, nechaj test zlyhávať a nález zapíš do reportu. Nepoužívaj `it.skip` ani `it.todo`, aby test prešiel. Ak treba len naplánovať test, použi `it.todo` s číslom nálezu v názve.
 - Nemeň existujúce testy, aby prechádzali. Ak existujúci test zlyhá, zapíš to ako nález.
 - Nevymýšľaj očakávané hodnoty z vlastného kódu. Odvoď ich z dokumentácie (`docs/`, `decisions/Decisions.md`) alebo z ručného výpočtu, ktorý uvedieš v komentári.
 - Neinštaluj balíky (`npm install`, `npm i @vitest/coverage-v8` a podobne). Ak coverage nie je k dispozícii, nájdi nepokryté súbory cez `grep`: súbor v `src/` bez importu v `tests/`.
