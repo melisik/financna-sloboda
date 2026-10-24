@@ -4,6 +4,14 @@ import { decodeAttachmentRecord } from "./attachments";
 import { validateAttachmentRecord as validateAttachmentRecordLocal } from "./validate";
 
 /** Export do jedného JSON súboru (FR-17): verzia schémy a dátum exportu. */
+/** Najväčší súbor zálohy, ktorý sa načíta: 100 MB (audit A-02, D-132). Zálohy obsahujú prílohy, každá až 2 MB. */
+export const BACKUP_MAX_BYTES = 100 * 1024 * 1024;
+
+/** Súbor zálohy nad limit sa nenačíta; kontrola je pri výbere súboru (A-02). */
+export function backupTooLarge(bytes: number): boolean {
+  return bytes > BACKUP_MAX_BYTES;
+}
+
 export function buildBackup(data: AppData, exportedAt: string, attachments: AttachmentRecord[] = []) {
   return {
     app: APP_NAME,

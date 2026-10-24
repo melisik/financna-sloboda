@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import type { Repository } from "../../storage/repository";
 import type { AppData, Attachment } from "../../storage/types";
-import { buildBackup, parseBackup } from "../../storage/backup";
+import { backupTooLarge, buildBackup, parseBackup } from "../../storage/backup";
 import { encodeAttachment } from "../../storage/attachments";
 import { daysSince } from "../../domain/dates";
 import { backupOverdue } from "../../domain/reminders";
@@ -92,6 +92,10 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
     setErrors([]);
     setPreview(null);
     setStatus(null);
+    if (backupTooLarge(file.size)) {
+      setErrors(["Súbor zálohy je väčší ako 100 MB. Nič sa nezmenilo."]);
+      return;
+    }
     let json: unknown;
     try {
       json = JSON.parse(await file.text());
