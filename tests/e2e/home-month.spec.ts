@@ -37,7 +37,7 @@ test.describe("Prehľad: tento mesiac", () => {
 
     await goTo(page, "prehlad");
     await expect(page.getByText(/Plnenie plánu: 47 %/)).toBeVisible();
-    await page.getByText("Rozpis výdavkov", { exact: true }).click();
+    await page.getByText("Rozpis výdavkov ▾", { exact: true }).click();
     await expect(page.getByText(/Nevyhnutné: 40\D?00,00 €|Nevyhnutné: 40,00 €/)).toBeVisible();
     await expect(page.getByText(/Nie nevyhnutné: 30,00 € \(38 % minutého\)/)).toBeVisible();
     await expect(page.getByText(/Ostatné a nezaradené: 10,00 €/)).toBeVisible();

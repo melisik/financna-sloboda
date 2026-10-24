@@ -47,7 +47,7 @@ test.describe("sekcia Záväzky (D-103)", () => {
     await page.getByRole("button", { name: "Uložiť záväzok" }).click();
 
     await goTo(page, "prehlad");
-    await page.getByText("Rozpis výdavkov", { exact: true }).click();
+    await page.getByText("Rozpis výdavkov ▾", { exact: true }).click();
     await expect(page.getByText(/Splátky úverov a kariet: 250/)).toBeVisible();
 
     await goTo(page, "zavazky");
