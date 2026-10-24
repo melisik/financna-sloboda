@@ -9,6 +9,7 @@ import { SOURCES, type Source } from "../../storage/types";
 import { cents, monthYear, todayIso } from "../../ui/kit/format";
 import { Field, asNum, inp, type NumIn } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
+import { card, hintStyle } from "../../ui/kit/controls";
 
 const SOURCE_LABEL: Record<Source, string> = { z_prijmu: "z príjmu", z_hotovosti: "z hotovosti", z_investicii: "z investícií" };
 
@@ -52,7 +53,7 @@ export function ScenarVydavkuSection({ ctx }: { ctx: Ctx }) {
       <p style={{ color: "var(--muted)" }}>Zisti, ako by veľký výdavok posunul dátum cieľa nezávislosti. Nič sa neukladá a nevznikne transakcia.</p>
       <Field label="Suma (€)" value={amount} onChange={setAmount} />
       <label style={{ display: "block", margin: "8px 0" }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>Zdroj</span>
+        <span style={{ display: "block", fontSize: "var(--font-small)" }}>Zdroj</span>
         <select aria-label="Zdroj" value={source} onChange={(e) => setSource(e.target.value as Source)} style={inp}>
           {SOURCES.map((s) => (
             <option key={s} value={s}>{SOURCE_LABEL[s]}</option>
@@ -66,7 +67,7 @@ export function ScenarVydavkuSection({ ctx }: { ctx: Ctx }) {
         </p>
       )}
       {outcome && outcome.ok && (
-        <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
+        <div style={card}>
           {outcome.exhausted && <p role="note">{INVESTMENTS_EXHAUSTED_TEXT}</p>}
           <p style={{ margin: "4px 0" }}>Predbežný dopad: <strong>{formatImpactOutcome(outcome.impact)}</strong></p>
           {outcome.monthsBefore !== null && outcome.monthsAfter !== null && (
@@ -81,7 +82,7 @@ export function ScenarVydavkuSection({ ctx }: { ctx: Ctx }) {
           )}
         </div>
       )}
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.</p>
+      <p style={hintStyle}>Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.</p>
     </div>
   );
 }

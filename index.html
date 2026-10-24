@@ -29,6 +29,13 @@
         --primary-bg: #1f4e79;
         --primary-text: #ffffff;
         --video-bg: #000000;
+        --focus: #1f4e79;
+        --link: #1f4e79;
+        --warn-border: #b7791f;
+        --font-text: 1rem;
+        --font-small: 0.9rem;
+        --font-heading: 1.25rem;
+        --font-title: 1.5rem;
       }
       @media (prefers-color-scheme: dark) {
         :root:not([data-theme="light"]) {
@@ -49,6 +56,9 @@
           --border-dashed: #6a6e78;
           --primary-bg: #8ab4f8;
           --primary-text: #0b1620;
+          --focus: #8ab4f8;
+          --link: #8ab4f8;
+          --warn-border: #e0a526;
         }
       }
       :root[data-theme="dark"] {
@@ -69,8 +79,12 @@
         --border-dashed: #6a6e78;
         --primary-bg: #8ab4f8;
         --primary-text: #0b1620;
+        --focus: #8ab4f8;
+        --link: #8ab4f8;
+        --warn-border: #e0a526;
       }
       body { background: var(--page); color: var(--text); margin: 0; }
+      :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
     </style>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Fin. sloboda" />

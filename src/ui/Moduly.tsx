@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import { PHASE2_ENABLED } from "../app/features";
 import { CORE_SECTION_IDS, OPTIONAL_MODULES, readModuleChoice, visibleSectionIds, writeModuleChoice } from "../app/modules";
+import { hintStyle } from "./kit/controls";
 
 /** Výber modulov (D-162, D-163) a ich zobrazenie: kontext pre celú appku, zaškrtávacie políčka, blok v Nastaveniach. */
 
@@ -43,8 +44,8 @@ export function ModulesBlock({ style }: { style?: React.CSSProperties }) {
   const selected = choice ?? OPTIONAL_MODULES.map((m) => m.id);
   return (
     <section aria-label="Moduly" style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12, ...style }}>
-      <h3 style={{ fontSize: "1.05rem" }}>Moduly</h3>
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+      <h3 style={{ fontSize: "var(--font-text)" }}>Moduly</h3>
+      <p style={hintStyle}>
         Vypnutá sekcia sa skryje. Údaje v nej ostanú uložené a výpočty v appke sa nemenia.
       </p>
       <ModuleCheckboxes

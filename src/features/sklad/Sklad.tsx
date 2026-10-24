@@ -13,6 +13,7 @@ import { dateSk } from "../../ui/kit/format";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { uid } from "../../ui/kit/ids";
 import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { hintStyle } from "../../ui/kit/controls";
 
 /** Sklad potravín a recepty (D-127, D-141, D-155): položky, dátumy spotreby, uvarenie a skener obalu. Feature „sklad“ (docs/23). */
 
@@ -48,7 +49,7 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
         <div key={i.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{i.name}</strong>{firstToUse ? <> · <strong>Použiť ako prvé</strong></> : null}</p>
           <p style={{ margin: "4px 0" }}>{i.quantity} {i.unit}{i.quantity === 0 ? " · došlo" : ""}</p>
-          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
             {i.expiryDate ? `Spotrebovať do ${dateSk(i.expiryDate ?? "")} (${dniText(daysUntil(today, i.expiryDate))})` : "Bez dátumu spotreby"}
             {i.expiryDate ? <>{" · "}{STOCK_STATUS_TEXT[stockStatus(i, today)]}</> : null}
           </p>
@@ -56,7 +57,7 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
             <div>
               <p>Naozaj zmazať položku „{i.name}“?</p>
               {usedIn(i.id).length > 0 && (
-                <p style={{ fontSize: "0.9rem" }}>Používa ju recept: {usedIn(i.id).join(", ")}. Po zmazaní bude recept hlásiť chýbajúcu surovinu.</p>
+                <p style={{ fontSize: "var(--font-small)" }}>Používa ju recept: {usedIn(i.id).join(", ")}. Po zmazaní bude recept hlásiť chýbajúcu surovinu.</p>
               )}
               <button onClick={() => remove(i.id)} style={btnDanger}>Zmazať</button>{" "}
               <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
@@ -183,13 +184,13 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
 
   return (
     <div style={{ marginTop: 16 }}>
-      <h4 style={{ fontSize: "1rem" }}>Recepty</h4>
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Pri uvarení sa suroviny odpočítajú zo skladu. Ak niečo chýba, nič sa neodpočíta.</p>
+      <h4 style={{ fontSize: "var(--font-text)" }}>Recepty</h4>
+      <p style={hintStyle}>Pri uvarení sa suroviny odpočítajú zo skladu. Ak niečo chýba, nič sa neodpočíta.</p>
       {recipes.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané recepty.</p>}
       {recipes.map((r) => (
         <div key={r.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{r.name}</strong></p>
-          <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "0.9rem" }}>
+          <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "var(--font-small)" }}>
             {r.ingredients.map((ing: RecipeIngredient) => {
               const item = stock.find((s) => s.id === ing.stockItemId);
               return <li key={ing.stockItemId}>{item ? `${item.name}: ${ing.quantity} ${item.unit}` : `${ing.stockName ?? "Surovina"} už nie je v sklade, upravte recept`}</li>;
@@ -213,7 +214,7 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
       {pending && (
         <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>Uvariť „{pending.name}“?</strong> Zo skladu sa odpočíta:</p>
-          <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "0.9rem" }}>
+          <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "var(--font-small)" }}>
             {pending.ingredients.map((ing) => {
               const item = stock.find((s) => s.id === ing.stockItemId);
               return <li key={ing.stockItemId}>{`${item?.name ?? ing.stockName ?? "surovina"}: −${qtyText(ing.quantity)} ${item?.unit ?? ""}`}</li>;
@@ -277,20 +278,20 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť recept" : "Nový recept"}</h4>
+      <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť recept" : "Nový recept"}</h4>
       {stock.length === 0 && <p style={{ color: "var(--muted)" }}>Najprv pridajte položky do skladu.</p>}
       <Field label="Názov receptu" value={name} type="text" onChange={setName} maxLength={80} />
       {rows.map((row, n) => (
         <div key={n} style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 8 }}>
           <label style={{ flex: "2 1 160px" }}>
-            <span style={{ display: "block", fontSize: "0.9rem" }}>Surovina</span>
+            <span style={{ display: "block", fontSize: "var(--font-small)" }}>Surovina</span>
             <select aria-label="Surovina" value={row.stockItemId} onChange={(e) => updateRow(n, { stockItemId: e.target.value })} style={inp}>
               <option value="">vyberte</option>
               {stock.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.unit})</option>)}
             </select>
           </label>
           <label style={{ flex: "1 1 90px" }}>
-            <span style={{ display: "block", fontSize: "0.9rem" }}>Množstvo{unitOf(row.stockItemId)}</span>
+            <span style={{ display: "block", fontSize: "var(--font-small)" }}>Množstvo{unitOf(row.stockItemId)}</span>
             <input
               type="number"
               step="any"
@@ -420,7 +421,7 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku skladu" : "Nová položka skladu"}</h4>
+      <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť položku skladu" : "Nová položka skladu"}</h4>
       {camera ? (
         <CameraScanner
           onFound={(code) => { setCamera(false); setScanMsg(applyBarcode(code)); }}
@@ -430,19 +431,19 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
         <button onClick={() => setCamera(true)} style={{ ...btn, margin: "8px 0" }}>Skenovať kódom kamerou</button>
       )}
       <label style={{ display: "block", margin: "8px 0" }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>Fotka obalu (záložne, ak kamera nejde)</span>
+        <span style={{ display: "block", fontSize: "var(--font-small)" }}>Fotka obalu (záložne, ak kamera nejde)</span>
         <input type="file" accept="image/*" aria-label="Fotka obalu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); }} />
       </label>
-      {scanMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{scanMsg}</p>}
+      {scanMsg && <p style={hintStyle}>{scanMsg}</p>}
       {ocrText !== null && (
-        <details style={{ fontSize: "0.9rem", marginBottom: 8 }}>
+        <details style={{ fontSize: "var(--font-small)", marginBottom: 8 }}>
           <summary>Rozpoznaný text z fotky</summary>
           <pre style={{ whiteSpace: "pre-wrap", background: "var(--surface-2)", padding: 8, borderRadius: 4 }}>{ocrText.trim() || "(žiadny text)"}</pre>
         </details>
       )}
       {!initial && previous.length > 0 && (
         <label style={{ display: "block", marginBottom: 8 }}>
-          <span style={{ display: "block", fontSize: "0.9rem" }}>Vybrať z predchádzajúcich výrobkov</span>
+          <span style={{ display: "block", fontSize: "var(--font-small)" }}>Vybrať z predchádzajúcich výrobkov</span>
           <select aria-label="Predchádzajúce výrobky" value="" onChange={(e) => pickPrevious(e.target.value)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
             <option value="">— vyber výrobok —</option>
             {previous.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -451,7 +452,7 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
       )}
       <Field label="Názov (napr. mlieko)" value={name} type="text" onChange={setName} maxLength={80} />
       {nameSuggestion !== null && name.trim() === "" && (
-        <p style={{ fontSize: "0.9rem", margin: "4px 0" }}>
+        <p style={{ fontSize: "var(--font-small)", margin: "4px 0" }}>
           Navrhnutý názov z fotky: <strong>{nameSuggestion}</strong>{" "}
           <button onClick={() => { setName(nameSuggestion); setNameSuggestion(null); }} style={btn}>Použiť názov</button>
         </p>
@@ -466,7 +467,7 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
       </label>
       <Field label="Dátum spotreby (nepovinné, bez dátumu nechajte prázdne)" value={expiry} type="date" onChange={setExpiry} />
       <label style={{ display: "block", marginBottom: 8 }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>Upozorniť na spotrebu</span>
+        <span style={{ display: "block", fontSize: "var(--font-small)" }}>Upozorniť na spotrebu</span>
         <select
           aria-label="Upozornenie na spotrebu"
           value={warnDays === null ? "none" : String(warnDays)}

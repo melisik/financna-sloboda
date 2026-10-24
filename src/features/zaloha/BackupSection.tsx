@@ -9,6 +9,7 @@ import { backupOverdue } from "../../domain/reminders";
 import { dateSk, todayIso } from "../../ui/kit/format";
 import { btn, btnPrimary, inp } from "../../ui/kit/controls";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
+import { calloutStyle, hintStyle } from "../../ui/kit/controls";
 
 /** Záloha a obnova (FR-17, FR-18): export, import s náhľadom, pomocné texty. Feature „zaloha“ (docs/23). */
 /** Stiahne zálohu aktuálnych dát a vráti čas exportu (FR-17). */
@@ -165,21 +166,21 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
       <p style={{ color: "var(--muted)" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu. Záloha obsahuje aj čísla dokladov, preto ju chráň.</p>
       <p>Posledná záloha: <strong>{lastExport ? lastExportText(lastExport, todayIso()) : "zatiaľ žiadna"}</strong></p>
       {backupOverdue(lastExport, todayIso()) && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Záloha je staršia ako 7 dní alebo ešte nebola urobená. Odporúčame novú zálohu.</p>
+        <p style={calloutStyle("warn")}>Záloha je staršia ako 7 dní alebo ešte nebola urobená. Odporúčame novú zálohu.</p>
       )}
       <label style={{ display: "block", margin: "8px 0" }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>Heslo na šifrovanie zálohy (nepovinné, aspoň {MIN_PASSWORD_LENGTH} znakov)</span>
+        <span style={{ display: "block", fontSize: "var(--font-small)" }}>Heslo na šifrovanie zálohy (nepovinné, aspoň {MIN_PASSWORD_LENGTH} znakov)</span>
         <input type="password" aria-label="Heslo na šifrovanie zálohy" autoComplete="new-password" maxLength={100} value={exportPassword} onChange={(e) => setExportPassword(e.target.value)} style={inp} />
       </label>
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Heslo sa nedá obnoviť. Bez neho sa zašifrovaná záloha neotvorí.</p>
+      <p style={hintStyle}>Heslo sa nedá obnoviť. Bez neho sa zašifrovaná záloha neotvorí.</p>
       <button onClick={exportBackup} style={btnPrimary}>Exportovať zálohu</button>
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne do priečinka Stiahnuté.</p>
+      <p style={hintStyle}>Na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne do priečinka Stiahnuté.</p>
       <label style={{ display: "block", margin: "16px 0 8px" }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>Obnovenie zo zálohy</span>
+        <span style={{ display: "block", fontSize: "var(--font-small)" }}>Obnovenie zo zálohy</span>
       </label>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <button type="button" onClick={() => fileRef.current?.click()} style={btn}>Vybrať súbor zálohy</button>
-        <span style={{ fontSize: "0.9rem", color: "var(--muted)" }}>{fileName || "Nie je vybraný žiadny súbor"}</span>
+        <span style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>{fileName || "Nie je vybraný žiadny súbor"}</span>
         <input
           ref={fileRef}
           type="file"
@@ -208,10 +209,10 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
       {preview && (
         <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6 }}>
           <p>Záloha z {dateSk(preview.exportedAt.slice(0, 10))} obsahuje: {summarizeData(preview.data)}.</p>
-          <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Teraz v zariadení: {summarizeData(data)}.</p>
-          {preview.notes.map((n) => <p key={n} style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "0.9rem" }}>{n}</p>)}
+          <p style={hintStyle}>Teraz v zariadení: {summarizeData(data)}.</p>
+          {preview.notes.map((n) => <p key={n} style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "var(--font-small)" }}>{n}</p>)}
           <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong></p>
-          <p style={{ color: "var(--danger)", fontSize: "0.9rem" }}>Aktuálne dáta sa nenávratne prepíšu. Ak ich chceš zachovať, najprv ulož zálohu tlačidlom „Exportovať zálohu“ hore.</p>
+          <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Aktuálne dáta sa nenávratne prepíšu. Ak ich chceš zachovať, najprv ulož zálohu tlačidlom „Exportovať zálohu“ hore.</p>
           <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}
           <button onClick={() => setPreview(null)} style={btn}>Zrušiť</button>
         </div>

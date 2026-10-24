@@ -154,7 +154,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
           <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={() => { reload(); setSettingsFlash("Nastavenia sú uložené."); }} />
           <ModulesBlock />
           <section style={{ marginTop: 16 }}>
-            <h3 style={{ fontSize: "1rem" }}>Sprievodca</h3>
+            <h3 style={{ fontSize: "var(--font-text)" }}>Sprievodca</h3>
             <p style={{ color: "var(--muted)" }}>Prejdi sprievodcu znova. Údaje sa predvyplnia a nič sa nevymaže.</p>
             <button onClick={() => setWizardOpen(true)} style={btn}>Spustiť sprievodcu znova</button>
           </section>

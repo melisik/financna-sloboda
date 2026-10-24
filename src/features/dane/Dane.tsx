@@ -12,6 +12,7 @@ import { saveBlobFile, type SaveResult } from "../../ui/kit/files";
 import { Field, btn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
 import { fillTaxFormPdf } from "./taxFormPdf";
+import { hintStyle } from "../../ui/kit/controls";
 
 /** Dane (FR-24, FR-25, D-104, D-159, D-161): daňový rámec investícií, evidencia psov a tlačivo 17-dp-md. Feature „dane“ (docs/23). */
 
@@ -34,15 +35,15 @@ export function DogSection({ repo, dogs, today, onSaved }: { repo: Repository; d
 
   return (
     <section aria-label="Psy">
-      <h3 style={{ fontSize: "1.05rem" }}>Psy (daň za psa)</h3>
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Evidencia psov pre tlačivo 17-dp-md, oddiel V. Sadzbu určuje obec; appka ju nepočíta.</p>
+      <h3 style={{ fontSize: "var(--font-text)" }}>Psy (daň za psa)</h3>
+      <p style={hintStyle}>Evidencia psov pre tlačivo 17-dp-md, oddiel V. Sadzbu určuje obec; appka ju nepočíta.</p>
       <p>Psov evidovaných dnes: <strong>{activeDogCount(dogs, today)}</strong></p>
       {dogs.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny pes.</p>}
       {dogs.map((d) => (
         <div key={d.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{d.name || "Pes bez mena"}</strong>{d.evidenceNumber ? ` · evidenčné číslo ${d.evidenceNumber}` : ""}</p>
-          <p style={{ margin: "4px 0", fontSize: "0.9rem" }}>{d.address}, {d.municipality} · {DOG_PLACE_LABEL[d.keepingPlace]} · účel {DOG_PURPOSE_LABEL[d.purpose]}</p>
-          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+          <p style={{ margin: "4px 0", fontSize: "var(--font-small)" }}>{d.address}, {d.municipality} · {DOG_PLACE_LABEL[d.keepingPlace]} · účel {DOG_PURPOSE_LABEL[d.purpose]}</p>
+          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
             Od {dateSk(d.startDate)}{d.endDate ? `, do ${dateSk(d.endDate)}` : ", trvá"}
             {d.breed ? ` · plemeno ${d.breed}` : ""}{d.age ? ` · vek ${d.age}` : ""}{d.holderWithDisability ? " · držiteľ preukazu ŤZP" : ""}
           </p>
@@ -119,12 +120,12 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
 
   return (
     <section aria-label="Tlačivo 17-dp-md" style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-      <h3 style={{ fontSize: "1.05rem" }}>Tlačivo 17-dp-md</h3>
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+      <h3 style={{ fontSize: "var(--font-text)" }}>Tlačivo 17-dp-md</h3>
+      <p style={hintStyle}>
         Vyplní sa z údajov o nehnuteľnostiach a psoch (oddiel III, IV a V tlačiva). Údaje daňovníka a ďalšie polia doplníte v PDF.
       </p>
       {empty && (
-        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+        <p style={hintStyle}>
           Najprv pridaj nehnuteľnosť v Majetku alebo psa vyššie. Bez nich by tlačivo zostalo prázdne. <NextStep to="majetok">Majetok</NextStep>
         </p>
       )}
@@ -144,7 +145,7 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
         </p>
       )}
       {notes.length > 0 && (
-        <ul style={{ paddingLeft: 20, fontSize: "0.9rem" }}>
+        <ul style={{ paddingLeft: 20, fontSize: "var(--font-small)" }}>
           {notes.map((n, i) => <li key={i}>{n}</li>)}
         </ul>
       )}
@@ -204,7 +205,7 @@ function DogForm({ repo, initial, today, onDone, onCancel }: { repo: Repository;
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť psa" : "Nový pes"}</h4>
+      <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť psa" : "Nový pes"}</h4>
       <Field label="Meno psa (nepovinné)" value={name} type="text" onChange={setName} maxLength={80} />
       <Field label="Evidenčné číslo psa (nepovinné)" value={evidence} type="text" onChange={setEvidence} maxLength={40} hint="pridelí obec" />
       <Field label="Plemeno (nepovinné)" value={breed} type="text" onChange={setBreed} maxLength={80} />
@@ -246,16 +247,16 @@ export function TaxSection({ positions }: { positions: Position[] }) {
         <div key={l.regime} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{l.label}</strong></p>
           <p style={{ margin: "4px 0" }}>Hodnota investícií v režime: {eur(l.valueCents)}</p>
-          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
             {l.regime === "nezadane" ? "Zadaj daňový režim v položkách investícií." : "Po dani: čaká na overenie pravidiel."}
           </p>
-          <p style={{ margin: "4px 0", fontSize: "0.85rem", color: "var(--muted)" }}>
+          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
             Zdroj: {TAX_CATALOG[l.regime].source ?? "nie je zadaný"} · platnosť od: {TAX_CATALOG[l.regime].validFrom ?? "nie je zadaná"} · stav: {TAX_CATALOG[l.regime].status}
           </p>
         </div>
       ))}
       {positions.length === 0 && (
-        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Daňový režim zadáš pri položkách investícií. <NextStep to="investicie">Investície</NextStep></p>
+        <p style={hintStyle}>Daňový režim zadáš pri položkách investícií. <NextStep to="investicie">Investície</NextStep></p>
       )}
     </section>
   );

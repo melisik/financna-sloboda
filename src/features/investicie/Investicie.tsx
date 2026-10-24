@@ -9,6 +9,7 @@ import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
+import { calloutStyle, hintStyle } from "../../ui/kit/controls";
 
 /** Investície (D-101, D-105): ručné položky a ich ocenenie; súčet sa použije vo Vyhodnotení. Feature „investicie“ (docs/23). */
 
@@ -67,27 +68,27 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
         Zadávaš počet kusov, cenu a kurz k euru. Hodnota v eurách sa počíta v telefóne; nič sa neposiela von. Suma investícií vo Vyhodnotení je súčtom týchto položiek.
       </p>
       {staleValuationNames(positions, today).length > 0 && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+        <p style={calloutStyle("warn")}>
           Staré ocenenie (viac ako 3 mesiace): {staleValuationNames(positions, today).join(", ")}. Over cenu a aktualizuj položku.
         </p>
       )}
       {positions.length === 0 && editing === null && <p>Zatiaľ nie je zapísaná žiadna položka. Vo <a href="#vyhodnotenie">Vyhodnotení</a> sa suma zadáva ručne.</p>}
       {positions.length > 0 && (
-        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Súčet položiek je hodnota investícií vo Vyhodnotení. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>
+        <p style={hintStyle}>Súčet položiek je hodnota investícií vo Vyhodnotení. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>
       )}
       {positions.length > 0 && (
-        <p style={{ fontSize: "1.05rem" }}>Spolu: <strong>{eur(investmentsTotalCents(positions))}</strong></p>
+        <p style={{ fontSize: "var(--font-text)" }}>Spolu: <strong>{eur(investmentsTotalCents(positions))}</strong></p>
       )}
       {positions.length > 0 && (
-        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+        <p style={hintStyle}>
           {Object.entries(investmentsByKindCents(positions)).map(([k, v]) => `${INVESTMENT_KIND_LABEL[k as Position["kind"]]} ${eur(v ?? 0)}`).join(" · ")}
         </p>
       )}
       {monthlyContributionsTotalCents(positions) > 0 && (
         <p style={{ color: "var(--muted)" }}>Mesačné vklady do tretieho piliera a iných položiek: {eur(monthlyContributionsTotalCents(positions))} (len zobrazenie)</p>
       )}
-      <h4 style={{ fontSize: "1rem", marginBottom: 4 }}>Ciele</h4>
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 0 }}>
+      <h4 style={{ fontSize: "var(--font-text)", marginBottom: 4 }}>Ciele</h4>
+      <p style={{ color: "var(--muted)", fontSize: "var(--font-small)", marginTop: 0 }}>
         Položky môžeš zoskupiť do cieľa. Ciele sú len zobrazenie a nemenia výpočet cieľa nezávislosti.
       </p>
       {goals.map((g) =>
@@ -244,7 +245,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku" : "Nová položka"}</h4>
+      <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť položku" : "Nová položka"}</h4>
       <Field label={balance ? "Názov účtu" : "Názov alebo ticker"} value={name} type="text" onChange={setName} maxLength={80} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Druh
@@ -314,7 +315,7 @@ function GoalForm({ repo, initial = null, onDone, onCancel }: { repo: Repository
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)", marginBottom: 8 }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť cieľ" : "Nový cieľ"}</h4>
+      <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť cieľ" : "Nový cieľ"}</h4>
       <Field label="Názov cieľa" value={name} type="text" onChange={setName} maxLength={80} />
       <Field label="Cieľová suma (€)" value={target} onChange={setTarget} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}

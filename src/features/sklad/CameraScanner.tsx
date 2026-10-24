@@ -63,7 +63,7 @@ export function CameraScanner({ onFound, onCancel }: { onFound: (code: string) =
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 8, borderRadius: 6, margin: "8px 0" }}>
       <video ref={videoRef} autoPlay playsInline muted aria-label="Kamera na čiarový kód" style={{ width: "100%", maxHeight: 320, background: "#000" }} />
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem", margin: "4px 0" }}>{msg}</p>
+      <p style={{ color: "var(--muted)", fontSize: "var(--font-small)", margin: "4px 0" }}>{msg}</p>
       <button onClick={onCancel} style={btn}>Zrušiť</button>
     </div>
   );

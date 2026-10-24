@@ -8,6 +8,7 @@ import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
+import { hintStyle } from "../../ui/kit/controls";
 
 /** Pravidelné výdavky (D-124): zoznam, súčet za mesiac a podľa kategórie, ukončenie. Iba zobrazenie výpočtov. Feature „pravidelne“ (docs/23). */
 
@@ -57,7 +58,7 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
         </ul>
       )}
       {items.length > 0 && (
-        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Pravidelné výdavky sa berú do rozpočtu podľa kategórie. <NextStep to="rozpocet">Rozpočet</NextStep></p>
+        <p style={hintStyle}>Pravidelné výdavky sa berú do rozpočtu podľa kategórie. <NextStep to="rozpocet">Rozpočet</NextStep></p>
       )}
       {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané pravidelné výdavky.</p>}
       {items.map((e) => (
@@ -67,11 +68,11 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
             {eur(e.amountCents)} {RECURRING_FREQUENCY_LABEL[e.frequency]}
             {e.frequency === "rocne" ? ` (≈ ${eur(monthlyShareCents(e))} mesačne)` : ""}
           </p>
-          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
             Od {dateSk(e.startDate)}{e.endDate ? `, do ${dateSk(e.endDate)}` : ""}{isRecurringActive(e, today) ? "" : " · dnes neplatí"}
           </p>
           {endingSoon(e, today) && (
-            <p style={{ margin: "4px 0", color: "var(--danger)", fontSize: "0.9rem" }}>Koniec platnosti o menej ako 30 dní. Ak sa platba obnoví, upravte koniec.</p>
+            <p style={{ margin: "4px 0", color: "var(--danger)", fontSize: "var(--font-small)" }}>Koniec platnosti o menej ako 30 dní. Ak sa platba obnoví, upravte koniec.</p>
           )}
           {confirmId === e.id ? (
             <div>
@@ -150,7 +151,7 @@ function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť pravidelný výdavok" : "Nový pravidelný výdavok"}</h4>
+      <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť pravidelný výdavok" : "Nový pravidelný výdavok"}</h4>
       <Field label="Názov (napr. predplatné)" value={name} type="text" onChange={setName} maxLength={80} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Kategória

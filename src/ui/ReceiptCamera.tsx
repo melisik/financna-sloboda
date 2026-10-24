@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { hintStyle } from "./kit/controls";
 
-const buttonStyle: React.CSSProperties = { padding: "8px 14px", fontSize: "1rem", marginTop: 8 };
+const buttonStyle: React.CSSProperties = { padding: "8px 14px", fontSize: "var(--font-text)", marginTop: 8 };
 
 /**
  * Živé skenovanie QR kódu dokladu z kamery (offline). Keď kód rozpozná, zavolá onFound s jeho textom
@@ -72,7 +73,7 @@ export function ReceiptCamera({ onFound, onClose }: { onFound: (text: string) =>
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)", margin: "8px 0" }}>
       <video ref={videoRef} playsInline muted aria-label="Živý náhľad kamery" style={{ width: "100%", borderRadius: 6, background: "#000" }} />
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{status}</p>
+      <p style={hintStyle}>{status}</p>
       <button type="button" onClick={onClose} style={buttonStyle}>Zrušiť</button>
     </div>
   );

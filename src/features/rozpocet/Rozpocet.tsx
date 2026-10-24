@@ -75,7 +75,7 @@ export function BudgetSection({ repo, budgets, transactions, recurring, properti
               onChange={(v) => setLimits({ ...limits, [c]: v })}
               hint={hint}
             />
-            {st?.over && <p style={{ color: "var(--danger)", fontSize: "0.9rem", margin: "4px 0" }}>Prekročené o {eur(st.remainingCents)}.</p>}
+            {st?.over && <p style={{ color: "var(--danger)", fontSize: "var(--font-small)", margin: "4px 0" }}>Prekročené o {eur(st.remainingCents)}.</p>}
           </div>
         );
       })}

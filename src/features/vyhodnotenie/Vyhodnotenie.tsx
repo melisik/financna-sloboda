@@ -10,6 +10,7 @@ import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
+import { calloutStyle } from "../../ui/kit/controls";
 
 /** Vyhodnotenie (FR-05, D-116, D-121): ručné vyhodnotenie a kontrola stavu investícií a hotovosti; zmazanie. Feature „vyhodnotenie“ (docs/23). */
 
@@ -91,13 +92,13 @@ export function SnapshotSection({ repo, latest, capital, derivedInvCents, snapsh
       <p style={{ color: "var(--muted)" }}>Mesačné vyhodnotenie sa vytvára automaticky. Tu ho zadáš len na opravu. Dátum cieľa sa mení až pri vyhodnotení.</p>
       {latest && <p style={{ color: "var(--muted)" }}>Dátum cieľa a stav uvidíš na Prehľade. <NextStep to="prehlad">Prehľad</NextStep></p>}
       {staleValuationNames(positions, todayIso()).length > 0 && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Ocenenie niektorých investícií je staršie ako 3 mesiace. Suma vo vyhodnotení môže byť zastaraná.</p>
+        <p style={calloutStyle("warn")}>Ocenenie niektorých investícií je staršie ako 3 mesiace. Suma vo vyhodnotení môže byť zastaraná.</p>
       )}
       {latest && positionsChangedSince(positions, latest.createdAt) && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Investície sa zmenili od posledného vyhodnotenia. Nové vyhodnotenie zohľadní aj túto zmenu.</p>
+        <p style={calloutStyle("warn")}>Investície sa zmenili od posledného vyhodnotenia. Nové vyhodnotenie zohľadní aj túto zmenu.</p>
       )}
       {latest && propertyChangedSince(properties, latest.createdAt) && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Majetok sa zmenil od posledného vyhodnotenia. Nové vyhodnotenie zohľadní aj túto zmenu.</p>
+        <p style={calloutStyle("warn")}>Majetok sa zmenil od posledného vyhodnotenia. Nové vyhodnotenie zohľadní aj túto zmenu.</p>
       )}
       {editingDate && <p style={{ background: "var(--banner)", padding: 8, borderRadius: 6 }}>Upravuješ vyhodnotenie z {dateSk(editingDate ?? "")}. Uložením sa prepíše.</p>}
       <Field label="Dátum vyhodnotenia" value={date} type="date" max={todayIso()} onChange={setDate} />
@@ -124,14 +125,14 @@ export function SnapshotSection({ repo, latest, capital, derivedInvCents, snapsh
       )}
       <button onClick={save} style={btnPrimary}>Uložiť vyhodnotenie</button>
 
-      <h3 style={{ fontSize: "1rem", marginTop: 24 }}>Uložené vyhodnotenia</h3>
+      <h3 style={{ fontSize: "var(--font-text)", marginTop: 24 }}>Uložené vyhodnotenia</h3>
       {snapshots.length === 0 && <p>Zatiaľ nie sú uložené vyhodnotenia.</p>}
       {[...snapshots].sort((a, b) => b.date.localeCompare(a.date)).map((s) => (
         <div key={s.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{dateSk(s.date)}</strong>{s.auto ? " · automaticky" : ""}</p>
           <p style={{ margin: "4px 0" }}>K: {eur(s.investmentsCents + s.cashCents)} (investície {eur(s.investmentsCents)}, hotovosť {eur(s.cashCents)})</p>
           {s.auto ? (
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Automatické vyhodnotenie sa vytvorí znova z ručných údajov.</p>
+            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Automatické vyhodnotenie sa vytvorí znova z ručných údajov.</p>
           ) : deleteId === s.id ? (
             <div>
               <p>Naozaj zmazať vyhodnotenie z {dateSk(s.date)}? Ak chceš mať kópiu, najprv stiahni zálohu v sekcii <a href="#zaloha">Záloha</a>.</p>

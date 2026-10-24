@@ -41,7 +41,7 @@ export function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: 
       <p style={{ color: "var(--muted)" }}>Hypotéku evidujte v sekcii <a href="#majetok">Majetok</a>. Tu sú ostatné dlhy: úver, kreditná karta, leasing.</p>
       {liabilities.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny záväzok.</p>}
       {liabilities.length > 0 && (
-        <p style={{ fontSize: "1.05rem" }}>
+        <p style={{ fontSize: "var(--font-text)" }}>
           Dlh spolu: <strong>{eur(totals.debtCents)}</strong>. Mesačne odchádza: <strong>{eur(totals.monthlyPaymentCents)}</strong>, z toho úrok {eur(totals.monthlyInterestCents)}.
         </p>
       )}
@@ -49,19 +49,19 @@ export function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: 
         <div key={l.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{l.name}</strong> · {LIABILITY_KIND_LABEL[l.kind]}</p>
           {paymentBelowInterest(l.balanceCents, l.rate, l.monthlyPaymentCents) && (
-            <p role="note" style={{ margin: "4px 0", background: "var(--warn-bg)", padding: 6, borderRadius: 6, fontSize: "0.9rem" }}>
+            <p role="note" style={{ margin: "4px 0", background: "var(--warn-bg)", padding: 6, borderRadius: 6, fontSize: "var(--font-small)" }}>
               Splátka nepokrýva úrok, zostatok rastie. Skontroluj splátku.
             </p>
           )}
-          <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
+          <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "var(--font-small)" }}>
             <dt>Zostatok</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(l.balanceCents)}</dd>
             <dt>Úroková sadzba</dt><dd style={{ margin: 0, textAlign: "right" }}>{String(Number((l.rate * 100).toFixed(4)))} % p. a.</dd>
             <dt>Splátka mesačne</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(l.monthlyPaymentCents)}</dd>
             <dt>Úrok za mesiac</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(liabilityInterestCents(l))}</dd>
           </dl>
-          {l.endDate && <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Koniec: {dateSk(l.endDate ?? "")}</p>}
+          {l.endDate && <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Koniec: {dateSk(l.endDate ?? "")}</p>}
           {!liabilityIsActive(l, today) && (
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
               {l.balanceCents <= 0 ? "Splatené. Nerátajú sa do mesačných výdavkov." : `Skončené k ${dateSk(l.endDate ?? "")}. Nerátajú sa do mesačných výdavkov.`}
             </p>
           )}
@@ -152,7 +152,7 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť záväzok" : "Nový záväzok"}</h4>
+      <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť záväzok" : "Nový záväzok"}</h4>
       <Field label="Názov" value={name} type="text" onChange={setName} maxLength={80} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Druh
@@ -169,7 +169,7 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       <Field label="Úroková sadzba (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak úrok nie je" />
       <Field label="Splátka mesačne (€)" value={payment} onChange={setPayment} hint="0, ak splátku nemáš" />
       {belowInterest && (
-        <p role="note" style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "0.9rem" }}>
+        <p role="note" style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "var(--font-small)" }}>
           Splátka nepokryje mesačný úrok ({eur(Math.round((cents(asNum(balance)) * asNum(rate)) / 100 / 12))}). Zostatok by sa nezmenšil; skontroluj splátku.
         </p>
       )}

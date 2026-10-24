@@ -19,6 +19,7 @@ import { Field, asNum, btn, inp, type NumIn, btnDanger, btnPrimary } from "../..
 import { NextStep } from "../../ui/kit/NextStep";
 import { ReceiptCamera } from "../../ui/ReceiptCamera";
 import { readQrFromImage } from "../../ui/receiptScan";
+import { calloutStyle, hintStyle } from "../../ui/kit/controls";
 
 /** Transakcie (FR-08 až FR-12, D-120, D-121, D-160): zápis, história, filter a prílohy výdavkov. Feature „transakcie“ (docs/23). */
 
@@ -256,17 +257,17 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
 
   return (
     <section>
-      {!ctx.latest && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Najprv urob vyhodnotenie, potom môžeš zapisovať transakcie. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
-      {inEdit && <h2 style={{ fontSize: "1.1rem" }}>Úprava transakcie</h2>}
+      {!ctx.latest && <p style={calloutStyle("warn")}>Najprv urob vyhodnotenie, potom môžeš zapisovať transakcie. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
+      {inEdit && <h2 style={{ fontSize: "var(--font-heading)" }}>Úprava transakcie</h2>}
       <label style={{ display: "block", margin: "8px 0" }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>Typ</span>
+        <span style={{ display: "block", fontSize: "var(--font-small)" }}>Typ</span>
         <select aria-label="Typ transakcie" value={type} onChange={(e) => setType(e.target.value as TransactionType)} style={inp}>
           {(Object.keys(TYPE_LABEL) as TransactionType[]).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
         </select>
       </label>
       {needsSource && (
         <label style={{ display: "block", margin: "8px 0" }}>
-          <span style={{ display: "block", fontSize: "0.9rem" }}>Zdroj</span>
+          <span style={{ display: "block", fontSize: "var(--font-small)" }}>Zdroj</span>
           <select aria-label="Zdroj úhrady" value={source} onChange={(e) => setSource(e.target.value as Source)} style={inp}>
             {SOURCES.map((x) => <option key={x} value={x}>{SOURCE_LABEL[x]}</option>)}
           </select>
@@ -275,14 +276,14 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       {type === "vydavok" && (
         <>
         <label style={{ display: "block", margin: "8px 0" }}>
-          <span style={{ display: "block", fontSize: "0.9rem" }}>Kategória (nepovinná)</span>
+          <span style={{ display: "block", fontSize: "var(--font-small)" }}>Kategória (nepovinná)</span>
           <select aria-label="Kategória" value={category} onChange={(e) => setCategory(e.target.value as BudgetCategory | "")} style={inp}>
             <option value="">bez kategórie</option>
             {BUDGET_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </label>
         {category !== "" && data.budgets.some((b) => b.category === category) && (
-          <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Limit v kategórii {category}: {eur(data.budgets.find((b) => b.category === category)?.limitCents ?? 0)}. <NextStep to="rozpocet">Rozpočet</NextStep></p>
+          <p style={hintStyle}>Limit v kategórii {category}: {eur(data.budgets.find((b) => b.category === category)?.limitCents ?? 0)}. <NextStep to="rozpocet">Rozpočet</NextStep></p>
         )}
         </>
       )}
@@ -299,14 +300,14 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
             canUseCamera() && <button type="button" onClick={() => setCameraOn(true)} style={btn}>Skenovať QR kód kamerou</button>
           )}
           <label style={{ display: "block", margin: "4px 0" }}>
-            <span style={{ display: "block", fontSize: "0.9rem" }}>Alebo nafoťte QR kód z dokladu</span>
+            <span style={{ display: "block", fontSize: "var(--font-small)" }}>Alebo nafoťte QR kód z dokladu</span>
             <input type="file" accept="image/*" aria-label="Fotka QR kódu dokladu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void scanReceipt(f); }} />
           </label>
-          {qrMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{qrMsg}</p>}
+          {qrMsg && <p style={hintStyle}>{qrMsg}</p>}
           {/* Číslo dokladu sa nezobrazuje a nedá sa zadať ručne; používa sa len na overenie (D-133). */}
           {receiptId !== "" && (
             <>
-              <p style={{ fontSize: "0.9rem" }}>
+              <p style={{ fontSize: "var(--font-small)" }}>
                 Doklad je priradený.{" "}
                 <button type="button" onClick={() => { setReceiptId(""); setQrMsg(null); setCopyMsg(null); }} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Odstrániť doklad</button>
               </p>
@@ -319,7 +320,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
               >
                 Overiť doklad na portáli
               </a>
-              {copyMsg && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{copyMsg}</p>}
+              {copyMsg && <p style={hintStyle}>{copyMsg}</p>}
             </>
           )}
         </div>
@@ -327,27 +328,27 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       {type === "vydavok" && (
         <div style={{ margin: "8px 0" }}>
           <label style={{ display: "block" }}>
-            <span style={{ display: "block", fontSize: "0.9rem" }}>Položky z dokladu (nepovinné; vložte text skopírovaný z portálu)</span>
+            <span style={{ display: "block", fontSize: "var(--font-small)" }}>Položky z dokladu (nepovinné; vložte text skopírovaný z portálu)</span>
             <textarea aria-label="Položky z dokladu" value={itemsText} onChange={(e) => setItemsText(e.target.value)} rows={4} style={{ ...inp, fontFamily: "inherit" }} />
           </label>
           {parsedItems.items.length > 0 && (
             <>
-              <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "0.9rem" }}>
+              <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "var(--font-small)" }}>
                 {parsedItems.items.map((i) => (
                   <li key={i.code}>{i.name}: {i.quantity} ks, DPH {i.vatPercent} %, {eur(i.amountCents)}</li>
                 ))}
               </ul>
-              <p style={{ fontSize: "0.9rem" }}>Súčet položiek: <strong>{eur(itemsTotal)}</strong></p>
+              <p style={{ fontSize: "var(--font-small)" }}>Súčet položiek: <strong>{eur(itemsTotal)}</strong></p>
             </>
           )}
           {parsedItems.unparsed.length > 0 && (
-            <p style={{ color: "var(--danger)", fontSize: "0.9rem" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Opravte text alebo ho vymažte; bez toho sa výdavok neuloží.</p>
+            <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Opravte text alebo ho vymažte; bez toho sa výdavok neuloží.</p>
           )}
           {itemsMismatch && (
-            <p style={{ color: "var(--danger)", fontSize: "0.9rem" }}>Súčet položiek sa nezhoduje so sumou výdavku {eur(cents(asNum(amount)))} (napr. zľava). Uložiť sa dá, ak je to v poriadku.</p>
+            <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Súčet položiek sa nezhoduje so sumou výdavku {eur(cents(asNum(amount)))} (napr. zľava). Uložiť sa dá, ak je to v poriadku.</p>
           )}
           {itemsText.trim() === "" && storedItems.length > 0 && (
-            <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Uložené položky: {storedItems.length}. Vložením nového textu sa nahradia.</p>
+            <p style={hintStyle}>Uložené položky: {storedItems.length}. Vložením nového textu sa nahradia.</p>
           )}
         </div>
       )}
@@ -360,7 +361,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         </p>
       )}
       {preview && !preview.blocked && preview.note && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>{preview.note}</p>
+        <p style={calloutStyle("warn")}>{preview.note}</p>
       )}
       {preview && !preview.blocked && preview.needsConfirm && (
         <label style={{ display: "block", margin: "8px 0" }}>
@@ -374,7 +375,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       <button onClick={save} style={btnPrimary}>{inEdit ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
       {inEdit && <button onClick={resetForm} style={{ ...btn, marginLeft: 8 }}>Zrušiť úpravu</button>}
 
-      <h3 style={{ fontSize: "1rem", marginTop: 24 }}>História</h3>
+      <h3 style={{ fontSize: "var(--font-text)", marginTop: 24 }}>História</h3>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <select aria-label="Filter typu" value={fType} onChange={(e) => setFType(e.target.value as "all" | TransactionType)} style={{ ...inp, width: "auto" }}>
           <option value="all">všetky typy</option>
@@ -388,13 +389,13 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         <input aria-label="Od dátumu" type="date" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
         <input aria-label="Do dátumu" type="date" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
       </div>
-      <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
+      <p style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>
         Súčet zobrazených transakcií: {(Object.keys(totals) as TransactionType[]).length === 0
           ? "žiadne transakcie"
           : (Object.keys(totals) as TransactionType[]).map((t) => `${TYPE_LABEL[t]} ${eur(totals[t] ?? 0)}`).join(" · ")}
       </p>
       {Object.keys(categoryTotals).length > 0 && (
-        <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>
+        <p style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>
           Výdavky podľa kategórie: {Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]).map(([c, v]) => `${c} ${eur(v)}`).join(" · ")}
         </p>
       )}

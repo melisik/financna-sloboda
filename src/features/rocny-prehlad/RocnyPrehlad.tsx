@@ -31,8 +31,8 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
     <div>
       <p style={{ color: "var(--muted)" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K a z aktuálnych Nastavení, bez nehnuteľností.</p>
       {!s && <p style={{ color: "var(--muted)" }}>Nastavenia nie sú zadané; zobrazí sa len K. <NextStep to="nastavenia">Nastavenia</NextStep></p>}
-      <h3 style={{ fontSize: "1rem", marginTop: 16 }}>Výdavky podľa kategórií</h3>
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 0 }}>
+      <h3 style={{ fontSize: "var(--font-text)", marginTop: 16 }}>Výdavky podľa kategórií</h3>
+      <p style={{ color: "var(--muted)", fontSize: "var(--font-small)", marginTop: 0 }}>
         {latestYear - 1} a {latestYear}{throughMonth < 12 ? `, mesiace 1 až ${throughMonth}` : ""}. Porovnanie je za rovnaké obdobie.
       </p>
       {comparison.length === 0 ? (
@@ -46,7 +46,7 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
           ))}
         </div>
       )}
-      <h3 style={{ fontSize: "1rem", marginTop: 16 }}>Súhrn po rokoch</h3>
+      <h3 style={{ fontSize: "var(--font-text)", marginTop: 16 }}>Súhrn po rokoch</h3>
       {years.map((y) => (
         <div key={y.year} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{y.year}</strong></p>
@@ -56,24 +56,24 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
               {y.deltaK !== null ? ` (zmena za rok ${y.deltaK >= 0 ? "+" : "−"}${eur(Math.abs(y.deltaK))})` : ""}
             </p>
           )}
-          <p style={{ margin: "4px 0", fontSize: "0.9rem" }}>Sporenie: {eur(y.sporenieCents)} · výdavky celkom: {eur(y.vydavkyCents)}</p>
+          <p style={{ margin: "4px 0", fontSize: "var(--font-small)" }}>Sporenie: {eur(y.sporenieCents)} · výdavky celkom: {eur(y.vydavkyCents)}</p>
           {y.topCategory && (
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Najviac sa minulo na: {y.topCategory.name} ({eur(y.topCategory.cents)})</p>
+            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Najviac sa minulo na: {y.topCategory.name} ({eur(y.topCategory.cents)})</p>
           )}
         </div>
       ))}
-      <h3 style={{ fontSize: "1rem", marginTop: 16 }}>Vyhodnotenia</h3>
+      <h3 style={{ fontSize: "var(--font-text)", marginTop: 16 }}>Vyhodnotenia</h3>
       {rows.map((r) => (
         <div key={r.date} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{dateSk(r.date)}</strong>{r.auto ? " · automaticky" : ""}</p>
           <p style={{ margin: "4px 0" }}>K: {eur(r.totalCents)} (investície {eur(r.invCents)}, hotovosť {eur(r.cashCents)})</p>
           {r.deltaTotalCents !== null && (
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
               Zmena K: {r.deltaTotalCents >= 0 ? "+" : "−"}{eur(Math.abs(r.deltaTotalCents))}
             </p>
           )}
           {r.sporenieCents !== null && r.vydavkyCents !== null && r.ostatneCents !== null && (
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
               z toho sporenie {eur(r.sporenieCents)}, výdavky −{eur(r.vydavkyCents)}
               {r.rezervaCents !== null && r.rezervaCents !== 0 && <>, rezerva {r.rezervaCents >= 0 ? "+" : "−"}{eur(Math.abs(r.rezervaCents))}</>}
               , výnos a ostatné {r.ostatneCents >= 0 ? "+" : "−"}{eur(Math.abs(r.ostatneCents))}
@@ -81,7 +81,7 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
           )}
           {r.goal && <p style={{ margin: "4px 0" }}>Dátum cieľa: <strong>{goalDateText(r.goal, savingZero, monthYear)}</strong></p>}
           {r.deltaGoalMonths !== null && (
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Zmena dátumu cieľa: {goalShiftText(r.deltaGoalMonths)}</p>
+            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Zmena dátumu cieľa: {goalShiftText(r.deltaGoalMonths)}</p>
           )}
         </div>
       ))}

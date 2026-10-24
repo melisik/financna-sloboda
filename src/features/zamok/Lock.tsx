@@ -72,10 +72,10 @@ export function LockScreen({ repo, onUnlock, onWiped }: { repo: Repository; onUn
   };
   return (
     <section aria-label="Odomknutie">
-      <h2 style={{ fontSize: "1.1rem" }}>Zadaj PIN</h2>
+      <h2 style={{ fontSize: "var(--font-heading)" }}>Zadaj PIN</h2>
       <p style={{ color: "var(--muted)" }}>Údaje sú v tomto telefóne. Ak PIN zabudneš, môžeš údaje v zariadení vymazať a obnoviť ich zo zálohy.</p>
       <label style={{ display: "block", margin: "8px 0" }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>PIN</span>
+        <span style={{ display: "block", fontSize: "var(--font-small)" }}>PIN</span>
         <input type="password" inputMode="numeric" aria-label="PIN" value={pin} disabled={wait > 0} onChange={(e) => setPin(e.target.value)} style={inp} />
       </label>
       {wait > 0 && <p style={{ color: "var(--danger)" }}>Príliš veľa pokusov. Skús znova o {wait} s.</p>}
@@ -144,7 +144,7 @@ export function PinSection({ repo, pinSet, onChanged, onLock }: { repo: Reposito
 
   return (
     <section style={{ marginTop: 16 }}>
-      <h3 style={{ fontSize: "1rem" }}>PIN</h3>
+      <h3 style={{ fontSize: "var(--font-text)" }}>PIN</h3>
       {pinSet ? (
         <>
           <p style={{ color: "var(--muted)" }}>PIN je zapnutý. Appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne; údaje nie sú zašifrované.</p>

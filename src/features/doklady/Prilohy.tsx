@@ -55,7 +55,7 @@ export function AttachmentsBlock({ repo, owner }: { repo: Repository; owner: Att
   };
 
   return (
-    <div style={{ fontSize: "0.9rem" }}>
+    <div style={{ fontSize: "var(--font-small)" }}>
       <p style={{ margin: "4px 0", color: "var(--muted)" }}>Doklady k výdavku: JPG, PNG, WEBP alebo PDF, najviac 2 MB.</p>
       {items && items.length === 0 && <p style={{ margin: "4px 0" }}>Zatiaľ nie je priložený žiadny doklad.</p>}
       <ul style={{ paddingLeft: 20, margin: "4px 0" }}>

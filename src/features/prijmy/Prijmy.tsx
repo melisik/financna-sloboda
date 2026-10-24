@@ -51,7 +51,7 @@ function OutlookBlock({ incomes, today }: { incomes: RegularIncome[]; today: str
   const items = futureOutlook(incomes, today);
   return (
     <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 12 }}>
-      <h3 style={{ fontSize: "1rem", marginTop: 0 }}>Výhľad</h3>
+      <h3 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>Výhľad</h3>
       {items.length === 0 ? (
         <p style={{ color: "var(--muted)" }}>Zatiaľ nie je zadaný žiadny budúci dôchodok ani dávka. Ak poznáš dátum začiatku, zadaj ho ako príjem s druhom dôchodku alebo dávky.</p>
       ) : (
@@ -61,7 +61,7 @@ function OutlookBlock({ incomes, today }: { incomes: RegularIncome[]; today: str
           ))}
         </ul>
       )}
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem", margin: 0 }}>
+      <p style={{ color: "var(--muted)", fontSize: "var(--font-small)", margin: 0 }}>
         Zobrazujú sa len údaje, ktoré si zadal. Appka nič neodhaduje a dátum cieľa sa podľa toho nemení.
       </p>
     </div>
@@ -123,7 +123,7 @@ export function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: R
       </p>
       <div style={{ border: "1px dashed var(--border-dashed)", padding: 12, borderRadius: 6, marginBottom: 12 }}>
         <label style={{ display: "block" }}>
-          <span style={{ display: "block", fontSize: "0.95rem" }}>Načítať údaje zo súboru integračnej služby</span>
+          <span style={{ display: "block", fontSize: "var(--font-small)" }}>Načítať údaje zo súboru integračnej služby</span>
           <input type="file" accept="application/json,.json" aria-label="Súbor od integračnej služby" onChange={onFile} style={{ marginTop: 6 }} />
         </label>
         {feedErr && <p style={{ color: "var(--danger)" }}>{feedErr}</p>}
@@ -156,8 +156,8 @@ export function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: R
               {eur(i.amountCents)}{i.frequency === "mesacne" ? " mesačne" : " (jednorazovo)"}
               {i.dayOfMonth !== undefined ? `, zvyčajne ${i.dayOfMonth}. v mesiaci` : ""}
             </p>
-            {i.source && <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Zdroj: {i.source}, získané {dateSk((i.fetchedAt ?? "").slice(0, 10))}</p>}
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+            {i.source && <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Zdroj: {i.source}, získané {dateSk((i.fetchedAt ?? "").slice(0, 10))}</p>}
+            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
               {INCOME_FREQUENCY_LABEL[i.frequency]}; od {dateSk(i.startDate)}{i.endDate ? `, do ${dateSk(i.endDate)}` : i.frequency === "mesacne" ? ", bez konca" : ""}
             </p>
             {confirmId === i.id ? (
@@ -240,7 +240,7 @@ function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Reposito
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť príjem" : "Nový pravidelný príjem"}</h4>
+      <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť príjem" : "Nový pravidelný príjem"}</h4>
       <Field label="Názov (napr. mzda)" value={name} type="text" onChange={setName} maxLength={80} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Druh

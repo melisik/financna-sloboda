@@ -12,6 +12,7 @@ import { writeModuleChoice } from "../app/modules";
 import { exportBackupFile } from "../features/zaloha/BackupSection";
 import { isValidPin, makePinRecord } from "../features/zamok/pin";
 import { ModuleCheckboxes, useModules } from "./Moduly";
+import { hintStyle } from "./kit/controls";
 
 /** Sprievodca prvým nastavením (FR-12, D-117, docs/20): jedna otázka na obrazovke, krok so zálohou, výsledok. */
 const ONBOARD_STEP_KEY = "fs-onboarding-step";
@@ -115,16 +116,16 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
         {step > 0 && step < 7 && <button onClick={() => go(step - 1)} style={btn}>Späť</button>}
         <button onClick={onSkip} style={btn}>{rerun ? "Zavrieť sprievodcu" : "Preskočiť na hlavnú stránku"}</button>
       </div>
-      {!rerun && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Návod nájdeš v sekcii Prehľad, dole pod „Návod“.</p>}
+      {!rerun && <p style={hintStyle}>Návod nájdeš v sekcii Prehľad, dole pod „Návod“.</p>}
     </div>
   );
 
   return (
     <section aria-label="Prvé nastavenie">
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Krok {step + 1} z {ONBOARD_STEPS}</p>
+      <p style={hintStyle}>Krok {step + 1} z {ONBOARD_STEPS}</p>
       {step === 0 && (
         <>
-          <h2 style={{ fontSize: "1.1rem" }}>Vitaj</h2>
+          <h2 style={{ fontSize: "var(--font-heading)" }}>Vitaj</h2>
           <p>Appka ukáže, kedy by si mohol dosiahnuť finančnú slobodu, ak budeš pokračovať v sporení. Údaje zostávajú len v tomto telefóne.</p>
           <p style={{ color: "var(--muted)" }}>Výsledky sú odhady podľa tvojich predpokladov, nie finančné poradenstvo.</p>
           <button onClick={() => go(1)} style={btn}>Pokračovať</button>
@@ -133,7 +134,7 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
       )}
       {step === 1 && (
         <>
-          <h2 style={{ fontSize: "1.1rem" }}>Koľko by si ročne potreboval na život?</h2>
+          <h2 style={{ fontSize: "var(--font-heading)" }}>Koľko by si ročne potreboval na život?</h2>
           <p style={{ color: "var(--muted)" }}>Suma, ktorú by si ročne minul bez práce. Napríklad 24 000 € ročne.</p>
           <Field label="Ročné výdavky pri nezávislosti (€)" value={expenses} onChange={setExpenses} />
           {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
@@ -143,7 +144,7 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
       )}
       {step === 2 && (
         <>
-          <h2 style={{ fontSize: "1.1rem" }}>Koľko z kapitálu ročne vyberieš?</h2>
+          <h2 style={{ fontSize: "var(--font-heading)" }}>Koľko z kapitálu ročne vyberieš?</h2>
           <p style={{ color: "var(--muted)" }}>Miera výberu je podiel kapitálu, ktorý ročne minieš. Ak nevieš, nechaj ju prázdnu: použije sa východisková hodnota {(rec.withdrawalRate * 100).toFixed(1).replace(".", ",")} % (neoverený predpoklad).</p>
           <Field label="Miera výberu (%)" value={withdrawal} step={0.1} onChange={setWithdrawal} />
           <button onClick={() => go(3)} style={btn}>{withdrawal === "" ? `Nechať ${(rec.withdrawalRate * 100).toFixed(1).replace(".", ",")} %` : "Pokračovať"}</button>
@@ -152,7 +153,7 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
       )}
       {step === 3 && (
         <>
-          <h2 style={{ fontSize: "1.1rem" }}>Koľko máš dnes?</h2>
+          <h2 style={{ fontSize: "var(--font-heading)" }}>Koľko máš dnes?</h2>
           <p style={{ color: "var(--muted)" }}>Investície sú súčet účtov a cenných papierov. Hotovosť je suma, ktorú máš na účte. Môžeš to neskôr zmeniť.</p>
           <Field label="Hodnota investícií (€)" value={inv} onChange={setInv} hint="súčet účtov a cenných papierov, napr. stav v aplikácii banky alebo brokera; 0, ak nemáš" />
           <Field label="Nasporená suma, hotovosť (€)" value={cash} onChange={setCash} hint="zostatok na bežnom účte a v peňaženke; 0, ak nemáš" />
@@ -163,7 +164,7 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
       )}
       {step === 4 && (
         <>
-          <h2 style={{ fontSize: "1.1rem" }}>Ulož si zálohu</h2>
+          <h2 style={{ fontSize: "var(--font-heading)" }}>Ulož si zálohu</h2>
           <p>Údaje sú len v tomto telefóne. Ak telefón stratíš alebo vymažeš prehliadač, údaje budú preč.</p>
           <p style={{ color: "var(--muted)" }}>Stiahni si zálohu a ulož ju mimo telefónu. Zálohu môžeš urobiť aj neskôr v sekcii Záloha.</p>
           <button onClick={backupNow} style={btn}>Stiahnuť zálohu</button>{" "}
@@ -173,7 +174,7 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
       )}
       {step === 5 && (
         <>
-          <h2 style={{ fontSize: "1.1rem" }}>Chceš PIN?</h2>
+          <h2 style={{ fontSize: "var(--font-heading)" }}>Chceš PIN?</h2>
           <p style={{ color: "var(--muted)" }}>PIN je nepovinný. Ak ho nastavíš, appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne, údaje nie sú zašifrované.</p>
           <Field label="Nový PIN (4 až 6 číslic)" value={pinNew} type="password" inputMode="numeric" onChange={setPinNew} />
           <Field label="Zopakuj PIN" value={pinRepeat} type="password" inputMode="numeric" onChange={setPinRepeat} />
@@ -198,7 +199,7 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
       )}
       {step === 6 && (
         <>
-          <h2 style={{ fontSize: "1.1rem" }}>Čo chceš sledovať?</h2>
+          <h2 style={{ fontSize: "var(--font-heading)" }}>Čo chceš sledovať?</h2>
           <p style={{ color: "var(--muted)" }}>
             Vždy vidíš Prehľad, Transakcie, Vyhodnotenie, Rozpočet, Pravidelné výdavky, Nastavenia a Zálohu.
             Ostatné sekcie zapni, ak ich budeš používať. Neskôr ich zapneš alebo vypneš v Nastaveniach.
@@ -222,7 +223,7 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
       )}
       {step === 7 && (
         <>
-          <h2 style={{ fontSize: "1.1rem" }}>Hotovo</h2>
+          <h2 style={{ fontSize: "var(--font-heading)" }}>Hotovo</h2>
           {result && <p>Dátum cieľa: <strong>{result}</strong></p>}
           <p style={{ color: "var(--muted)" }}>Ďalšie kroky:</p>
           <ol style={{ paddingLeft: 20 }}>

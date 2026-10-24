@@ -14,6 +14,7 @@ import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/k
 import { parseLvText, type LvFields, type LvFlatChoice, type LvTaxFields } from "../../domain/listVlastnictva";
 import { LV_MAX_FILE_BYTES, parseLvHtml } from "./lvHtml";
 import { NextStep } from "../../ui/kit/NextStep";
+import { calloutStyle, hintStyle } from "../../ui/kit/controls";
 
 /** Majetok (Fáza 2, D-080 až D-158): nehnuteľnosti, hypotéka, prenájom, mimoriadne splátky a ďalšie aktíva. Feature „majetok“ (docs/23). */
 
@@ -88,15 +89,15 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
             <p style={{ margin: 0 }}><strong>{p.name || "Nehnuteľnosť"}</strong> · {PROPERTY_MODE_LABEL[p.mode]}</p>
             <p style={{ margin: "4px 0" }}>Odhad: {eur(p.valueCents)} (k {dateSk(p.valueDate)})</p>
             {(p.acquisitionDate || p.acquisitionCostCents !== undefined) && (
-              <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+              <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
                 Obstarané{p.acquisitionDate ? ` ${dateSk(p.acquisitionDate)}` : ""}{p.acquisitionCostCents !== undefined ? ` za ${eur(p.acquisitionCostCents)}` : ""} (evidencia pre dane)
               </p>
             )}
             {p.mode === "prenajom" && p.rentalStartDate && (
-              <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Prenájom od {dateSk(p.rentalStartDate)}</p>
+              <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Prenájom od {dateSk(p.rentalStartDate)}</p>
             )}
             {(p.taxMunicipality || p.cadastralArea || p.parcelNumber || p.buildingNumber || p.flatNumber || p.floorAreaSqm !== undefined) && (
-              <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+              <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
                 Údaje pre daň: {[
                   p.taxMunicipality && `obec ${p.taxMunicipality}`,
                   p.cadastralArea && `k. ú. ${p.cadastralArea}`,
@@ -108,14 +109,14 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
               </p>
             )}
             {p.mode === "prenajom" && <RentalLedger repo={repo} property={p} today={today} onDone={onSaved} renderAttachments={renderRentalAttachments} />}
-            {stale && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
+            {stale && <p style={calloutStyle("warn")}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
             <p style={{ margin: "4px 0" }}>Hypotéka: {eur(p.mortgageBalanceCents)}</p>
             {paymentBelowInterest(p.mortgageBalanceCents, p.mortgageRate ?? 0, p.monthlyPaymentCents ?? 0) && (
-              <p role="note" style={{ margin: "4px 0", background: "var(--warn-bg)", padding: 6, borderRadius: 6, fontSize: "0.9rem" }}>
+              <p role="note" style={{ margin: "4px 0", background: "var(--warn-bg)", padding: 6, borderRadius: 6, fontSize: "var(--font-small)" }}>
                 Splátka {eur(p.monthlyPaymentCents ?? 0)} nepokrýva nominálny úrok ({eur(splitPayment(p).interestCents)} mesačne pri sadzbe {String(Number(((p.mortgageRate ?? 0) * 100).toFixed(4)))} % p. a.). Zostatok hypotéky sa nezníži.
               </p>
             )}
-            <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "0.95rem" }}>
+            <dl style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", margin: "8px 0", fontSize: "var(--font-small)" }}>
               {p.mode === "prenajom" && <><dt>Nájom</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(p.monthlyRentCents ?? 0)}</dd></>}
               <dt>Splátka hypotéky</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(p.monthlyPaymentCents ?? 0)}</dd>
               {(p.monthlyPaymentCents ?? 0) > 0 && p.mortgageBalanceCents > 0 && (
@@ -131,11 +132,11 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
               Čistá hodnota: <strong>{eur(net)}</strong>
               {net < 0 && <span> (hypotéka presahuje odhad)</span>}
             </p>
-            <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
               {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta."}
             </p>
             {p.mortgageBalanceCents > 0 && (p.monthlyPaymentCents ?? 0) > 0 && (
-              <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+              <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
                 {(() => {
                   const months = remainingMonths(p.mortgageBalanceCents, p.mortgageRate ?? 0, p.monthlyPaymentCents ?? 0);
                   return months === null ? null : `Pri tejto splátke sa zostatok splatí za ${months} mesiacov.`;
@@ -149,7 +150,7 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
               </details>
             )}
             {(p.extraPayments ?? []).length > 0 && (
-              <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>
+              <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
                 Mimoriadne splátky: {(p.extraPayments ?? []).map((e) => `${dateSk(e.date)} ${eur(e.amountCents)} (${EXTRA_PAYMENT_LABEL[e.mode]})`).join("; ")}
               </p>
             )}
@@ -218,15 +219,15 @@ function AssetSection({ repo, assets, today, onSaved }: { repo: Repository; asse
 
   return (
     <div style={{ marginTop: 16 }}>
-      <h3 style={{ fontSize: "1rem" }}>Automobily a ocenitelné práva</h3>
+      <h3 style={{ fontSize: "var(--font-text)" }}>Automobily a ocenitelné práva</h3>
       <p style={{ color: "var(--muted)" }}>Odhad je tvoj, nie trhová cena. Zatiaľ sa do K nepočítajú (predpoklad).</p>
       {assets.length === 0 && editing === null && <p>Zatiaľ nie je zapísané žiadne aktívum.</p>}
       {assets.map((a) => (
         <div key={a.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
           <p style={{ margin: 0 }}><strong>{a.name}</strong> · {ASSET_KIND_LABEL[a.kind]}</p>
           <p style={{ margin: "4px 0" }}>Odhad: {eur(a.valueCents)} (k {dateSk(a.valueDate)})</p>
-          {valueIsStale(a.valueDate, today) && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
-          <p style={{ margin: "4px 0", fontSize: "0.9rem", color: "var(--muted)" }}>Do K sa zatiaľ nepočíta.</p>
+          {valueIsStale(a.valueDate, today) && <p style={calloutStyle("warn")}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
+          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Do K sa zatiaľ nepočíta.</p>
           {confirmId === a.id ? (
             <div>
               <p>Naozaj zmazať aktívum „{a.name}“?</p>
@@ -297,7 +298,7 @@ function AssetForm({ repo, kind, initial, today, onDone, onCancel }: { repo: Rep
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť" : "Nové"}: {ASSET_KIND_LABEL[kind].toLowerCase()}</h4>
+      <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť" : "Nové"}: {ASSET_KIND_LABEL[kind].toLowerCase()}</h4>
       <Field label="Názov (napr. značka a rok, alebo podiel)" value={name} type="text" onChange={setName} maxLength={80} />
       <Field label="Odhad hodnoty (€)" value={value} onChange={setValue} />
       <Field label="Dátum odhadu" value={valueDate} type="date" max={today} onChange={setValueDate} />
@@ -364,7 +365,7 @@ function RentalLedger({ repo, property, today, onDone, renderAttachments }: { re
   return (
     <div style={{ border: "1px solid var(--border)", borderRadius: 6, padding: 10, margin: "8px 0" }}>
       <p style={{ margin: 0 }}><strong>Príjmy a výdavky z prenájmu</strong></p>
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem", margin: "4px 0" }}>Zapisuj priebežne. Súčty sú len podklad pre daňové priznanie, nie daňový výpočet.</p>
+      <p style={{ color: "var(--muted)", fontSize: "var(--font-small)", margin: "4px 0" }}>Zapisuj priebežne. Súčty sú len podklad pre daňové priznanie, nie daňový výpočet.</p>
       <label style={{ display: "block", margin: "6px 0" }}>
         Rok{" "}
         <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={{ minHeight: 44 }}>
@@ -372,8 +373,8 @@ function RentalLedger({ repo, property, today, onDone, renderAttachments }: { re
         </select>
       </label>
       <p style={{ margin: "4px 0" }}>Za rok {year}: prijatý nájom <strong>{eur(totals.incomeCents)}</strong>, výdavky <strong>{eur(totals.costsCents)}</strong>, zápisov {totals.count}.</p>
-      {yearEntries.length === 0 && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Za tento rok zatiaľ nie sú záznamy.</p>}
-      <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "0.9rem" }}>
+      {yearEntries.length === 0 && <p style={hintStyle}>Za tento rok zatiaľ nie sú záznamy.</p>}
+      <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "var(--font-small)" }}>
         {yearEntries.map((e) => (
           <li key={e.id}>
             {dateSk(e.date)} · {e.kind === "prijem" ? "príjem" : "výdavok"} · {eur(e.amountCents)}{e.note ? ` (${e.note})` : ""}{" "}
@@ -391,7 +392,7 @@ function RentalLedger({ repo, property, today, onDone, renderAttachments }: { re
       </ul>
       <Field label="Dátum záznamu" value={date} type="date" max={today} onChange={setDate} />
       <label style={{ display: "block", margin: "6px 0" }}>
-        <span style={{ display: "block", fontSize: "0.9rem" }}>Druh záznamu</span>
+        <span style={{ display: "block", fontSize: "var(--font-small)" }}>Druh záznamu</span>
         <select aria-label="Druh záznamu" value={kind} onChange={(e) => setKind(e.target.value as RentalEntryKind)} style={{ minHeight: 44, width: "100%" }}>
           <option value="prijem">Príjem z nájmu</option>
           <option value="vydavok">Výdavok na prenájom</option>
@@ -430,7 +431,7 @@ function ExtraPaymentUndo({ repo, property, onDone }: { repo: Repository; proper
     };
     return (
       <div style={{ margin: "4px 0" }}>
-        <p style={{ fontSize: "0.9rem", color: "var(--muted)" }}>Poslednú splátku nie je možné vrátiť automaticky. Zostatok a splátku uprav v Upraviť.</p>
+        <p style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>Poslednú splátku nie je možné vrátiť automaticky. Zostatok a splátku uprav v Upraviť.</p>
         {confirming ? (
           <div>
             <p>Naozaj zmazať záznam z {dateSk(last.date)} ({eur(last.amountCents)})? Zostatok a splátka sa nezmenia.</p>
@@ -522,7 +523,7 @@ function ExtraPaymentForm({ repo, property, today, onDone }: { repo: Repository;
       <Field label="Dátum splátky" value={date} type="date" max={today} onChange={setDate} />
       <Field label="Suma (€)" value={amount} onChange={setAmount} />
       <fieldset style={{ border: 0, padding: 0, margin: "8px 0" }}>
-        <legend style={{ fontSize: "0.9rem" }}>Čo sa má zmeniť</legend>
+        <legend style={{ fontSize: "var(--font-small)" }}>Čo sa má zmeniť</legend>
         {EXTRA_PAYMENT_MODES.map((m) => (
           <label key={m} style={{ display: "block", margin: "4px 0" }}>
             <input type="radio" name={`mimoriadna-${property.id}`} checked={mode === m} onChange={() => setMode(m)} />{" "}
@@ -530,7 +531,7 @@ function ExtraPaymentForm({ repo, property, today, onDone }: { repo: Repository;
           </label>
         ))}
       </fieldset>
-      {description && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{description}</p>}
+      {description && <p style={hintStyle}>{description}</p>}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Zapísať mimoriadnu splátku</button>
     </div>
@@ -681,7 +682,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
-      <h3 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť nehnuteľnosť" : "Nová nehnuteľnosť"}</h3>
+      <h3 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť nehnuteľnosť" : "Nová nehnuteľnosť"}</h3>
       <Field label="Názov (nepovinné)" value={name} type="text" onChange={setName} maxLength={80} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Režim
@@ -699,14 +700,14 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <button type="button" onClick={() => setLvOpen((o) => !o)} aria-expanded={lvOpen} style={{ ...btn, marginBottom: 8 }}>Predvyplniť z listu vlastníctva</button>
       {lvOpen && (
         <div style={{ marginBottom: 12 }}>
-        <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+        <p style={hintStyle}>
           Ako získať súbor: na katastrálnom portáli otvor výpis z listu vlastníctva a stlač Ctrl+S. V Edge zvoľ „Webová stránka, úplne“, v Chrome „Webová stránka, kompletná“. Potom súbor nahraj tu.
           Skopíruj text z listu vlastníctva a vlož ho sem, alebo nahraj uloženú stránku listu (HTML). Appka doplní údaje pre daň. Text sa neukladá a vlastníkov ani číslo LV appka neberie.
         </p>
-        <textarea aria-label="Text z listu vlastníctva" value={lvText} onChange={(e) => setLvText(e.target.value)} rows={6} style={{ width: "100%", boxSizing: "border-box", fontSize: "1rem" }} />
+        <textarea aria-label="Text z listu vlastníctva" value={lvText} onChange={(e) => setLvText(e.target.value)} rows={6} style={{ width: "100%", boxSizing: "border-box", fontSize: "var(--font-text)" }} />
         <button type="button" onClick={fillFromText} disabled={lvText.trim() === ""} style={btn}>Predvyplniť z textu</button>
         <label style={{ display: "block", margin: "8px 0" }}>
-          <span style={{ display: "block", fontSize: "0.9rem" }}>Alebo nahraj uloženú stránku listu (HTML)</span>
+          <span style={{ display: "block", fontSize: "var(--font-small)" }}>Alebo nahraj uloženú stránku listu (HTML)</span>
           <input
             type="file"
             accept=".html,.htm,text/html"
@@ -718,11 +719,11 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
             }}
           />
         </label>
-        {lvNote && <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{lvNote}</p>}
-        {lvWarn && <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>{lvWarn}</p>}
+        {lvNote && <p style={hintStyle}>{lvNote}</p>}
+        {lvWarn && <p style={calloutStyle("warn")}>{lvWarn}</p>}
         {lvFlats.length > 1 && (
           <label style={{ display: "block", margin: "8px 0" }}>
-            <span style={{ display: "block", fontSize: "0.9rem" }}>Ktorý byt je tvoj?</span>
+            <span style={{ display: "block", fontSize: "var(--font-small)" }}>Ktorý byt je tvoj?</span>
             <select
               aria-label="Byt v liste vlastníctva"
               value={flatIdx}
@@ -738,12 +739,12 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
           </label>
         )}
         {lvPledge === "mortgage" && (
-          <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+          <p style={calloutStyle("warn")}>
             V liste je záložné právo. Ak máš hypotéku, zadaj jej zostatok nižšie. Hypotéku appka nevytvára sama.
           </p>
         )}
         {lvPledge === "owners" && (
-          <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+          <p style={calloutStyle("warn")}>
             V liste je záložné právo v prospech ostatných vlastníkov bytov. Nie je to hypotéka.
           </p>
         )}

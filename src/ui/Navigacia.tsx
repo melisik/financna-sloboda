@@ -35,7 +35,7 @@ export function Nav({ active }: { active: SectionId }) {
   const activeGroup = groups.find((g) => g.sections.includes(active));
   const chip = (on: boolean): CSSProperties => ({
     minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 12px", borderRadius: 999, border: "1px solid var(--border-soft)",
-    background: on ? "var(--ok-bg)" : "var(--surface)", color: "inherit", whiteSpace: "nowrap", fontSize: "0.9rem", fontWeight: on ? 700 : 400,
+    background: on ? "var(--ok-bg)" : "var(--surface)", color: "inherit", whiteSpace: "nowrap", fontSize: "var(--font-small)", fontWeight: on ? 700 : 400,
     textDecoration: "none", cursor: "pointer",
   });
   return (

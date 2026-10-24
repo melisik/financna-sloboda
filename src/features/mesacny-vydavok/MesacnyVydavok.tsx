@@ -7,6 +7,7 @@ import { UNREACHABLE_IMPACT_TEXT, formatImpactOutcome } from "../../domain/impac
 import { cents, eur, monthYear, todayIso } from "../../ui/kit/format";
 import { Field, asNum, type NumIn } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
+import { card, hintStyle } from "../../ui/kit/controls";
 
 /** Mesačný výdavok (N-12b, docs/37). Nič sa neukladá: výsledok existuje len na obrazovke. */
 export function MesacnyVydavokSection({ ctx }: { ctx: Ctx }) {
@@ -61,7 +62,7 @@ export function MesacnyVydavokSection({ ctx }: { ctx: Ctx }) {
         </p>
       )}
       {outcome && outcome.ok && <Result outcome={outcome} today={today} />}
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.</p>
+      <p style={hintStyle}>Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.</p>
     </div>
   );
 }
@@ -74,7 +75,7 @@ function Result({ outcome, today }: { outcome: Extract<MonthlyExpenseOutcome, { 
   else if (outcome.after.kind === "unreachable") impact = UNREACHABLE_IMPACT_TEXT;
   else impact = "Dopad sa nedá vyčísliť v mesiacoch.";
   return (
-    <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
+    <div style={card}>
       <p style={{ margin: "4px 0" }}>
         Mesačné sporenie sa zníži z <strong>{eur(totalBefore)}</strong> na <strong>{eur(totalAfter)}</strong>.
       </p>
