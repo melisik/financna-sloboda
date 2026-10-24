@@ -32,9 +32,10 @@ jobs:
           VITE_PHASE2: "1"
       # Kontrola hesla (D-271) sa pridá len do náhľadu; verejné Pages ju nedostanú.
       - run: cp preview/_worker.js dist/_worker.js
-      # Adresa náhľadu: https://phase2.financna-sloboda-preview.pages.dev (po zadaní hesla)
+      # D-272: nasadzuje sa do produkčnej vetvy projektu (main), teda do prostredia Production s PREVIEW_PASSWORD.
+      # Adresa náhľadu: https://financna-sloboda-preview.pages.dev (po zadaní hesla)
       - uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=financna-sloboda-preview --branch=phase2 --commit-dirty=true
+          command: pages deploy dist --project-name=financna-sloboda-preview --branch=main --commit-dirty=true

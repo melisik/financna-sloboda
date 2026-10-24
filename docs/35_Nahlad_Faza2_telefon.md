@@ -11,7 +11,7 @@
 ## Krok 2 – heslo v Cloudflare (pred prvým nasadením)
 
 1. Cloudflare dashboard → **Workers & Pages** → projekt `financna-sloboda-preview` → **Settings** → **Environment variables**.
-2. Pridaj premennú **pre oba prostredia** (Production aj Preview), lebo náhľad vetvy `phase2` beží ako Preview:
+2. Pridaj premennú pre prostredie **Production**. Náhľad sa nasadzuje do produkčnej vetvy projektu `main` (D-272):
    - **Variable name:** `PREVIEW_PASSWORD`
    - **Value:** tvoje heslo. Odporúčam aspoň 16 znakov, len ASCII (bez diakritiky), nepoužité inde.
    - Zaškrtni **Encrypt** (secret), ak ti to ponúkne.
@@ -41,7 +41,7 @@ Repozitár `melisik/financna-sloboda` → **Settings** → **Secrets and variabl
 
 ## Krok 6 – telefón
 
-1. Safari → `https://phase2.financna-sloboda-preview.pages.dev`.
+1. Safari → `https://financna-sloboda-preview.pages.dev`.
 2. Prehliadač zobrazí okno na prihlásenie. Meno: `zakladatel`. Heslo: z kroku 2. Ulož ho do iCloud Keychain, ak sa to ponúkne.
 3. Zdieľať → **Pridať na plochu** → **Pridať**.
 4. Pri spustení z plochy môže Safari heslo pýtať znova. Ak áno, napíš mi, lebo to overím na tvojom telefóne.
