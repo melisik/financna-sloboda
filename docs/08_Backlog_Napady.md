@@ -43,7 +43,7 @@ Personas v `docs/01_Personas.md` sú zatiaľ len zakladateľ (fáza 1) a fáza 2
 - **N-09** Prepínač zobrazenia podľa etapy v Nastaveniach (výber, čo je na Prehľade).
 - **N-10** Týždenný súhrn na export alebo odoslanie mailom, bez dát v cloude. — implementované na export (D-155); odoslanie mailom nie je zavedené.
 - **N-11** Porovnanie výdavkov v kategóriách s predchádzajúcim rokom. — implementované (D-269).
-- **N-12** Scenár veľkého výdavku (napr. auto): ukáže dopad na cieľ bez zápisu do transakcií. — implementované (D-274), návrh v `docs/36`. Opakované menšie výdavky ako N-12b.
+- **N-12** Scenár veľkého výdavku (napr. auto): ukáže dopad na cieľ bez zápisu do transakcií. — implementované (D-274), návrh v `docs/36`. Opakované menšie výdavky ako N-12b — implementované (D-275), návrh v `docs/37`.
 - **N-13** Pripomienka ročnej kontroly nastavení (inflácia, rezerva, miera výberu). — implementované (D-151).
 
 - **N-14 Súhrnný majetok (odložené, D-137):** spoločný súhrn všetkého majetku. Automobily a ocenitelné práva sa odkladajú, lebo sú skôr zahraničný aspekt.
