@@ -30,9 +30,7 @@ export function monthEndApproaching(lastReviewIso: string | null, todayIso: stri
 /** Záloha chýba viac ako 7 dní alebo nikdy (FR-19, D-035). */
 export function backupOverdue(lastExportIso: string | null, todayIso: string, days = 7): boolean {
   if (!lastExportIso) return true;
-  const a = Date.UTC(...(lastExportIso.slice(0, 10).split("-").map(Number) as [number, number, number]));
-  const b = Date.UTC(...(todayIso.split("-").map(Number) as [number, number, number]));
-  return (b - a) / 86_400_000 > days;
+  return daysSince(lastExportIso, todayIso) > days;
 }
 
 /** Nastavenia sa nekontrolovali viac ako rok alebo nikdy (N-13, D-151). */

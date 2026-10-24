@@ -14,7 +14,13 @@ export function fullMonthsBetween(from: string, to: string): number {
 
 /** Počet dní od dátumu (YYYY-MM-DD alebo ISO) do dneška; 0 = dnes. */
 export function daysSince(iso: string, todayIso: string): number {
-  const a = Date.UTC(...(iso.slice(0, 10).split("-").map(Number) as [number, number, number]));
-  const b = Date.UTC(...(todayIso.split("-").map(Number) as [number, number, number]));
+  // Date.UTC berie mesiac ako 0–11, ISO dátum má 1–12: bez posunu sa dni cez hranicu mesiaca počítali zle.
+  const a = utcDay(iso.slice(0, 10));
+  const b = utcDay(todayIso.slice(0, 10));
   return Math.round((b - a) / 86_400_000);
+}
+
+function utcDay(iso: string): number {
+  const [y, m, d] = iso.split("-").map(Number);
+  return Date.UTC(y, m - 1, d);
 }

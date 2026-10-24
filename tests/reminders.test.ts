@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { backupOverdue, monthEndApproaching, settingsCheckOverdue, reviewOverdue } from "../src/domain/reminders";
+import { daysSince } from "../src/domain/dates";
 
 describe("pripomienka vyhodnotenia (FR-10, D-027)", () => {
   it("v tom istom mesiaci nie je pripomienka", () => {
@@ -28,6 +29,18 @@ describe("pripomienka zálohy (FR-19, D-035)", () => {
   });
   it("exportované pred viac ako 7 dňami: pripomienka", () => {
     expect(backupOverdue("2026-10-06", "2026-10-14")).toBe(true);
+  });
+  // Regresia: počítanie dní cez hranicu mesiaca (chyba Date.UTC s mesiacmi 1–12, nález auditu zvyšku oblastí)
+  it("cez hranicu mesiaca presne 7 dní: bez pripomienky", () => {
+    expect(backupOverdue("2026-09-27", "2026-10-04")).toBe(false);
+    expect(backupOverdue("2026-11-27", "2026-12-04")).toBe(false);
+  });
+  it("cez hranicu mesiaca 8 dní: pripomienka", () => {
+    expect(backupOverdue("2026-09-26", "2026-10-04")).toBe(true);
+  });
+  it("počet dní cez koniec januára je správny", () => {
+    expect(daysSince("2026-01-31", "2026-02-01")).toBe(1);
+    expect(daysSince("2026-09-27", "2026-10-04")).toBe(7);
   });
 });
 
