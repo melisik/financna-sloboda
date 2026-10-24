@@ -47,10 +47,15 @@ describe("výdavky nad kapitál: prečerpanie a zdroj úhrady (D-045, D-059, D-1
     expect(capitalWithFlags(snap, [sporenie50("early", "2026-09-15T09:00:00Z")]).capital.cash).toBe(eur(50_000));
   });
 
-  // nález T4 (docs/30): rozhodnutie zakladateľa je otvorené (D-167, Q2). Kód zodpovedá D-059 a D-167 (test vyššie).
-  // Pri príklade vyššie (K_L = 150 000 €, výdavok 300 000 € z investícií) dávajú pravidlá tri rôzne K_pred:
-  // kód 50 000 € (K_cash sa nemení), FR-04 literálne max(0; K_L + Σ − Σ) = 0 €, D-074 (zablokovať) 150 000 €.
-  it.todo("nález T4: výdavok z investícií nad K_inv má mať zvolené pravidlo (kód 50 000 €, FR-04 0 €, D-074 zablokovať 150 000 €)");
+  // nález T4 (docs/30): zakladateľ zvolil orez K_inv na 0 s upozornením, K_cash sa nemení (D-257, uzavrie Q2 z D-167).
+  // Pri príklade (K_inv 100 000 €, K_cash 50 000 €, výdavok 300 000 € z investícií) zostane K_L 50 000 €.
+  it("nález T4: výdavok z investícií nad K_inv zníži K_inv na 0, K_cash sa nezmení a zobrazí sa upozornenie (D-257)", () => {
+    expect(payFromInvestments({ inv: eur(100_000), cash: eur(50_000) }, eur(300_000))).toEqual({
+      ok: true,
+      capital: { inv: 0, cash: eur(50_000) },
+      warning: "exhausted",
+    });
+  });
 
   // nález T6 (docs/30): doména prijme zápornú sumu presunu alebo výdavku a zvýši K. UI to blokuje (Transakcie.tsx:79, 187),
   // takže ide o obranu do hĺbky. Test: payFromCash(K_cash 100 €, suma −50 €) dá K_cash 150 € (src/domain/capital.ts:68-70).
