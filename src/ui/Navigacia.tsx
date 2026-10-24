@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { NAV_GROUPS, SECTION_LABELS, type SectionId } from "../app/navigation";
 import { useModules } from "./Moduly";
@@ -38,6 +38,17 @@ export function Nav({ active }: { active: SectionId }) {
     background: on ? "var(--ok-bg)" : "var(--surface)", color: "inherit", whiteSpace: "nowrap", fontSize: "var(--font-small)", fontWeight: on ? 700 : 400,
     textDecoration: "none", cursor: "pointer",
   });
+  const rowRef = useRef<HTMLDivElement>(null);
+  // Aktívna sekcia môže byť v riadku vpravo mimo obrazovky: posuň riadok (nie stránku), aby bola viditeľná (docs/40).
+  useEffect(() => {
+    const row = rowRef.current;
+    const el = row?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!row || !el) return;
+    const r = row.getBoundingClientRect();
+    const c = el.getBoundingClientRect();
+    if (c.right > r.right) row.scrollLeft += c.right - r.right + 8;
+    else if (c.left < r.left) row.scrollLeft -= r.left - c.left + 8;
+  }, [active]);
   return (
     <div style={{ position: "sticky", top: 0, background: "var(--surface)", zIndex: 1, borderBottom: "1px solid var(--border-soft)" }}>
       <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexDirection: "column", gap: 6, padding: "8px 0" }}>
@@ -57,7 +68,8 @@ export function Nav({ active }: { active: SectionId }) {
           ))}
         </div>
         {activeGroup && activeGroup.shown.length > 1 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          // Sekcie: na telefóne jeden riadok, ktorý sa posúva do strany; od 600 px sa zalomí (docs/40, variant C, trieda v index.html).
+          <div ref={rowRef} className="nav-sections">
             {activeGroup.shown.map((id) => (
               <a
                 key={id}

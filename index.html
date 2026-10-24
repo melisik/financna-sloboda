@@ -86,6 +86,9 @@
       body { background: var(--page); color: var(--text); margin: 0; }
       :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
       a { color: var(--link); }
+      /* Riadok sekcií v menu (docs/40, variant C): na telefóne jeden riadok, ktorý sa posúva do strany; od 600 px sa zalomí. */
+      .nav-sections { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+      @media (min-width: 600px) { .nav-sections { flex-wrap: wrap; overflow-x: visible; } }
     </style>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Fin. sloboda" />
