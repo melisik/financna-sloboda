@@ -2,6 +2,8 @@
 
 Účel: pripraviť posúdenie pred spustením Fázy 2 pre používateľov (D-094, D-090). Dokument popisuje **stav kódu k 2026-10-21** (vetva `main`, commit `1746c30`). Všetko, čo tu nie je overené v kóde, je označené ako predpoklad. Dokument nie je právne stanovisko.
 
+Doplnené 2026-10-24: šifrovaná záloha (D-276) a zbaliteľné upozornenie (D-281) sú na vetve `claude/phase2-property-card`, v `main` ešte nie sú. Verejná zostava od D-248 Fázu 2 neobsahuje. Opravené riziká 2, 5 a 9 a otázka 5.
+
 ## 1. Čo appka robí
 - Osobná evidencia príjmov, výdavkov, sporenia, majetku, záväzkov a skladu potravín.
 - Výpočty: odhad K (kapitál), výdrž, plnenie rozpočtu, ročný prehľad. Výpočty sú odhady podľa zadaných predpokladov, nie finančné poradenstvo (text v appke).
@@ -25,31 +27,31 @@
 
 ## 3. Kde sú údaje uložené a kto k nim má prístup
 - **Lokálne v prehliadači** (IndexedDB, cez knižnicu `idb`). Žiadny server appky neexistuje.
-- **Zálohy:** súbor JSON, **nešifrovaný**. Export ide cez zdieľací list (iPhone) alebo sťahovanie (počítač). Používateľ si sám vyberá, kam súbor uloží.
+- **Zálohy:** súbor JSON, v `main` **nešifrovaný**. Na vetve `claude/phase2-property-card` je voliteľné šifrovanie heslom (D-276); bez hesla zostáva záloha nešifrovaná. Export ide cez zdieľací list (iPhone) alebo sťahovanie (počítač). Používateľ si sám vyberá, kam súbor uloží.
 - **Offline:** service worker (`public/sw.js`) ukladá aplikačné súbory do cache. Dáta sa nekopírujú do cache, len kód appky (predpoklad, overiť v `sw.js`).
 - **Sieťová politika:** Content-Security-Policy v `index.html` má `connect-src 'self'`. Appka teda nemá technicky povolené posielať dáta na iné servery.
 - **Externé odkazy, ktoré používateľ otvorí sám:**
   - overenie dokladu na portáli `opd.financnasprava.sk` (`src/domain/receipt.ts`). Číslo dokladu sa skopíruje do schránky a používateľ ho vloží na portáli.
-  - formulár pripomienok (Google Forms) a GitHub Issues (`src/features/spatna-vazba/feedback.ts`). Do odkazov sa nepridávajú údaje z appky.
+  - formulár pripomienok (Google Forms) a GitHub Issues (`src/features/spatna-vazba/feedback.ts`). V súkromnom náhľade je len formulár, lebo GitHub Issues sú verejné (D-280). Do odkazov sa nepridávajú údaje z appky.
 - **Analytika, reklamy, sledovanie:** v kóde nenájdené (overiť externe v build výstupe).
 
 ## 4. Riziká na posúdenie
 1. **Šifrovanie:** údaje v zariadení nie sú šifrované (D-026). Ochrana je len zámok zariadenia a PIN, ktorý nešifruje dáta.
-2. **Zálohy bez šifrovania:** JSON so všetkými údajmi, uložený napr. do Dropboxu či e-mailu. Šifrovanie zálohy je odložené (D-108).
+2. **Zálohy:** JSON so všetkými údajmi, uložený napr. do Dropboxu či e-mailu. Šifrovanie heslom je voliteľné (D-276, mení odloženie z D-108): PBKDF2-SHA256 so 600 000 iteráciami, AES-GCM-256, heslo aspoň 8 znakov. Zabudnuté heslo sa nedá obnoviť. Záloha bez hesla zostáva nešifrovaná. Zatiaľ len na vetve `claude/phase2-property-card`, nie v `main`.
 3. **Zabudnutý PIN:** po potvrdení sa dáta v zariadení vymažú (D-135). Obnova je len zo zálohy.
 4. **Čísla dokladov:** identifikátor, ktorý sa dá použiť na overenie dokladu na portáli. Nezobrazuje sa v appke (D-133), ale je v zálohe.
-5. **Verejná Fáza 2:** Fáza 2 je od 2026-10-21 na verejnej adrese s upozornením na skúšobnú verziu (D-142, D-144). Podmienky pred spustením pre používateľov (D-094) sú otvorené.
+5. **Fáza 2 u testerov:** Fáza 2 bola od 2026-10-21 na verejnej adrese (D-142). Podľa D-217 a D-248 ju verejná zostava z `main` neobsahuje (`pages.yml`: `VITE_PHASE2` „0“, overené v `main` 2026-10-24). Fázu 2 vidia len testeri v súkromnom náhľade za heslom (D-270 až D-273), s upozornením na skúšobnú verziu (D-144, D-281). Podmienky pred spustením pre používateľov (D-094) sú otvorené.
 6. **Chýbajú podmienky použitia a zásady ochrany súkromia.** V appke ani v repozitári nie sú (overené 2026-10-21).
 7. **Finančné upozornenia:** appka sa označuje ako odhad, nie poradenstvo. Treba posúdiť, či niektorá funkcia nemá charakter finančného poradenstva (napr. odporúčania k sporeniu alebo k hypotéke).
 8. **Mimoriadna splátka hypotéky a úvery:** výpočty sú odhady podľa zadaných údajov. Posúdiť zodpovednosť za nesprávny výsledok.
-9. **Používatelia mladší ako 18 rokov alebo s kognitívnym znevýhodnením:** appka je cielená aj na ľudí na autistickom spektre a ich blízkych (CLAUDE.md). Posúdiť rozsah ochrany pre dieťa a zákonného zástupcu.
+9. **Deti ako používatelia:** appka nemá účty (D-148), preto nevie, kto ju používa, a nemá vekovú hranicu. Sekcia pre dieťa v rodinnom účte je len nápad v zásobníku (N-07, N-08). Posúdiť, či treba vekovú hranicu alebo upozornenie, a čo by sa zmenilo, ak by sa účty zaviedli. (Pôvodné znenie uvádzalo ako cieľovú skupinu ľudí na autistickom spektre s odkazom na CLAUDE.md. To platí pre iný projekt; tento projekt je len o osobnej finančnej slobode.)
 
 ## 5. Otázky pre právnika
 1. Je appka pri lokálnom ukladaní prevádzkovateľom osobných údajov podľa GDPR, alebo len nástrojom používateľa? Ak áno, aké povinnosti vznikajú pri verejnej stránke, aj keď dáta nikam neodchádzajú?
 2. Aké dokumenty treba pred spustením: zásady ochrany súkromia, podmienky použitia, poučenie o odhadoch a zodpovednosti, pokyny pre zálohy?
 3. Je potrebné posúdiť finančné poradenstvo podľa slovenského práva (napr. zákon o finančných službách)? Kde je hranica pri výpočtoch K a odporúčaniach?
 4. Ako posúdiť údaje o iných osobách (partner, dieťa), ktoré používateľ zadá?
-5. Stačí šifrovanie zálohy heslom, alebo je nutné šifrovanie údajov v zariadení (D-026, D-108)?
+5. Šifrovanie zálohy heslom je voliteľné (D-276). Stačí to, alebo má byť povinné, prípadne je nutné šifrovanie údajov v zariadení (D-026)?
 6. Aké sú podmienky pre účty a synchronizáciu, ak sa neskôr zavedú (N-07, D-148 odkladá)?
 7. Aké riziká prináša zverejnenie čísel dokladov a skladu v zálohe pre testerov?
 8. Stačí, ak je upozornenie na skúšobnú verziu (bez záruky, nie je finančné poradenstvo, riziko straty údajov) pri prvom otvorení rozbalené a po potvrdení používateľom zbalené na jednu vetu? Alebo musia byť „bez záruky“ a „nie je finančné poradenstvo“ viditeľné stále (D-144, D-281)?
@@ -60,5 +62,5 @@
 - Mimo rozsahu tohto dokumentu: hostovanie na GitHub Pages, DNS, nasadzovací proces.
 
 ## 7. Stav v repozitári
-- Dokumenty: `decisions/Decisions.md` (D-026, D-090, D-094, D-108, D-133, D-135, D-142, D-144, D-281), `docs/08_Backlog_Napady.md`.
+- Dokumenty: `decisions/Decisions.md` (D-026, D-090, D-094, D-108, D-133, D-135, D-142, D-144, D-148, D-217, D-248, D-270 až D-273, D-276, D-280, D-281), `docs/08_Backlog_Napady.md`.
 - Tento dokument sa aktualizuje po každom rozhodnutí, ktoré mení údaje alebo odkazy von.
