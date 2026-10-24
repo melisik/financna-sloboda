@@ -31,7 +31,7 @@ const sample: AppData = {
   incomes: [],
   budgets: [],
   recurringExpenses: [],
-  stockItems: [], recipes: [], dogs: [],
+  stockItems: [], recipes: [], dogs: [], goals: [],
 };
 
 // Neplatné fixtúry sú zámerne mimo typu, preto vstup je unknown (buildBackup len obalí dáta).
@@ -45,6 +45,22 @@ describe("CRUD v IndexedDB (FR-16)", () => {
     expect((await repo.getData()).transactions).toEqual([t]);
     await repo.deleteTransaction("x");
     expect((await repo.getData()).transactions).toEqual([]);
+    repo.close();
+  });
+});
+
+describe("ciele investícií v IndexedDB (D-105)", () => {
+  it("cieľ sa uloží, načíta a zmaže; položka zostane s väzbou na cieľ", async () => {
+    const repo = await openRepository(freshName());
+    const goal = { id: "g1", name: "Dovolenka", targetCents: 500_000, createdAt: "a", updatedAt: "a" };
+    const position = { id: "p1", name: "Fond", kind: "fond" as const, quantity: 1, unitPrice: 100, currency: "EUR", fxToEur: 1, valueDate: TODAY, goalId: "g1", createdAt: "a", updatedAt: "a" };
+    await repo.saveGoal(goal);
+    await repo.savePosition(position);
+    const data = await repo.getData();
+    expect(data.goals).toEqual([goal]);
+    expect(data.investments).toEqual([position]);
+    await repo.deleteGoal("g1");
+    expect((await repo.getData()).goals).toEqual([]);
     repo.close();
   });
 });
@@ -116,7 +132,7 @@ describe("záloha: export a import (FR-17, FR-18)", () => {
   });
 
   it("vyššia verzia schémy je odmietnutá", () => {
-    const parsed = parseBackup({ app: "financna-sloboda", schemaVersion: 12, exportedAt: "x", settings: null, transactions: [], snapshots: [] }, TODAY);
+    const parsed = parseBackup({ app: "financna-sloboda", schemaVersion: 13, exportedAt: "x", settings: null, transactions: [], snapshots: [] }, TODAY);
     expect(parsed.ok).toBe(false);
     expect(!parsed.ok && parsed.errors.join(" ")).toMatch(/novšej verzie/);
   });

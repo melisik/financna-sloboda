@@ -163,6 +163,16 @@ export interface Position {
   valueDate: string; // dátum ocenenia, YYYY-MM-DD
   monthlyContributionCents?: number; // mesačný vklad, len pri treťom pilieri; len na zobrazenie (D-102, D-105)
   taxRegime?: TaxRegime; // daňový režim (FR-24); bez hodnoty = nezadané
+  goalId?: string; // cieľ, do ktorého položka patrí (D-105); bez hodnoty = bez cieľa
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+}
+
+/** Cieľ v sekcii Investície: skupina položiek s cieľovou sumou (D-105). Len zobrazenie, nemení výpočet cieľa nezávislosti. */
+export interface InvestmentGoal {
+  id: string;
+  name: string; // max 80 znakov
+  targetCents: number; // cieľová suma v centoch, kladná celá
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
@@ -324,6 +334,7 @@ export interface AppData {
   stockItems: StockItem[];
   recipes: Recipe[];
   dogs: Dog[];
+  goals: InvestmentGoal[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */
