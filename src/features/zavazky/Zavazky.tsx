@@ -153,7 +153,7 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť záväzok" : "Nový záväzok"}</h4>
-      <Field label="Názov" value={name} type="text" onChange={setName} />
+      <Field label="Názov" value={name} type="text" onChange={setName} maxLength={80} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Druh
         <select value={kind} onChange={(e) => setKind(e.target.value as LiabilityKind)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>

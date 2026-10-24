@@ -18,7 +18,7 @@ export const btnPrimary: CSSProperties = { ...btn, background: "var(--primary-bg
 /** Zmazanie: červený rámik a text. Pred zmazaním sa vždy pýta potvrdenie. */
 export const btnDanger: CSSProperties = { ...btn, color: "var(--danger)", borderColor: "var(--danger)" };
 
-export function Field(props: { label: string; value: NumIn | string; onChange: (v: any) => void; step?: number; type?: string; inputMode?: "numeric" | "text"; max?: string; hint?: string; onReset?: () => void; changed?: boolean }) {
+export function Field(props: { label: string; value: NumIn | string; onChange: (v: any) => void; step?: number; type?: string; inputMode?: "numeric" | "text"; max?: string; maxLength?: number; hint?: string; onReset?: () => void; changed?: boolean }) {
   const textual = props.type === "text" || props.type === "date" || props.type === "password";
   return (
     <label style={{ display: "block", margin: "8px 0" }}>
@@ -27,6 +27,7 @@ export function Field(props: { label: string; value: NumIn | string; onChange: (
         type={props.type ?? "number"}
         inputMode={props.inputMode}
         max={props.max}
+        maxLength={props.maxLength}
         step={props.step ?? 1}
         value={props.value}
         onChange={(e) => {

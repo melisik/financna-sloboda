@@ -151,7 +151,7 @@ function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť pravidelný výdavok" : "Nový pravidelný výdavok"}</h4>
-      <Field label="Názov (napr. predplatné)" value={name} type="text" onChange={setName} />
+      <Field label="Názov (napr. predplatné)" value={name} type="text" onChange={setName} maxLength={80} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Kategória
         <select aria-label="Kategória pravidelného výdavku" value={category} onChange={(e) => setCategory(e.target.value as BudgetCategory)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>

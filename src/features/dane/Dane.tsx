@@ -205,12 +205,12 @@ function DogForm({ repo, initial, today, onDone, onCancel }: { repo: Repository;
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť psa" : "Nový pes"}</h4>
-      <Field label="Meno psa (nepovinné)" value={name} type="text" onChange={setName} />
-      <Field label="Evidenčné číslo psa (nepovinné)" value={evidence} type="text" onChange={setEvidence} hint="pridelí obec" />
-      <Field label="Plemeno (nepovinné)" value={breed} type="text" onChange={setBreed} />
-      <Field label="Vek (nepovinné)" value={age} type="text" onChange={setAge} />
-      <Field label="Obec, kde je pes chovaný" value={municipality} type="text" onChange={setMunicipality} />
-      <Field label="Ulica a číslo domu, kde je pes chovaný" value={address} type="text" onChange={setAddress} />
+      <Field label="Meno psa (nepovinné)" value={name} type="text" onChange={setName} maxLength={80} />
+      <Field label="Evidenčné číslo psa (nepovinné)" value={evidence} type="text" onChange={setEvidence} maxLength={40} hint="pridelí obec" />
+      <Field label="Plemeno (nepovinné)" value={breed} type="text" onChange={setBreed} maxLength={80} />
+      <Field label="Vek (nepovinné)" value={age} type="text" onChange={setAge} maxLength={20} />
+      <Field label="Obec, kde je pes chovaný" value={municipality} type="text" onChange={setMunicipality} maxLength={80} />
+      <Field label="Ulica a číslo domu, kde je pes chovaný" value={address} type="text" onChange={setAddress} maxLength={120} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Miesto držania psa
         <select aria-label="Miesto držania psa" value={place} onChange={(e) => setPlace(e.target.value as DogKeepingPlace)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>

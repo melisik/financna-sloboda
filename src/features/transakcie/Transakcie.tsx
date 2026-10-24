@@ -351,7 +351,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           )}
         </div>
       )}
-      <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} />
+      <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} maxLength={200} />
       {preview && (
         <p>
           {preview.blocked

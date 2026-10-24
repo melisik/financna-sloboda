@@ -293,7 +293,7 @@ function AssetForm({ repo, kind, initial, today, onDone, onCancel }: { repo: Rep
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť" : "Nové"}: {ASSET_KIND_LABEL[kind].toLowerCase()}</h4>
-      <Field label="Názov (napr. značka a rok, alebo podiel)" value={name} type="text" onChange={setName} />
+      <Field label="Názov (napr. značka a rok, alebo podiel)" value={name} type="text" onChange={setName} maxLength={80} />
       <Field label="Odhad hodnoty (€)" value={value} onChange={setValue} />
       <Field label="Dátum odhadu" value={valueDate} type="date" max={today} onChange={setValueDate} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
@@ -393,7 +393,7 @@ function RentalLedger({ repo, property, today, onDone, renderAttachments }: { re
         </select>
       </label>
       <Field label="Suma (€) – prenájom" value={amount} onChange={setAmount} />
-      <Field label="Poznámka (nepovinné)" value={note} type="text" onChange={setNote} />
+      <Field label="Poznámka (nepovinné)" value={note} type="text" onChange={setNote} maxLength={120} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={add} style={btnPrimary}>Pridať záznam</button>
     </div>
@@ -677,7 +677,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h3 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť nehnuteľnosť" : "Nová nehnuteľnosť"}</h3>
-      <Field label="Názov (nepovinné)" value={name} type="text" onChange={setName} />
+      <Field label="Názov (nepovinné)" value={name} type="text" onChange={setName} maxLength={80} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Režim
         <select value={mode} onChange={(e) => setMode(e.target.value as PropertyMode)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
@@ -752,11 +752,11 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
           <option value="byt">byt</option>
         </select>
       </label>
-      <Field label="Obec (pre daň z nehnuteľností, nepovinné)" value={taxMuni} type="text" onChange={setTaxMuni} />
-      <Field label="Katastrálne územie (nepovinné)" value={cadastral} type="text" onChange={setCadastral} />
-      <Field label="Číslo parcely (nepovinné)" value={parcel} type="text" onChange={setParcel} />
-      <Field label="Súpisné číslo (nepovinné)" value={building} type="text" onChange={setBuilding} />
-      <Field label="Číslo bytu (nepovinné)" value={flat} type="text" onChange={setFlat} />
+      <Field label="Obec (pre daň z nehnuteľností, nepovinné)" value={taxMuni} type="text" onChange={setTaxMuni} maxLength={80} />
+      <Field label="Katastrálne územie (nepovinné)" value={cadastral} type="text" onChange={setCadastral} maxLength={80} />
+      <Field label="Číslo parcely (nepovinné)" value={parcel} type="text" onChange={setParcel} maxLength={80} />
+      <Field label="Súpisné číslo (nepovinné)" value={building} type="text" onChange={setBuilding} maxLength={80} />
+      <Field label="Číslo bytu (nepovinné)" value={flat} type="text" onChange={setFlat} maxLength={80} />
       <Field label="Podlahová plocha (m², nepovinné)" value={floorArea} onChange={setFloorArea} hint="z kúpnej zmluvy alebo listu vlastníctva; len na podklad pre daň" />
       <Field label="Zostatok hypotéky (€)" value={mortgage} onChange={setMortgage} hint="0, ak hypotéku nemáš" />
       {typeof mortgage === "number" && mortgage > 0 && (

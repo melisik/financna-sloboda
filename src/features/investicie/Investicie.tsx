@@ -245,7 +245,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť položku" : "Nová položka"}</h4>
-      <Field label={balance ? "Názov účtu" : "Názov alebo ticker"} value={name} type="text" onChange={setName} />
+      <Field label={balance ? "Názov účtu" : "Názov alebo ticker"} value={name} type="text" onChange={setName} maxLength={80} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Druh
         <select value={kind} onChange={(e) => setKind(e.target.value as InvestmentKind)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
@@ -263,7 +263,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
         <>
           <Field label="Počet kusov" value={quantity} step={0.0001} onChange={setQuantity} />
           <Field label="Cena za kus (v mene položky)" value={unitPrice} step={0.0001} onChange={setUnitPrice} />
-          <Field label="Mena (napr. EUR, USD)" value={currency} type="text" onChange={setCurrency} />
+          <Field label="Mena (napr. EUR, USD)" value={currency} type="text" onChange={setCurrency} maxLength={3} />
           {!isEur && <Field label="Kurz: koľko € za 1 jednotku meny" value={fx} step={0.0001} onChange={setFx} hint="zadaj kurz v deň ocenenia" />}
         </>
       )}
@@ -315,7 +315,7 @@ function GoalForm({ repo, initial = null, onDone, onCancel }: { repo: Repository
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)", marginBottom: 8 }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť cieľ" : "Nový cieľ"}</h4>
-      <Field label="Názov cieľa" value={name} type="text" onChange={setName} />
+      <Field label="Názov cieľa" value={name} type="text" onChange={setName} maxLength={80} />
       <Field label="Cieľová suma (€)" value={target} onChange={setTarget} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>Uložiť cieľ</button>{" "}

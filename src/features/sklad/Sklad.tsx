@@ -279,7 +279,7 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť recept" : "Nový recept"}</h4>
       {stock.length === 0 && <p style={{ color: "var(--muted)" }}>Najprv pridajte položky do skladu.</p>}
-      <Field label="Názov receptu" value={name} type="text" onChange={setName} />
+      <Field label="Názov receptu" value={name} type="text" onChange={setName} maxLength={80} />
       {rows.map((row, n) => (
         <div key={n} style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 8 }}>
           <label style={{ flex: "2 1 160px" }}>
@@ -449,7 +449,7 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
           </select>
         </label>
       )}
-      <Field label="Názov (napr. mlieko)" value={name} type="text" onChange={setName} />
+      <Field label="Názov (napr. mlieko)" value={name} type="text" onChange={setName} maxLength={80} />
       {nameSuggestion !== null && name.trim() === "" && (
         <p style={{ fontSize: "0.9rem", margin: "4px 0" }}>
           Navrhnutý názov z fotky: <strong>{nameSuggestion}</strong>{" "}
