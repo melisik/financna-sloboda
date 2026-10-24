@@ -1,5 +1,6 @@
 import { Nav, type SectionId } from "./Navigacia";
 import { FeedbackBlock } from "../features/spatna-vazba/SpatnaVazba";
+import { PREVIEW_BUILD } from "../app/features";
 import { isIosOtherBrowser } from "../app/ios";
 
 /** Rám stránky: nadpis, skúšobné upozornenie, horný panel a spätná väzba. iOS brána (D-053, D-168) je tu, lebo ju používa rám. */
@@ -33,7 +34,7 @@ export function Shell({ children, nav }: { children: React.ReactNode; nav?: Sect
       )}
       {nav && <Nav active={nav} />}
       {children}
-      <FeedbackBlock />
+      <FeedbackBlock preview={PREVIEW_BUILD} />
     </main>
   );
 }

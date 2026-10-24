@@ -11,3 +11,11 @@ const ISSUE_BODY = "Sekcia appky:\n\nČo sa stalo:\n\nČo ste čakali:\n\n(Nepí
 export function feedbackIssueUrl(): string {
   return `${FEEDBACK_ISSUE_URL}?title=${encodeURIComponent("Pripomienka: ")}&body=${encodeURIComponent(ISSUE_BODY)}`;
 }
+
+/**
+ * Cesty na pripomienku (D-149, D-280). Hlásenia na GitHube sú verejné, preto súkromný náhľad ponúka len formulár,
+ * aby testeri nezverejnili obsah, ktorý ešte nie je vo verejnej verzii.
+ */
+export function feedbackChannels(preview: boolean): ("github" | "form")[] {
+  return preview ? ["form"] : ["github", "form"];
+}

@@ -30,6 +30,8 @@ jobs:
       - run: npm run build
         env:
           VITE_PHASE2: "1"
+          # D-280: v náhľade sa pripomienky posielajú len formulárom (GitHub je verejný).
+          VITE_PREVIEW: "1"
       # Kontrola hesla (D-271) sa pridá len do náhľadu; verejné Pages ju nedostanú.
       - run: cp preview/_worker.js dist/_worker.js
       # D-272: nasadzuje sa do produkčnej vetvy projektu (main), teda do prostredia Production s PREVIEW_PASSWORD.

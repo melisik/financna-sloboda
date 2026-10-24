@@ -1,5 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { FEEDBACK_FORM_URL, feedbackIssueUrl } from "../src/features/spatna-vazba/feedback";
+import { FEEDBACK_FORM_URL, feedbackChannels, feedbackIssueUrl } from "../src/features/spatna-vazba/feedback";
 
 // Pripomienky od testerov (D-149). Odkazy nesmú niesť údaje z appky.
 describe("pripomienky", () => {
@@ -15,3 +16,17 @@ describe("pripomienky", () => {
     expect(FEEDBACK_FORM_URL.startsWith("https://")).toBe(true);
   });
 });
+
+// Súkromný náhľad (D-280): hlásenia na GitHube sú verejné, preto náhľad ponúka len formulár.
+describe("pripomienky v náhľade", () => {
+  it("verejná zostava ponúka GitHub aj formulár, náhľad len formulár", () => {
+    expect(feedbackChannels(false)).toEqual(["github", "form"]);
+    expect(feedbackChannels(true)).toEqual(["form"]);
+  });
+
+  it("príznak náhľadu nastavuje len workflow náhľadu, nie verejné nasadenie", () => {
+    expect(readFileSync(".github/workflows/preview-phase2.yml", "utf8")).toContain('VITE_PREVIEW: "1"');
+    expect(readFileSync(".github/workflows/pages.yml", "utf8")).not.toContain("VITE_PREVIEW");
+  });
+});
+
