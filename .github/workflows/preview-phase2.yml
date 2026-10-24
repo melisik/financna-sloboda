@@ -1,0 +1,38 @@
+name: Súkromný náhľad Fázy 2
+
+on:
+  push:
+    branches: [claude/phase2-property-card]
+  workflow_dispatch:
+
+# D-270: náhľad ide len na súkromnú adresu za Cloudflare Access. Verejné Pages zostávajú z main s VITE_PHASE2 "0" (D-056, D-248).
+# Job sa spustí až po nastavení Cloudflare Access a premennej PHASE2_PREVIEW; inak sa nič nenasadí.
+concurrency:
+  group: preview-phase2
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    if: vars.PHASE2_PREVIEW == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: node scripts/make-test-backup.mjs
+      - run: npm run build
+        env:
+          VITE_PHASE2: "1"
+      # Adresa náhľadu: https://phase2.financna-sloboda-preview.pages.dev (za Access prihlásením)
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=financna-sloboda-preview --branch=phase2 --commit-dirty=true
