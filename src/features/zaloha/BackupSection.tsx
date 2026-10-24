@@ -3,10 +3,11 @@ import type { Repository } from "../../storage/repository";
 import type { AppData, Attachment } from "../../storage/types";
 import { backupTooLarge, buildBackup, parseBackup } from "../../storage/backup";
 import { encodeAttachment } from "../../storage/attachments";
+import { MIN_PASSWORD_LENGTH, decryptBackup, encryptBackup, isEncryptedBackup, type EncryptedBackup } from "../../storage/backupCrypto";
 import { daysSince } from "../../domain/dates";
 import { backupOverdue } from "../../domain/reminders";
 import { dateSk, todayIso } from "../../ui/kit/format";
-import { btn, btnPrimary } from "../../ui/kit/controls";
+import { btn, btnPrimary, inp } from "../../ui/kit/controls";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 
 /** Záloha a obnova (FR-17, FR-18): export, import s náhľadom, pomocné texty. Feature „zaloha“ (docs/23). */
@@ -15,10 +16,13 @@ import { STORAGE_ERROR } from "../../ui/kit/messages";
  * Export zálohy. Ak prehliadač dokáže zdieľať súbory (iPhone), ponúkne zdieľací list, kde sa dá zvoliť
  * „Uložiť do Súborov“. Inak alebo pri chybe zdieľania súbor stiahne. Zrušenie zdieľania nič neuloží.
  */
-export async function exportBackupFile(data: AppData, attachments: Attachment[]): Promise<{ result: "shared" | "downloaded" | "cancelled"; exportedAt: string }> {
+export async function exportBackupFile(data: AppData, attachments: Attachment[], password?: string): Promise<{ result: "shared" | "downloaded" | "cancelled"; exportedAt: string }> {
   const nowIso = new Date().toISOString();
-  const name = `financna-sloboda-zaloha-${todayIso()}.json`;
-  const text = JSON.stringify(buildBackup(data, nowIso, await Promise.all(attachments.map(encodeAttachment))), null, 2);
+  const plain = JSON.stringify(buildBackup(data, nowIso, await Promise.all(attachments.map(encodeAttachment))), null, 2);
+  // Heslo je voliteľné (N-05, D-276): bez hesla sa zapíše bežný JSON.
+  const encrypted = password ? JSON.stringify(await encryptBackup(plain, password)) : null;
+  const name = `financna-sloboda-zaloha-${todayIso()}${encrypted ? "-sifrovana" : ""}.json`;
+  const text = encrypted ?? plain;
   const file = new File([text], name, { type: "application/json" });
   if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
     try {
@@ -78,14 +82,20 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
   const [preview, setPreview] = useState<{ data: AppData; attachments: Attachment[]; counts: { transactions: number; snapshots: number }; exportedAt: string; notes: string[] } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
+  const [exportPassword, setExportPassword] = useState("");
+  const [encryptedImport, setEncryptedImport] = useState<EncryptedBackup | null>(null);
+  const [importPassword, setImportPassword] = useState("");
 
   const exportBackup = async () => {
-    const r = await exportBackupFile(data, await repo.listAllAttachments());
+    if (exportPassword !== "" && exportPassword.length < MIN_PASSWORD_LENGTH) return setStatus(`Heslo musí mať aspoň ${MIN_PASSWORD_LENGTH} znakov. Nič sa neexportovalo.`);
+    const r = await exportBackupFile(data, await repo.listAllAttachments(), exportPassword || undefined);
     if (r.result === "cancelled") return setStatus("Export bol zrušený. Záloha nie je uložená.");
     onExported(r.exportedAt);
-    setStatus(r.result === "shared"
+    setExportPassword("");
+    const enc = exportPassword !== "" ? "Záloha je zašifrovaná; na obnovu potrebuješ heslo. " : "";
+    setStatus(enc + (r.result === "shared"
       ? "Záloha je uložená podľa tvojho výberu. Obsahuje citlivé finančné údaje vrátane čísel dokladov: neukladaj ju do verejných priečinkov."
-      : "Záloha sa stiahla. Obsahuje citlivé finančné údaje vrátane čísel dokladov: neukladaj ju do verejných priečinkov.");
+      : "Záloha sa stiahla. Obsahuje citlivé finančné údaje vrátane čísel dokladov: neukladaj ju do verejných priečinkov."));
   };
 
   const onFile = async (file: File) => {
@@ -103,12 +113,37 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
       setErrors(["Súbor nie je platný JSON. Nič sa nezmenilo."]);
       return;
     }
+    if (isEncryptedBackup(json)) {
+      setEncryptedImport(json);
+      setImportPassword("");
+      return;
+    }
+    openBackupJson(json);
+  };
+
+  /** Overí zálohu a ukáže náhľad (rovnako pre bežný a odomknutý súbor). */
+  const openBackupJson = (json: unknown) => {
     const res = parseBackup(json, todayIso());
     if (!res.ok) {
       setErrors([...res.errors.map(plainBackupError), "Nič sa nezmenilo."]);
       return;
     }
     setPreview({ data: res.data!, attachments: res.attachments ?? [], counts: res.counts!, exportedAt: (json as { exportedAt: string }).exportedAt, notes: res.notes ?? [] });
+  };
+
+  const unlockBackup = async () => {
+    if (!encryptedImport) return;
+    setErrors([]);
+    let json: unknown;
+    try {
+      json = JSON.parse(await decryptBackup(encryptedImport, importPassword));
+    } catch {
+      setErrors(["Heslo nesedí alebo je súbor poškodený. Nič sa nezmenilo."]);
+      return;
+    }
+    setEncryptedImport(null);
+    setImportPassword("");
+    openBackupJson(json);
   };
 
   const confirmImport = async () => {
@@ -132,6 +167,11 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
       {backupOverdue(lastExport, todayIso()) && (
         <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>Záloha je staršia ako 7 dní alebo ešte nebola urobená. Odporúčame novú zálohu.</p>
       )}
+      <label style={{ display: "block", margin: "8px 0" }}>
+        <span style={{ display: "block", fontSize: "0.9rem" }}>Heslo na šifrovanie zálohy (nepovinné, aspoň {MIN_PASSWORD_LENGTH} znakov)</span>
+        <input type="password" aria-label="Heslo na šifrovanie zálohy" autoComplete="new-password" maxLength={100} value={exportPassword} onChange={(e) => setExportPassword(e.target.value)} style={inp} />
+      </label>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Heslo sa nedá obnoviť. Bez neho sa zašifrovaná záloha neotvorí.</p>
       <button onClick={exportBackup} style={btnPrimary}>Exportovať zálohu</button>
       <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne do priečinka Stiahnuté.</p>
       <label style={{ display: "block", margin: "16px 0 8px" }}>
@@ -154,6 +194,16 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
           }}
         />
       </div>
+      {encryptedImport && (
+        <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginTop: 8 }}>
+          <p>Záloha je zašifrovaná. Zadaj heslo, ktorým si ju exportoval.</p>
+          <input type="password" aria-label="Heslo k záložnému súboru" autoComplete="current-password" value={importPassword} onChange={(e) => setImportPassword(e.target.value)} style={inp} />
+          <div style={{ marginTop: 8 }}>
+            <button onClick={unlockBackup} style={btn}>Otvoriť zálohu</button>{" "}
+            <button onClick={() => { setEncryptedImport(null); setImportPassword(""); }} style={btn}>Zrušiť</button>
+          </div>
+        </div>
+      )}
       {errors.length > 0 && <ul style={{ color: "var(--danger)" }}>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>}
       {preview && (
         <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6 }}>
