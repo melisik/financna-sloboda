@@ -84,7 +84,7 @@ const TONE_BG: Record<Tone, string> = { info: "var(--surface)", warn: "var(--war
 const TONE_BORDER: Record<Tone, string> = { info: "var(--border-strong)", warn: "var(--warn-border)", ok: "var(--ok)", error: "var(--danger)" };
 /** Štýl upozornenia: pozadie podľa tónu, ľavý okraj farbou tónu, text vždy v hlavnej farbe. */
 export function calloutStyle(tone: Tone): CSSProperties {
-  return { background: TONE_BG[tone], borderLeft: `4px solid ${TONE_BORDER[tone]}`, padding: 12, borderRadius: 6, margin: "8px 0", color: "var(--text)" };
+  return { background: TONE_BG[tone], borderLeft: `4px solid ${TONE_BORDER[tone]}`, padding: 12, borderRadius: 6, marginTop: 8, marginBottom: 8, color: "var(--text)" };
 }
 /** Upozornenie ako komponent (nové miesta). Existujúce miesta používajú calloutStyle, aby sa zachovali roly. */
 export function Callout({ tone = "info", role, children }: { tone?: Tone; role?: "alert" | "note" | "status"; children: ReactNode }) {

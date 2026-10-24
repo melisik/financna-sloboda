@@ -59,7 +59,19 @@ export function Nav({ active }: { active: SectionId }) {
         {activeGroup && activeGroup.shown.length > 1 && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {activeGroup.shown.map((id) => (
-              <a key={id} href={`#${id}`} aria-current={id === active ? "page" : undefined} style={chip(id === active)}>
+              <a
+                key={id}
+                href={`#${id}`}
+                aria-current={id === active ? "page" : undefined}
+                // Aktívna sekcia: adresa sa nemení, prehliadač by skočil na kotvu pod prilepené menu. Ostaň na začiatku (docs/39).
+                onClick={(e) => {
+                  if (id === active) {
+                    e.preventDefault();
+                    window.scrollTo(0, 0);
+                  }
+                }}
+                style={chip(id === active)}
+              >
                 {SECTION_LABELS[id]}
               </a>
             ))}

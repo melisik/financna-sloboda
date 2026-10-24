@@ -20,6 +20,7 @@ import { dateSk, eur, monthYear, pctText, todayIso } from "../../ui/kit/format";
 import { btn, btnPrimary } from "../../ui/kit/controls";
 import { saveTextFile } from "../../ui/kit/files";
 import { calloutStyle } from "../../ui/kit/controls";
+import { hintStyle } from "../../ui/kit/controls";
 
 /** Prehľad (domovská obrazovka): mesačný prehľad, týždenný súhrn a pripomienky. Feature „prehlad“ (docs/23). */
 
@@ -75,17 +76,17 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       {ctx.latest && ctx.target !== null ? (
         <>
           <p>Dátum cieľa: <strong>{scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</strong></p>
-          <p style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>
+          <p style={hintStyle}>
             Posledné vyhodnotenie: <strong>{dateSk(ctx.latest.date)}</strong>. Dátum sa zmení až po ďalšom vyhodnotení.
           </p>
           {ctx.latest.auto && (
-            <p style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>
+            <p style={hintStyle}>
               Vyhodnotenie vzniklo automaticky z transakcií.
               {data.investments.length === 0 && <> Investície sú odhad z výnosu r, kým ich neupravíš v sekcii <a href="#investicie">Investície</a>.</>}
             </p>
           )}
           {ctx.longHorizon && (
-            <p style={{ fontSize: "var(--font-small)", background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+            <p style={{ ...calloutStyle("warn"), fontSize: "var(--font-small)" }}>
               Pri dlhom horizonte (viac ako 20 rokov) je predpoklad výnosu menej istý; výsledok je v dnešných eurách.
             </p>
           )}
@@ -137,7 +138,7 @@ function WeeklySummaryBlock({ transactions, today, thresholdCents }: { transacti
       <p style={{ margin: 0 }}><strong>Týždenný súhrn</strong></p>
       <p style={{ margin: "4px 0" }}>{dateSk(s.fromIso)} – {dateSk(s.toIso)}: výdavky spolu <strong>{eur(s.totalCents)}</strong>, zápisov {s.count}.</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        <button onClick={save} style={btnPrimary}>Uložiť týždenný súhrn</button>
+        <button onClick={save} style={btn}>Uložiť týždenný súhrn</button>
         <a href={weeklyMailto(s)} style={btn}>Poslať mailom</a>
       </div>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
@@ -180,7 +181,7 @@ function MonthSpendingBlock({ data, today, thresholdCents, incomeVisible }: { da
         </ul>
       </details>
       {ending.length > 0 && (
-        <p style={{ margin: "8px 0 0", background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "var(--font-small)" }}>
+        <p style={{ ...calloutStyle("warn"), margin: "8px 0 0", fontSize: "var(--font-small)" }}>
           Koniec platnosti do 30 dní: {ending.map((e) => e.name).join(", ")}. <a href="#pravidelne-vydavky">Pozrieť</a>
         </p>
       )}

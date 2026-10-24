@@ -11,6 +11,7 @@ import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
 import { calloutStyle } from "../../ui/kit/controls";
+import { card, hintStyle } from "../../ui/kit/controls";
 
 /** Vyhodnotenie (FR-05, D-116, D-121): ručné vyhodnotenie a kontrola stavu investícií a hotovosti; zmazanie. Feature „vyhodnotenie“ (docs/23). */
 
@@ -128,11 +129,11 @@ export function SnapshotSection({ repo, latest, capital, derivedInvCents, snapsh
       <h3 style={{ fontSize: "var(--font-text)", marginTop: 24 }}>Uložené vyhodnotenia</h3>
       {snapshots.length === 0 && <p>Zatiaľ nie sú uložené vyhodnotenia.</p>}
       {[...snapshots].sort((a, b) => b.date.localeCompare(a.date)).map((s) => (
-        <div key={s.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+        <div key={s.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{dateSk(s.date)}</strong>{s.auto ? " · automaticky" : ""}</p>
           <p style={{ margin: "4px 0" }}>K: {eur(s.investmentsCents + s.cashCents)} (investície {eur(s.investmentsCents)}, hotovosť {eur(s.cashCents)})</p>
           {s.auto ? (
-            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Automatické vyhodnotenie sa vytvorí znova z ručných údajov.</p>
+            <p style={{ ...hintStyle, margin: "4px 0" }}>Automatické vyhodnotenie sa vytvorí znova z ručných údajov.</p>
           ) : deleteId === s.id ? (
             <div>
               <p>Naozaj zmazať vyhodnotenie z {dateSk(s.date)}? Ak chceš mať kópiu, najprv stiahni zálohu v sekcii <a href="#zaloha">Záloha</a>.</p>

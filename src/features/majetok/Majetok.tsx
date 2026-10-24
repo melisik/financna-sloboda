@@ -15,6 +15,7 @@ import { parseLvText, type LvFields, type LvFlatChoice, type LvTaxFields } from 
 import { LV_MAX_FILE_BYTES, parseLvHtml } from "./lvHtml";
 import { NextStep } from "../../ui/kit/NextStep";
 import { calloutStyle, hintStyle } from "../../ui/kit/controls";
+import { card } from "../../ui/kit/controls";
 
 /** Majetok (Fáza 2, D-080 až D-158): nehnuteľnosti, hypotéka, prenájom, mimoriadne splátky a ďalšie aktíva. Feature „majetok“ (docs/23). */
 
@@ -85,19 +86,19 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
         const net = netPropertyValueCents(p);
         const stale = valueIsStale(p.valueDate, today);
         return (
-          <div key={p.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+          <div key={p.id} style={{ ...card, marginBottom: 8 }}>
             <p style={{ margin: 0 }}><strong>{p.name || "Nehnuteľnosť"}</strong> · {PROPERTY_MODE_LABEL[p.mode]}</p>
             <p style={{ margin: "4px 0" }}>Odhad: {eur(p.valueCents)} (k {dateSk(p.valueDate)})</p>
             {(p.acquisitionDate || p.acquisitionCostCents !== undefined) && (
-              <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+              <p style={{ ...hintStyle, margin: "4px 0" }}>
                 Obstarané{p.acquisitionDate ? ` ${dateSk(p.acquisitionDate)}` : ""}{p.acquisitionCostCents !== undefined ? ` za ${eur(p.acquisitionCostCents)}` : ""} (evidencia pre dane)
               </p>
             )}
             {p.mode === "prenajom" && p.rentalStartDate && (
-              <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Prenájom od {dateSk(p.rentalStartDate)}</p>
+              <p style={{ ...hintStyle, margin: "4px 0" }}>Prenájom od {dateSk(p.rentalStartDate)}</p>
             )}
             {(p.taxMunicipality || p.cadastralArea || p.parcelNumber || p.buildingNumber || p.flatNumber || p.floorAreaSqm !== undefined) && (
-              <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+              <p style={{ ...hintStyle, margin: "4px 0" }}>
                 Údaje pre daň: {[
                   p.taxMunicipality && `obec ${p.taxMunicipality}`,
                   p.cadastralArea && `k. ú. ${p.cadastralArea}`,
@@ -132,11 +133,11 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
               Čistá hodnota: <strong>{eur(net)}</strong>
               {net < 0 && <span> (hypotéka presahuje odhad)</span>}
             </p>
-            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+            <p style={{ ...hintStyle, margin: "4px 0" }}>
               {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta."}
             </p>
             {p.mortgageBalanceCents > 0 && (p.monthlyPaymentCents ?? 0) > 0 && (
-              <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+              <p style={{ ...hintStyle, margin: "4px 0" }}>
                 {(() => {
                   const months = remainingMonths(p.mortgageBalanceCents, p.mortgageRate ?? 0, p.monthlyPaymentCents ?? 0);
                   return months === null ? null : `Pri tejto splátke sa zostatok splatí za ${months} mesiacov.`;
@@ -150,7 +151,7 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
               </details>
             )}
             {(p.extraPayments ?? []).length > 0 && (
-              <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+              <p style={{ ...hintStyle, margin: "4px 0" }}>
                 Mimoriadne splátky: {(p.extraPayments ?? []).map((e) => `${dateSk(e.date)} ${eur(e.amountCents)} (${EXTRA_PAYMENT_LABEL[e.mode]})`).join("; ")}
               </p>
             )}
@@ -223,11 +224,11 @@ function AssetSection({ repo, assets, today, onSaved }: { repo: Repository; asse
       <p style={{ color: "var(--muted)" }}>Odhad je tvoj, nie trhová cena. Zatiaľ sa do K nepočítajú (predpoklad).</p>
       {assets.length === 0 && editing === null && <p>Zatiaľ nie je zapísané žiadne aktívum.</p>}
       {assets.map((a) => (
-        <div key={a.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+        <div key={a.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{a.name}</strong> · {ASSET_KIND_LABEL[a.kind]}</p>
           <p style={{ margin: "4px 0" }}>Odhad: {eur(a.valueCents)} (k {dateSk(a.valueDate)})</p>
           {valueIsStale(a.valueDate, today) && <p style={calloutStyle("warn")}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
-          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Do K sa zatiaľ nepočíta.</p>
+          <p style={{ ...hintStyle, margin: "4px 0" }}>Do K sa zatiaľ nepočíta.</p>
           {confirmId === a.id ? (
             <div>
               <p>Naozaj zmazať aktívum „{a.name}“?</p>
@@ -365,7 +366,7 @@ function RentalLedger({ repo, property, today, onDone, renderAttachments }: { re
   return (
     <div style={{ border: "1px solid var(--border)", borderRadius: 6, padding: 10, margin: "8px 0" }}>
       <p style={{ margin: 0 }}><strong>Príjmy a výdavky z prenájmu</strong></p>
-      <p style={{ color: "var(--muted)", fontSize: "var(--font-small)", margin: "4px 0" }}>Zapisuj priebežne. Súčty sú len podklad pre daňové priznanie, nie daňový výpočet.</p>
+      <p style={{ ...hintStyle, margin: "4px 0" }}>Zapisuj priebežne. Súčty sú len podklad pre daňové priznanie, nie daňový výpočet.</p>
       <label style={{ display: "block", margin: "6px 0" }}>
         Rok{" "}
         <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={{ minHeight: 44 }}>
@@ -431,7 +432,7 @@ function ExtraPaymentUndo({ repo, property, onDone }: { repo: Repository; proper
     };
     return (
       <div style={{ margin: "4px 0" }}>
-        <p style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>Poslednú splátku nie je možné vrátiť automaticky. Zostatok a splátku uprav v Upraviť.</p>
+        <p style={hintStyle}>Poslednú splátku nie je možné vrátiť automaticky. Zostatok a splátku uprav v Upraviť.</p>
         {confirming ? (
           <div>
             <p>Naozaj zmazať záznam z {dateSk(last.date)} ({eur(last.amountCents)})? Zostatok a splátka sa nezmenia.</p>

@@ -4,7 +4,7 @@ import { goTo, openApp, type SectionId } from "./helpers";
 
 // Dostupnosť (M6, WCAG 2.1 AA): automatická kontrola každej sekcie a reflow pri 320 px (zoom 400 %).
 const SECTIONS: SectionId[] = [
-  "prehlad", "nova-transakcia", "vyhodnotenie", "majetok", "zavazky", "investicie", "prijmy", "rozpocet",
+  "prehlad", "nova-transakcia", "scenar-vydavku", "mesacny-vydavok", "vyhodnotenie", "majetok", "zavazky", "investicie", "prijmy", "rozpocet",
   "pravidelne-vydavky", "dane", "sklad", "rocny-prehlad", "nastavenia", "zaloha",
 ];
 

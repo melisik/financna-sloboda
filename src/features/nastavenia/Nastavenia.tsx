@@ -75,12 +75,12 @@ export function SettingsSection({ repo, settings, derived, onSaved }: { repo: Re
       <Field label="Reálny výnos r (%)" value={v.returnPct} step={0.1} onChange={(x) => setV({ ...v, returnPct: x })}
         hint={`východisková hodnota ${pct(rec.realReturn)} (neoverený predpoklad); reálny výnos je po odpočítaní inflácie`} changed={differs(v.returnPct, rec.realReturn * 100)} onReset={() => setV({ ...v, returnPct: Number((rec.realReturn * 100).toFixed(6)) })} />
       {typeof v.withdrawalPct === "number" && (v.withdrawalPct < 3 || v.withdrawalPct > 4) && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "var(--font-small)" }}>
+        <p style={{ ...calloutStyle("warn"), fontSize: "var(--font-small)" }}>
           Miera výberu je mimo rozsahu 3–4 %, ktorý je neoverený predpoklad, nie odporúčanie. Uloženie je možné; over si, či je to tvoj zámer.
         </p>
       )}
       {typeof v.returnPct === "number" && (v.returnPct < 2 || v.returnPct > 6) && (
-        <p style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "var(--font-small)" }}>
+        <p style={{ ...calloutStyle("warn"), fontSize: "var(--font-small)" }}>
           Výnos r je mimo rozsahu 2–6 %, ktorý je neoverený predpoklad, nie odporúčanie. Uloženie je možné, ale ide o odhad a dátum cieľa sa výrazne zmení.
         </p>
       )}

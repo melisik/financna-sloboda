@@ -10,6 +10,7 @@ import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { calloutStyle, card, hintStyle } from "../../ui/kit/controls";
 
 /** Pravidelné príjmy (D-102): zoznam, výhľad a rozdiel oproti výdavkom tohto mesiaca. Feature „prijmy“ (docs/23). */
 
@@ -34,11 +35,11 @@ function IncomeBalance({ income, data, today }: { income: number; data: AppData;
   const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
   const diff = income - spent;
   return (
-    <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 12, background: "var(--surface)" }}>
+    <div style={{ ...card, marginBottom: 12 }}>
       <p style={{ margin: "4px 0" }}>Mesačný príjem: <strong>{eur(income)}</strong> · minuté tento mesiac: <strong>{eur(spent)}</strong></p>
       <p style={{ margin: "4px 0" }}>Rozdiel: <strong>{diff >= 0 ? "+" : "−"}{eur(Math.abs(diff))}</strong></p>
       {income === 0 && spent > 0 && (
-        <p style={{ margin: "8px 0 0", background: "var(--warn-bg)", padding: 8, borderRadius: 6 }}>
+        <p style={{ ...calloutStyle("warn"), margin: "8px 0 0" }}>
           Nie je zadaný žiadny platný pravidelný príjem. Rozdiel nie je správny, kým ho nepridáš.
         </p>
       )}
@@ -61,7 +62,7 @@ function OutlookBlock({ incomes, today }: { incomes: RegularIncome[]; today: str
           ))}
         </ul>
       )}
-      <p style={{ color: "var(--muted)", fontSize: "var(--font-small)", margin: 0 }}>
+      <p style={{ ...hintStyle, margin: 0 }}>
         Zobrazujú sa len údaje, ktoré si zadal. Appka nič neodhaduje a dátum cieľa sa podľa toho nemení.
       </p>
     </div>
@@ -147,7 +148,7 @@ export function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: R
       {incomes.map((i) => {
         const active = isIncomeActive(i, today);
         return (
-          <div key={i.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+          <div key={i.id} style={{ ...card, marginBottom: 8 }}>
             <p style={{ margin: 0 }}>
               <strong>{i.name}</strong> · {INCOME_KIND_LABEL[i.kind]}{" "}
               {!active && <span style={{ color: "var(--muted)" }}>(neplatí dnes)</span>}
@@ -156,8 +157,8 @@ export function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: R
               {eur(i.amountCents)}{i.frequency === "mesacne" ? " mesačne" : " (jednorazovo)"}
               {i.dayOfMonth !== undefined ? `, zvyčajne ${i.dayOfMonth}. v mesiaci` : ""}
             </p>
-            {i.source && <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Zdroj: {i.source}, získané {dateSk((i.fetchedAt ?? "").slice(0, 10))}</p>}
-            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+            {i.source && <p style={{ ...hintStyle, margin: "4px 0" }}>Zdroj: {i.source}, získané {dateSk((i.fetchedAt ?? "").slice(0, 10))}</p>}
+            <p style={{ ...hintStyle, margin: "4px 0" }}>
               {INCOME_FREQUENCY_LABEL[i.frequency]}; od {dateSk(i.startDate)}{i.endDate ? `, do ${dateSk(i.endDate)}` : i.frequency === "mesacne" ? ", bez konca" : ""}
             </p>
             {confirmId === i.id ? (

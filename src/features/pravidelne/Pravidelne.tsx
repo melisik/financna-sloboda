@@ -9,6 +9,7 @@ import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
 import { hintStyle } from "../../ui/kit/controls";
+import { card } from "../../ui/kit/controls";
 
 /** Pravidelné výdavky (D-124): zoznam, súčet za mesiac a podľa kategórie, ukončenie. Iba zobrazenie výpočtov. Feature „pravidelne“ (docs/23). */
 
@@ -62,13 +63,13 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
       )}
       {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané pravidelné výdavky.</p>}
       {items.map((e) => (
-        <div key={e.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+        <div key={e.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{e.name}</strong> · {e.category}</p>
           <p style={{ margin: "4px 0" }}>
             {eur(e.amountCents)} {RECURRING_FREQUENCY_LABEL[e.frequency]}
             {e.frequency === "rocne" ? ` (≈ ${eur(monthlyShareCents(e))} mesačne)` : ""}
           </p>
-          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+          <p style={{ ...hintStyle, margin: "4px 0" }}>
             Od {dateSk(e.startDate)}{e.endDate ? `, do ${dateSk(e.endDate)}` : ""}{isRecurringActive(e, today) ? "" : " · dnes neplatí"}
           </p>
           {endingSoon(e, today) && (

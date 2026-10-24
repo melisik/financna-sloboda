@@ -28,6 +28,10 @@ describe("vizuálne tokeny (docs/39)", () => {
     expect(html).toContain(":focus-visible");
   });
 
+  it("textové odkazy majú jednotnú farbu z tokenu", () => {
+    expect(html).toContain("a { color: var(--link); }");
+  });
+
   it("pomocný odkaz nemá rámik a má dotykovú výšku aspoň 44 px", () => {
     expect(btnLink.border).toBe("none");
     expect(btnLink.minHeight).toBe(44);

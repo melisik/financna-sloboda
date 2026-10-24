@@ -180,7 +180,7 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
       </label>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <button type="button" onClick={() => fileRef.current?.click()} style={btn}>Vybrať súbor zálohy</button>
-        <span style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>{fileName || "Nie je vybraný žiadny súbor"}</span>
+        <span style={hintStyle}>{fileName || "Nie je vybraný žiadny súbor"}</span>
         <input
           ref={fileRef}
           type="file"
@@ -210,7 +210,7 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
         <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6 }}>
           <p>Záloha z {dateSk(preview.exportedAt.slice(0, 10))} obsahuje: {summarizeData(preview.data)}.</p>
           <p style={hintStyle}>Teraz v zariadení: {summarizeData(data)}.</p>
-          {preview.notes.map((n) => <p key={n} style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "var(--font-small)" }}>{n}</p>)}
+          {preview.notes.map((n) => <p key={n} style={{ ...calloutStyle("warn"), fontSize: "var(--font-small)" }}>{n}</p>)}
           <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong></p>
           <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Aktuálne dáta sa nenávratne prepíšu. Ak ich chceš zachovať, najprv ulož zálohu tlačidlom „Exportovať zálohu“ hore.</p>
           <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}

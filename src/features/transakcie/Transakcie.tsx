@@ -389,13 +389,13 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         <input aria-label="Od dátumu" type="date" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
         <input aria-label="Do dátumu" type="date" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
       </div>
-      <p style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>
+      <p style={hintStyle}>
         Súčet zobrazených transakcií: {(Object.keys(totals) as TransactionType[]).length === 0
           ? "žiadne transakcie"
           : (Object.keys(totals) as TransactionType[]).map((t) => `${TYPE_LABEL[t]} ${eur(totals[t] ?? 0)}`).join(" · ")}
       </p>
       {Object.keys(categoryTotals).length > 0 && (
-        <p style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>
+        <p style={hintStyle}>
           Výdavky podľa kategórie: {Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]).map(([c, v]) => `${c} ${eur(v)}`).join(" · ")}
         </p>
       )}

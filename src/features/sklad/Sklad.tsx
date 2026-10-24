@@ -14,6 +14,7 @@ import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { uid } from "../../ui/kit/ids";
 import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { hintStyle } from "../../ui/kit/controls";
+import { card } from "../../ui/kit/controls";
 
 /** Sklad potravín a recepty (D-127, D-141, D-155): položky, dátumy spotreby, uvarenie a skener obalu. Feature „sklad“ (docs/23). */
 
@@ -46,10 +47,10 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
 
   // Karta jednej dávky položky; firstToUse označí dávku, ktorú treba spotrebovať ako prvú (D-236).
   const itemCard = (i: StockItem, firstToUse = false) => (
-        <div key={i.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+        <div key={i.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{i.name}</strong>{firstToUse ? <> · <strong>Použiť ako prvé</strong></> : null}</p>
           <p style={{ margin: "4px 0" }}>{i.quantity} {i.unit}{i.quantity === 0 ? " · došlo" : ""}</p>
-          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+          <p style={{ ...hintStyle, margin: "4px 0" }}>
             {i.expiryDate ? `Spotrebovať do ${dateSk(i.expiryDate ?? "")} (${dniText(daysUntil(today, i.expiryDate))})` : "Bez dátumu spotreby"}
             {i.expiryDate ? <>{" · "}{STOCK_STATUS_TEXT[stockStatus(i, today)]}</> : null}
           </p>
@@ -77,7 +78,7 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
     const total = batches.reduce((sum, b) => sum + b.quantity, 0);
     const first = batches.find((b) => b.quantity > 0);
     return (
-      <div key={batches[0].barcode} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+      <div key={batches[0].barcode} style={{ ...card, marginBottom: 8 }}>
         <p style={{ margin: 0 }}><strong>{batches[0].name}</strong></p>
         <p style={{ margin: "4px 0" }}>
           {units.size === 1 ? `Spolu ${total} ${batches[0].unit}` : "Spolu (rôzne jednotky)"} · {batches.length} {plural(batches.length, "dávka", "dávky", "dávok")}
@@ -188,7 +189,7 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
       <p style={hintStyle}>Pri uvarení sa suroviny odpočítajú zo skladu. Ak niečo chýba, nič sa neodpočíta.</p>
       {recipes.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané recepty.</p>}
       {recipes.map((r) => (
-        <div key={r.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+        <div key={r.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{r.name}</strong></p>
           <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "var(--font-small)" }}>
             {r.ingredients.map((ing: RecipeIngredient) => {

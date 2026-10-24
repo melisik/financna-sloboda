@@ -8,6 +8,7 @@ import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { calloutStyle, card, hintStyle } from "../../ui/kit/controls";
 
 /** Záväzky okrem hypotéky (D-103, D-140): úvery a kreditné karty. Hypotéka je v Majetku. Feature „zavazky“ (docs/23). */
 
@@ -46,7 +47,7 @@ export function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: 
         </p>
       )}
       {liabilities.map((l) => (
-        <div key={l.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+        <div key={l.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{l.name}</strong> · {LIABILITY_KIND_LABEL[l.kind]}</p>
           {paymentBelowInterest(l.balanceCents, l.rate, l.monthlyPaymentCents) && (
             <p role="note" style={{ margin: "4px 0", background: "var(--warn-bg)", padding: 6, borderRadius: 6, fontSize: "var(--font-small)" }}>
@@ -59,9 +60,9 @@ export function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: 
             <dt>Splátka mesačne</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(l.monthlyPaymentCents)}</dd>
             <dt>Úrok za mesiac</dt><dd style={{ margin: 0, textAlign: "right" }}>{eur(liabilityInterestCents(l))}</dd>
           </dl>
-          {l.endDate && <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>Koniec: {dateSk(l.endDate ?? "")}</p>}
+          {l.endDate && <p style={{ ...hintStyle, margin: "4px 0" }}>Koniec: {dateSk(l.endDate ?? "")}</p>}
           {!liabilityIsActive(l, today) && (
-            <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+            <p style={{ ...hintStyle, margin: "4px 0" }}>
               {l.balanceCents <= 0 ? "Splatené. Nerátajú sa do mesačných výdavkov." : `Skončené k ${dateSk(l.endDate ?? "")}. Nerátajú sa do mesačných výdavkov.`}
             </p>
           )}
@@ -169,7 +170,7 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       <Field label="Úroková sadzba (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak úrok nie je" />
       <Field label="Splátka mesačne (€)" value={payment} onChange={setPayment} hint="0, ak splátku nemáš" />
       {belowInterest && (
-        <p role="note" style={{ background: "var(--warn-bg)", padding: 8, borderRadius: 6, fontSize: "var(--font-small)" }}>
+        <p role="note" style={{ ...calloutStyle("warn"), fontSize: "var(--font-small)" }}>
           Splátka nepokryje mesačný úrok ({eur(Math.round((cents(asNum(balance)) * asNum(rate)) / 100 / 12))}). Zostatok by sa nezmenšil; skontroluj splátku.
         </p>
       )}

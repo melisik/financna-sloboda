@@ -1,3 +1,4 @@
+import { hintStyle } from "../../ui/kit/controls";
 /** Návod na používanie a odkaz na testovaciu zálohu (docs/23: časť prehľadu, D-190). Statický text bez údajov. */
 export function NavodBlock() {
   return (
@@ -14,7 +15,7 @@ export function NavodBlock() {
       <p>
         <strong>Ako testovať:</strong> stiahnite testovaciu zálohu nižšie a importujte ju v sekcii <a href="#zaloha">Záloha</a>. Skúste pridať výdavok s kategóriou, zadať vyhodnotenie, exportovať zálohu a znova ju importovať. Pripomienky pošlite autorovi spôsobom, ktorý ste dostali.
       </p>
-      <p style={{ fontSize: "var(--font-small)", color: "var(--muted)" }}>
+      <p style={hintStyle}>
         Výpočty sú odhady podľa zadaných predpokladov, nie finančné poradenstvo.
         Testovacie dáta (syntetické): <a href="./testovacia-zaloha.json" download>stiahnuť testovaciu zálohu</a>, potom ju importuj v sekcii <a href="#zaloha">Záloha</a>.
       </p>

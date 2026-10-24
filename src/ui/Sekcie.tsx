@@ -27,6 +27,7 @@ import { RocnyPrehladSection } from "../features/rocny-prehlad/RocnyPrehlad";
 import { SettingsSection } from "../features/nastavenia/Nastavenia";
 import { PinSection } from "../features/zamok/Lock";
 import { BackupSection } from "../features/zaloha/BackupSection";
+import { calloutStyle } from "./kit/controls";
 
 /** Obsah jednej sekcie: ktorá sekcia sa zobrazí a s akými údajmi a callbackmi. Sekcia sa vytvára nanovo pri každej zmene (key v App). */
 type SectionViewProps = {
@@ -99,7 +100,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "rozpocet":
       return (
         <Section id="rozpocet" title="Rozpočet">
-          {budgetFlash && <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, color: "var(--ok)" }}>{budgetFlash}</p>}
+          {budgetFlash && <p style={{ ...calloutStyle("ok"), color: "var(--ok)" }}>{budgetFlash}</p>}
           <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} recurring={data.recurringExpenses} properties={data.properties} today={todayIso()} onSaved={() => { reload(); setBudgetFlash("Rozpočet je uložený."); }} />
         </Section>
       );
@@ -150,7 +151,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "nastavenia":
       return (
         <Section id="nastavenia" title="Nastavenia">
-          {settingsFlash && <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, color: "var(--ok)" }}>{settingsFlash} <NextStep to="prehlad">Prehľad</NextStep></p>}
+          {settingsFlash && <p style={{ ...calloutStyle("ok"), color: "var(--ok)" }}>{settingsFlash} <NextStep to="prehlad">Prehľad</NextStep></p>}
           <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={() => { reload(); setSettingsFlash("Nastavenia sú uložené."); }} />
           <ModulesBlock />
           <section style={{ marginTop: 16 }}>

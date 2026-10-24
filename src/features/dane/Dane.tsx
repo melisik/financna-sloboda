@@ -13,6 +13,7 @@ import { Field, btn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
 import { fillTaxFormPdf } from "./taxFormPdf";
 import { hintStyle } from "../../ui/kit/controls";
+import { calloutStyle, card } from "../../ui/kit/controls";
 
 /** Dane (FR-24, FR-25, D-104, D-159, D-161): daňový rámec investícií, evidencia psov a tlačivo 17-dp-md. Feature „dane“ (docs/23). */
 
@@ -40,10 +41,10 @@ export function DogSection({ repo, dogs, today, onSaved }: { repo: Repository; d
       <p>Psov evidovaných dnes: <strong>{activeDogCount(dogs, today)}</strong></p>
       {dogs.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny pes.</p>}
       {dogs.map((d) => (
-        <div key={d.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+        <div key={d.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{d.name || "Pes bez mena"}</strong>{d.evidenceNumber ? ` · evidenčné číslo ${d.evidenceNumber}` : ""}</p>
           <p style={{ margin: "4px 0", fontSize: "var(--font-small)" }}>{d.address}, {d.municipality} · {DOG_PLACE_LABEL[d.keepingPlace]} · účel {DOG_PURPOSE_LABEL[d.purpose]}</p>
-          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+          <p style={{ ...hintStyle, margin: "4px 0" }}>
             Od {dateSk(d.startDate)}{d.endDate ? `, do ${dateSk(d.endDate)}` : ", trvá"}
             {d.breed ? ` · plemeno ${d.breed}` : ""}{d.age ? ` · vek ${d.age}` : ""}{d.holderWithDisability ? " · držiteľ preukazu ŤZP" : ""}
           </p>
@@ -131,7 +132,7 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
       )}
       <button onClick={run} disabled={busy || empty} style={btnPrimary}>{busy ? "Vypĺňam…" : "Vyplniť tlačivo (PDF)"}</button>
       {saved && (
-        <p style={{ background: "var(--ok-bg)", padding: 8, borderRadius: 6, marginTop: 8 }}>
+        <p style={{ ...calloutStyle("ok"), marginTop: 8 }}>
           {saved.how === "cancelled"
             ? "Súbor sa neuložil. Ak ho chceš, klepni na Vyplniť tlačivo znova."
             : saved.how === "shared"
@@ -244,13 +245,13 @@ export function TaxSection({ positions }: { positions: Position[] }) {
     <section>
       <p style={{ color: "var(--muted)" }}>Hlavný výpočet ostáva nominálny. Daňový scenár je samostatný a zatiaľ nemá čísla po dani: pravidlá ešte nie sú overené.</p>
       {lines.map((l) => (
-        <div key={l.regime} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+        <div key={l.regime} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{l.label}</strong></p>
           <p style={{ margin: "4px 0" }}>Hodnota investícií v režime: {eur(l.valueCents)}</p>
-          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+          <p style={{ ...hintStyle, margin: "4px 0" }}>
             {l.regime === "nezadane" ? "Zadaj daňový režim v položkách investícií." : "Po dani: čaká na overenie pravidiel."}
           </p>
-          <p style={{ margin: "4px 0", fontSize: "var(--font-small)", color: "var(--muted)" }}>
+          <p style={{ ...hintStyle, margin: "4px 0" }}>
             Zdroj: {TAX_CATALOG[l.regime].source ?? "nie je zadaný"} · platnosť od: {TAX_CATALOG[l.regime].validFrom ?? "nie je zadaná"} · stav: {TAX_CATALOG[l.regime].status}
           </p>
         </div>

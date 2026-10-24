@@ -10,6 +10,7 @@ import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
 import { NextStep } from "../../ui/kit/NextStep";
 import { calloutStyle, hintStyle } from "../../ui/kit/controls";
+import { card } from "../../ui/kit/controls";
 
 /** Investície (D-101, D-105): ručné položky a ich ocenenie; súčet sa použije vo Vyhodnotení. Feature „investicie“ (docs/23). */
 
@@ -88,7 +89,7 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
         <p style={{ color: "var(--muted)" }}>Mesačné vklady do tretieho piliera a iných položiek: {eur(monthlyContributionsTotalCents(positions))} (len zobrazenie)</p>
       )}
       <h4 style={{ fontSize: "var(--font-text)", marginBottom: 4 }}>Ciele</h4>
-      <p style={{ color: "var(--muted)", fontSize: "var(--font-small)", marginTop: 0 }}>
+      <p style={{ ...hintStyle, marginTop: 0 }}>
         Položky môžeš zoskupiť do cieľa. Ciele sú len zobrazenie a nemenia výpočet cieľa nezávislosti.
       </p>
       {goals.map((g) =>
@@ -138,7 +139,7 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
             )}
             {g.goal && g.positions.length === 0 && <p style={{ color: "var(--muted)" }}>Zatiaľ žiadna položka v tomto cieli.</p>}
             {g.positions.map((p) => (
-        <div key={p.id} style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 8, background: "var(--surface)" }}>
+        <div key={p.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}</p>
           {(BALANCE_INVESTMENT_KINDS as readonly string[]).includes(p.kind) ? (
             <p style={{ margin: "4px 0" }}>
