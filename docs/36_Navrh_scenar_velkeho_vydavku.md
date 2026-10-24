@@ -1,6 +1,6 @@
 # 36 – Návrh: scenár veľkého výdavku (N-12)
 
-> Stav: **návrh, čaká na schválenie zakladateľa.** Zdroj: `docs/08` (N-12: „Scenár veľkého výdavku (napr. auto): ukáže dopad na cieľ bez zápisu do transakcií“). Výpočet nemení: používa rovnaké funkcie ako predbežný dopad v Transakciách (FR-04, D-121).
+> Stav: **schválené a implementované** (D-274, commit `9daec64`). Rozhodnutia zakladateľa: zdroj predvolene z hotovosti, dátum cieľa aj kalendárne, opakované menšie výdavky samostatne (N-12b), miesto v skupine Peniaze. Zdroj: `docs/08` (N-12: „Scenár veľkého výdavku (napr. auto): ukáže dopad na cieľ bez zápisu do transakcií“). Výpočet nemení: používa rovnaké funkcie ako predbežný dopad v Transakciách (FR-04, D-121).
 
 ## 1. Účel
 
@@ -45,7 +45,7 @@ Zakladateľ chce vedieť, čo by veľký výdavok (napríklad auto) znamenal pre
 
 ## 6. Implementácia (po schválení)
 
-1. Test najprv: čistá funkcia `bigExpenseScenario(ctx, amountCents, source)` v `src/domain/scenario.ts` vracia dopad a dátumy bez a s výdavkom. Testy: zdroj z hotovosti znižuje hotovosť, z investícií znižuje investície, z príjmu nemení nič, neplatná suma sa odmietne, nedosiahnuteľný cieľ dá správny stav.
+1. Test najprv: čistá funkcia `bigExpenseScenario(ctx, amountCents, source)` v `src/domain/expenseScenario.ts` (súbor `src/domain/scenario.ts` už existuje a patrí k Prehľadu) vracia dopad a dátumy bez a s výdavkom. Testy: zdroj z hotovosti znižuje hotovosť, z investícií znižuje investície, z príjmu nemení nič, neplatná suma sa odmietne, nedosiahnuteľný cieľ dá správny stav.
 2. Doména: funkcia `bigExpenseScenario` používa `payFromCash`, `payFromInvestments` a `impactWithRentals` (rovnako ako Transakcie).
 3. UI: obrazovka `src/features/scenar-vydavku/`, položka v navigácii, zoznam obrazoviek v `docs/13`.
 4. E2E: nastavenia a vyhodnotenie, otvorenie scenára, zadanie sumy, overenie textu dopadu a dátumu, a overenie, že počet transakcií sa nezmenil.

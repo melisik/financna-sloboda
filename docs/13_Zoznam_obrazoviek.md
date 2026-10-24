@@ -19,6 +19,7 @@
 | Dane | na vetve (sekcia existuje) | daňové pravidlá len po overení (D-104) |
 | Ročný prehľad | na vetve (docs/13, oddiel 4) | história kapitálu a dátumu cieľa |
 | Scenáre | navrhnuté | porovnanie nastavení, len na vyžiadanie |
+| Veľký výdavok (scenár) | implementované (N-12, D-274) | dopad veľkého výdavku bez zápisu, skupina Peniaze |
 | Pripomienky | schválené; na vetve: zmeškané vyhodnotenie, blížiaci sa koniec mesiaca (okno 3 dni, potvrdené D-227), záloha (7 dní), kontrola nastavení; testy `tests/reminders.test.ts` | koniec mesiaca a záloha (D-107) |
 | Nastavenia | na main | |
 | Záloha | na main | šifrovanie odložené (D-108) |
