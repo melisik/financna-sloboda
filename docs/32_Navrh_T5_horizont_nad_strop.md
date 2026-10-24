@@ -1,6 +1,6 @@
 # 32 – Návrh opravy T5: horizont nad strop 14 400 mesiacov
 
-> Stav: návrh na schválenie. Kód sa nemení, kým zakladateľ nepotvrdí variant. Vetva `claude/phase2-property-card`. Nález T5 v `docs/30_Testy_2026-10-23.md`, oddiel 3.
+> Stav: schválené (variant B, D-254), opravené v commite `60d1739`. Vetva `claude/phase2-property-card`. Nález T5 v `docs/30_Testy_2026-10-23.md`, oddiel 3.
 
 ## 1. Problém
 
