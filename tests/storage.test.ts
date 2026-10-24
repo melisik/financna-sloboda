@@ -55,6 +55,9 @@ describe("ciele investícií v IndexedDB (D-105)", () => {
     const goal = { id: "g1", name: "Dovolenka", targetCents: 500_000, createdAt: "a", updatedAt: "a" };
     const position = { id: "p1", name: "Fond", kind: "fond" as const, quantity: 1, unitPrice: 100, currency: "EUR", fxToEur: 1, valueDate: TODAY, goalId: "g1", createdAt: "a", updatedAt: "a" };
     await repo.saveGoal(goal);
+    await repo.saveGoal({ ...goal, name: "Iný názov" });
+    expect((await repo.getData()).goals).toEqual([{ ...goal, name: "Iný názov" }]);
+    await repo.saveGoal(goal);
     await repo.savePosition(position);
     const data = await repo.getData();
     expect(data.goals).toEqual([goal]);

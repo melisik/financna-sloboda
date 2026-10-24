@@ -33,9 +33,15 @@ test.describe("ciele v sekcii Investície (D-105)", () => {
     await goTo(page, "investicie");
     await expect(page.getByText(/Dovolenka syntetická: 500,00 €.*50 % z/)).toBeVisible();
 
+    await page.getByRole("button", { name: "Upraviť cieľ", exact: true }).click();
+    await page.getByLabel("Názov cieľa").fill("Dovolenka upravená");
+    await page.getByLabel("Cieľová suma (€)").fill("2000");
+    await page.getByRole("button", { name: "Uložiť cieľ" }).click();
+    await expect(page.getByText(/Dovolenka upravená: 500,00 €.*25 % z/)).toBeVisible();
+
     await page.getByRole("button", { name: "Zmazať cieľ", exact: true }).click();
     await page.getByRole("button", { name: "Potvrdiť zmazanie" }).click();
-    await expect(page.getByText(/Dovolenka syntetická: 500,00 €/)).toHaveCount(0);
+    await expect(page.getByText(/Dovolenka upravená: 500,00 €/)).toHaveCount(0);
     await expect(page.getByText("ETF cieľový")).toBeVisible();
     // Bez cieľov sa skupiny nezobrazujú; súčet položiek zostane 700 €.
     await expect(page.getByText(/Spolu: 700,00 €/)).toBeVisible();

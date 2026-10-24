@@ -30,7 +30,7 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
   const [editing, setEditing] = useState<Position | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [addingGoal, setAddingGoal] = useState(false);
+  const [goalForm, setGoalForm] = useState<InvestmentGoal | "new" | null>(null);
   const [goalConfirm, setGoalConfirm] = useState<string | null>(null);
 
   // Zmazanie cieľa nezmaže položky; odpojí ich od cieľa. updatedAt sa nemení, lebo nejde o zmenu ocenenia (D-101).
@@ -90,26 +90,40 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
       <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 0 }}>
         Položky môžeš zoskupiť do cieľa. Ciele sú len zobrazenie a nemenia výpočet cieľa nezávislosti.
       </p>
-      {goals.map((g) => (
-        <div key={g.id} style={{ marginBottom: 6 }}>
-          <p style={{ margin: "4px 0" }}>
-            <strong>{g.name}</strong> · cieľová suma {eur(g.targetCents)}
-          </p>
-          {goalConfirm === g.id ? (
-            <div>
-              <p>Naozaj zmazať cieľ „{g.name}“? Položky zostanú, len sa odpoja od cieľa.</p>
-              <button onClick={() => removeGoal(g.id)} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
-              <button onClick={() => setGoalConfirm(null)} style={btn}>Zrušiť</button>
-            </div>
-          ) : (
-            <button onClick={() => setGoalConfirm(g.id)} style={btnDanger}>Zmazať cieľ</button>
-          )}
-        </div>
-      ))}
-      {addingGoal ? (
-        <GoalForm repo={repo} onDone={() => { setAddingGoal(false); onSaved(); }} onCancel={() => setAddingGoal(false)} />
-      ) : (
-        <button onClick={() => setAddingGoal(true)} style={btn}>Pridať cieľ</button>
+      {goals.map((g) =>
+        goalForm !== null && goalForm !== "new" && goalForm.id === g.id ? (
+          <GoalForm
+            key={g.id}
+            repo={repo}
+            initial={g}
+            onDone={() => { setGoalForm(null); onSaved(); }}
+            onCancel={() => setGoalForm(null)}
+          />
+        ) : (
+          <div key={g.id} style={{ marginBottom: 6 }}>
+            <p style={{ margin: "4px 0" }}>
+              <strong>{g.name}</strong> · cieľová suma {eur(g.targetCents)}
+            </p>
+            {goalConfirm === g.id ? (
+              <div>
+                <p>Naozaj zmazať cieľ „{g.name}“? Položky zostanú, len sa odpoja od cieľa.</p>
+                <button onClick={() => removeGoal(g.id)} style={btnDanger}>Potvrdiť zmazanie</button>{" "}
+                <button onClick={() => setGoalConfirm(null)} style={btn}>Zrušiť</button>
+              </div>
+            ) : (
+              <div>
+                <button onClick={() => setGoalForm(g)} style={btn}>Upraviť cieľ</button>{" "}
+                <button onClick={() => setGoalConfirm(g.id)} style={btnDanger}>Zmazať cieľ</button>
+              </div>
+            )}
+          </div>
+        ),
+      )}
+      {goalForm === "new" && (
+        <GoalForm repo={repo} onDone={() => { setGoalForm(null); onSaved(); }} onCancel={() => setGoalForm(null)} />
+      )}
+      {goalForm === null && (
+        <button onClick={() => setGoalForm("new")} style={btn}>Pridať cieľ</button>
       )}
       {groupByGoal(positions, goals).map((g) => {
         const prog = g.goal ? goalProgress(g.totalCents, g.goal.targetCents) : null;
@@ -274,10 +288,10 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
   );
 }
 
-/** Nový cieľ investícií (D-105): názov a cieľová suma. Cieľ nemení výpočet cieľa nezávislosti. */
-function GoalForm({ repo, onDone, onCancel }: { repo: Repository; onDone: () => void; onCancel: () => void }) {
-  const [name, setName] = useState("");
-  const [target, setTarget] = useState<NumIn>("");
+/** Cieľ investícií (D-105): nový alebo úprava názvu a cieľovej sumy. Cieľ nemení výpočet cieľa nezávislosti. */
+function GoalForm({ repo, initial = null, onDone, onCancel }: { repo: Repository; initial?: InvestmentGoal | null; onDone: () => void; onCancel: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [target, setTarget] = useState<NumIn>(initial ? initial.targetCents / 100 : "");
   const [err, setErr] = useState<string | null>(null);
 
   const save = async () => {
@@ -287,8 +301,11 @@ function GoalForm({ repo, onDone, onCancel }: { repo: Repository; onDone: () => 
     const sum = asNum(target);
     if (Number.isNaN(sum) || !(sum > 0)) return setErr("Vyplň cieľovú sumu väčšiu ako 0.");
     const now = new Date().toISOString();
+    const goal: InvestmentGoal = initial
+      ? { ...initial, name: trimmed, targetCents: cents(sum), updatedAt: now }
+      : { id: uid(), name: trimmed, targetCents: cents(sum), createdAt: now, updatedAt: now };
     try {
-      await repo.saveGoal({ id: uid(), name: trimmed, targetCents: cents(sum), createdAt: now, updatedAt: now });
+      await repo.saveGoal(goal);
       onDone();
     } catch {
       setErr(STORAGE_ERROR);
@@ -297,7 +314,7 @@ function GoalForm({ repo, onDone, onCancel }: { repo: Repository; onDone: () => 
 
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)", marginBottom: 8 }}>
-      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>Nový cieľ</h4>
+      <h4 style={{ fontSize: "1rem", marginTop: 0 }}>{initial ? "Upraviť cieľ" : "Nový cieľ"}</h4>
       <Field label="Názov cieľa" value={name} type="text" onChange={setName} />
       <Field label="Cieľová suma (€)" value={target} onChange={setTarget} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
