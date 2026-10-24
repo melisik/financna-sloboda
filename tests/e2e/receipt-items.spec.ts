@@ -28,6 +28,8 @@ test.describe("položky dokladu z portálu", () => {
 
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Suma (€)").fill("15");
+    // Doklad je zbalený, kým ho používateľ neotvorí (D-286).
+    await page.locator("section#nova-transakcia summary", { hasText: "Doklad" }).click();
     await page.getByLabel("Položky z dokladu").fill(PASTE);
     await expect(page.getByText("Súčet položiek: 15,00 €")).toBeVisible();
     await expect(page.getByText("Nerozpoznané")).toHaveCount(0);

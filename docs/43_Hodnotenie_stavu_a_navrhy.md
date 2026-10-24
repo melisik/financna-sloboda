@@ -1,6 +1,6 @@
 # 43 – Hodnotenie stavu a návrhy (2026-10-24)
 
-> Stav: **čiastočne schválené a implementované** (2026-10-24). Zakladateľ schválil A1, C1 a C2 a zbalenie Modulov na telefóne. A1 a zbalenie Modulov sú D-283, C1 je D-284. C2 už bolo vyriešené skôr (D-132), pozri opravu v oddiele 3. Výsledok je v oddiele 6. Ostatné body čakajú na rozhodnutie.
+> Stav: **čiastočne schválené a implementované** (2026-10-24). Zakladateľ schválil A1, C1 a C2 a zbalenie Modulov na telefóne. A1 a zbalenie Modulov sú D-283, C1 je D-284, A3 je D-286 (oddiel 8). C2 už bolo vyriešené skôr (D-132), pozri opravu v oddiele 3. Výsledok je v oddiele 6. Ostatné body čakajú na rozhodnutie.
 >
 > Hodnotenie písal ten istý autor ako väčšinu kódu a dokumentov, preto **nie je nezávislou revíziou**. Každé tvrdenie je podložené meraním alebo odkazom; odporúčam ho dať na externú revíziu (samostatná konverzácia, CLAUDE.md).
 >
@@ -57,7 +57,7 @@ Náročnosť: S = do pol dňa, M = 1 až 2 dni, L = viac. Každý návrh by pre�
 - Riziko: dátum cieľa pre staršie mesiace treba prepočítať s dnešnými nastaveniami, inak sa čísla nedajú porovnať. Treba to v grafe napísať.
 
 **A3 Rýchlejšie zadanie výdavku** (M)
-- **Suma** ako prvé pole. Doklad (QR kód, súbor, položky) zbalený pod „Doklad (voliteľné)“. Tlačidlo Uložiť sa tak dostane z 1 144 px nad spodný okraj obrazovky.
+- **Suma** ako prvé pole. Doklad (QR kód, súbor, položky) zbalený pod „Doklad (voliteľné)“. Tlačidlo Uložiť sa tak dostane z 1 144 px nad spodný okraj obrazovky. **Oprava (2026-10-24):** toto tvrdenie bol neoverený odhad. Meranie ukázalo, že tlačidlo sa posunie na 975 px, stále pod okraj obrazovky (oddiel 8).
 - V histórii len „Upraviť“ pri zázname; Prílohy a Zmazať (s potvrdením, D-199) budú v úprave. Pri 12 záznamoch je to 12 tlačidiel namiesto 34.
 - Riziko: mení zaužívaný postup a veľa E2E testov (zmazanie, prílohy). Zmazanie ostane s potvrdením.
 
@@ -178,4 +178,44 @@ Pokrok z A1 počítal s tým istým kapitálom ako dátum, aby si čísla neodpo
   - `tests/context.test.ts`: výdavok po vyhodnotení nezmení dátum ani rozsah;
   - `tests/e2e/home-goal.spec.ts`: dátum a pokrok sa po výdavku nezmenia, predbežný dopad áno;
   - `same-day-evaluation` a `forgotten-expense` kontrolujú pracovný kapitál v novom riadku.
+
+## 8. Výsledok implementácie A3 (2026-10-24, D-286)
+
+**Čo sa zmenilo** (`src/features/transakcie/Transakcie.tsx`)
+- Poradie formulára: Suma, Typ, Zdroj, Kategória, Dátum, Poznámka, potom zbalený „Doklad (voliteľné)“, Predbežný dopad a Uložiť.
+- Doklad (QR kamerou, fotka QR, priradený doklad, overenie na portáli, položky z dokladu) je zbalený. Sám sa rozbalí, keď v ňom niečo je: priradený doklad, uložené položky, správa o QR kóde, zapnutá kamera alebo vložený text. Chyby položiek tak nie sú skryté. Pri priradenom doklade má súhrn text „· priradený“.
+- V histórii je pri zázname len **Upraviť**. Úprava je vo formulári hore a stránka sa na ňu posunie. V úprave sú **Prílohy** (pri výdavku) a **Zmazať transakciu** s potvrdením (D-199). Pruh „Transakcia bola zmazaná. Vrátiť späť“ je hneď pod formulárom, kde sa mazalo (D-160).
+
+**Merané** (390 × 844 px, testovacia záloha, pruh zbalený):
+
+| | Predtým | Teraz |
+| --- | --- | --- |
+| Spodok tlačidla Uložiť pri 390 px | 1 188 px | 975 px |
+| Spodok tlačidla Uložiť pri 320 px | 1 238 px | 1 025 px |
+| Tlačidlá v histórii (12 záznamov) | 34 (z toho 12 „Zmazať“) | 12 („Upraviť“) |
+| Dĺžka stránky pri 390 px | 3 079 px | 2 869 px |
+
+![Formulár po zmene, 390 px](obrazky/43/a3-formular-390.png)
+
+**Čo sa nesplnilo:** tlačidlo Uložiť je stále pod spodným okrajom obrazovky (844 px). V návrhu A3 som tvrdil opak bez merania. Možnosti na zvyšný rozdiel, vyskúšané úpravou stránky v prehliadači:
+
+| Možnosť | 390 px | 320 px | Poznámka |
+| --- | --- | --- | --- |
+| **P1 Prilepený pruh dole:** Predbežný dopad a Uložiť sú na telefóne stále na spodku obrazovky | 836 px | 836 px | Nič sa neskrýva; tlačidlo je vždy na tom istom mieste. Pruh zakrýva spodných asi 100 px obsahu, kým sa nescrolluje. Na iPhone treba overiť správanie s otvorenou klávesnicou. |
+| **P2 Dva stĺpce** (Typ a Zdroj, Kategória a Dátum vedľa seba) **a Poznámka v zbalenom bloku** | odhad asi 815 px | odhad asi 995 px | Odhad zložený z dvoch samostatných meraní (stĺpce −109 px, poznámka −68 px pri 390 px). Pri 320 px sa stĺpce zložia pod seba, takže pomôže len poznámka. Poznámku používa väčšina záznamov v testovacích dátach, takže by pribudlo ťuknutie. |
+
+Odporúčam **P1**: funguje pri každej šírke a nič neskrýva.
+
+![Prototyp P1, 390 px](obrazky/43/a3-prototyp-prilepene-ulozit-390.png)
+
+**Testy**
+- Nový `tests/e2e/transactions-quick.spec.ts`:
+  - suma je prvé pole;
+  - doklad je zbalený;
+  - v histórii je pri zázname len Upraviť;
+  - úprava sa ukáže hore, v úprave sú Prílohy a Zmazať a zmazanie sa dá vrátiť.
+- Upravené na nový postup: `home`, `attachments`, `receipt-items`, `receipt-camera`, `transactions-filter`.
+- Overenie: `tsc` bez chýb, `vitest` 511 testov (90 súborov), Playwright 428 testov (214 × 2).
+
+**Nález mimo A3:** D-014 a `docs/03` určujú predvolený zdroj výdavku „z príjmu“. Formulár má od revízie 2026-10-15 predvolene „z hotovosti“ (`useState<Source>("z_hotovosti")`). Rozhodnutie, ktoré by D-014 menilo, som nenašiel. Nemenil som to; rozhodne zakladateľ.
 

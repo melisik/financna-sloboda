@@ -36,14 +36,16 @@ test.describe("história transakcií", () => {
     await expect(rows.first()).toContainText("45");
     await page.getByLabel("Filter kategórie").selectOption("all");
 
-    const first = rows.first();
-    await first.getByRole("button", { name: "Zmazať", exact: true }).click();
-    await expect(first).toContainText("Naozaj zmazať?");
+    // Zmazanie je v úprave záznamu a len s potvrdením (D-199, D-286).
+    const form = page.locator("section#nova-transakcia");
+    await rows.first().getByRole("button", { name: "Upraviť" }).click();
+    await form.getByRole("button", { name: "Zmazať transakciu" }).click();
+    await expect(form).toContainText("Naozaj zmazať?");
     await expect(rows).toHaveCount(2);
-    await first.getByRole("button", { name: "Zrušiť" }).click();
+    await form.getByRole("button", { name: "Zrušiť", exact: true }).click();
     await expect(rows).toHaveCount(2);
-    await first.getByRole("button", { name: "Zmazať", exact: true }).click();
-    await first.getByRole("button", { name: "Zmazať", exact: true }).click();
+    await form.getByRole("button", { name: "Zmazať transakciu" }).click();
+    await form.getByRole("button", { name: "Zmazať", exact: true }).click();
     await expect(rows).toHaveCount(1);
   });
 });

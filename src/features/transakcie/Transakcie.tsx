@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Repository } from "../../storage/repository";
 import type { AppData, Attachment, BudgetCategory, Transaction, TransactionType, Source } from "../../storage/types";
 import { BUDGET_CATEGORIES, SOURCES } from "../../storage/types";
@@ -21,7 +21,7 @@ import { ReceiptCamera } from "../../ui/ReceiptCamera";
 import { readQrFromImage } from "../../ui/receiptScan";
 import { calloutStyle, hintStyle } from "../../ui/kit/controls";
 
-/** Transakcie (FR-08 až FR-12, D-120, D-121, D-160): zápis, história, filter a prílohy výdavkov. Feature „transakcie“ (docs/23). */
+/** Transakcie (FR-08 až FR-12, D-120, D-121, D-160, D-286): zápis, história, filter; prílohy a zmazanie v úprave. Feature „transakcie“ (docs/23). */
 
 const TYPE_LABEL: Record<TransactionType, string> = {
   sporenie: "sporenie (do hotovosti)",
@@ -49,7 +49,8 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const [editingId, setEditingId] = useState<string | null>(null);
   const [undo, setUndo] = useState<Transaction | null>(null);
   const [undoAtt, setUndoAtt] = useState<Attachment[]>([]);
-  const [openAttId, setOpenAttId] = useState<string | null>(null);
+  // Doklad (QR kód, položky) je zbalený, kým ho používateľ neotvorí alebo v ňom niečo nie je (D-286).
+  const [docOpen, setDocOpen] = useState(false);
   const [fType, setFType] = useState<"all" | TransactionType>("all");
   const [fFrom, setFFrom] = useState("");
   const [fTo, setFTo] = useState("");
@@ -133,6 +134,8 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setAmount("");
     setDate(todayIso());
     setErr(null);
+    setDocOpen(false);
+    setConfirmDeleteId(null);
   };
 
   const startEdit = (t: Transaction) => {
@@ -147,6 +150,10 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setQrMsg(null);
     setItemsText("");
     setErr(null);
+    setDocOpen(!!t.receiptId || (t.receiptItems?.length ?? 0) > 0);
+    setConfirmDeleteId(null);
+    // Úprava je vo formulári hore; z histórie dole by ju na telefóne nebolo vidieť (D-286).
+    window.scrollTo(0, 0);
   };
 
   // Fotka QR kódu dokladu: číslo dokladu sa len navrhne, potvrdí ho používateľ (D-126).
@@ -255,10 +262,16 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const categoryTotals = expenseTotalsByCategory(list);
   const inEdit = editingId !== null;
 
+  const editingTx = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
+  const docShown = docOpen || cameraOn || qrMsg !== null || receiptId !== "" || itemsText.trim() !== "";
+  const docAssigned = receiptId !== "" || storedItems.length > 0;
+
+  // Poradie (D-286, docs/43 A3): suma, typ, zdroj, kategória, dátum, poznámka; doklad zbalený; potom dopad a uloženie.
   return (
     <section>
       {!ctx.latest && <p style={calloutStyle("warn")}>Najprv urob vyhodnotenie, potom môžeš zapisovať transakcie. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
       {inEdit && <h2 style={{ fontSize: "var(--font-heading)" }}>Úprava transakcie</h2>}
+      <Field label="Suma (€)" value={amount} onChange={setAmount} />
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "var(--font-small)" }}>Typ</span>
         <select aria-label="Typ transakcie" value={type} onChange={(e) => setType(e.target.value as TransactionType)} style={inp}>
@@ -287,72 +300,72 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         )}
         </>
       )}
-      <Field label="Suma (€)" value={amount} onChange={setAmount} />
       <Field label="Dátum" value={date} type="date" max={todayIso()} onChange={setDate} />
-      {type === "vydavok" && (
-        <div style={{ margin: "8px 0" }}>
-          {cameraOn ? (
-            <ReceiptCamera
-              onFound={(text) => { setCameraOn(false); useQrText(text); }}
-              onClose={() => setCameraOn(false)}
-            />
-          ) : (
-            canUseCamera() && <button type="button" onClick={() => setCameraOn(true)} style={btn}>Skenovať QR kód kamerou</button>
-          )}
-          <label style={{ display: "block", margin: "4px 0" }}>
-            <span style={{ display: "block", fontSize: "var(--font-small)" }}>Alebo nafoťte QR kód z dokladu</span>
-            <input type="file" accept="image/*" aria-label="Fotka QR kódu dokladu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void scanReceipt(f); }} />
-          </label>
-          {qrMsg && <p style={hintStyle}>{qrMsg}</p>}
-          {/* Číslo dokladu sa nezobrazuje a nedá sa zadať ručne; používa sa len na overenie (D-133). */}
-          {receiptId !== "" && (
-            <>
-              <p style={{ fontSize: "var(--font-small)" }}>
-                Doklad je priradený.{" "}
-                <button type="button" onClick={() => { setReceiptId(""); setQrMsg(null); setCopyMsg(null); }} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Odstrániť doklad</button>
-              </p>
-              <a
-                href={RECEIPT_CHECK_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => void copyReceipt()}
-                style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid var(--border-strong)", borderRadius: 4 }}
-              >
-                Overiť doklad na portáli
-              </a>
-              {copyMsg && <p style={hintStyle}>{copyMsg}</p>}
-            </>
-          )}
-        </div>
-      )}
-      {type === "vydavok" && (
-        <div style={{ margin: "8px 0" }}>
-          <label style={{ display: "block" }}>
-            <span style={{ display: "block", fontSize: "var(--font-small)" }}>Položky z dokladu (nepovinné; vložte text skopírovaný z portálu)</span>
-            <textarea aria-label="Položky z dokladu" value={itemsText} onChange={(e) => setItemsText(e.target.value)} rows={4} style={{ ...inp, fontFamily: "inherit" }} />
-          </label>
-          {parsedItems.items.length > 0 && (
-            <>
-              <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "var(--font-small)" }}>
-                {parsedItems.items.map((i) => (
-                  <li key={i.code}>{i.name}: {i.quantity} ks, DPH {i.vatPercent} %, {eur(i.amountCents)}</li>
-                ))}
-              </ul>
-              <p style={{ fontSize: "var(--font-small)" }}>Súčet položiek: <strong>{eur(itemsTotal)}</strong></p>
-            </>
-          )}
-          {parsedItems.unparsed.length > 0 && (
-            <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Opravte text alebo ho vymažte; bez toho sa výdavok neuloží.</p>
-          )}
-          {itemsMismatch && (
-            <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Súčet položiek sa nezhoduje so sumou výdavku {eur(cents(asNum(amount)))} (napr. zľava). Uložiť sa dá, ak je to v poriadku.</p>
-          )}
-          {itemsText.trim() === "" && storedItems.length > 0 && (
-            <p style={hintStyle}>Uložené položky: {storedItems.length}. Vložením nového textu sa nahradia.</p>
-          )}
-        </div>
-      )}
       <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} maxLength={200} />
+      {type === "vydavok" && (
+        <details open={docShown} onToggle={(e) => setDocOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
+          <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Doklad (voliteľné){docAssigned ? " · priradený" : ""} ▾</summary>
+          <div style={{ margin: "8px 0" }}>
+            {cameraOn ? (
+              <ReceiptCamera
+                onFound={(text) => { setCameraOn(false); useQrText(text); }}
+                onClose={() => setCameraOn(false)}
+              />
+            ) : (
+              canUseCamera() && <button type="button" onClick={() => setCameraOn(true)} style={btn}>Skenovať QR kód kamerou</button>
+            )}
+            <label style={{ display: "block", margin: "4px 0" }}>
+              <span style={{ display: "block", fontSize: "var(--font-small)" }}>Alebo nafoťte QR kód z dokladu</span>
+              <input type="file" accept="image/*" aria-label="Fotka QR kódu dokladu" onChange={(e) => { const f = e.target.files?.[0]; if (f) void scanReceipt(f); }} />
+            </label>
+            {qrMsg && <p style={hintStyle}>{qrMsg}</p>}
+            {/* Číslo dokladu sa nezobrazuje a nedá sa zadať ručne; používa sa len na overenie (D-133). */}
+            {receiptId !== "" && (
+              <>
+                <p style={{ fontSize: "var(--font-small)" }}>
+                  Doklad je priradený.{" "}
+                  <button type="button" onClick={() => { setReceiptId(""); setQrMsg(null); setCopyMsg(null); }} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Odstrániť doklad</button>
+                </p>
+                <a
+                  href={RECEIPT_CHECK_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => void copyReceipt()}
+                  style={{ ...btn, display: "inline-block", textDecoration: "none", color: "inherit", border: "1px solid var(--border-strong)", borderRadius: 4 }}
+                >
+                  Overiť doklad na portáli
+                </a>
+                {copyMsg && <p style={hintStyle}>{copyMsg}</p>}
+              </>
+            )}
+          </div>
+          <div style={{ margin: "8px 0" }}>
+            <label style={{ display: "block" }}>
+              <span style={{ display: "block", fontSize: "var(--font-small)" }}>Položky z dokladu (nepovinné; vložte text skopírovaný z portálu)</span>
+              <textarea aria-label="Položky z dokladu" value={itemsText} onChange={(e) => setItemsText(e.target.value)} rows={4} style={{ ...inp, fontFamily: "inherit" }} />
+            </label>
+            {parsedItems.items.length > 0 && (
+              <>
+                <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "var(--font-small)" }}>
+                  {parsedItems.items.map((i) => (
+                    <li key={i.code}>{i.name}: {i.quantity} ks, DPH {i.vatPercent} %, {eur(i.amountCents)}</li>
+                  ))}
+                </ul>
+                <p style={{ fontSize: "var(--font-small)" }}>Súčet položiek: <strong>{eur(itemsTotal)}</strong></p>
+              </>
+            )}
+            {parsedItems.unparsed.length > 0 && (
+              <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Opravte text alebo ho vymažte; bez toho sa výdavok neuloží.</p>
+            )}
+            {itemsMismatch && (
+              <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Súčet položiek sa nezhoduje so sumou výdavku {eur(cents(asNum(amount)))} (napr. zľava). Uložiť sa dá, ak je to v poriadku.</p>
+            )}
+            {itemsText.trim() === "" && storedItems.length > 0 && (
+              <p style={hintStyle}>Uložené položky: {storedItems.length}. Vložením nového textu sa nahradia.</p>
+            )}
+          </div>
+        </details>
+      )}
       {preview && (
         <p>
           {preview.blocked
@@ -374,6 +387,31 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>{inEdit ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
       {inEdit && <button onClick={resetForm} style={{ ...btn, marginLeft: 8 }}>Zrušiť úpravu</button>}
+      {undo && (
+        <p style={{ background: "var(--banner)", padding: 8, borderRadius: 6 }}>
+          Transakcia bola zmazaná. <button onClick={restore} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Vrátiť späť</button>
+        </p>
+      )}
+      {/* Prílohy a zmazanie sú v úprave, nie pri každom zázname histórie (D-286). Zmazanie len s potvrdením (D-199). */}
+      {editingTx && (
+        <div style={{ marginTop: 16, borderTop: "1px solid var(--border-soft)", paddingTop: 8 }}>
+          {editingTx.type === "vydavok" && (
+            <>
+              <h3 style={{ fontSize: "var(--font-text)" }}>Prílohy</h3>
+              {renderAttachments(editingTx.id)}
+            </>
+          )}
+          {confirmDeleteId === editingTx.id ? (
+            <p>
+              Naozaj zmazať?{" "}
+              <button onClick={() => { setConfirmDeleteId(null); void remove(editingTx.id); }} style={{ ...btnDanger, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>{" "}
+              <button onClick={() => setConfirmDeleteId(null)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Zrušiť</button>
+            </p>
+          ) : (
+            <button onClick={() => setConfirmDeleteId(editingTx.id)} style={btnDanger}>Zmazať transakciu</button>
+          )}
+        </div>
+      )}
 
       <h3 style={{ fontSize: "var(--font-text)", marginTop: 24 }}>História</h3>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -399,16 +437,10 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           Výdavky podľa kategórie: {Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]).map(([c, v]) => `${c} ${eur(v)}`).join(" · ")}
         </p>
       )}
-      {undo && (
-        <p style={{ background: "var(--banner)", padding: 8, borderRadius: 6 }}>
-          Transakcia bola zmazaná. <button onClick={restore} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Vrátiť späť</button>
-        </p>
-      )}
       <ul style={{ paddingLeft: 0, listStyle: "none" }}>
         {list.length === 0 && <li style={{ color: "var(--muted)" }}>Zatiaľ žiadne.</li>}
         {list.map((t) => (
-          <Fragment key={t.id}>
-          <li style={{ borderBottom: "1px solid var(--border-soft)", padding: "6px 0", display: "flex", flexDirection: "column", gap: 6 }}>
+          <li key={t.id} style={{ borderBottom: "1px solid var(--border-soft)", padding: "6px 0", display: "flex", flexDirection: "column", gap: 6 }}>
             <span>
               {dateSk(t.date)} · {TYPE_LABEL[t.type]} · {eur(t.amountCents)}
               {t.source ? ` (${SOURCE_LABEL[t.source]})` : ""}
@@ -417,26 +449,10 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
               {t.receiptId ? " · doklad" : ""}
               {t.receiptItems && t.receiptItems.length > 0 ? ` · položiek: ${t.receiptItems.length}` : ""}
             </span>
-            <span style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-start" }}>
-              {t.type === "vydavok" && <button onClick={() => setOpenAttId(openAttId === t.id ? null : t.id)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Prílohy</button>}
+            <span>
               <button onClick={() => startEdit(t)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Upraviť</button>
-              {confirmDeleteId === t.id ? (
-                <>
-                  <span>Naozaj zmazať?</span>
-                  <button onClick={() => { setConfirmDeleteId(null); void remove(t.id); }} style={{ ...btnDanger, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>
-                  <button onClick={() => setConfirmDeleteId(null)} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Zrušiť</button>
-                </>
-              ) : (
-                <button onClick={() => setConfirmDeleteId(t.id)} style={{ ...btnDanger, padding: "2px 8px", marginTop: 0 }}>Zmazať</button>
-              )}
             </span>
           </li>
-          {openAttId === t.id && t.type === "vydavok" && (
-            <li style={{ borderBottom: "1px solid var(--border-soft)", padding: "6px 0" }}>
-              {renderAttachments(t.id)}
-            </li>
-          )}
-          </Fragment>
         ))}
       </ul>
     </section>

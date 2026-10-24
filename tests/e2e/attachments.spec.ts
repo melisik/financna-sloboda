@@ -12,8 +12,10 @@ test.describe("prílohy k výdavku", () => {
     await expect(page.getByText("Dáta boli nahradené zálohou.")).toBeVisible();
 
     await goTo(page, "nova-transakcia");
-    const row = page.locator("li", { has: page.getByRole("button", { name: "Prílohy" }) }).first();
-    await row.getByRole("button", { name: "Prílohy" }).click();
+    // Prílohy sú v úprave výdavku (D-286).
+    const row = page.locator("section#nova-transakcia li", { hasText: "výdavok ·" }).first();
+    await row.getByRole("button", { name: "Upraviť" }).click();
+    await expect(page.getByRole("heading", { name: "Prílohy" })).toBeVisible();
 
     await page.getByLabel("Pridať prílohu").setInputFiles({ name: "zle.txt", mimeType: "text/plain", buffer: Buffer.from("nie je to doklad") });
     await expect(page.getByText("Príloha musí byť JPG, PNG, WEBP alebo PDF, najviac 2 MB.")).toBeVisible();
