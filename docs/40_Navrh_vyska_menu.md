@@ -1,6 +1,6 @@
 # 40 – Návrh: výška menu na telefóne
 
-> Stav: **návrh, čaká na výber zakladateľa** (nadväzuje na `docs/39`, oddiel 8). Merané 2026-10-24 v Playwright pri šírke 320 a 390 px a výške 844 px. Varianty som dočasne vyskúšal priamo v kóde a vrátil späť; v repozitári je len tento dokument a snímky. Mení sa len rozloženie menu, nie sekcie, texty ani dáta.
+> Stav: **schválené (variant C) a implementované** (D-279, 2026-10-24). Nadväzuje na `docs/39`, oddiel 8. Merané 2026-10-24 v Playwright pri šírke 320 a 390 px a výške 844 px. Varianty som dočasne vyskúšal priamo v kóde a vrátil späť; v repozitári je len tento dokument a snímky. Mení sa len rozloženie menu, nie sekcie, texty ani dáta.
 
 ## 1. Problém
 
@@ -36,7 +36,7 @@ Pri 320 px je nadpis Transakcií po otvorení takmer pod spodným okrajom obrazo
 | B | 111 px | 631 px | 161 px | 778 px |
 | **C** | **167 px** | **521 px** | **217 px** | **616 px** |
 
-Vo všetkých variantoch bez vodorovného posúvania celej stránky (presah 0 px). Na šírke 1280 px sa nič nemení, riadky sa zmestia.
+Vo všetkých variantoch bez vodorovného posúvania celej stránky (presah 0 px). **Oprava pri implementácii:** pôvodne tu stálo, že pri 1280 px sa nič nemení. To som nemeral a neplatilo: šesť sekcií skupiny Peniaze sa do šírky obsahu 720 px nezmestí. Preto sa riadok sekcií posúva do strany len na úzkej obrazovke a od 600 px sa zalomí ako predtým.
 
 ## 3. Snímky (390 px, formulár Transakcií posunutý nadol)
 
@@ -58,3 +58,11 @@ Vo všetkých variantoch bez vodorovného posúvania celej stránky (presah 0 px
 ## 6. Mimo tohto návrhu
 
 - Nad menu je pruh „Skúšobná verzia“ a úvodný text. Pri 390 px zaberajú spolu asi 350 px a posúvajú obsah nadol pri každom otvorení. Riešenie (napríklad zbaliteľný pruh) by bolo samostatným návrhom, lebo pruh obsahuje dôležité upozornenie.
+
+## 7. Výsledok implementácie (2026-10-24)
+
+- `src/ui/Navigacia.tsx`: riadok sekcií má triedu `nav-sections`. Aktívna sekcia sa po otvorení posunie do viditeľnej časti riadku; posúva sa riadok, nie stránka.
+- `index.html`: trieda `nav-sections` — jeden riadok s posúvaním do strany, od 600 px zalamovanie.
+- Testy v `tests/e2e/nav-scroll.spec.ts`: menu v skupine Peniaze pri 390 px najviac 180 px a bez presahu stránky (pred zmenou 267 px); aktívna posledná sekcia viditeľná po otvorení; pri 1280 px všetky sekcie viditeľné bez posúvania riadku.
+- Overenie: `tsc` bez chýb, `vitest` 489 testov (86 súborov), Playwright 412 testov vrátane testov dostupnosti a šírky 320 px. Snímky pri 390 a 1280 px skontrolované.
+
