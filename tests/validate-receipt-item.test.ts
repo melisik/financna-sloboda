@@ -43,7 +43,8 @@ describe("položka dokladu v zálohe (D-313)", () => {
 
   it("nulová suma riadku je chyba, záporná nie", () => {
     expect(errs([item({ amountCents: 0 })]).join(" ")).toMatch(/položka 1: suma musí byť nenulové/);
-    expect(errs([item({ amountCents: -1 })])).toEqual([]);
+    // Po revízii 25d (N-6): záporná suma len pri zľave so zápornou cenou a vedľa tovaru.
+    expect(errs([item({}), item({ name: "zľava", unitPriceCents: -1, amountCents: -1 })])).toEqual([]);
   });
 
   it("necelé alebo nečíselné ceny sú chyba", () => {
@@ -82,5 +83,24 @@ describe("položka dokladu v zálohe (D-313)", () => {
 
   it("transakcia s položkami ostáva kladná aj pri zľave (suma transakcie > 0)", () => {
     expect(errs([item()], { amountCents: -50 }).join(" ")).toMatch(/kladné celé číslo/);
+  });
+});
+
+// Revízia 2026-10-25d, N-6: znamienko, kladný súčet, nekonečno.
+describe("položky nákupu po revízii 25d", () => {
+  const tx = (items: unknown[]) => ({ id: "t1", date: "2026-10-01", type: "vydavok", amountCents: 100, source: "z_prijmu", createdAt: "2026-10-01T00:00:00.000Z", updatedAt: "2026-10-01T00:00:00.000Z", receiptItems: items });
+  const item = (o: Record<string, unknown>) => ({ code: "ručne", name: "x", quantity: 1, vatPercent: 0, unitPriceCents: 100, amountCents: 100, ...o });
+  it("odmietne rozdielne znamienko ceny a sumy", () => {
+    expect(validateTransaction(tx([item({ unitPriceCents: -50, amountCents: 50 })]), "2026-10-25").join()).toMatch(/rovnaké znamienko/);
+  });
+  it("odmietne samé zľavy (súčet nekladný)", () => {
+    expect(validateTransaction(tx([item({ name: "zľava", unitPriceCents: -50, amountCents: -50 })]), "2026-10-25").join()).toMatch(/súčet položiek musí byť kladný/);
+  });
+  it("odmietne nekonečné množstvo a DPH", () => {
+    expect(validateTransaction(tx([item({ quantity: Infinity })]), "2026-10-25").join()).toMatch(/počet/);
+    expect(validateTransaction(tx([item({ vatPercent: Infinity })]), "2026-10-25").join()).toMatch(/DPH/);
+  });
+  it("prijme tovar so zľavou", () => {
+    expect(validateTransaction(tx([item({}), item({ name: "zľava", unitPriceCents: -20, amountCents: -20 })]), "2026-10-25")).toEqual([]);
   });
 });

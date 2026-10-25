@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Repository } from "../../storage/repository";
 import type { AppData, Attachment } from "../../storage/types";
 import { backupTooLarge, buildBackup, parseBackup } from "../../storage/backup";
@@ -17,11 +17,14 @@ import { calloutStyle, hintStyle } from "../../ui/kit/controls";
  * Export zálohy. Ak prehliadač dokáže zdieľať súbory (iPhone), ponúkne zdieľací list, kde sa dá zvoliť
  * „Uložiť do Súborov“. Inak alebo pri chybe zdieľania súbor stiahne. Zrušenie zdieľania nič neuloží.
  */
-export type ExportResult = { result: "shared" | "downloaded" | "cancelled"; exportedAt: string } | { result: "needsTap"; exportedAt: string; file: File };
+export type ExportResult = { result: "shared" | "downloaded" | "cancelled"; exportedAt: string } | { result: "needsTap"; exportedAt: string; file: File } | { result: "invalid"; exportedAt: string; errors: string[] };
 
 export async function exportBackupFile(data: AppData, attachments: Attachment[], password?: string): Promise<ExportResult> {
   const nowIso = new Date().toISOString();
   const plain = JSON.stringify(buildBackup(data, nowIso, await Promise.all(attachments.map(encodeAttachment))), null, 2);
+  // Pred uložením rovnaká kontrola ako pri obnove: súbor, ktorý by sa nedal obnoviť, sa neuloží (revízia 2026-10-25d, zakladateľ: áno).
+  const check = parseBackup(JSON.parse(plain), todayIso());
+  if (!check.ok) return { result: "invalid", exportedAt: nowIso, errors: check.errors };
   // Heslo je voliteľné (N-05, D-276): bez hesla sa zapíše bežný JSON.
   const encrypted = password ? JSON.stringify(await encryptBackup(plain, password)) : null;
   const name = `financna-sloboda-zaloha-${todayIso()}${encrypted ? "-sifrovana" : ""}.json`;
@@ -103,6 +106,8 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
   const [exportPassword, setExportPassword] = useState("");
   // Pripravená záloha čaká na ťuknutie, ak zdieľanie odmietlo oneskorené spustenie (S-3).
   const [pending, setPending] = useState<{ file: File; exportedAt: string; encrypted: boolean } | null>(null);
+  // Pripravená záloha platí len pre dáta, z ktorých vznikla (revízia 2026-10-25d, N-4).
+  useEffect(() => { setPending(null); }, [data]);
   const [encryptedImport, setEncryptedImport] = useState<EncryptedBackup | null>(null);
   const [importPassword, setImportPassword] = useState("");
 
@@ -110,6 +115,9 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
     if (exportPassword !== "" && exportPassword.length < MIN_PASSWORD_LENGTH) return setExportStatus(`Heslo musí mať aspoň ${MIN_PASSWORD_LENGTH} znakov. Nič sa neexportovalo.`);
     setPending(null);
     const r = await exportBackupFile(data, await repo.listAllAttachments(), exportPassword || undefined);
+    if (r.result === "invalid") {
+      return setExportStatus(`Záloha sa neuložila: dáta obsahujú chybu, s ktorou by sa nedala obnoviť (${plainBackupError(r.errors[0] ?? "")}). Oprav záznam a skús znova, alebo pošli túto vetu ako pripomienku.`);
+    }
     if (r.result === "needsTap") {
       setPending({ file: r.file, exportedAt: r.exportedAt, encrypted: exportPassword !== "" });
       setExportPassword("");

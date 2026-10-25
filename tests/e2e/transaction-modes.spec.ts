@@ -77,4 +77,48 @@ test.describe("formulár transakcie (D-313)", () => {
     await expect(t.getByText("Položky sa dajú pridať do skladu, keď zapneš modul Sklad.")).toBeVisible();
     await expect(t.getByRole("button", { name: "Pridať do skladu" })).toHaveCount(0);
   });
+
+  // Revízia 2026-10-25d.
+  test("V-1: zľava sa do skladu neponúka", async ({ page }) => {
+    const t = await ready(page);
+    await t.getByRole("button", { name: "Nákup po položkách" }).click();
+    await addItem(t, "Syntetický chlieb", "2", "1.20");
+    await addItem(t, "zľava", "1", "-0.40");
+    await t.getByRole("button", { name: "Uložiť transakciu" }).click();
+    await t.getByRole("button", { name: "Pridať do skladu" }).click();
+    await expect(t.getByRole("checkbox", { name: "Syntetický chlieb" })).toBeVisible();
+    await expect(t.getByRole("checkbox", { name: "zľava" })).toHaveCount(0);
+    await expect(t.getByText("zľava: zľava sa do skladu nepridáva.")).toBeVisible();
+  });
+
+  test("S-1: položka so sumou riadku 0,00 € sa nepridá", async ({ page }) => {
+    const t = await ready(page);
+    await t.getByRole("button", { name: "Nákup po položkách" }).click();
+    await addItem(t, "Syntetické korenie", "0.004", "1");
+    await expect(t.getByText("Suma riadku vychádza 0,00 €; skontroluj množstvo a cenu.")).toBeVisible();
+    await expect(t.getByRole("button", { name: "Odstrániť položku Syntetické korenie" })).toHaveCount(0);
+  });
+
+  test("S-2: prepnutie na Rýchly výdavok s položkami sa najprv opýta", async ({ page }) => {
+    const t = await ready(page);
+    await t.getByRole("button", { name: "Nákup po položkách" }).click();
+    await addItem(t, "Syntetický chlieb", "1", "1.20");
+    await t.getByRole("button", { name: "Rýchly výdavok" }).click();
+    await expect(t.getByText("Položky (1) sa zahodia; suma ostane 1,20 €. Pokračovať?")).toBeVisible();
+    await t.getByRole("button", { name: "Nechať položky" }).click();
+    await expect(t.getByRole("button", { name: "Odstrániť položku Syntetický chlieb" })).toBeVisible();
+    await t.getByRole("button", { name: "Rýchly výdavok" }).click();
+    await t.getByRole("button", { name: "Zahodiť položky" }).click();
+    await expect(t.getByLabel("Suma (€)")).toHaveValue("1.2");
+  });
+
+  test("S-3: vyplnená, nepridaná položka sa pri uložení pridá", async ({ page }) => {
+    const t = await ready(page);
+    await t.getByRole("button", { name: "Nákup po položkách" }).click();
+    await addItem(t, "Syntetický jogurt", "1", "0.50");
+    await t.getByLabel("Položka", { exact: true }).fill("Syntetický syr");
+    await t.getByLabel("Cena za kus (€)").fill("2");
+    await t.getByRole("button", { name: "Uložiť transakciu" }).click();
+    await expect(t.getByText("Zapísané: výdavok 2,50 €.")).toBeVisible();
+  });
 });

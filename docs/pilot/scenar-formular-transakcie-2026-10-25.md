@@ -14,7 +14,7 @@ Pre zakladateľa na iPhone, v súkromnom náhľade. Trvá asi 15 minút. Použí
 2.4 Odstráň zľavu tlačidlom **Odstrániť** pri nej. Spolu je znova 2,40 €.
 2.5 Ťukni **Uložiť transakciu**. Pod „Zapísané: výdavok 2,40 €“ je **Pridať do skladu**. Ťukni naň, zaškrtni chlieb a pridaj ho. Je chlieb v Sklade?
 
-## 3. Doklad z portálu
+## 3. Doklad z portálu (zrušené v D-318; vkladanie textu z portálu už nie je)
 3.1 Znova **Nákup po položkách**, rozbaľ **Doklad z portálu alebo QR**. Vlož do poľa text z portálu (ak ho máš z vlastného dokladu, použi ho len v náhľade, nič neposielaj) a ťukni **Pridať z textu**. Položky sa objavia v zozname a Spolu sa prepočíta?
 3.2 Ak text nevložíš tlačidlom a ťukneš Uložiť, appka má povedať, čo spraviť. Je veta jasná?
 

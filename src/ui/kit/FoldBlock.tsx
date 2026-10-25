@@ -3,8 +3,8 @@ import { btn } from "./controls";
 
 /**
  * Zbalený blok formulára s jedným zdrojom stavu otvorenia (D-310, D-311): súhrn v nadpise, sám sa otvorí,
- * keď dostane obsah alebo chybu (`open`), a dá sa zbaliť. `reopenOn` (text chyby) ho otvorí znova pri každej novej chybe,
- * aj keď ho používateľ medzitým zbalil (revízia 2026-10-25c, N-3).
+ * keď dostane obsah alebo chybu (`open`), a dá sa zbaliť. `reopenOn` (text chyby) ho otvorí znova pri inej chybe, aj keď ho používateľ
+ * medzitým zbalil (revízia 2026-10-25c, N-3). Rovnaká chyba ho znova neotvorí; veta pri tlačidle ostáva viditeľná (25d, N-3).
  */
 export function FoldBlock({ title, summary, openWhen, reopenOn, children }: { title: string; summary?: string; openWhen: boolean; reopenOn?: string | null; children: ReactNode }) {
   const [open, setOpen] = useState(openWhen);

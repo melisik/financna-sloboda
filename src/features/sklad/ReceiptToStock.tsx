@@ -21,7 +21,7 @@ export function ReceiptToStock({ repo, transaction, onSaved }: { repo: Repositor
   if (items.length === 0) return null;
 
   const add = async () => {
-    const chosen = items.map((r, n) => ({ r, n })).filter(({ n }) => picked[n]);
+    const chosen = items.map((r, n) => ({ r, n })).filter(({ r, n }) => picked[n] && r.amountCents > 0);
     if (chosen.length === 0) return setMsg("Vyber aspoň jednu položku.");
     const now = new Date().toISOString();
     const stock: StockItem[] = chosen.map(({ r, n }) => {
@@ -46,7 +46,10 @@ export function ReceiptToStock({ repo, transaction, onSaved }: { repo: Repositor
       ) : (
         <div>
           <p style={hintStyle}>Vyber potraviny, ktoré pridáš do skladu. Dátum spotreby doplníš v Sklade.</p>
-          {items.map((r, n) => (
+          {items.map((r, n) => r.amountCents <= 0 ? (
+            // Zľava nie je potravina; v sklade by mala zápornú cenu a zálohu by nebolo možné obnoviť (revízia 2026-10-25d, V-1).
+            <p key={`${r.code}-${n}`} style={{ ...hintStyle, margin: "6px 0" }}>{r.name}: zľava sa do skladu nepridáva.</p>
+          ) : (
             <div key={`${r.code}-${n}`} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, margin: "6px 0" }}>
               <label style={{ flex: "1 1 180px" }}>
                 <input type="checkbox" checked={!!picked[n]} onChange={(e) => setPicked({ ...picked, [n]: e.target.checked })} /> {r.name}

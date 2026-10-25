@@ -95,11 +95,14 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
       const d = await repo.getData();
       const r = await exportBackupFile(d, await repo.listAllAttachments());
       // Bez hesla sa nešifruje; ak by zdieľanie predsa odmietlo oneskorené spustenie, súbor sa stiahne ako pred S-3.
+      if (r.result === "invalid") return setErr("Záloha sa neuložila: dáta obsahujú chybu. Zálohu ulož v sekcii Záloha, kde uvidíš, čo opraviť.");
       if (r.result === "needsTap") {
         const a = document.createElement("a");
-        a.href = URL.createObjectURL(r.file);
+        const url = URL.createObjectURL(r.file);
+        a.href = url;
         a.download = r.file.name;
         a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
       if (r.result !== "cancelled") await repo.setMeta("lastExportAt", r.exportedAt);
     } catch {

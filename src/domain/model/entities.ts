@@ -22,14 +22,14 @@ export interface Budget {
   updatedAt: string; // ISO
 }
 
-/** Položka dokladu z portálu (D-129). Suma je celková cena riadku; pri viac kusoch je aj jednotková cena. */
+/** Položka nákupu (D-129, D-313, D-318). Suma je celková cena riadku; zľava je položka so zápornou cenou aj sumou. */
 export interface ReceiptItem {
   code: string;
   name: string; // max 200 znakov
   quantity: number; // kladné
   vatPercent: number; // 0 alebo viac
-  unitPriceCents: number; // celé centy, 0 alebo viac
-  amountCents: number; // celé centy, kladné
+  unitPriceCents: number; // celé centy; záporné pri zľave
+  amountCents: number; // celé centy, nenulové; rovnaké znamienko ako cena
 }
 
 export interface Transaction {
@@ -42,7 +42,7 @@ export interface Transaction {
   category?: BudgetCategory; // len pri výdavku; bez hodnoty = nezaradené (D-106)
   note?: string; // max 200 znakov
   receiptId?: string; // číslo dokladu z QR kódu, len pri výdavku (D-126)
-  receiptItems?: ReceiptItem[]; // položky dokladu z portálu, len pri výdavku (D-129)
+  receiptItems?: ReceiptItem[]; // položky nákupu, len pri výdavku (D-129, D-313)
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }

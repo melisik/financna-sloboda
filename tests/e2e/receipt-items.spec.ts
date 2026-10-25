@@ -41,7 +41,10 @@ test.describe("položky nákupu", () => {
     // Návrh: rovnaký názov doplní poslednú cenu za kus (docs/58, D).
     await t.getByRole("button", { name: "Nákup po položkách" }).click();
     await expect(t.locator("datalist#navrhy-poloziek option[value='Výrobok C']")).toHaveCount(1);
-    await t.getByLabel("Položka", { exact: true }).fill("Výrobok C");
+    // Počas písania sa cena nedopĺňa (revízia 2026-10-25d, N-1), až po dopísaní názvu.
+    await t.getByLabel("Položka", { exact: true }).pressSequentially("Výrobok C");
+    await expect(t.getByLabel("Cena za kus (€)")).toHaveValue("");
+    await t.getByLabel("Položka", { exact: true }).blur();
     await expect(t.getByLabel("Cena za kus (€)")).toHaveValue("5.75");
   });
 });

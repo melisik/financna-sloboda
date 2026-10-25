@@ -34,7 +34,12 @@ export function validateTransaction(t: unknown, today: string, label = "transakc
   if (o.receiptId !== undefined && (o.type !== "vydavok" || !isReceiptId(o.receiptId))) errors.push(`${label}: číslo dokladu patrí len k výdavku a má 20 až 40 znakov`);
   if (o.receiptItems !== undefined) {
     if (o.type !== "vydavok" || !Array.isArray(o.receiptItems)) errors.push(`${label}: položky dokladu patria len k výdavku`);
-    else o.receiptItems.forEach((i, n) => errors.push(...validateReceiptItem(i, `${label}, položka ${n + 1}`)));
+    else {
+      const before = errors.length;
+      o.receiptItems.forEach((i, n) => errors.push(...validateReceiptItem(i, `${label}, položka ${n + 1}`)));
+      // Samé zľavy nedávajú zmysel: súčet položiek musí byť kladný (revízia 2026-10-25d, N-6).
+      if (errors.length === before && o.receiptItems.length > 0 && o.receiptItems.reduce((s: number, i: { amountCents: number }) => s + i.amountCents, 0) <= 0) errors.push(`${label}: súčet položiek musí byť kladný`);
+    }
   }
   if (o.category !== undefined && (o.type !== "vydavok" || !(BUDGET_CATEGORIES as readonly unknown[]).includes(o.category))) errors.push(`${label}: kategória patrí len k výdavku a musí byť z katalógu`);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
@@ -227,11 +232,13 @@ function validateReceiptItem(i: unknown, label = "položka dokladu"): string[] {
   const errors = unknownKeys(o, ["code", "name", "quantity", "vatPercent", "unitPriceCents", "amountCents"], label);
   if (typeof o.code !== "string" || o.code.length === 0) errors.push(`${label}: chýba kód`);
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 200) errors.push(`${label}: názov je povinný, max 200 znakov`);
-  if (typeof o.quantity !== "number" || !(o.quantity > 0)) errors.push(`${label}: počet musí byť kladné číslo`);
-  if (typeof o.vatPercent !== "number" || !(o.vatPercent >= 0)) errors.push(`${label}: DPH musí byť číslo 0 alebo väčšie`);
+  if (typeof o.quantity !== "number" || !Number.isFinite(o.quantity) || !(o.quantity > 0)) errors.push(`${label}: počet musí byť kladné číslo`);
+  if (typeof o.vatPercent !== "number" || !Number.isFinite(o.vatPercent) || !(o.vatPercent >= 0)) errors.push(`${label}: DPH musí byť číslo 0 alebo väčšie`);
   // Zľava je záporná položka (D-313, docs/57): cena a suma riadku môžu byť záporné, nie nulové.
   if (typeof o.unitPriceCents !== "number" || !Number.isInteger(o.unitPriceCents)) errors.push(`${label}: jednotková cena musí byť celé číslo v centoch`);
   if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents === 0) errors.push(`${label}: suma musí byť nenulové celé číslo v centoch`);
+  // Cena a suma riadku majú rovnaké znamienko: tovar kladné, zľava záporné (revízia 2026-10-25d, N-6).
+  else if (typeof o.unitPriceCents === "number" && o.unitPriceCents !== 0 && Math.sign(o.unitPriceCents) !== Math.sign(o.amountCents)) errors.push(`${label}: cena a suma musia mať rovnaké znamienko`);
   return errors;
 }
 

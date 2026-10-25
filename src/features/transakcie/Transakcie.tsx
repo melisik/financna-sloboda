@@ -129,13 +129,15 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   // Návrhy položiek z predchádzajúcich nákupov a zo skladu: názov a posledná cena za kus (docs/58, D).
   const itemSuggestions = useMemo(() => {
     const byName = new Map<string, { name: string; unitPriceCents: number }>();
-    for (const s of data.stockItems) if (s.unitPriceCents !== undefined) byName.set(s.name.trim().toLowerCase(), { name: s.name.trim(), unitPriceCents: s.unitPriceCents });
+    for (const s of data.stockItems) if (s.unitPriceCents !== undefined && s.unitPriceCents > 0) byName.set(s.name.trim().toLowerCase(), { name: s.name.trim(), unitPriceCents: s.unitPriceCents });
     const withItems = data.transactions.filter((t) => t.receiptItems && t.receiptItems.length > 0).sort((a, b) => (a.date === b.date ? a.createdAt.localeCompare(b.createdAt) : a.date.localeCompare(b.date)));
     for (const t of withItems) for (const i of t.receiptItems ?? []) if (i.unitPriceCents > 0) byName.set(i.name.trim().toLowerCase(), { name: i.name.trim(), unitPriceCents: i.unitPriceCents });
     return byName;
   }, [data.stockItems, data.transactions]);
-  const pickName = (v: string) => {
-    setMName(v);
+  // Najnovšie hore, najviac 50 (revízia 2026-10-25d, N-1): Map drží poradie vloženia, posledné vložené sú najnovšie.
+  const suggestionList = useMemo(() => [...itemSuggestions.values()].reverse().slice(0, 50), [itemSuggestions]);
+  // Cena sa doplní až po dopísaní názvu (opustenie poľa alebo výber návrhu), nie pri každom znaku (N-1).
+  const fillPrice = (v: string) => {
     const hit = itemSuggestions.get(v.trim().toLowerCase());
     if (hit && mPrice === "") setMPrice(hit.unitPriceCents / 100);
   };
@@ -149,20 +151,34 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const [origCents, setOrigCents] = useState<number | null>(null);
   // Potvrdenie po uložení (D-313); pri nákupe po položkách aj ponuka Pridať do skladu.
   const [saved, setSaved] = useState<Transaction | null>(null);
+  // Prepnutie na Rýchly výdavok zahodí položky; najprv otázka (revízia 2026-10-25d, S-2, zakladateľ: a).
+  const [confirmQuick, setConfirmQuick] = useState(false);
   const byItems = type === "vydavok" && mode === "polozky";
   const changeQty = (n: number, delta: number) => setItems((all) => all.map((i, k) => {
     if (k !== n) return i;
     const quantity = Math.round((i.quantity + delta) * 1000) / 1000;
-    return quantity > 0 ? { ...i, quantity, amountCents: Math.round(i.unitPriceCents * quantity) } : i;
+    const amountCents = Math.round(i.unitPriceCents * quantity);
+    return quantity > 0 && amountCents !== 0 ? { ...i, quantity, amountCents } : i;
   }));
   const itemsTotal = items.reduce((sum, i) => sum + i.amountCents, 0);
-  useEffect(() => { if (byItems) setAmount(items.length > 0 ? itemsTotal / 100 : ""); }, [byItems, itemsTotal, items.length]);
-  const addItem = () => {
+  useEffect(() => { if (byItems && items.length > 0) setAmount(itemsTotal / 100); }, [byItems, itemsTotal, items.length]);
+  // Rozpísaná položka z polí Položka, Množstvo, Cena za kus: null, keď sú prázdne, inak položka alebo chyba.
+  const draftItem = (): ReceiptItem | string | null => {
+    if (mName.trim() === "" && mPrice === "") return null;
     const q = asNum(mQty);
     const p = asNum(mPrice);
-    if (mName.trim() === "" || Number.isNaN(q) || q <= 0 || Number.isNaN(p) || p === 0) return setErr("Položka potrebuje názov, množstvo a cenu za kus (zľavu zadaj zápornou cenou).");
+    if (mName.trim() === "" || Number.isNaN(q) || q <= 0 || Number.isNaN(p) || p === 0) return "Položka potrebuje názov, množstvo a cenu za kus (zľavu zadaj zápornou cenou).";
     const unitPriceCents = cents(p);
-    setItems([...items, { code: "ručne", name: mName.trim().slice(0, 200), quantity: q, vatPercent: 0, unitPriceCents, amountCents: Math.round(unitPriceCents * q) }]);
+    const amountCents = Math.round(unitPriceCents * q);
+    // Suma riadku 0,00 € by zálohu urobila neobnoviteľnou (revízia 2026-10-25d, S-1).
+    if (amountCents === 0) return "Suma riadku vychádza 0,00 €; skontroluj množstvo a cenu.";
+    return { code: "ručne", name: mName.trim().slice(0, 200), quantity: q, vatPercent: 0, unitPriceCents, amountCents };
+  };
+  const addItem = () => {
+    const d = draftItem();
+    if (d === null) return setErr("Položka potrebuje názov, množstvo a cenu za kus (zľavu zadaj zápornou cenou).");
+    if (typeof d === "string") return setErr(d);
+    setItems([...items, d]);
     setMName(""); setMQty(1); setMPrice(""); setErr(null);
   };
   const resetForm = () => {
@@ -179,6 +195,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setCameraOn(false);
     setItems([]);
     setMode("rychly");
+    setConfirmQuick(false);
     setOrigCents(null);
     setCategory("");
     setAmount("");
@@ -245,8 +262,13 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const save = async (confirmedRecurring = recurringConfirmed) => {
     setSaved(null);
     if (!ctx.latest) return setErr("Najprv zapíš stav investícií a hotovosti vo Vyhodnotení.");
-    const a = asNum(amount);
-    if (byItems && items.length === 0) return setErr("Pridaj aspoň jednu položku.");
+    // Vyplnená, ale nepridaná položka sa pridá sama, aby sa výdavok neuložil nižší (revízia 2026-10-25d, S-3).
+    const draft = byItems ? draftItem() : null;
+    if (typeof draft === "string") return setErr(draft);
+    const allItems = draft ? [...items, draft] : items;
+    if (draft) { setItems(allItems); setMName(""); setMQty(1); setMPrice(""); }
+    const a = byItems ? allItems.reduce((sum, i) => sum + i.amountCents, 0) / 100 : asNum(amount);
+    if (byItems && allItems.length === 0) return setErr("Pridaj aspoň jednu položku.");
     if (Number.isNaN(a) || !(a > 0)) return setErr(byItems ? "Súčet položiek musí byť kladný." : "Suma musí byť kladná.");
     const dateErr = checkDate(date, todayIso(), "dátum");
     if (dateErr.length) return setErr(dateErr[0]);
@@ -262,8 +284,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad K_inv` : ""].filter(Boolean).join("; ");
     const receipt = receiptId.trim();
     if (type === "vydavok" && receipt !== "" && !isReceiptId(receipt)) return setErr("Číslo dokladu má 20 až 40 znakov: písmená, číslice a pomlčky.");
-    // Vložený text, ktorý ešte nebol pridaný, sa nesmie potichu stratiť (D-129).
-    const receiptItems = byItems ? items : undefined;
+    const receiptItems = byItems ? allItems : undefined;
     // Len pri novom výdavku; pri úprave existujúceho by upozornenie len zdržiavalo.
     if (type === "vydavok" && !existing && !confirmedRecurring) {
       const match = matchingRecurring(data.recurringExpenses, { date, category: category === "" ? undefined : category, amountCents: cents(a) });
@@ -339,8 +360,15 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       {inEdit && <h2 style={{ fontSize: "var(--font-heading)" }}>Úprava transakcie</h2>}
       {type === "vydavok" && (
         <div role="group" aria-label="Spôsob zápisu" style={{ display: "flex", gap: 8, margin: "4px 0 8px" }}>
-          <button type="button" aria-pressed={mode === "rychly"} onClick={() => setMode("rychly")} style={mode === "rychly" ? btnPrimary : btn}>Rýchly výdavok</button>
+          <button type="button" aria-pressed={mode === "rychly"} onClick={() => (mode === "polozky" && items.length > 0 ? setConfirmQuick(true) : setMode("rychly"))} style={mode === "rychly" ? btnPrimary : btn}>Rýchly výdavok</button>
           <button type="button" aria-pressed={mode === "polozky"} onClick={() => setMode("polozky")} style={mode === "polozky" ? btnPrimary : btn}>Nákup po položkách</button>
+          {confirmQuick && (
+            <div role="alert" style={{ ...calloutStyle("warn"), margin: "8px 0 0" }}>
+              <p style={{ margin: 0 }}>Položky ({items.length}) sa zahodia; suma ostane {eur(itemsTotal)}. Pokračovať?</p>
+              <button type="button" onClick={() => { setItems([]); setMode("rychly"); setConfirmQuick(false); }} style={btn}>Zahodiť položky</button>{" "}
+              <button type="button" onClick={() => setConfirmQuick(false)} style={btn}>Nechať položky</button>
+            </div>
+          )}
         </div>
       )}
       {!byItems && <Field label="Suma (€)" value={amount} onChange={setAmount} />}
@@ -362,15 +390,19 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
             </ul>
           )}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "flex-end" }}>
-            <label style={{ flex: "2 1 140px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Položka</span><input type="text" maxLength={200} value={mName} list="navrhy-poloziek" onChange={(e) => pickName(e.target.value)} style={inp} /></label>
-            <datalist id="navrhy-poloziek">{[...itemSuggestions.values()].map((v) => <option key={v.name} value={v.name} label={eur(v.unitPriceCents)} />)}</datalist>
+            <label style={{ flex: "2 1 140px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Položka</span><input type="text" maxLength={200} value={mName} list="navrhy-poloziek" onChange={(e) => { setMName(e.target.value); if (!(e.nativeEvent instanceof InputEvent) || e.nativeEvent.inputType === "insertReplacementText") fillPrice(e.target.value); }} onBlur={(e) => fillPrice(e.target.value)} style={inp} /></label>
+            <datalist id="navrhy-poloziek">{suggestionList.map((v) => <option key={v.name} value={v.name} label={eur(v.unitPriceCents)} />)}</datalist>
             <label style={{ flex: "1 1 70px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Množstvo</span><input type="number" step={0.001} value={mQty} onChange={(e) => setMQty(e.target.value === "" ? "" : Number(e.target.value))} style={inp} /></label>
             <label style={{ flex: "1 1 90px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Cena za kus (€)</span><input type="number" step={0.01} value={mPrice} onChange={(e) => setMPrice(e.target.value === "" ? "" : Number(e.target.value))} style={inp} /></label>
             <button type="button" onClick={addItem} style={btn}>Pridať položku</button>
           </div>
           <p style={hintStyle}>Zľavu zadaj ako položku „zľava“ so zápornou cenou.</p>
           {origCents !== null && items.length > 0 && origCents !== itemsTotal && (
-            <p style={calloutStyle("warn")}>Pôvodná suma bola {eur(origCents)}; po uložení bude súčet položiek {eur(itemsTotal)}.</p>
+            <div style={calloutStyle("warn")}>
+              <p style={{ margin: 0 }}>Pôvodná suma bola {eur(origCents)}; po uložení bude súčet položiek {eur(itemsTotal)}.</p>
+              {/* Pôvodnú sumu zachová položka „rozdiel“ (revízia 2026-10-25d, N-2, zakladateľ: a). */}
+              <button type="button" onClick={() => setItems([...items, { code: "ručne", name: "rozdiel", quantity: 1, vatPercent: 0, unitPriceCents: origCents - itemsTotal, amountCents: origCents - itemsTotal }])} style={btn}>Zachovať pôvodnú sumu</button>
+            </div>
           )}
         </div>
       )}
@@ -404,7 +436,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       )}
       <Field label="Dátum" value={date} type="date" max={todayIso()} onChange={setDate} />
       <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} maxLength={200} />
-      {byItems && (
+      {(byItems || (type === "vydavok" && receiptId !== "")) && (
         <details open={docOpen} onToggle={(e) => setDocOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
           <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Overiť doklad (QR){receiptId !== "" ? " · priradený" : ""} ▾</summary>
           <div style={{ margin: "8px 0" }}>
