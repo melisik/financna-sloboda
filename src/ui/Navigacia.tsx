@@ -49,6 +49,17 @@ export function Nav({ active }: { active: SectionId }) {
     if (c.right > r.right) row.scrollLeft += c.right - r.right + 8;
     else if (c.left < r.left) row.scrollLeft -= r.left - c.left + 8;
   }, [active]);
+  // Riadok sekcií pokračuje vpravo: okraj sa jemne stratí, aby bolo vidno, že sa dá posúvať (revízia 2026-10-25b, N-8).
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+    const check = () => setMore(row.scrollLeft + row.clientWidth < row.scrollWidth - 2);
+    check();
+    row.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => { row.removeEventListener("scroll", check); window.removeEventListener("resize", check); };
+  }, [active]);
   // Výška prilepeného menu ako odsadenie posúvania: zameraný prvok (napr. potvrdenie vo formulári) neskončí pod menu.
   const barRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -80,7 +91,7 @@ export function Nav({ active }: { active: SectionId }) {
         </div>
         {activeGroup && activeGroup.shown.length > 1 && (
           // Sekcie: na telefóne jeden riadok, ktorý sa posúva do strany; od 600 px sa zalomí (docs/40, variant C, trieda v index.html).
-          <div ref={rowRef} className="nav-sections">
+          <div ref={rowRef} className="nav-sections" data-more={more ? "true" : undefined}>
             {activeGroup.shown.map((id) => (
               <a
                 key={id}

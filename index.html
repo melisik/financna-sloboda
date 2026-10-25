@@ -92,6 +92,7 @@
       /* Prvok posunutý do zobrazenia neskončí pod prilepeným pruhom Uložiť (D-287); horné odsadenie nastaví menu. */
       html { scroll-padding-bottom: 120px; }
       .nav-sections { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; padding: 6px 4px; }
+      .nav-sections[data-more] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); }
       @media (min-width: 600px) { .nav-sections { flex-wrap: wrap; overflow-x: visible; } }
     </style>
     <meta name="apple-mobile-web-app-capable" content="yes" />

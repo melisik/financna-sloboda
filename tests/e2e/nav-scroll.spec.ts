@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openApp } from "./helpers";
+import { goTo, openApp } from "./helpers";
 
 // Ťuknutie na už aktívnu sekciu v menu nesmie skryť jej nadpis pod prilepeným menu (docs/39). Syntetické hodnoty.
 test("aktívna sekcia v menu nechá nadpis viditeľný pod menu", async ({ page }) => {
@@ -59,4 +59,15 @@ test("na širokej obrazovke sú všetky sekcie skupiny viditeľné bez posúvani
     return { scroll: row.scrollWidth, client: row.clientWidth };
   });
   expect(m.scroll).toBeLessThanOrEqual(m.client);
+});
+
+test("riadok sekcií na telefóne naznačí, že pokračuje, a na konci znak zmizne (revízia 2026-10-25b, N-8)", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await openApp(page);
+  await goTo(page, "majetok");
+  const row = page.locator(".nav-sections");
+  await row.evaluate((el) => { el.scrollLeft = 0; el.dispatchEvent(new Event("scroll")); });
+  await expect(row).toHaveAttribute("data-more", "true");
+  await row.evaluate((el) => { el.scrollLeft = el.scrollWidth; el.dispatchEvent(new Event("scroll")); });
+  await expect(row).not.toHaveAttribute("data-more", "true");
 });
