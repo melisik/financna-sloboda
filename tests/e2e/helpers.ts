@@ -41,3 +41,16 @@ export function localIsoDay(offsetDays: number): string {
   d.setDate(d.getDate() + offsetDays);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
+
+/** Otvorí zbalený blok podľa textu súhrnu (D-293), ak je zatvorený. */
+export async function openDetails(page: Page, scope: string, summaryText: string) {
+  const summary = page.locator(`${scope} summary`, { hasText: summaryText }).first();
+  const open = await summary.evaluate((el) => (el.parentElement as HTMLDetailsElement).open);
+  if (!open) await summary.click();
+}
+
+/** Rozpočet: polia na limity sú až po „Upraviť limity“ (D-293). */
+export async function openBudgetLimits(page: Page) {
+  const button = page.locator("section#rozpocet").getByRole("button", { name: "Upraviť limity" });
+  if (await button.isVisible()) await button.click();
+}

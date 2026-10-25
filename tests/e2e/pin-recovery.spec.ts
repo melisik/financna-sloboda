@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openDetails } from "./helpers";
 
 // Zabudnutý PIN: vymazanie dát v zariadení po dvojitom potvrdení (D-135). Syntetické hodnoty.
 test.describe("PIN: zabudnutý PIN", () => {
@@ -11,6 +11,7 @@ test.describe("PIN: zabudnutý PIN", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
     await goTo(page, "nastavenia");
+    await openDetails(page, "section#nastavenia", "PIN"); // D-293: PIN je zbalený
     await page.getByLabel("Nový PIN (4 až 6 číslic)").fill("1234");
     await page.getByLabel("Zopakuj PIN").fill("1234");
     await page.getByRole("button", { name: "Zapnúť PIN" }).click();
@@ -31,6 +32,7 @@ test.describe("PIN: zabudnutý PIN", () => {
     await goTo(page, "prehlad");
     await expect(page.getByText("Urob prvé vyhodnotenie")).toBeVisible();
     await goTo(page, "nastavenia");
+    await openDetails(page, "section#nastavenia", "PIN");
     await expect(page.getByRole("button", { name: "Zapnúť PIN" })).toBeVisible();
   });
 });

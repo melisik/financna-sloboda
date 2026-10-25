@@ -241,10 +241,14 @@ function DogForm({ repo, initial, today, onDone, onCancel }: { repo: Repository;
 /** Daňový rámec (FR-24, FR-25, D-104): režimy a stav overenia. Čísla po dani sa nezobrazia, kým nie sú pravidlá overené. */
 export function TaxSection({ positions }: { positions: Position[] }) {
   const lines = taxScenario(positions);
+  // Karty sa ukážu pri prvej investícii; aj „Nezadané“ je užitočné, lebo pripomína doplniť režim.
+  const hasRegime = positions.length > 0;
   return (
     <section>
       <p style={{ color: "var(--muted)" }}>Hlavný výpočet ostáva nominálny. Daňový scenár je samostatný a zatiaľ nemá čísla po dani: pravidlá ešte nie sú overené.</p>
-      {lines.map((l) => (
+      {/* Bez investícií s daňovým režimom jedna veta namiesto kariet s nulami (D-293, docs/46). */}
+      {!hasRegime && <p>Daňový režim zatiaľ nemá žiadna investícia. <NextStep to="investicie">Investície</NextStep></p>}
+      {hasRegime && lines.map((l) => (
         <div key={l.regime} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{l.label}</strong></p>
           <p style={{ margin: "4px 0" }}>Hodnota investícií v režime: {eur(l.valueCents)}</p>
@@ -256,9 +260,7 @@ export function TaxSection({ positions }: { positions: Position[] }) {
           </p>
         </div>
       ))}
-      {positions.length === 0 && (
-        <p style={hintStyle}>Daňový režim zadáš pri položkách investícií. <NextStep to="investicie">Investície</NextStep></p>
-      )}
+      {hasRegime && <p style={hintStyle}>Daňový režim zadáš pri položkách investícií. <NextStep to="investicie">Investície</NextStep></p>}
     </section>
   );
 }

@@ -57,6 +57,10 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const [fTo, setFTo] = useState("");
   const [fCategory, setFCategory] = useState<BudgetCategory | "all" | "none">("all");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  // História: najprv 10 posledných záznamov, ďalšie po 10 (D-293, docs/46); filter zbalený, kým nie je zapnutý.
+  const [shown, setShown] = useState(10);
+  const [filterOpen, setFilterOpen] = useState(false);
+  useEffect(() => setShown(10), [fType, fFrom, fTo, fCategory]);
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
   const [confirmExhausted, setConfirmExhausted] = useState(false);
   useEffect(() => setConfirmExhausted(false), [type, source, amount]);
@@ -262,6 +266,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const totals = totalsByType(list);
   const categoryTotals = expenseTotalsByCategory(list);
   const inEdit = editingId !== null;
+  const filterActive = fType !== "all" || fCategory !== "all" || fFrom !== "" || fTo !== "";
 
   const editingTx = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
   const docShown = docOpen || cameraOn || qrMsg !== null || receiptId !== "" || itemsText.trim() !== "";
@@ -418,7 +423,9 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       )}
 
       <h3 style={{ fontSize: "var(--font-text)", marginTop: 24 }}>História</h3>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <details open={filterOpen || filterActive} onToggle={(e) => setFilterOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
+        <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Filter{filterActive ? " · zapnutý" : ""} ▾</summary>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
         <select aria-label="Filter typu" value={fType} onChange={(e) => setFType(e.target.value as "all" | TransactionType)} style={{ ...inp, width: "auto" }}>
           <option value="all">všetky typy</option>
           {(Object.keys(TYPE_LABEL) as TransactionType[]).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
@@ -431,8 +438,12 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         <input aria-label="Od dátumu" type="date" value={fFrom} onChange={(e) => setFFrom(e.target.value)} style={{ ...inp, width: "auto" }} />
         <input aria-label="Do dátumu" type="date" value={fTo} onChange={(e) => setFTo(e.target.value)} style={{ ...inp, width: "auto" }} />
       </div>
+      {filterActive && (
+        <button type="button" onClick={() => { setFType("all"); setFCategory("all"); setFFrom(""); setFTo(""); }} style={{ ...btn, marginTop: 8 }}>Zrušiť filter</button>
+      )}
+      </details>
       <p style={hintStyle}>
-        Súčet zobrazených transakcií: {(Object.keys(totals) as TransactionType[]).length === 0
+        Súčet transakcií {filterActive ? "vo filtri" : "spolu"}: {(Object.keys(totals) as TransactionType[]).length === 0
           ? "žiadne transakcie"
           : (Object.keys(totals) as TransactionType[]).map((t) => `${TYPE_LABEL[t]} ${eur(totals[t] ?? 0)}`).join(" · ")}
       </p>
@@ -443,7 +454,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       )}
       <ul style={{ paddingLeft: 0, listStyle: "none" }}>
         {list.length === 0 && <li style={{ color: "var(--muted)" }}>Zatiaľ žiadne.</li>}
-        {list.map((t) => (
+        {list.slice(0, shown).map((t) => (
           <li key={t.id} style={{ borderBottom: "1px solid var(--border-soft)", padding: "6px 0", display: "flex", flexDirection: "column", gap: 6 }}>
             <span>
               {dateSk(t.date)} · {TYPE_LABEL[t.type]} · {eur(t.amountCents)}
@@ -459,6 +470,9 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           </li>
         ))}
       </ul>
+      {list.length > shown && (
+        <button type="button" onClick={() => setShown(shown + 10)} style={btn}>Zobraziť staršie</button>
+      )}
     </section>
   );
 }

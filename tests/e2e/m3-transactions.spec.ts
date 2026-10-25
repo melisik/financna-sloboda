@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openDetails } from "./helpers";
 
 // M3 (roadmapa): zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové správanie formulárov.
 // Testy bežia nad skutočným UI (projekt nemá jsdom ani testing-library).
@@ -67,6 +67,7 @@ test.describe("M3 – zadanie transakcií", () => {
     await page.getByLabel("Suma (€)").fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €").first()).toBeVisible();
+    await openDetails(page, "section#nova-transakcia", "Filter"); // D-293: filter je zbalený
     await page.getByLabel("Filter typu").selectOption("sporenie");
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €").first()).toBeVisible();
     await expect(page.getByText("výdavok · 150,00 €")).toHaveCount(0);

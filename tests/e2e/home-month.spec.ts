@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openBudgetLimits } from "./helpers";
 
 // Prehľad: plnenie mesačného plánu a rozpis výdavkov na nevyhnutné a nie nevyhnutné (D-131). Syntetické hodnoty.
 test.describe("Prehľad: tento mesiac", () => {
@@ -14,7 +14,9 @@ test.describe("Prehľad: tento mesiac", () => {
     await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
 
     await goTo(page, "rozpocet");
+    await openBudgetLimits(page); // D-293: limity až po „Upraviť limity“
     await page.getByLabel("jedlo: limit (€)").fill("100");
+    await openBudgetLimits(page); // D-293: limity až po „Upraviť limity“
     await page.getByLabel("zábava: limit (€)").fill("50");
     await page.getByRole("button", { name: "Uložiť rozpočet" }).click();
 

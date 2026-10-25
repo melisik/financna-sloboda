@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openDetails } from "./helpers";
 
 // História transakcií: filter kategórie, súčty podľa kategórie a potvrdenie zmazania. Syntetické hodnoty.
 test.describe("história transakcií", () => {
@@ -31,6 +31,7 @@ test.describe("história transakcií", () => {
     await expect(rows).toHaveCount(2);
     await expect(page.getByText("Výdavky podľa kategórie: jedlo 45,00 € · nezaradené 3,00 €")).toBeVisible();
 
+    await openDetails(page, "section#nova-transakcia", "Filter"); // D-293: filter je zbalený
     await page.getByLabel("Filter kategórie").selectOption("jedlo");
     await expect(rows).toHaveCount(1);
     await expect(rows.first()).toContainText("45");

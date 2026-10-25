@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openBudgetLimits } from "./helpers";
 
 // D-106: limit kategórie a výdavok zaradený do kategórie. Syntetické hodnoty.
 test.describe("rozpočet kategórií (D-106)", () => {
@@ -13,9 +13,13 @@ test.describe("rozpočet kategórií (D-106)", () => {
     await expect(page.getByText("Posledné vyhodnotenie:").first()).toBeVisible();
 
     await goTo(page, "rozpocet");
+    await openBudgetLimits(page); // D-293: limity až po „Upraviť limity“
     await page.getByLabel("jedlo: limit (€)").fill("300");
     await page.getByRole("button", { name: "Uložiť rozpočet" }).click();
+    await expect(page.getByRole("button", { name: "Upraviť limity" })).toBeVisible(); // D-293: po uložení sa ukáže prehľad
+    await openBudgetLimits(page);
     await expect(page.getByLabel("jedlo: limit (€)")).toHaveValue("300");
+    await page.getByRole("button", { name: "Zrušiť" }).click();
 
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Suma (€)").fill("120");
@@ -24,6 +28,6 @@ test.describe("rozpočet kategórií (D-106)", () => {
     await expect(page.getByText("výdavok · 120,00 €").first()).toBeVisible();
 
     await goTo(page, "rozpocet");
-    await expect(page.getByText(/minuté tento mesiac 120,00 €; zostáva 180,00 €/)).toBeVisible();
+    await expect(page.locator("section#rozpocet p", { hasText: /jedlo: minuté 120,00\s€ · limit 300,00\s€ · zostáva 180,00\s€/ })).toBeVisible(); // D-293
   });
 });

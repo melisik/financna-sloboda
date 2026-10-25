@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openDetails } from "./helpers";
 
 // Moduly a viditeľnosť sekcií (D-162). Syntetické hodnoty.
 test.describe("moduly (D-162)", () => {
   test("vypnutý modul sa skryje z navigácie a zostane skrytý po obnovení", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nastavenia");
+    await openDetails(page, "section#nastavenia", "Moduly"); // D-293: Moduly v Nastaveniach sú zbalené
     const moduly = page.getByRole("region", { name: "Moduly" });
     await moduly.getByLabel("Investície", { exact: true }).uncheck();
 
@@ -15,6 +16,7 @@ test.describe("moduly (D-162)", () => {
 
     await page.reload();
     await goTo(page, "nastavenia");
+    await openDetails(page, "section#nastavenia", "Moduly"); // D-293: Moduly v Nastaveniach sú zbalené
     await expect(page.getByRole("region", { name: "Moduly" }).getByLabel("Investície", { exact: true })).not.toBeChecked();
     await expect(page.getByRole("navigation", { name: "Hlavná navigácia" }).locator('a[href="#investicie"]')).toHaveCount(0);
   });
@@ -22,6 +24,7 @@ test.describe("moduly (D-162)", () => {
   test("jadro (rozpočet, pravidelné výdavky) zostane zapnuté, aj keď sú všetky voliteľné moduly vypnuté", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nastavenia");
+    await openDetails(page, "section#nastavenia", "Moduly"); // D-293: Moduly v Nastaveniach sú zbalené
     const boxes = page.getByRole("region", { name: "Moduly" }).getByRole("checkbox");
     const count = await boxes.count();
     for (let i = 0; i < count; i++) await boxes.nth(i).uncheck();

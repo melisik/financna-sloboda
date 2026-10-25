@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openDetails } from "./helpers";
 
 // Sprievodca spustený z Nastavení: nemaže dáta, predvyplní ich a dá sa zavrieť.
 test.describe("sprievodca znova z Nastavení", () => {
   test("prejde kroky, uloží nové údaje a vráti sa do Nastavení", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nastavenia");
+    await openDetails(page, "section#nastavenia", "Sprievodca"); // D-293
     await page.getByRole("button", { name: "Spustiť sprievodcu znova" }).click();
     await expect(page.getByRole("heading", { name: "Vitaj" })).toBeVisible();
     await page.getByRole("button", { name: "Pokračovať" }).click();

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openDetails } from "./helpers";
 
 // Ročný prehľad: rozpis zmeny K na sporenie, výdavky a zvyšok a súhrn po rokoch. Syntetické hodnoty.
 test.describe("ročný prehľad: rozpis a súhrn", () => {
@@ -24,6 +24,7 @@ test.describe("ročný prehľad: rozpis a súhrn", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
     await goTo(page, "rocny-prehlad");
+    await openDetails(page, "section#rocny-prehlad", "Vyhodnotenia"); // D-293: vyhodnotenia sú zbalené
     await expect(page.getByText(/z toho sporenie 10,00 €/)).toBeVisible();
     await expect(page.getByText(/Sporenie: 10,00 €/)).toBeVisible();
   });

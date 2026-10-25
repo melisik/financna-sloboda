@@ -1,6 +1,6 @@
 # 46 – Návrh: prehľadnejšie usporiadanie obrazoviek
 
-> Stav: **návrh na schválenie** (2026-10-25). Kód sa zatiaľ nemení.
+> Stav: **priority 1 a 2 implementované** (2026-10-25, D-293). Zakladateľ zvolil: predpoklady viditeľné, 10 záznamov, nadpis nechať, priority 1 a 2 naraz. Priorita 3 (Záloha, rám appky) nie je implementovaná. Výsledky sú v oddiele 8.
 >
 > Merané na vetve `claude/phase2-property-card` pri 390 × 844 px s testovacou zálohou (po D-290), pruh „Skúšobná verzia“ zbalený. Prehľad (D-283, D-289) a Transakcie (D-286, D-287) sa už upravili. Tento návrh rieši ostatné obrazovky a históriu v Transakciách.
 
@@ -125,3 +125,31 @@ Pre každú obrazovku:
 4. Záznam do `docs/pilot/zmeny-pocas-pilota.md`, `docs/41` (návod pre testerov) a rozhodnutie do `decisions/Decisions.md`.
 
 Rozsah: priority 1 asi 1 až 2 dni, priority 2 asi pol dňa.
+
+## 8. Výsledok implementácie (2026-10-25)
+
+Merané rovnako ako oddiel 2 (390 × 844 px, testovacia záloha, pruh zbalený). Dĺžka celej stránky v px:
+
+| Obrazovka | Pred | Po | Rozdiel | 320 px | 1280 px |
+| --- | --- | --- | --- | --- | --- |
+| Transakcie | 4 084 | 2 560 | −37 % | 2 723 | 2 190 |
+| Nastavenia | 2 403 | 1 757 | −27 % | 1 882 | 1 535 |
+| Rozpočet | 1 919 | 1 183 | −38 % | 1 303 | 1 022 |
+| Ročný prehľad | 1 806 | 1 167 | −35 % | 1 284 | 1 033 |
+| Pravidelné výdavky | 1 732 | 1 524 | −12 % | 1 691 | 1 413 |
+| Dane | 1 675 | 1 182 | −29 % | 1 324 | 1 000 |
+
+Pri žiadnej šírke sa stránka neposúva do strany. Viditeľné polia: Rozpočet 12 → 0 (polia až po Upraviť limity); Pravidelné výdavky 13 tlačidiel → 5.
+
+| Nastavenia | Rozpočet | Pravidelné výdavky | Ročný prehľad | Dane | Transakcie |
+| --- | --- | --- | --- | --- | --- |
+| ![Nastavenia](obrazky/46/po-nastavenia-390.png) | ![Rozpočet](obrazky/46/po-rozpocet-390.png) | ![Pravidelné](obrazky/46/po-pravidelne-vydavky-390.png) | ![Ročný prehľad](obrazky/46/po-rocny-prehlad-390.png) | ![Dane](obrazky/46/po-dane-390.png) | ![Transakcie](obrazky/46/po-nova-transakcia-390.png) |
+
+**Odchýlky od návrhu:**
+- **Dane:** karty sa ukážu pri aspoň jednej investícii, aj bez zadaného režimu (karta „Nezadané“). Návrh hovoril „investícia s režimom“; pri investícii bez režimu by veta „Daňový režim zatiaľ nemá žiadna investícia“ skryla, že investícia čaká na zadanie režimu.
+- **Transakcie, súčet:** súčet ráta všetky transakcie vo filtri, nie len 10 zobrazených. Text „Súčet zobrazených transakcií“ by bol zavádzajúci, preto je „Súčet transakcií spolu“ alebo „vo filtri“.
+- **PIN:** zbalený súhrn ukazuje „PIN · zapnutý“, aby stav ochrany bol viditeľný bez rozbalenia.
+- **Rozpočet:** prekročenie limitu je v zozname červeným textom „prekročené o …“ (predtým pod poľom).
+
+**Testy:** nový `tests/e2e/layout-screens.spec.ts` (6 testov × 2 profily); 14 existujúcich súborov E2E testov dostalo krok „otvoriť“ (pomocníci `openDetails`, `openBudgetLimits`). `tsc` bez chýb, `vitest` 529, Playwright 454 (227 × 2) bez zlyhaní.
+

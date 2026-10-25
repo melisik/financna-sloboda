@@ -5,7 +5,7 @@ import { plural } from "../../domain/impact";
 import { goalDateText } from "../../domain/goalText";
 import { dateSk, eur, monthYear, todayIso } from "../../ui/kit/format";
 import { NextStep } from "../../ui/kit/NextStep";
-import { card, hintStyle } from "../../ui/kit/controls";
+import { btn, card, hintStyle } from "../../ui/kit/controls";
 
 /** Zmena dátumu cieľa v mesiacoch, slovne (docs/13, oddiel 4). */
 function goalShiftText(d: number): string {
@@ -28,26 +28,12 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
   const today = todayIso();
   const throughMonth = latestYear === Number(today.slice(0, 4)) ? Number(today.slice(5, 7)) : 12;
   const comparison = categoryComparison(data.transactions, latestYear, latestYear - 1, throughMonth);
+  const prevHasData = comparison.some((c) => c.prevCents !== 0);
+  // Poradie (D-293, docs/46): súhrn po rokoch, výdavky podľa kategórií, zbalené vyhodnotenia.
   return (
     <div>
-      <p style={{ color: "var(--muted)" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K, z dnešných Nastavení a z dnešných hodnôt nehnuteľností v prenájme.</p>
       {!s && <p style={{ color: "var(--muted)" }}>Nastavenia nie sú zadané; zobrazí sa len K. <NextStep to="nastavenia">Nastavenia</NextStep></p>}
-      <h3 style={{ fontSize: "var(--font-text)", marginTop: 16 }}>Výdavky podľa kategórií</h3>
-      <p style={{ ...hintStyle, marginTop: 0 }}>
-        {latestYear - 1} a {latestYear}{throughMonth < 12 ? `, mesiace 1 až ${throughMonth}` : ""}. Porovnanie je za rovnaké obdobie.
-      </p>
-      {comparison.length === 0 ? (
-        <p>Zatiaľ nie sú výdavky na porovnanie.</p>
-      ) : (
-        <div style={{ ...card, marginBottom: 8 }}>
-          {comparison.map((c) => (
-            <p key={c.category} style={{ margin: "4px 0" }}>
-              <strong>{c.category}</strong>: {eur(c.curCents)} (minulý rok {eur(c.prevCents)}, zmena {c.diffCents >= 0 ? "+" : "−"}{eur(Math.abs(c.diffCents))})
-            </p>
-          ))}
-        </div>
-      )}
-      <h3 style={{ fontSize: "var(--font-text)", marginTop: 16 }}>Súhrn po rokoch</h3>
+      <h3 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>Súhrn po rokoch</h3>
       {years.map((y) => (
         <div key={y.year} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{y.year}</strong></p>
@@ -63,7 +49,27 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
           )}
         </div>
       ))}
-      <h3 style={{ fontSize: "var(--font-text)", marginTop: 16 }}>Vyhodnotenia</h3>
+      <h3 style={{ fontSize: "var(--font-text)", marginTop: 16 }}>Výdavky podľa kategórií</h3>
+      <p style={{ ...hintStyle, marginTop: 0 }}>
+        {latestYear - 1} a {latestYear}{throughMonth < 12 ? `, mesiace 1 až ${throughMonth}` : ""}. Porovnanie je za rovnaké obdobie.
+      </p>
+      {comparison.length === 0 ? (
+        <p>Zatiaľ nie sú výdavky na porovnanie.</p>
+      ) : (
+        <div style={{ ...card, marginBottom: 8 }}>
+          {/* Bez údajov minulého roka sa porovnanie neukazuje ako nuly (D-293, docs/46). */}
+          {!prevHasData && <p style={{ ...hintStyle, margin: "4px 0" }}>Minulý rok nemá zapísané výdavky, porovnanie sa ukáže neskôr.</p>}
+          {comparison.map((c) => (
+            <p key={c.category} style={{ margin: "4px 0" }}>
+              <strong>{c.category}</strong>: {eur(c.curCents)}
+              {prevHasData && <> (minulý rok {eur(c.prevCents)}, zmena {c.diffCents >= 0 ? "+" : "−"}{eur(Math.abs(c.diffCents))})</>}
+            </p>
+          ))}
+        </div>
+      )}
+      <details style={{ marginTop: 16 }}>
+        <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Vyhodnotenia ({rows.length}) ▾</summary>
+        <p style={{ color: "var(--muted)" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K, z dnešných Nastavení a z dnešných hodnôt nehnuteľností v prenájme.</p>
       {rows.map((r) => (
         <div key={r.date} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{dateSk(r.date)}</strong>{r.auto ? " · automaticky" : ""}</p>
@@ -86,6 +92,7 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
           )}
         </div>
       ))}
+      </details>
     </div>
   );
 }

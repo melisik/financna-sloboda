@@ -99,7 +99,8 @@ export function LockScreen({ repo, onUnlock, onWiped }: { repo: Repository; onUn
 }
 
 /** Zapnutie, vypnutie a zamknutie PIN-u v Nastaveniach (D-119). */
-export function PinSection({ repo, pinSet, onChanged, onLock }: { repo: Repository; pinSet: boolean; onChanged: (on: boolean) => void; onLock: () => void }) {
+/** `heading={false}`: nadpis nahrádza súhrn zbaleného bloku v Nastaveniach (D-293). */
+export function PinSection({ repo, pinSet, onChanged, onLock, heading = true }: { repo: Repository; pinSet: boolean; onChanged: (on: boolean) => void; onLock: () => void; heading?: boolean }) {
   const [newPin, setNewPin] = useState("");
   const [repeat, setRepeat] = useState("");
   const [current, setCurrent] = useState("");
@@ -144,7 +145,7 @@ export function PinSection({ repo, pinSet, onChanged, onLock }: { repo: Reposito
 
   return (
     <section style={{ marginTop: 16 }}>
-      <h3 style={{ fontSize: "var(--font-text)" }}>PIN</h3>
+      {heading && <h3 style={{ fontSize: "var(--font-text)" }}>PIN</h3>}
       {pinSet ? (
         <>
           <p style={{ color: "var(--muted)" }}>PIN je zapnutý. Appka sa pri otvorení najprv opýta na PIN. PIN chráni prístup v tomto telefóne; údaje nie sú zašifrované.</p>

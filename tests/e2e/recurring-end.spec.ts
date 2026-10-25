@@ -29,9 +29,12 @@ test.describe("pravidelné výdavky: ročný súčet a ukončenie", () => {
     const streaming = page.locator("section#pravidelne-vydavky div", { hasText: "Streaming test" }).last();
     await expect(streaming).toContainText("Koniec platnosti o menej ako 30 dní");
 
+    // Ukončiť je v úprave položky (D-293).
     const insurance = page.locator("section#pravidelne-vydavky div", { hasText: "Poistka test" }).last();
-    await insurance.getByRole("button", { name: "Ukončiť od zajtra" }).click();
+    await insurance.getByRole("button", { name: "Upraviť" }).click();
+    await page.locator("section#pravidelne-vydavky").getByRole("button", { name: "Ukončiť od zajtra" }).click();
     await expect(insurance).toContainText(`do ${isoDay(0).split("-").reverse().join(".")}`);
-    await expect(insurance.getByRole("button", { name: "Ukončiť od zajtra" })).toHaveCount(0);
+    await insurance.getByRole("button", { name: "Upraviť" }).click();
+    await expect(page.locator("section#pravidelne-vydavky").getByRole("button", { name: "Ukončiť od zajtra" })).toHaveCount(0);
   });
 });

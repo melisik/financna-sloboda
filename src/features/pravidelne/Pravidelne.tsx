@@ -21,7 +21,6 @@ const RECURRING_FREQUENCY_LABEL: Record<RecurringFrequency, string> = {
 /** Pravidelné výdavky (D-124): zoznam, súčet za mesiac a podľa kategórie. Iba zobrazenie. */
 export function RecurringSection({ repo, items, today, onSaved }: { repo: Repository; items: RecurringExpense[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<RecurringExpense | "new" | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const total = monthlyRecurringTotalCents(items, today);
   const annual = annualRecurringTotalCents(items, today);
@@ -41,7 +40,6 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
   const remove = async (id: string) => {
     try {
       await repo.deleteRecurringExpense(id);
-      setConfirmId(null);
       setErr(null);
       onSaved();
     } catch {
@@ -62,7 +60,22 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
         <p style={hintStyle}>Pravidelné výdavky sa berú do rozpočtu podľa kategórie. <NextStep to="rozpocet">Rozpočet</NextStep></p>
       )}
       {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané pravidelné výdavky.</p>}
-      {items.map((e) => (
+      {/* Pri položke len Upraviť; Ukončiť a Zmazať sú v úprave, ktorá sa otvorí na mieste položky (D-293, docs/46). */}
+      {items.map((e) => editing !== null && editing !== "new" && editing.id === e.id ? (
+        <RecurringForm
+          key={e.id}
+          repo={repo}
+          initial={e}
+          today={today}
+          onDone={() => { setEditing(null); onSaved(); }}
+          onCancel={() => setEditing(null)}
+          actions={{
+            canEnd: isRecurringActive(e, today) && (e.endDate === undefined || e.endDate > today),
+            onEnd: () => { setEditing(null); void endNow(e); },
+            onDelete: () => { setEditing(null); void remove(e.id); },
+          }}
+        />
+      ) : (
         <div key={e.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{e.name}</strong> · {e.category}</p>
           <p style={{ margin: "4px 0" }}>
@@ -75,40 +88,27 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
           {endingSoon(e, today) && (
             <p style={{ margin: "4px 0", color: "var(--danger)", fontSize: "var(--font-small)" }}>Koniec platnosti o menej ako 30 dní. Ak sa platba obnoví, upravte koniec.</p>
           )}
-          {confirmId === e.id ? (
-            <div>
-              <p>Naozaj zmazať pravidelný výdavok „{e.name}“?</p>
-              <button onClick={() => remove(e.id)} style={btnDanger}>Zmazať</button>{" "}
-              <button onClick={() => setConfirmId(null)} style={btn}>Zrušiť</button>
-            </div>
-          ) : (
-            <>
-              <button onClick={() => setEditing(e)} style={btn}>Upraviť</button>{" "}
-              {isRecurringActive(e, today) && (e.endDate === undefined || e.endDate > today) && (
-                <button onClick={() => endNow(e)} style={btn}>Ukončiť od zajtra</button>
-              )}{" "}
-              <button onClick={() => setConfirmId(e.id)} style={btnDanger}>Zmazať</button>
-            </>
-          )}
+          <button onClick={() => setEditing(e)} style={btn}>Upraviť</button>
         </div>
       ))}
-      {editing ? (
+      {editing === "new" ? (
         <RecurringForm
           repo={repo}
-          initial={editing === "new" ? null : editing}
+          initial={null}
           today={today}
           onDone={() => { setEditing(null); onSaved(); }}
           onCancel={() => setEditing(null)}
         />
       ) : (
-        <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať pravidelný výdavok</button>
+        editing === null && <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať pravidelný výdavok</button>
       )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
   );
 }
 
-function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: RecurringExpense | null; today: string; onDone: () => void; onCancel: () => void }) {
+function RecurringForm({ repo, initial, today, onDone, onCancel, actions }: { repo: Repository; initial: RecurringExpense | null; today: string; onDone: () => void; onCancel: () => void; actions?: { canEnd: boolean; onEnd: () => void; onDelete: () => void } }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [name, setName] = useState(initial?.name ?? "");
   const [category, setCategory] = useState<BudgetCategory>(initial?.category ?? "predplatné a služby");
   const [frequency, setFrequency] = useState<RecurringFrequency>(initial?.frequency ?? "mesacne");
@@ -172,6 +172,21 @@ function RecurringForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>Uložiť výdavok</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
+      {actions && (
+        <div style={{ marginTop: 16, borderTop: "1px solid var(--border-soft)", paddingTop: 8 }}>
+          {actions.canEnd && <><button onClick={actions.onEnd} style={btn}>Ukončiť od zajtra</button>{" "}</>}
+          {/* Zmazanie len s potvrdením (D-199). */}
+          {confirmDelete ? (
+            <p>
+              Naozaj zmazať pravidelný výdavok „{initial?.name}“?{" "}
+              <button onClick={actions.onDelete} style={btnDanger}>Zmazať</button>{" "}
+              <button onClick={() => setConfirmDelete(false)} style={btn}>Zrušiť</button>
+            </p>
+          ) : (
+            <button onClick={() => setConfirmDelete(true)} style={btnDanger}>Zmazať</button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

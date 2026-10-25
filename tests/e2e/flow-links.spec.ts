@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openBudgetLimits } from "./helpers";
 
 // Skryté odkazy na ďalší krok (D-206): objavia sa, až keď ich dáta potrebujú. Syntetické hodnoty.
 test.describe("prepojenia medzi sekciami (D-204)", () => {
@@ -43,6 +43,7 @@ test.describe("prepojenia medzi sekciami (D-204)", () => {
   test("limit v kategórii výdavku ukáže odkaz na Rozpočet", async ({ page }) => {
     await openApp(page);
     await goTo(page, "rozpocet");
+    await openBudgetLimits(page); // D-293: limity až po „Upraviť limity“
     await page.getByLabel("jedlo: limit (€)").fill("300");
     await page.getByRole("button", { name: "Uložiť rozpočet" }).click();
     await goTo(page, "nova-transakcia");

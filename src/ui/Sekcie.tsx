@@ -162,13 +162,22 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
         <Section id="nastavenia" title="Nastavenia">
           {settingsFlash && <p style={{ ...calloutStyle("ok"), color: "var(--ok)" }}>{settingsFlash} <NextStep to="prehlad">Prehľad</NextStep></p>}
           <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={() => { reload(); setSettingsFlash("Nastavenia sú uložené."); }} />
-          <ModulesBlock />
-          <section style={{ marginTop: 16 }}>
-            <h3 style={{ fontSize: "var(--font-text)" }}>Sprievodca</h3>
+          {/* Zriedka používané časti sú zbalené (D-293, docs/46). */}
+          {PHASE2_ENABLED && (
+            <details style={{ marginTop: 24 }}>
+              <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Moduly ▾</summary>
+              <ModulesBlock heading={false} style={{ marginTop: 8, borderTop: "none", paddingTop: 0 }} />
+            </details>
+          )}
+          <details style={{ marginTop: 8 }}>
+            <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Sprievodca ▾</summary>
             <p style={{ color: "var(--muted)" }}>Prejdi sprievodcu znova. Údaje sa predvyplnia a nič sa nevymaže.</p>
             <button onClick={() => setWizardOpen(true)} style={btn}>Spustiť sprievodcu znova</button>
-          </section>
-          <PinSection repo={repo} pinSet={pinSet} onChanged={(on) => setPinSet(on)} onLock={() => setLocked(true)} />
+          </details>
+          <details style={{ marginTop: 8 }}>
+            <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>PIN{pinSet ? " · zapnutý" : ""} ▾</summary>
+            <PinSection repo={repo} pinSet={pinSet} onChanged={(on) => setPinSet(on)} onLock={() => setLocked(true)} heading={false} />
+          </details>
         </Section>
       );
     case "zaloha":

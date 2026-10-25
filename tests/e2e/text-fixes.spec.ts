@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openDetails } from "./helpers";
 
 // Drobné úpravy textov z externej revízie: slovenský výber súboru a zrozumiteľný filter histórie.
 test.describe("texty z revízie", () => {
@@ -14,8 +14,9 @@ test.describe("texty z revízie", () => {
   test("filter histórie má slovné popisky a prázdny súčet vysvetlí, čo sa zobrazuje", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nova-transakcia");
+    await openDetails(page, "section#nova-transakcia", "Filter"); // D-293
     await expect(page.getByLabel("Od dátumu")).toBeVisible();
-    await expect(page.getByText("Súčet zobrazených transakcií: žiadne transakcie")).toBeVisible();
+    await expect(page.getByText("Súčet transakcií spolu: žiadne transakcie")).toBeVisible(); // D-293: súčet ráta všetky, nie len zobrazených 10
   });
 
   test("dátumy sú natívny výber dátumu a PIN je skrytý s číselnou klávesnicou", async ({ page }) => {
@@ -23,6 +24,7 @@ test.describe("texty z revízie", () => {
     await goTo(page, "vyhodnotenie");
     await expect(page.getByLabel("Dátum vyhodnotenia", { exact: true })).toHaveAttribute("type", "date");
     await goTo(page, "nastavenia");
+    await openDetails(page, "section#nastavenia", "PIN"); // D-293
     const pin = page.getByLabel("Nový PIN (4 až 6 číslic)");
     await expect(pin).toHaveAttribute("type", "password");
     await expect(pin).toHaveAttribute("inputmode", "numeric");
