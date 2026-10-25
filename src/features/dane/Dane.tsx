@@ -98,22 +98,28 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
     setBusy(true);
     setErr(null);
     setSaved(null);
+    // Krok, v ktorom sa to zastavilo, ide do hlásenia: chybu na telefóne inak nevidno (postreh zakladateľa 5.3, D-306).
+    let step = "načítanie tlačiva";
     try {
       const fields = buildTaxFormFields(properties, dogs, today);
       const res = await fetch(TAX_FORM_PATH);
-      if (!res.ok) throw new Error("tlačivo sa nenašlo");
-      const out = await fillTaxFormPdf(new Uint8Array(await res.arrayBuffer()), fields);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const pdf = new Uint8Array(await res.arrayBuffer());
+      step = "vyplnenie";
+      const out = await fillTaxFormPdf(pdf, fields);
       const name = `priznanie-17-dp-md-${today}.pdf`;
       const blob = new Blob([new Uint8Array(out.bytes)], { type: "application/pdf" });
       setPreview(URL.createObjectURL(blob));
+      step = "uloženie";
       const how = await saveBlobFile(name, blob);
       setSaved({ name, how });
       setNotes([
         ...(out.tooLong.length > 0 ? [`Tieto údaje sa do tlačiva nezmestili, doplňte ich v PDF ručne: ${out.tooLong.join(", ")}.`] : []),
         ...fields.notes,
       ]);
-    } catch {
-      setErr("Tlačivo sa nepodarilo vyplniť. Skús to znova.");
+    } catch (e) {
+      const why = e instanceof Error && e.message ? ` (${e.name}: ${e.message.slice(0, 120)})` : "";
+      setErr(`Tlačivo sa nepodarilo vyplniť. Zastavilo sa pri kroku: ${step}${why}. Skús to znova; ak sa to opakuje, pošli túto vetu ako pripomienku.`);
     } finally {
       setBusy(false);
     }
