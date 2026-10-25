@@ -26,7 +26,7 @@ test.describe("tlačivo 17-dp-md: stav a výsledok", () => {
 
     const fill = page.getByRole("button", { name: "Vyplniť tlačivo (PDF)" });
     await expect(fill).toBeEnabled();
-    const [download] = await Promise.all([page.waitForEvent("download"), fill.click()]);
+    const [download] = await Promise.all([page.waitForEvent("download"), (async () => { await fill.click(); await page.getByRole("button", { name: "Uložiť tlačivo (PDF)" }).click(); })()]);
     expect(download.suggestedFilename()).toBe(`priznanie-17-dp-md-${today}.pdf`);
     await expect(page.getByText(`Tlačivo je uložené ako priznanie-17-dp-md-${today}.pdf.`)).toBeVisible();
     const preview = page.getByRole("link", { name: "Otvoriť vyplnené PDF" });

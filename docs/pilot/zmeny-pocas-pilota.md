@@ -86,6 +86,7 @@ Výpočet cieľa tieto zmeny nemenia. Niektoré však menia, čo a ako používa
 | 2026-10-24 | D-289 | Prehľad: zbalený blok Vývoj v čase; skloňovanie „22 mesiacov“ (len text). |
 | 2026-10-24 | D-290 | Mesačný výdavok: zoznam opakovaných výdavkov a dátumu cieľa; doplnená testovacia záloha (viac transakcií). |
 | 2026-10-25 | D-293 | Usporiadanie obrazoviek: Nastavenia v skupinách (Moduly, Sprievodca a PIN zbalené), Rozpočet ako prehľad s „Upraviť limity“, Pravidelné výdavky s jedným tlačidlom, filter histórie zbalený a 10 záznamov, Ročný prehľad a Dane s menej nulami. Výpočty sa nemenia. |
+| 2026-10-25 | D-306, D-307 | Tlačivo 17-dp-md: hlásenie chyby s krokom; vyplnenie a uloženie sú dva samostatné kroky (zdieľanie na iPhone). |
 | 2026-10-25 | D-305 | Záloha na iPhone sa ukladá cez zdieľací list (typ súboru text), aby sa dalo vrátiť do appky. |
 | 2026-10-25 | D-304 | Zlúčenie do main; rozloženie pri širšom písme (tabuľka Vývoj, polia, odsadenie pod menu a nad pruhom Uložiť). |
 | 2026-10-25 | D-302 | Sklad: nákupný zoznam (ručne, z receptu, po dôjdení), minimálna zásoba pri položke, poslanie zoznamu ako text; záloha v14. |

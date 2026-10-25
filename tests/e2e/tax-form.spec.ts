@@ -22,7 +22,7 @@ test.describe("tlačivo 17-dp-md", () => {
 
     const [download] = await Promise.all([
       page.waitForEvent("download"),
-      page.getByRole("button", { name: "Vyplniť tlačivo (PDF)" }).click(),
+      (async () => { await page.getByRole("button", { name: "Vyplniť tlačivo (PDF)" }).click(); await page.getByRole("button", { name: "Uložiť tlačivo (PDF)" }).click(); })(),
     ]);
     expect(download.suggestedFilename()).toMatch(/^priznanie-17-dp-md-\d{4}-\d{2}-\d{2}\.pdf$/);
     const path = await download.path();

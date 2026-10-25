@@ -86,6 +86,8 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
   const [err, setErr] = useState<string | null>(null);
   const [saved, setSaved] = useState<{ name: string; how: SaveResult } | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  // Vyplnené PDF čaká na samostatné ťuknutie Uložiť: zdieľací list na iPhone sa otvorí len hneď po ťuknutí (D-307).
+  const [ready, setReady] = useState<{ name: string; blob: Blob } | null>(null);
   // Bez nehnuteľnosti a psa by tlačivo ostalo prázdne, preto sa nevypĺňa (D-208).
   const empty = properties.length === 0 && dogs.length === 0;
 
@@ -98,6 +100,7 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
     setBusy(true);
     setErr(null);
     setSaved(null);
+    setReady(null);
     // Krok, v ktorom sa to zastavilo, ide do hlásenia: chybu na telefóne inak nevidno (postreh zakladateľa 5.3, D-306).
     let step = "načítanie tlačiva";
     try {
@@ -110,9 +113,7 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
       const name = `priznanie-17-dp-md-${today}.pdf`;
       const blob = new Blob([new Uint8Array(out.bytes)], { type: "application/pdf" });
       setPreview(URL.createObjectURL(blob));
-      step = "uloženie";
-      const how = await saveBlobFile(name, blob);
-      setSaved({ name, how });
+      setReady({ name, blob });
       setNotes([
         ...(out.tooLong.length > 0 ? [`Tieto údaje sa do tlačiva nezmestili, doplňte ich v PDF ručne: ${out.tooLong.join(", ")}.`] : []),
         ...fields.notes,
@@ -136,11 +137,23 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
           Najprv pridaj nehnuteľnosť v Majetku alebo psa vyššie. Bez nich by tlačivo zostalo prázdne. <NextStep to="majetok">Majetok</NextStep>
         </p>
       )}
-      <button onClick={run} disabled={busy || empty} style={btnPrimary}>{busy ? "Vypĺňam…" : "Vyplniť tlačivo (PDF)"}</button>
+      <button onClick={run} disabled={busy || empty} style={ready ? btn : btnPrimary}>{busy ? "Vypĺňam…" : "Vyplniť tlačivo (PDF)"}</button>
+      {ready && (
+        <button
+          onClick={async () => {
+            try {
+              setSaved({ name: ready.name, how: await saveBlobFile(ready.name, ready.blob) });
+            } catch (e) {
+              setErr(`Tlačivo sa nepodarilo uložiť${e instanceof Error && e.message ? ` (${e.name}: ${e.message.slice(0, 120)})` : ""}.`);
+            }
+          }}
+          style={{ ...btnPrimary, marginLeft: 8 }}
+        >Uložiť tlačivo (PDF)</button>
+      )}
       {saved && (
         <p style={{ ...calloutStyle("ok"), marginTop: 8 }}>
           {saved.how === "cancelled"
-            ? "Súbor sa neuložil. Ak ho chceš, klepni na Vyplniť tlačivo znova."
+            ? "Súbor sa neuložil. Ak ho chceš, klepni na Uložiť tlačivo znova."
             : saved.how === "shared"
               ? `Tlačivo je uložené cez zdieľací list ako ${saved.name}.`
               : `Tlačivo je uložené ako ${saved.name}. Nájdeš ho v Stiahnutých súboroch prehliadača (v Edge a Chrome: Ctrl+J).`}
