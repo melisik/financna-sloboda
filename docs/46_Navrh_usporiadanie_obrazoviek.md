@@ -1,6 +1,6 @@
 # 46 – Návrh: prehľadnejšie usporiadanie obrazoviek
 
-> Stav: **priority 1 a 2 implementované** (2026-10-25, D-293). Zakladateľ zvolil: predpoklady viditeľné, 10 záznamov, nadpis nechať, priority 1 a 2 naraz. Priorita 3 (Záloha, rám appky) nie je implementovaná. Výsledky sú v oddiele 8.
+> Stav: **priority 1 a 2 implementované** (2026-10-25, D-293). Zakladateľ zvolil: predpoklady viditeľné, 10 záznamov, nadpis nechať, priority 1 a 2 naraz. Priorita 3: Záloha implementovaná (D-294), nadpis appky sa podľa otázky 3 nemení. Výsledky sú v oddiele 8.
 >
 > Merané na vetve `claude/phase2-property-card` pri 390 × 844 px s testovacou zálohou (po D-290), pruh „Skúšobná verzia“ zbalený. Prehľad (D-283, D-289) a Transakcie (D-286, D-287) sa už upravili. Tento návrh rieši ostatné obrazovky a históriu v Transakciách.
 
@@ -152,4 +152,14 @@ Pri žiadnej šírke sa stránka neposúva do strany. Viditeľné polia: Rozpoč
 - **Rozpočet:** prekročenie limitu je v zozname červeným textom „prekročené o …“ (predtým pod poľom).
 
 **Testy:** nový `tests/e2e/layout-screens.spec.ts` (6 testov × 2 profily); 14 existujúcich súborov E2E testov dostalo krok „otvoriť“ (pomocníci `openDetails`, `openBudgetLimits`). `tsc` bez chýb, `vitest` 529, Playwright 454 (227 × 2) bez zlyhaní.
+
+### 8.1 Záloha (D-294, 2026-10-25)
+
+Časti „Uložiť zálohu“ a „Obnoviť zo zálohy“ s nadpismi a čiarou medzi nimi. Dĺžka stránky pri 390 px: 1 145 → 1 212 px (+67 px za dva nadpisy a oddelenie; cieľom bolo zreteľné oddelenie, nie skrátenie). Pri 320 px 1 308 px, pri 1280 px 977 px, bez posúvania do strany.
+
+Odchýlka od návrhu: správa o exporte (úspech, zrušenie, krátke heslo) sa presunula pod tlačidlo Exportovať zálohu. Predtým bola na konci stránky pod časťou o obnove, takže po rozdelení by patrila do nesprávnej časti.
+
+![Záloha](obrazky/46/po-zaloha-390.png)
+
+**Testy:** nový test v `tests/e2e/layout-screens.spec.ts` (poradie nadpisov a správa o exporte v časti Uložiť zálohu). `tsc` bez chýb, `vitest` 529, Playwright 456 (228 × 2) bez zlyhaní.
 

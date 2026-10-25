@@ -83,18 +83,20 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
   const [preview, setPreview] = useState<{ data: AppData; attachments: Attachment[]; counts: { transactions: number; snapshots: number }; exportedAt: string; notes: string[] } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
+  // Správa o exporte je v časti Uložiť zálohu, správa o obnove v časti Obnoviť (D-294, docs/46 3.7).
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [exportPassword, setExportPassword] = useState("");
   const [encryptedImport, setEncryptedImport] = useState<EncryptedBackup | null>(null);
   const [importPassword, setImportPassword] = useState("");
 
   const exportBackup = async () => {
-    if (exportPassword !== "" && exportPassword.length < MIN_PASSWORD_LENGTH) return setStatus(`Heslo musí mať aspoň ${MIN_PASSWORD_LENGTH} znakov. Nič sa neexportovalo.`);
+    if (exportPassword !== "" && exportPassword.length < MIN_PASSWORD_LENGTH) return setExportStatus(`Heslo musí mať aspoň ${MIN_PASSWORD_LENGTH} znakov. Nič sa neexportovalo.`);
     const r = await exportBackupFile(data, await repo.listAllAttachments(), exportPassword || undefined);
-    if (r.result === "cancelled") return setStatus("Export bol zrušený. Záloha nie je uložená.");
+    if (r.result === "cancelled") return setExportStatus("Export bol zrušený. Záloha nie je uložená.");
     onExported(r.exportedAt);
     setExportPassword("");
     const enc = exportPassword !== "" ? "Záloha je zašifrovaná; na obnovu potrebuješ heslo. " : "";
-    setStatus(enc + (r.result === "shared"
+    setExportStatus(enc + (r.result === "shared"
       ? "Záloha je uložená podľa tvojho výberu. Obsahuje citlivé finančné údaje vrátane čísel dokladov: neukladaj ju do verejných priečinkov."
       : "Záloha sa stiahla. Obsahuje citlivé finančné údaje vrátane čísel dokladov: neukladaj ju do verejných priečinkov."));
   };
@@ -164,6 +166,7 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
   return (
     <section>
       <p style={{ color: "var(--muted)" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu. Záloha obsahuje aj čísla dokladov, preto ju chráň.</p>
+      <h3 style={{ fontSize: "var(--font-text)", marginBottom: 0 }}>Uložiť zálohu</h3>
       <p>Posledná záloha: <strong>{lastExport ? lastExportText(lastExport, todayIso()) : "zatiaľ žiadna"}</strong></p>
       {backupOverdue(lastExport, todayIso()) && (
         <p style={calloutStyle("warn")}>Záloha je staršia ako 7 dní alebo ešte nebola urobená. Odporúčame novú zálohu.</p>
@@ -175,9 +178,8 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
       <p style={hintStyle}>Heslo sa nedá obnoviť. Bez neho sa zašifrovaná záloha neotvorí.</p>
       <button onClick={exportBackup} style={btnPrimary}>Exportovať zálohu</button>
       <p style={hintStyle}>Na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne do priečinka Stiahnuté.</p>
-      <label style={{ display: "block", margin: "16px 0 8px" }}>
-        <span style={{ display: "block", fontSize: "var(--font-small)" }}>Obnovenie zo zálohy</span>
-      </label>
+      {exportStatus && <p style={{ marginTop: 12 }}>{exportStatus}</p>}
+      <h3 style={{ fontSize: "var(--font-text)", marginBottom: 8, marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border)" }}>Obnoviť zo zálohy</h3>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <button type="button" onClick={() => fileRef.current?.click()} style={btn}>Vybrať súbor zálohy</button>
         <span style={hintStyle}>{fileName || "Nie je vybraný žiadny súbor"}</span>

@@ -23,7 +23,7 @@
 | Mesačný výdavok (scenár) | implementované (N-12b, D-275) | zníženie mesačného sporenia a dopad na cieľ, skupina Peniaze; pod scenárom opakované výdavky a dátum cieľa (D-290) |
 | Pripomienky | schválené; na vetve: zmeškané vyhodnotenie, blížiaci sa koniec mesiaca (okno 3 dni, potvrdené D-227), záloha (7 dní), kontrola nastavení; testy `tests/reminders.test.ts` | koniec mesiaca a záloha (D-107) |
 | Nastavenia | na main | skupiny Cieľ, Sporenie, Predpoklady výpočtu; Moduly, Sprievodca a PIN zbalené (D-293, na vetve) |
-| Záloha | na main | šifrovanie odložené (D-108) |
+| Záloha | na main | šifrovanie heslom (D-276, na vetve; predtým odložené D-108); časti Uložiť zálohu a Obnoviť zo zálohy (D-294, na vetve) |
 
 ## 2. Odpovede vlastníka (2026-10-19)
 

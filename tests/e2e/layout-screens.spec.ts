@@ -95,4 +95,22 @@ test.describe("usporiadanie obrazoviek", () => {
     await expect(s).toContainText("Daňový režim zatiaľ nemá žiadna investícia.");
     await expect(s.getByText("Hodnota investícií v režime")).toHaveCount(0);
   });
+
+  test("Záloha: dve časti s nadpismi; správa o exporte je v časti Uložiť zálohu (docs/46, 3.7)", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "zaloha");
+    const s = page.locator("section#zaloha");
+    await expect(s.locator("h3")).toHaveText(["Uložiť zálohu", "Obnoviť zo zálohy"]);
+    const save = s.locator("h3", { hasText: "Uložiť zálohu" });
+    const restore = s.locator("h3", { hasText: "Obnoviť zo zálohy" });
+    const y = async (l: import("@playwright/test").Locator) => (await l.boundingBox())!.y;
+    expect(await y(save)).toBeLessThan(await y(s.getByRole("button", { name: "Exportovať zálohu" })));
+    expect(await y(s.getByRole("button", { name: "Exportovať zálohu" }))).toBeLessThan(await y(restore));
+    expect(await y(restore)).toBeLessThan(await y(s.getByRole("button", { name: "Vybrať súbor zálohy" })));
+    await s.getByLabel("Heslo na šifrovanie zálohy").fill("kratke");
+    await s.getByRole("button", { name: "Exportovať zálohu" }).click();
+    const msg = s.getByText(/Heslo musí mať aspoň 8 znakov/);
+    await expect(msg).toBeVisible();
+    expect(await y(msg)).toBeLessThan(await y(restore));
+  });
 });
