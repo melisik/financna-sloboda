@@ -2,7 +2,7 @@
 
 Účel: pripraviť posúdenie pred spustením Fázy 2 pre používateľov (D-094, D-090). Dokument popisuje **stav kódu k 2026-10-21** (vetva `main`, commit `1746c30`). Všetko, čo tu nie je overené v kóde, je označené ako predpoklad. Dokument nie je právne stanovisko.
 
-Doplnené 2026-10-24: šifrovaná záloha (D-276) a zbaliteľné upozornenie (D-281) sú na vetve `claude/phase2-property-card`, v `main` ešte nie sú. Verejná zostava od D-248 Fázu 2 neobsahuje. Opravené riziká 2, 5 a 9 a otázka 5.
+Doplnené 2026-10-24: šifrovaná záloha (D-276) a zbaliteľné upozornenie (D-281) boli najprv na vetve `claude/phase2-property-card`; od 2026-10-25 sú aj v `main` (D-304). Verejná zostava od D-248 Fázu 2 neobsahuje. Opravené riziká 2, 5 a 9 a otázka 5.
 
 ## 1. Čo appka robí
 - Osobná evidencia príjmov, výdavkov, sporenia, majetku, záväzkov a skladu potravín.
@@ -37,7 +37,7 @@ Doplnené 2026-10-24: šifrovaná záloha (D-276) a zbaliteľné upozornenie (D-
 
 ## 4. Riziká na posúdenie
 1. **Šifrovanie:** údaje v zariadení nie sú šifrované (D-026). Ochrana je len zámok zariadenia a PIN, ktorý nešifruje dáta. Zakladateľ to prijal pri uzavretí brány G3 (D-297); ak právne posúdenie šifrovanie vyžaduje, otvorí sa znova.
-2. **Zálohy:** JSON so všetkými údajmi, uložený napr. do Dropboxu či e-mailu. Šifrovanie heslom je voliteľné (D-276, mení odloženie z D-108): PBKDF2-SHA256 so 600 000 iteráciami, AES-GCM-256, heslo aspoň 8 znakov. Zabudnuté heslo sa nedá obnoviť. Záloha bez hesla zostáva nešifrovaná. Zatiaľ len na vetve `claude/phase2-property-card`, nie v `main`.
+2. **Zálohy:** JSON so všetkými údajmi, uložený napr. do Dropboxu či e-mailu. Šifrovanie heslom je voliteľné (D-276, mení odloženie z D-108): PBKDF2-SHA256 so 600 000 iteráciami, AES-GCM-256, heslo aspoň 8 znakov. Zabudnuté heslo sa nedá obnoviť. Záloha bez hesla zostáva nešifrovaná. Od 2026-10-25 aj vo verejnej verzii (zlúčenie D-304).
 3. **Zabudnutý PIN:** po potvrdení sa dáta v zariadení vymažú (D-135). Obnova je len zo zálohy.
 4. **Čísla dokladov:** identifikátor, ktorý sa dá použiť na overenie dokladu na portáli. Nezobrazuje sa v appke (D-133), ale je v zálohe.
 5. **Fáza 2 u testerov:** Fáza 2 bola od 2026-10-21 na verejnej adrese (D-142). Podľa D-217 a D-248 ju verejná zostava z `main` neobsahuje (`pages.yml`: `VITE_PHASE2` „0“, overené v `main` 2026-10-24). Fázu 2 vidia len testeri v súkromnom náhľade za heslom (D-270 až D-273), s upozornením na skúšobnú verziu (D-144, D-281). Podmienky pred spustením pre používateľov (D-094) sú otvorené.

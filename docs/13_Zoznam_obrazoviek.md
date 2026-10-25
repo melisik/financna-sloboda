@@ -1,29 +1,29 @@
 # 13 – Zoznam obrazoviek a rozhodnutí
 
-> Stav k 2026-10-23 (aktualizované po auditu 2026-10-23, `docs/24_Audit_2026-10-23.md`). Zoznam sa priebežne upravuje; zmeny ide zapísať sem a rozhodnutia do `decisions/Decisions.md`. Stav „na vetve“ znamená, že kód nie je na `main`.
+> Stav k 2026-10-25: kód vetvy `claude/phase2-property-card` je zlúčený do `main` (D-304). Sekcie Fázy 2 sú v kóde `main`, ale verejná zostava ich nezobrazuje (D-248); vidno ich len v súkromnom náhľade. Zoznam sa priebežne upravuje; zmeny ide zapísať sem a rozhodnutia do `decisions/Decisions.md`. Stav „na vetve“ znamená, že kód nie je na `main`.
 
 ## 1. Obrazovky
 
 | Obrazovka | Stav | Poznámka |
 |---|---|---|
-| Prehľad | na main | cieľ, dátum, vyhodnotenie, podrobnosti; na vetve aj pokrok a posun dátumu cieľa na prvej obrazovke (D-283) a zbalený Vývoj v čase (D-289) |
-| Transakcie | na main | sporenie, investícia, výdavok, rezerva, výber z rezervy; na vetve suma ako prvé pole, doklad zbalený, Prílohy a Zmazať v úprave (D-286); filter histórie zbalený, 10 záznamov (D-293) |
-| Vyhodnotenie | na vetve (zoznam a mazanie vyhodnotení); mesačné zadanie na main | mesačné zadanie; investície sa odvodia zo súčtu položiek (D-101) |
-| Majetok | na vetve | nehnuteľnosť (hypotéka, splátka s úrokom), automobil, ocenitelné právo |
-| Investície | na vetve | ručné položky (D-101); tretí pilier a ciele zoskupenia so súčtom a pokrokom (D-105, D-258) |
-| Záväzky | na vetve (vlastná sekcia, D-103) | vlastná sekcia (D-103); okrem hypotéky |
-| Príjmy | na vetve (len zobrazenie, D-102) | len zobrazenie; m sa mení pri vyhodnotení (D-102) |
-| Pravidelné výdavky | na vetve | predplatné, poistky, paušály; pri položke len Upraviť, Ukončiť a Zmazať v úprave (D-293) |
-| Rozpočet | na vetve (D-106) | limit na kategóriu za mesiac (D-106); prehľad, polia až po Upraviť limity (D-293) |
-| Sklad | na vetve (D-232 až D-239, D-301) | položky potravín: čiarový kód, dátum spotreby, dávky, výber predchádzajúceho výrobku, lehota upozornenia; cena za jednotku, prenos z dokladu, Vyhodiť a súhrn vyhodeného (D-301); nákupný zoznam a minimálna zásoba (D-302) |
-| Dane | na vetve (sekcia existuje) | daňové pravidlá len po overení (D-104); bez investícií jedna veta namiesto kariet s nulami (D-293) |
-| Ročný prehľad | na vetve (docs/13, oddiel 4) | história kapitálu a dátumu cieľa; poradie súhrn, kategórie, zbalené vyhodnotenia (D-293) |
+| Prehľad | na main | cieľ, dátum, vyhodnotenie, podrobnosti; v main aj pokrok a posun dátumu cieľa na prvej obrazovke (D-283) a zbalený Vývoj v čase (D-289) |
+| Transakcie | na main | sporenie, investícia, výdavok, rezerva, výber z rezervy; v main suma ako prvé pole, doklad zbalený, Prílohy a Zmazať v úprave (D-286); filter histórie zbalený, 10 záznamov (D-293) |
+| Vyhodnotenie | v main (zoznam a mazanie vyhodnotení); mesačné zadanie na main | mesačné zadanie; investície sa odvodia zo súčtu položiek (D-101) |
+| Majetok | v main, len náhľad (Fáza 2) | nehnuteľnosť (hypotéka, splátka s úrokom), automobil, ocenitelné právo |
+| Investície | v main, len náhľad (Fáza 2) | ručné položky (D-101); tretí pilier a ciele zoskupenia so súčtom a pokrokom (D-105, D-258) |
+| Záväzky | v main, len náhľad (Fáza 2) (vlastná sekcia, D-103) | vlastná sekcia (D-103); okrem hypotéky |
+| Príjmy | v main, len náhľad (Fáza 2) (len zobrazenie, D-102) | len zobrazenie; m sa mení pri vyhodnotení (D-102) |
+| Pravidelné výdavky | v main, len náhľad (Fáza 2) | predplatné, poistky, paušály; pri položke len Upraviť, Ukončiť a Zmazať v úprave (D-293) |
+| Rozpočet | v main, len náhľad (Fáza 2) (D-106) | limit na kategóriu za mesiac (D-106); prehľad, polia až po Upraviť limity (D-293) |
+| Sklad | v main, len náhľad (Fáza 2) (D-232 až D-239, D-301) | položky potravín: čiarový kód, dátum spotreby, dávky, výber predchádzajúceho výrobku, lehota upozornenia; cena za jednotku, prenos z dokladu, Vyhodiť a súhrn vyhodeného (D-301); nákupný zoznam a minimálna zásoba (D-302) |
+| Dane | v main, len náhľad (Fáza 2) (sekcia existuje) | daňové pravidlá len po overení (D-104); bez investícií jedna veta namiesto kariet s nulami (D-293) |
+| Ročný prehľad | v main, len náhľad (Fáza 2) (docs/13, oddiel 4) | história kapitálu a dátumu cieľa; poradie súhrn, kategórie, zbalené vyhodnotenia (D-293) |
 | Scenáre | navrhnuté | porovnanie nastavení, len na vyžiadanie |
 | Veľký výdavok (scenár) | implementované (N-12, D-274) | dopad veľkého výdavku bez zápisu, skupina Peniaze |
 | Mesačný výdavok (scenár) | implementované (N-12b, D-275) | zníženie mesačného sporenia a dopad na cieľ, skupina Peniaze; pod scenárom opakované výdavky a dátum cieľa (D-290) |
-| Pripomienky | schválené; na vetve: zmeškané vyhodnotenie, blížiaci sa koniec mesiaca (okno 3 dni, potvrdené D-227), záloha (7 dní), kontrola nastavení; testy `tests/reminders.test.ts` | koniec mesiaca a záloha (D-107) |
-| Nastavenia | na main | skupiny Cieľ, Sporenie, Predpoklady výpočtu; Moduly, Sprievodca a PIN zbalené (D-293, na vetve) |
-| Záloha | na main | šifrovanie heslom (D-276, na vetve; predtým odložené D-108); časti Uložiť zálohu a Obnoviť zo zálohy (D-294, na vetve) |
+| Pripomienky | schválené; v main: zmeškané vyhodnotenie, blížiaci sa koniec mesiaca (okno 3 dni, potvrdené D-227), záloha (7 dní), kontrola nastavení; testy `tests/reminders.test.ts` | koniec mesiaca a záloha (D-107) |
+| Nastavenia | na main | skupiny Cieľ, Sporenie, Predpoklady výpočtu; Moduly, Sprievodca a PIN zbalené (D-293, v main) |
+| Záloha | na main | šifrovanie heslom (D-276, v main; predtým odložené D-108); časti Uložiť zálohu a Obnoviť zo zálohy (D-294, v main) |
 
 ## 2. Odpovede vlastníka (2026-10-19)
 
