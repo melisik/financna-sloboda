@@ -49,8 +49,19 @@ export function Nav({ active }: { active: SectionId }) {
     if (c.right > r.right) row.scrollLeft += c.right - r.right + 8;
     else if (c.left < r.left) row.scrollLeft -= r.left - c.left + 8;
   }, [active]);
+  // Výška prilepeného menu ako odsadenie posúvania: zameraný prvok (napr. potvrdenie vo formulári) neskončí pod menu.
+  const barRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const set = () => document.documentElement.style.setProperty("scroll-padding-top", `${el.offsetHeight + 8}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
-    <div style={{ position: "sticky", top: 0, background: "var(--surface)", zIndex: 1, borderBottom: "1px solid var(--border-soft)" }}>
+    <div ref={barRef} style={{ position: "sticky", top: 0, background: "var(--surface)", zIndex: 1, borderBottom: "1px solid var(--border-soft)" }}>
       <nav aria-label="Hlavná navigácia" style={{ display: "flex", flexDirection: "column", gap: 6, padding: "8px 0" }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {groups.map((g) => (

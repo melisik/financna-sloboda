@@ -47,6 +47,8 @@ export function VyvojBlock({ data, ctx }: { data: AppData; ctx: Ctx }) {
           )}
           <details style={{ marginTop: 8 }}>
             <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Tabuľka ▾</summary>
+            {/* Pri úzkej obrazovke a širšom písme sa posúva tabuľka, nie celá stránka. */}
+            <div style={{ overflowX: "auto" }}>
             <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "var(--font-small)", marginTop: 8 }}>
               <thead>
                 <tr>
@@ -65,6 +67,7 @@ export function VyvojBlock({ data, ctx }: { data: AppData; ctx: Ctx }) {
                 ))}
               </tbody>
             </table>
+            </div>
           </details>
         </>
       )}
