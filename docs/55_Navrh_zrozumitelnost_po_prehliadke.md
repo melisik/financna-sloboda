@@ -1,6 +1,6 @@
 # 55 – Návrh: zrozumiteľnosť po prehliadke zakladateľa
 
-> Stav: **otázky 1 a 2 schválené a implementované** (2026-10-25, D-308); otázky 3 a 4 čakajú. Z postrehov zakladateľa k scenáru `docs/pilot/scenar-prehliadka-2026-10-25.md`. D-153: bez zmeny výpočtu (všetko je UI).
+> Stav: **otázky 1 a 2 schválené a implementované** (2026-10-25, D-308); otázka 3: možnosť a) (D-309); otázka 4: návrh `docs/56`. Z postrehov zakladateľa k scenáru `docs/pilot/scenar-prehliadka-2026-10-25.md`. D-153: bez zmeny výpočtu (všetko je UI).
 
 ## 1. Úpravy
 

@@ -162,10 +162,9 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
       return (
         <Section id="nastavenia" title="Nastavenia">
           {settingsFlash && <p style={{ ...calloutStyle("ok"), color: "var(--ok)" }}>{settingsFlash} <NextStep to="prehlad">Prehľad</NextStep></p>}
-          <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={() => { reload(); setSettingsFlash("Nastavenia sú uložené."); }} />
-          {/* Zriedka používané časti sú zbalené (D-293, docs/46). */}
+          {/* Zriedka používané časti sú zbalené (D-293); sú nad formulárom, aby sa dali nájsť (D-309). */}
           {PHASE2_ENABLED && (
-            <details style={{ marginTop: 24 }}>
+            <details style={{ marginTop: 0 }}>
               <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Moduly ▾</summary>
               <ModulesBlock heading={false} style={{ marginTop: 8, borderTop: "none", paddingTop: 0 }} />
             </details>
@@ -179,6 +178,8 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
             <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>PIN{pinSet ? " · zapnutý" : ""} ▾</summary>
             <PinSection repo={repo} pinSet={pinSet} onChanged={(on) => setPinSet(on)} onLock={() => setLocked(true)} heading={false} />
           </details>
+          <div style={{ marginTop: 16 }} />
+          <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={() => { reload(); setSettingsFlash("Nastavenia sú uložené."); }} />
         </Section>
       );
     case "zaloha":

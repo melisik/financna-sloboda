@@ -19,13 +19,16 @@ test.describe("usporiadanie obrazoviek", () => {
     const s = page.locator("section#nastavenia");
     const headings = await s.getByRole("heading", { level: 3 }).allInnerTexts();
     expect(headings.slice(0, 3)).toEqual(["Cieľ", "Sporenie", "Predpoklady výpočtu"]);
-    const labels = await s.locator("input").evaluateAll((els) => els.filter((e) => (e as HTMLElement).offsetParent !== null).map((e) => e.closest("label")?.querySelector("span")?.textContent ?? ""));
-    expect(labels.slice(0, 8)).toEqual([
+    const labels = await s.locator("input").evaluateAll((els) => els.filter((e) => (e as HTMLElement).offsetParent !== null && !e.closest("details:not([open])")).map((e) => e.closest("label")?.querySelector("span")?.textContent ?? ""));
+    // Zbalené bloky sú nad formulárom (D-309); polia formulára majú popis.
+    expect(labels.filter((l) => l !== "").slice(0, 8)).toEqual([
       "Ročné výdavky pri nezávislosti (€)", "Miera výberu (%)",
       "Mesačné sporenie do investícií (€), prázdne = odvodené", "Mesačné sporenie do hotovosti (€), prázdne = odvodené",
       "Reálny výnos r (%)", "Poplatky p. a. (%)", "Rezerva, cieľová hodnota (€)", "Prah výdavkov (€)",
     ]);
     for (const name of ["Moduly", "Sprievodca", "PIN"]) await expect(s.locator("summary", { hasText: name })).toBeVisible();
+    const y = async (l: import("@playwright/test").Locator) => (await l.boundingBox())!.y;
+    expect(await y(s.locator("summary", { hasText: "PIN" }))).toBeLessThan(await y(s.getByRole("heading", { name: "Cieľ" }))); // D-309: nad formulárom
     await expect(s.getByRole("button", { name: "Spustiť sprievodcu znova" })).toBeHidden();
     await s.locator("summary", { hasText: "Sprievodca" }).click();
     await expect(s.getByRole("button", { name: "Spustiť sprievodcu znova" })).toBeVisible();
