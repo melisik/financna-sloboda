@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // Fáza 2 (vetva): karta majetku, syntetické hodnoty (docs/11_Karta_majetku.md).
 test.describe("karta majetku (Fáza 2)", () => {
@@ -9,6 +9,8 @@ test.describe("karta majetku (Fáza 2)", () => {
     await expect(page.getByText("Zatiaľ nie je zapísaná žiadna nehnuteľnosť.")).toBeVisible();
 
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByLabel("Názov (nepovinné)").fill("byt – syntetický");
     await page.getByLabel("Režim").selectOption("prenajom");
     await page.getByLabel("Odhad hodnoty (€)").fill("300000");
@@ -51,6 +53,7 @@ test.describe("karta majetku (Fáza 2)", () => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
     await expect(page.getByText("Vyplň odhad hodnoty.")).toBeVisible();
     await expect(page.getByText("Zatiaľ nie je zapísaná žiadna nehnuteľnosť.")).toHaveCount(0);

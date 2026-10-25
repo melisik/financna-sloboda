@@ -1,9 +1,9 @@
 # Finančná sloboda (pracovný názov) – projektový kontext
 
 ## Stav projektu
-Fáza: MVP je zadefinovaný rozhodnutiami (`decisions/Decisions.md`, D-001 až D-309) a čiastočne implementovaný. Cieľ, cieľová skupina a rozsah MVP vyplývajú z týchto rozhodnutí; nie sú to predpoklady. Kód je v `src/` (doménová vrstva, úložisko, UI), testy v `tests/` a `tests/e2e/`.
+Fáza: MVP je zadefinovaný rozhodnutiami (`decisions/Decisions.md`, D-001 až D-310) a čiastočne implementovaný. Cieľ, cieľová skupina a rozsah MVP vyplývajú z týchto rozhodnutí; nie sú to predpoklady. Kód je v `src/` (doménová vrstva, úložisko, UI), testy v `tests/` a `tests/e2e/`.
 
-Stav overený 2026-10-25 (vetva `claude/phase2-property-card`): `tsc` bez chýb, `vitest` 551 jednotkových testov prejde (97 súborov; 0 `it.todo`, 0 preskočených), `vite build` (dist-test) bez chýb, `playwright` 496 E2E testov (248 × 2 profily) bez zlyhaní. Audit a stav nálezov sú v `docs/22_Audit_2026-10-22.md`, `docs/24_Audit_2026-10-23.md` a `docs/27_Audit_2026-10-23.md`; úplnosť milníkov a otvorené nálezy revízie sú v `review/revizia-revizny-balik-2026-10-15.md`; brána M1 je potvrdená zakladateľom 2026-10-22 (D-225).
+Stav overený 2026-10-25 (vetva `claude/phase2-property-card`): `tsc` bez chýb, `vitest` 551 jednotkových testov prejde (97 súborov; 0 `it.todo`, 0 preskočených), `vite build` (dist-test) bez chýb, `playwright` 498 E2E testov (249 × 2 profily) bez zlyhaní. Audit a stav nálezov sú v `docs/22_Audit_2026-10-22.md`, `docs/24_Audit_2026-10-23.md` a `docs/27_Audit_2026-10-23.md`; úplnosť milníkov a otvorené nálezy revízie sú v `review/revizia-revizny-balik-2026-10-15.md`; brána M1 je potvrdená zakladateľom 2026-10-22 (D-225).
 
 Všetko, čo nie je v `docs/` alebo `decisions/`, je predpoklad a treba ho ako predpoklad označiť.
 

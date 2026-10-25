@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // Riadok 11 tabuľky 1 (D-158) a údaje pre daň z nehnuteľností. Syntetické hodnoty.
 test.describe("podklad pre DP: riadok 11 a údaje nehnuteľnosti", () => {
@@ -9,6 +9,7 @@ test.describe("podklad pre DP: riadok 11 a údaje nehnuteľnosti", () => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByLabel("Názov (nepovinné)").fill("Riadok 11 test");
     await page.getByLabel("Režim").selectOption("prenajom");
     await page.getByLabel("Odhad hodnoty (€)").fill("150000");

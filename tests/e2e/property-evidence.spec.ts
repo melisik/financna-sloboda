@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // Evidencia nehnuteľnosti pre dane (D-156): dátumy a obstarávacia cena, bez daňových výpočtov. Syntetické hodnoty.
 test.describe("evidencia nehnuteľnosti pre dane", () => {
@@ -7,6 +7,7 @@ test.describe("evidencia nehnuteľnosti pre dane", () => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByLabel("Názov (nepovinné)").fill("Byt syntetický");
     await page.getByLabel("Režim").selectOption("prenajom");
     await page.getByLabel("Odhad hodnoty (€)").fill("150000");

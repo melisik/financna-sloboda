@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // Výpis s viacerými byty: používateľ vyberie svoj byt; údaje a podlahová plocha sa berú z jeho bloku (D-214). Syntetický súbor.
 test.describe("výber bytu z listu vlastníctva", () => {
@@ -8,6 +8,7 @@ test.describe("výber bytu z listu vlastníctva", () => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
     await page.getByLabel("Nahrať uloženú stránku listu vlastníctva").setInputFiles(path.resolve("tests/fixtures/lv-synthetic-viac-bytov.html"));
 

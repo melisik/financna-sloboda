@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // FR-02a (Fáza 2, vetva): nájomná nehnuteľnosť v K mení dátum cieľa; syntetické hodnoty.
 test.describe("dátum cieľa pri prenájme (FR-02a)", () => {
@@ -28,6 +28,7 @@ test.describe("dátum cieľa pri prenájme (FR-02a)", () => {
     // Nájomný byt: nájom prevyšuje splátku, K_cash rastie a zostatok hypotéky klesá.
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByLabel("Režim").selectOption("prenajom");
     await page.getByLabel("Odhad hodnoty (€)").fill("300000");
     await page.getByLabel("Dátum odhadu").fill("2026-10-01");

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // Ročná evidencia prenájmu (D-157): záznamy sa sčítajú za rok a úprava nehnuteľnosti ich nesmie stratiť. Syntetické hodnoty.
 test.describe("evidencia prenájmu", () => {
@@ -9,6 +9,7 @@ test.describe("evidencia prenájmu", () => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByLabel("Názov (nepovinné)").fill("Prenájom test");
     await page.getByLabel("Režim").selectOption("prenajom");
     await page.getByLabel("Odhad hodnoty (€)").fill("150000");

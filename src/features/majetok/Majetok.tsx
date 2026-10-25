@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import type { Repository } from "../../storage/repository";
 import type { Asset, AssetKind, ExtraPaymentMode, Property, PropertyMode, RentalEntry, RentalEntryKind } from "../../storage/types";
@@ -539,6 +539,21 @@ function ExtraPaymentForm({ repo, property, today, onDone }: { repo: Repository;
   );
 }
 
+/**
+ * Zbalený blok formulára s jedným zdrojom stavu otvorenia (D-310, docs/56): súhrn v nadpise, sám sa otvorí,
+ * keď dostane obsah alebo chybu (`open`), a dá sa zbaliť.
+ */
+function FoldBlock({ title, summary, openWhen, children }: { title: string; summary?: string; openWhen: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(openWhen);
+  useEffect(() => { if (openWhen) setOpen(true); }, [openWhen]);
+  return (
+    <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
+      <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>{title}{summary ? ` · ${summary}` : ""} ▾</summary>
+      <div style={{ fontSize: "var(--font-small)" }}>{children}</div>
+    </details>
+  );
+}
+
 function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Repository; initial: Property | null; today: string; onDone: () => void; onCancel: () => void }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [mode, setMode] = useState<PropertyMode>(initial?.mode ?? "nezadane");
@@ -612,6 +627,12 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
     void file.text().then((html) => applyLv(parseLvHtml(html)));
   };
   const [floorArea, setFloorArea] = useState<NumIn>(initial?.floorAreaSqm !== undefined ? initial.floorAreaSqm : "");
+  // Súhrny zbalených blokov (D-310): je v bloku niečo vyplnené?
+  const filled = (v: NumIn | string) => v !== "" && v !== 0 && !(typeof v === "number" && Number.isNaN(v));
+  const mortgageOn = filled(mortgage) && asNum(mortgage) > 0;
+  const costsOn = filled(otherCosts) && asNum(otherCosts) > 0;
+  const buyOn = [acqDate, acqCost, rentalStart].some(filled);
+  const taxOn = [taxKind, taxMuni, cadastral, parcel, building, flat, floorArea].some(filled);
   const [err, setErr] = useState<string | null>(null);
 
   const save = async () => {
@@ -684,7 +705,6 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   return (
     <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h3 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť nehnuteľnosť" : "Nová nehnuteľnosť"}</h3>
-      <Field label="Názov (nepovinné)" value={name} type="text" onChange={setName} maxLength={80} />
       <label style={{ display: "block", marginBottom: 8 }}>
         Režim
         <select value={mode} onChange={(e) => setMode(e.target.value as PropertyMode)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
@@ -693,86 +713,96 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
           ))}
         </select>
       </label>
+      <Field label="Názov (nepovinné)" value={name} type="text" onChange={setName} maxLength={80} />
       <Field label="Odhad hodnoty (€)" value={value} onChange={setValue} />
       <Field label="Dátum odhadu" value={valueDate} type="date" max={today} onChange={setValueDate} />
-      <Field label="Dátum obstarania (nepovinné)" value={acqDate} type="date" max={today} onChange={setAcqDate} hint="evidencia pre dane; nepočíta sa" />
-      <Field label="Obstarávacia cena (€, nepovinné)" value={acqCost} onChange={setAcqCost} hint="cena pri kúpe, nie odhad; nepočíta sa" />
-      {mode === "prenajom" && <Field label="Dátum začiatku prenájmu (nepovinné)" value={rentalStart} type="date" max={today} onChange={setRentalStart} />}
-      <button type="button" onClick={() => setLvOpen((o) => !o)} aria-expanded={lvOpen} style={{ ...btn, marginBottom: 8 }}>Predvyplniť z listu vlastníctva</button>
-      {lvOpen && (
-        <div style={{ marginBottom: 12 }}>
-        <p style={hintStyle}>
-          Ako získať súbor: na katastrálnom portáli otvor výpis z listu vlastníctva a stlač Ctrl+S. V Edge zvoľ „Webová stránka, úplne“, v Chrome „Webová stránka, kompletná“. Potom súbor nahraj tu.
-          Skopíruj text z listu vlastníctva a vlož ho sem, alebo nahraj uloženú stránku listu (HTML). Appka doplní údaje pre daň. Text sa neukladá a vlastníkov ani číslo LV appka neberie.
-        </p>
-        <textarea aria-label="Text z listu vlastníctva" value={lvText} onChange={(e) => setLvText(e.target.value)} rows={6} style={{ width: "100%", boxSizing: "border-box", fontSize: "var(--font-text)" }} />
-        <button type="button" onClick={fillFromText} disabled={lvText.trim() === ""} style={btn}>Predvyplniť z textu</button>
-        <label style={{ display: "block", margin: "8px 0" }}>
-          <span style={{ display: "block", fontSize: "var(--font-small)" }}>Alebo nahraj uloženú stránku listu (HTML)</span>
-          <input
-            type="file"
-            accept=".html,.htm,text/html"
-            aria-label="Nahrať uloženú stránku listu vlastníctva"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) fillFromFile(file);
-              e.target.value = "";
-            }}
-          />
-        </label>
-        {lvNote && <p style={hintStyle}>{lvNote}</p>}
-        {lvWarn && <p style={calloutStyle("warn")}>{lvWarn}</p>}
-        {lvFlats.length > 1 && (
-          <label style={{ display: "block", margin: "8px 0" }}>
-            <span style={{ display: "block", fontSize: "var(--font-small)" }}>Ktorý byt je tvoj?</span>
-            <select
-              aria-label="Byt v liste vlastníctva"
-              value={flatIdx}
-              onChange={(e) => {
-                setFlatIdx(e.target.value);
-                if (e.target.value !== "") chooseFlat(lvFlats[Number(e.target.value)]);
-              }}
-              style={{ minHeight: 44, width: "100%" }}
-            >
-              <option value="">Vyber byt</option>
-              {lvFlats.map((c, i) => <option key={i} value={i}>{c.label}</option>)}
-            </select>
-          </label>
-        )}
-        {lvPledge === "mortgage" && (
-          <p style={calloutStyle("warn")}>
-            V liste je záložné právo. Ak máš hypotéku, zadaj jej zostatok nižšie. Hypotéku appka nevytvára sama.
-          </p>
-        )}
-        {lvPledge === "owners" && (
-          <p style={calloutStyle("warn")}>
-            V liste je záložné právo v prospech ostatných vlastníkov bytov. Nie je to hypotéka.
-          </p>
-        )}
-        </div>
-      )}
-      <label style={{ display: "block", marginBottom: 8 }}>
-        Druh objektu pre daň (nepovinné)
-        <select aria-label="Druh objektu pre daň" value={taxKind} onChange={(e) => setTaxKind(e.target.value as "" | "dom" | "byt")} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
-          <option value="">nezadané</option>
-          <option value="dom">stavba na bývanie (dom)</option>
-          <option value="byt">byt</option>
-        </select>
-      </label>
-      <Field label="Obec (pre daň z nehnuteľností, nepovinné)" value={taxMuni} type="text" onChange={setTaxMuni} maxLength={80} />
-      <Field label="Katastrálne územie (nepovinné)" value={cadastral} type="text" onChange={setCadastral} maxLength={80} />
-      <Field label="Číslo parcely (nepovinné)" value={parcel} type="text" onChange={setParcel} maxLength={80} />
-      <Field label="Súpisné číslo (nepovinné)" value={building} type="text" onChange={setBuilding} maxLength={80} />
-      <Field label="Číslo bytu (nepovinné)" value={flat} type="text" onChange={setFlat} maxLength={80} />
-      <Field label="Podlahová plocha (m², nepovinné)" value={floorArea} onChange={setFloorArea} hint="z kúpnej zmluvy alebo listu vlastníctva; len na podklad pre daň" />
-      <Field label="Zostatok hypotéky (€)" value={mortgage} onChange={setMortgage} hint="0, ak hypotéku nemáš" />
-      {typeof mortgage === "number" && mortgage > 0 && (
-        <Field label="Zostatok platí k (dátum)" value={balanceDate} type="date" max={today} onChange={setBalanceDate} hint="nechaj dnešný dátum, ak si zostatok práve zistil; od tohto dátumu sa každý mesiac automaticky znižuje o istinu" />
-      )}
-      <Field label="Úroková sadzba hypotéky (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak hypotéku nemáš" />
-      <Field label="Mesačná splátka hypotéky (€)" value={payment} onChange={setPayment} hint="0, ak hypotéku nemáš" />
-      <Field label="Ostatné mesačné náklady (€)" value={otherCosts} onChange={setOtherCosts} hint="údržba, poistenie, poplatky; 0, ak nie sú" />
       {mode === "prenajom" && <Field label="Mesačný nájom (€, nepovinné)" value={rent} onChange={setRent} />}
+      {/* Menej časté údaje sú v zbalených blokoch so súhrnom (D-310, docs/56). */}
+      <FoldBlock title="Hypotéka" summary={mortgageOn ? eur(cents(asNum(mortgage))) : "bez hypotéky"} openWhen={mortgageOn || !!err}>
+        <Field label="Zostatok hypotéky (€)" value={mortgage} onChange={setMortgage} hint="0, ak hypotéku nemáš" />
+        {typeof mortgage === "number" && mortgage > 0 && (
+          <Field label="Zostatok platí k (dátum)" value={balanceDate} type="date" max={today} onChange={setBalanceDate} hint="nechaj dnešný dátum, ak si zostatok práve zistil; od tohto dátumu sa každý mesiac automaticky znižuje o istinu" />
+        )}
+        <Field label="Úroková sadzba hypotéky (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak hypotéku nemáš" />
+        <Field label="Mesačná splátka hypotéky (€)" value={payment} onChange={setPayment} hint="0, ak hypotéku nemáš" />
+      </FoldBlock>
+      <FoldBlock title="Mesačné náklady" summary={costsOn ? eur(cents(asNum(otherCosts))) : "žiadne"} openWhen={!!err}>
+        <Field label="Ostatné mesačné náklady (€)" value={otherCosts} onChange={setOtherCosts} hint="údržba, poistenie, poplatky; 0, ak nie sú" />
+      </FoldBlock>
+      <FoldBlock title="Kúpa" summary={buyOn ? "vyplnené" : "nevyplnené"} openWhen={!!err}>
+        <Field label="Dátum obstarania (nepovinné)" value={acqDate} type="date" max={today} onChange={setAcqDate} hint="evidencia pre dane; nepočíta sa" />
+        <Field label="Obstarávacia cena (€, nepovinné)" value={acqCost} onChange={setAcqCost} hint="cena pri kúpe, nie odhad; nepočíta sa" />
+        {mode === "prenajom" && <Field label="Dátum začiatku prenájmu (nepovinné)" value={rentalStart} type="date" max={today} onChange={setRentalStart} />}
+      </FoldBlock>
+      <FoldBlock title="Údaje pre daň z nehnuteľností" summary={taxOn ? "vyplnené" : "nevyplnené"} openWhen={lvOpen || !!err}>
+        <button type="button" onClick={() => setLvOpen((o) => !o)} aria-expanded={lvOpen} style={{ ...btn, marginBottom: 8 }}>Predvyplniť z listu vlastníctva</button>
+        {lvOpen && (
+          <div style={{ marginBottom: 12 }}>
+          <p style={hintStyle}>
+            Ako získať súbor: na katastrálnom portáli otvor výpis z listu vlastníctva a stlač Ctrl+S. V Edge zvoľ „Webová stránka, úplne“, v Chrome „Webová stránka, kompletná“. Potom súbor nahraj tu.
+            Skopíruj text z listu vlastníctva a vlož ho sem, alebo nahraj uloženú stránku listu (HTML). Appka doplní údaje pre daň. Text sa neukladá a vlastníkov ani číslo LV appka neberie.
+          </p>
+          <textarea aria-label="Text z listu vlastníctva" value={lvText} onChange={(e) => setLvText(e.target.value)} rows={6} style={{ width: "100%", boxSizing: "border-box", fontSize: "var(--font-text)" }} />
+          <button type="button" onClick={fillFromText} disabled={lvText.trim() === ""} style={btn}>Predvyplniť z textu</button>
+          <label style={{ display: "block", margin: "8px 0" }}>
+            <span style={{ display: "block", fontSize: "var(--font-small)" }}>Alebo nahraj uloženú stránku listu (HTML)</span>
+            <input
+              type="file"
+              accept=".html,.htm,text/html"
+              aria-label="Nahrať uloženú stránku listu vlastníctva"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) fillFromFile(file);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {lvNote && <p style={hintStyle}>{lvNote}</p>}
+          {lvWarn && <p style={calloutStyle("warn")}>{lvWarn}</p>}
+          {lvFlats.length > 1 && (
+            <label style={{ display: "block", margin: "8px 0" }}>
+              <span style={{ display: "block", fontSize: "var(--font-small)" }}>Ktorý byt je tvoj?</span>
+              <select
+                aria-label="Byt v liste vlastníctva"
+                value={flatIdx}
+                onChange={(e) => {
+                  setFlatIdx(e.target.value);
+                  if (e.target.value !== "") chooseFlat(lvFlats[Number(e.target.value)]);
+                }}
+                style={{ minHeight: 44, width: "100%" }}
+              >
+                <option value="">Vyber byt</option>
+                {lvFlats.map((c, i) => <option key={i} value={i}>{c.label}</option>)}
+              </select>
+            </label>
+          )}
+          {lvPledge === "mortgage" && (
+            <p style={calloutStyle("warn")}>
+              V liste je záložné právo. Ak máš hypotéku, zadaj jej zostatok v bloku Hypotéka. Hypotéku appka nevytvára sama.
+            </p>
+          )}
+          {lvPledge === "owners" && (
+            <p style={calloutStyle("warn")}>
+              V liste je záložné právo v prospech ostatných vlastníkov bytov. Nie je to hypotéka.
+            </p>
+          )}
+          </div>
+        )}
+        <label style={{ display: "block", marginBottom: 8 }}>
+          Druh objektu pre daň (nepovinné)
+          <select aria-label="Druh objektu pre daň" value={taxKind} onChange={(e) => setTaxKind(e.target.value as "" | "dom" | "byt")} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+            <option value="">nezadané</option>
+            <option value="dom">stavba na bývanie (dom)</option>
+            <option value="byt">byt</option>
+          </select>
+        </label>
+        <Field label="Obec (pre daň z nehnuteľností, nepovinné)" value={taxMuni} type="text" onChange={setTaxMuni} maxLength={80} />
+        <Field label="Katastrálne územie (nepovinné)" value={cadastral} type="text" onChange={setCadastral} maxLength={80} />
+        <Field label="Číslo parcely (nepovinné)" value={parcel} type="text" onChange={setParcel} maxLength={80} />
+        <Field label="Súpisné číslo (nepovinné)" value={building} type="text" onChange={setBuilding} maxLength={80} />
+        <Field label="Číslo bytu (nepovinné)" value={flat} type="text" onChange={setFlat} maxLength={80} />
+        <Field label="Podlahová plocha (m², nepovinné)" value={floorArea} onChange={setFloorArea} hint="z kúpnej zmluvy alebo listu vlastníctva; len na podklad pre daň" />
+      </FoldBlock>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>Uložiť nehnuteľnosť</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>

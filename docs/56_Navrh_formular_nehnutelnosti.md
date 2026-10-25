@@ -1,6 +1,6 @@
 # 56 – Návrh: prehľadnejší formulár nehnuteľnosti
 
-> Stav: **návrh na schválenie** (2026-10-25). Kód sa nemení. Z postrehu zakladateľa 5.4: „priveľa polí, niektoré môžu byť zbalené; menej dôležité veci sú graficky rovnako významné ako dôležitejšie“. D-153: bez zmeny výpočtu (mení sa len rozloženie formulára).
+> Stav: **schválené a implementované** (2026-10-25, D-310): otázky 1 až 3 áno; Záväzky a Investície nasledujú. Z postrehu zakladateľa 5.4: „priveľa polí, niektoré môžu byť zbalené; menej dôležité veci sú graficky rovnako významné ako dôležitejšie“. D-153: bez zmeny výpočtu (mení sa len rozloženie formulára).
 
 ## 1. Dnes
 

@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // Nahrávanie stránky listu vlastníctva (A-08): škodlivý HTML sa nespustí a veľký súbor sa neotvorí. Syntetické hodnoty.
 async function openLvUpload(page: import("@playwright/test").Page) {
   await openApp(page);
   await goTo(page, "majetok");
   await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+  await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
   await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
 }
 

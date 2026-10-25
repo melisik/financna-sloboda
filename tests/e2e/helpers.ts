@@ -59,3 +59,9 @@ export async function openBudgetLimits(page: Page) {
 
 /** Pevný „dnešok“ pre testy s testovacou zálohou (dátumy júl až október 2026), revízia V-1. */
 export const TEST_NOW = new Date("2026-10-25T10:00:00");
+
+/** Otvorí zbalené bloky formulára nehnuteľnosti (Hypotéka, Mesačné náklady, Kúpa, Údaje pre daň), D-310. */
+export async function openPropertyFolds(page: Page) {
+  const closed = page.locator("section#majetok details:not([open]) > summary");
+  while ((await closed.count()) > 0) await closed.first().click();
+}

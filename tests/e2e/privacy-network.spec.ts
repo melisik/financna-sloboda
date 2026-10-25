@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { goTo, openApp, type SectionId } from "./helpers";
+import { goTo, openApp, type SectionId, openPropertyFolds } from "./helpers";
 
 // Sieťová izolácia (A-15, FR-16, 07 §7): žiadna sekcia, skener, OCR ani import listu nepošle požiadavku mimo aplikácie.
 const SECTIONS: SectionId[] = [
@@ -51,6 +51,7 @@ test.describe("sieťová izolácia (A-15, D-009)", () => {
     // Import stránky listu vlastníctva.
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
     await page.getByLabel("Nahrať uloženú stránku listu vlastníctva").setInputFiles(path.resolve("tests/fixtures/lv-synthetic.html"));
     await expect(page.getByLabel("Obec (pre daň z nehnuteľností, nepovinné)")).toHaveValue("Testovacia obec");

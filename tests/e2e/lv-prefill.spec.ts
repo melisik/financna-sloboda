@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // Predvyplnenie z listu vlastníctva (D-209). Syntetický text, žiadne reálne údaje.
 const LV = `LIST VLASTNÍCTVA (syntetický vzor)
@@ -19,6 +19,7 @@ test.describe("predvyplnenie z listu vlastníctva", () => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
     await page.getByLabel("Text z listu vlastníctva").fill(LV);
     await page.getByRole("button", { name: "Predvyplniť z textu" }).click();
@@ -41,6 +42,7 @@ test.describe("predvyplnenie z listu vlastníctva", () => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
     await page.getByLabel("Text z listu vlastníctva").fill("Obec: Iná obec\nByt č. 12\nZáložné právo v prospech banky\n");
     await page.getByRole("button", { name: "Predvyplniť z textu" }).click();

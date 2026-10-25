@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // Predvyplnenie z uloženej HTML stránky listu vlastníctva (D-211). Syntetický súbor z tests/fixtures.
 test.describe("predvyplnenie z uloženej HTML stránky listu (D-210, D-211)", () => {
@@ -8,6 +8,7 @@ test.describe("predvyplnenie z uloženej HTML stránky listu (D-210, D-211)", ()
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
     await page.getByLabel("Nahrať uloženú stránku listu vlastníctva").setInputFiles(path.resolve("tests/fixtures/lv-synthetic.html"));
 
@@ -25,6 +26,7 @@ test.describe("predvyplnenie z uloženej HTML stránky listu (D-210, D-211)", ()
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
     const html = (await import("node:fs")).readFileSync(path.resolve("tests/fixtures/lv-synthetic.html"), "utf-8");
     await page.getByLabel("Text z listu vlastníctva").fill(html);

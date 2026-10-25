@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // Výpis s viacerými byty v tvare portálu (popis a hodnota v jednej bunke, hodnota v odkaze): výber bytu ako pri D-214. Syntetický súbor.
 test.describe("výber bytu z listu vlastníctva v tvare portálu (D-229, D-230)", () => {
@@ -8,6 +8,7 @@ test.describe("výber bytu z listu vlastníctva v tvare portálu (D-229, D-230)"
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByRole("button", { name: "Predvyplniť z listu vlastníctva" }).click();
     await page.getByLabel("Nahrať uloženú stránku listu vlastníctva").setInputFiles(path.resolve("tests/fixtures/lv-synthetic-viac-bytov-portal.html"));
 

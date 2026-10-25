@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openPropertyFolds } from "./helpers";
 
 // Prílohy k výdavku z prenájmu (D-221): doklad sa pridá k výdavku a zmizne spolu s ním. Syntetické hodnoty.
 test.describe("prílohy k výdavku z prenájmu", () => {
@@ -7,6 +7,7 @@ test.describe("prílohy k výdavku z prenájmu", () => {
     await openApp(page);
     await goTo(page, "majetok");
     await page.getByRole("button", { name: "Pridať nehnuteľnosť" }).click();
+    await openPropertyFolds(page); // D-310: bloky formulára sú zbalené
     await page.getByLabel("Názov (nepovinné)").fill("Byt prílohy prenájom");
     await page.getByLabel("Režim").selectOption("prenajom");
     await page.getByLabel("Odhad hodnoty (€)").fill("150000");
