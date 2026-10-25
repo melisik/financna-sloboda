@@ -34,6 +34,7 @@ Pilot začal 2026-10-21. Plán pilota s týmto pravidlom schválil zakladateľ 2
   - Obsahuje zmeny do 2026-10-23 (posledný commit `d654ef7`). Na vetve je navyše z 2026-10-23 len `daa4596`, vzhľad tlačidla „Rozpis výdavkov“.
   - Od 2026-10-25 (D-304, beh #130, `5f799ed`) obsahuje všetky zmeny jadra do D-304; Fáza 2 ostáva skrytá.
   - Od 2026-10-25 večer (D-312, beh #131, `c5404f2`) obsahuje zmeny jadra do D-311.
+  - Od 2026-10-25 neskoro večer (D-316, beh #132, `fcd518f`) obsahuje zmeny jadra do D-315.
 - **Súkromný náhľad pre testerov** (Cloudflare Pages z vetvy `claude/phase2-property-card`, s Fázou 2): od 2026-10-24 (D-270 až D-273). Obsahuje aj všetky zmeny z 2026-10-24.
 - Pri vyhodnotení pilota treba pri každom účastníkovi vedieť, ktorú verziu používal a od kedy.
 
