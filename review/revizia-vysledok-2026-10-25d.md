@@ -2,7 +2,7 @@
 
 Reviewer: Claude (samostatná konverzácia, nie autor dokumentov ani kódu). Podklad: `review/revizia-zadanie-2026-10-25d.md`. Vetva `claude/phase2-property-card`, HEAD `097b4e7` (zadanie revízie; posledná zmena kódu `a91e07c`). Prešiel som diff `c5b177f~1..a91e07c` v `src/` a `tests/` (D-313 začína `c5b177f`, preto som nevychádzal z `c0b3af4`, ktorý je zlučovací commit až po D-313) a dotknuté dokumenty. Nič nebolo opravené; tento súbor je jediná zmena v repozitári.
 
-Zmeny D-313 až D-315 sú podľa D-316 už v `main`; nálezy V-1, S-1 až S-3 sa týkajú formulára transakcie a zálohy, teda jadra aj verejnej zostavy (prenos do skladu len pri Fáze 2).
+Zmeny D-313 až D-315 sú podľa D-316 a D-317, D-318 podľa D-319 (prišlo pri `git pull` pred pushom, mení len dokumenty) už v `main`; nálezy V-1, S-1 až S-3 sa týkajú formulára transakcie a zálohy, teda jadra aj verejnej zostavy (prenos do skladu len pri Fáze 2).
 
 ## 1. Rozsah a overenie
 
