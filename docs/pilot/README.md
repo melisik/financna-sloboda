@@ -8,3 +8,4 @@ Podľa `docs/17_Overovaci_plan_pilota.md`. Začiatok: 2026-10-21 (schválené v 
 
 Výsledky sa do repozitára dávajú len anonymizované.
 - `zmeny-pocas-pilota.md`: zmeny kódu počas pilota (výpočet len s výnimkou v `decisions/Decisions.md`, UI so zápisom; `docs/17` oddiel 8).
+- `pozvanky-testerov.md`: texty pozvánok pre testerov (dôchodca, študent, produktívny vek); posiela zakladateľ, heslo zvlášť.
