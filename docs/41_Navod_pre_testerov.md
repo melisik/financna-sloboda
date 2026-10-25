@@ -27,7 +27,7 @@ Je to skúšobná verzia. Výpočty sú odhady pred daňou a poplatkami a nie s�
 
 1. **Prehľad** → rozbaľte **Návod** → **stiahnuť testovaciu zálohu**.
 2. **Nastavenia a záloha** → **Záloha** → **Vybrať súbor zálohy** → vyberte stiahnutý súbor → **Nahradiť dáta zálohou**.
-3. **Nastavenia** → vyplňte **Ročné výdavky pri nezávislosti**, napríklad 24 000 → **Uložiť nastavenia**. Testovacia záloha ich neobsahuje a bez nich sa nedá vyčísliť dátum cieľa.
+3. Testovacia záloha už obsahuje nastavenia (ročné výdavky 24 000 €), nič ďalšie netreba vypĺňať.
 
 ## 4. Čo vyskúšať
 
