@@ -94,6 +94,13 @@ export function FirstSetup({ repo, onChanged, onSkip, rerun = false, initial }: 
     try {
       const d = await repo.getData();
       const r = await exportBackupFile(d, await repo.listAllAttachments());
+      // Bez hesla sa nešifruje; ak by zdieľanie predsa odmietlo oneskorené spustenie, súbor sa stiahne ako pred S-3.
+      if (r.result === "needsTap") {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(r.file);
+        a.download = r.file.name;
+        a.click();
+      }
       if (r.result !== "cancelled") await repo.setMeta("lastExportAt", r.exportedAt);
     } catch {
       setErr(STORAGE_ERROR);

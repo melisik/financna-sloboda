@@ -32,4 +32,27 @@ test.describe("tlačivo 17-dp-md: stav a výsledok", () => {
     const preview = page.getByRole("link", { name: "Otvoriť vyplnené PDF" });
     await expect(preview).toHaveAttribute("href", /^blob:/);
   });
+
+  // Revízia 2026-10-25c, S-2: PDF vyplnené pred zmenou psa sa nesmie uložiť.
+  test("po zmene psa sa pripravené PDF zahodí a treba ho vyplniť znova", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "dane");
+    const addDog = async (obec: string) => {
+      await page.getByRole("button", { name: "Pridať psa" }).click();
+      await page.getByLabel("Obec, kde je pes chovaný").fill(obec);
+      await page.getByLabel("Ulica a číslo domu, kde je pes chovaný").fill("Hlavná 1");
+      await page.getByRole("button", { name: "Uložiť psa" }).click();
+    };
+    await addDog("Testovacia obec");
+    await page.getByRole("button", { name: "Vyplniť tlačivo (PDF)" }).click();
+    await expect(page.getByRole("button", { name: "Uložiť tlačivo (PDF)" })).toBeVisible();
+    await addDog("Druhá testovacia obec");
+    await expect(page.getByText("Psov evidovaných dnes: 2")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Uložiť tlačivo (PDF)" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Otvoriť vyplnené PDF" })).toHaveCount(0);
+    await expect(page.getByText("Údaje sa zmenili, vyplň tlačivo znova.")).toBeVisible();
+    await page.getByRole("button", { name: "Vyplniť tlačivo (PDF)" }).click();
+    await expect(page.getByRole("button", { name: "Uložiť tlačivo (PDF)" })).toBeVisible();
+    await expect(page.getByText("Údaje sa zmenili, vyplň tlačivo znova.")).toHaveCount(0);
+  });
 });

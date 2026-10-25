@@ -46,14 +46,14 @@ Playwright sady projektu som spustil s predinštalovaným Chromiom (`executableP
 - **Návrh:** pri úprave bez vloženého textu počítať súčet, zoznam a nesúlad z `[...storedItems, ...manualItems]` (rovnaký zoznam, aký sa uloží); text „Uložené položky: n“ doplniť o súčet. Doplniť E2E test (uložené + ručná položka → súčet všetkých, bez falošného nesúladu).
 - **Rozhodnutie zakladateľa:** nie.
 
-**S-2. Tlačivo 17-dp-md: Uložiť uloží staré PDF, keď sa medzitým zmenia psy alebo nehnuteľnosti**
+**S-2 (opravené v D-314). Tlačivo 17-dp-md: Uložiť uloží staré PDF, keď sa medzitým zmenia psy alebo nehnuteľnosti**
 - **Súbor a miesto:** `src/features/dane/Dane.tsx`, `ready` (riadok 90) sa nastaví po vyplnení a vymaže len pri ďalšom Vyplniť; `TaxFormBlock` v `Sekcie.tsx:146` nemá `key` podľa údajov.
 - **Problém:** psy sa pridávajú a upravujú v tej istej sekcii priamo nad tlačivom (`DogSection`). Postup Vyplniť → pridať alebo upraviť psa → Uložiť tlačivo uloží PDF bez novej zmeny, rovnako odkaz „Otvoriť vyplnené PDF“ a poznámky. Pred D-307 sa PDF pri každom uložení vyplnilo znova, takže to riziko je nové. Ak sa zmažú všetky psy a nehnuteľnosti, Vyplniť zmizne, ale Uložiť tlačivo so starým PDF ostane.
 - **Dôsledok:** používateľ podá priznanie k dani za psa alebo k dani z nehnuteľností so starými údajmi (napr. bez nového psa), hoci appka práve ukázala správne údaje vyššie. Daňový podklad je presne miesto, kde má byť výstup aktuálny.
 - **Návrh:** pri zmene `properties`, `dogs` alebo `today` zrušiť `ready`, náhľad a poznámky (efekt so závislosťou na údajoch, alebo `key` z odtlačku údajov v `Sekcie.tsx`) a ukázať „Údaje sa zmenili, vyplň tlačivo znova“. Doplniť E2E test.
 - **Rozhodnutie zakladateľa:** nie.
 
-**S-3. D-305 / D-307: záloha s heslom na iPhone pravdepodobne stále skončí v pôvodnom probléme; správanie v počítači sa zmenilo bez overenia**
+**S-3 (opravené v D-314, overenie na zariadeniach čaká). D-305 / D-307: záloha s heslom na iPhone pravdepodobne stále skončí v pôvodnom probléme; správanie v počítači sa zmenilo bez overenia**
 - **Súbor a miesto:** `src/features/zaloha/BackupSection.tsx`, `exportBackupFile` (riadky 20–47): `await encryptBackup(...)` pred `navigator.share`, `catch` pri inej chybe než `AbortError` spadne na stiahnutie.
 - **Problém:**
   - D-307 zistilo, že Safari na iPhone otvorí zdieľací list len hneď po ťuknutí. Pri zálohe s heslom sa pred zdieľaním šifruje (PBKDF2 a AES, rádovo sekundy pri väčšej zálohe s prílohami). Ak `share` zlyhá s `NotAllowedError`, kód potichu prejde na stiahnutie, teda presne na cestu, ktorú D-305 opisuje ako príčinu („otvorí sa na celú obrazovku bez cesty späť“). D-307 to uvádza ako riziko, ktoré overí zakladateľ; v kóde ani v teste ošetrené nie je. Odporúčaná je práve šifrovaná záloha.

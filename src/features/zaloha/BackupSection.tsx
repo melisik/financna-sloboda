@@ -17,34 +17,47 @@ import { calloutStyle, hintStyle } from "../../ui/kit/controls";
  * Export zálohy. Ak prehliadač dokáže zdieľať súbory (iPhone), ponúkne zdieľací list, kde sa dá zvoliť
  * „Uložiť do Súborov“. Inak alebo pri chybe zdieľania súbor stiahne. Zrušenie zdieľania nič neuloží.
  */
-export async function exportBackupFile(data: AppData, attachments: Attachment[], password?: string): Promise<{ result: "shared" | "downloaded" | "cancelled"; exportedAt: string }> {
+export type ExportResult = { result: "shared" | "downloaded" | "cancelled"; exportedAt: string } | { result: "needsTap"; exportedAt: string; file: File };
+
+export async function exportBackupFile(data: AppData, attachments: Attachment[], password?: string): Promise<ExportResult> {
   const nowIso = new Date().toISOString();
   const plain = JSON.stringify(buildBackup(data, nowIso, await Promise.all(attachments.map(encodeAttachment))), null, 2);
   // Heslo je voliteľné (N-05, D-276): bez hesla sa zapíše bežný JSON.
   const encrypted = password ? JSON.stringify(await encryptBackup(plain, password)) : null;
   const name = `financna-sloboda-zaloha-${todayIso()}${encrypted ? "-sifrovana" : ""}.json`;
-  const text = encrypted ?? plain;
   // Typ text/plain: Safari na iPhone zdieľa len vybrané typy (text, PDF, obrázky), JSON nie. Bez zdieľacieho listu
   // by sa súbor v appke na ploche otvoril na celú obrazovku bez cesty späť (D-305). Koncovka .json ostáva, obnova ju prijme.
-  const file = new File([text], name, { type: "text/plain" });
+  const file = new File([encrypted ?? plain], name, { type: "text/plain" });
+  const r = await deliverBackupFile(file);
+  return r === "needsTap" ? { result: "needsTap", exportedAt: nowIso, file } : { result: r, exportedAt: nowIso };
+}
+
+/**
+ * Zdieľa alebo stiahne pripravený súbor zálohy. Ak Safari zdieľanie odmietne, lebo od ťuknutia ubehlo priveľa času
+ * (šifrovanie, NotAllowedError), nestiahne ho, ale vráti „needsTap“: appka ukáže tlačidlo na nové ťuknutie
+ * (revízia 2026-10-25c, S-3; rovnaký dôvod ako D-307).
+ */
+export async function deliverBackupFile(file: File): Promise<"shared" | "downloaded" | "cancelled" | "needsTap"> {
   if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: name });
-      return { result: "shared", exportedAt: nowIso };
+      await navigator.share({ files: [file], title: file.name });
+      return "shared";
     } catch (err) {
-      if ((err as { name?: string })?.name === "AbortError") return { result: "cancelled", exportedAt: nowIso };
+      const n = (err as { name?: string })?.name;
+      if (n === "AbortError") return "cancelled";
+      if (n === "NotAllowedError") return "needsTap";
       // inak spadneme na stiahnutie
     }
   }
   const url = URL.createObjectURL(file);
   const a = document.createElement("a");
   a.href = url;
-  a.download = name;
+  a.download = file.name;
   document.body.appendChild(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  return { result: "downloaded", exportedAt: nowIso };
+  return "downloaded";
 }
 
 /** Stručný obsah dát pre porovnanie pred importom (D-134). */
@@ -88,17 +101,37 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
   // Správa o exporte je v časti Uložiť zálohu, správa o obnove v časti Obnoviť (D-294, docs/46 3.7).
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [exportPassword, setExportPassword] = useState("");
+  // Pripravená záloha čaká na ťuknutie, ak zdieľanie odmietlo oneskorené spustenie (S-3).
+  const [pending, setPending] = useState<{ file: File; exportedAt: string; encrypted: boolean } | null>(null);
   const [encryptedImport, setEncryptedImport] = useState<EncryptedBackup | null>(null);
   const [importPassword, setImportPassword] = useState("");
 
   const exportBackup = async () => {
     if (exportPassword !== "" && exportPassword.length < MIN_PASSWORD_LENGTH) return setExportStatus(`Heslo musí mať aspoň ${MIN_PASSWORD_LENGTH} znakov. Nič sa neexportovalo.`);
+    setPending(null);
     const r = await exportBackupFile(data, await repo.listAllAttachments(), exportPassword || undefined);
-    if (r.result === "cancelled") return setExportStatus("Export bol zrušený. Záloha nie je uložená.");
-    onExported(r.exportedAt);
+    if (r.result === "needsTap") {
+      setPending({ file: r.file, exportedAt: r.exportedAt, encrypted: exportPassword !== "" });
+      setExportPassword("");
+      return setExportStatus("Záloha je pripravená. Ťukni na Uložiť pripravenú zálohu.");
+    }
+    finishExport(r.result, r.exportedAt, exportPassword !== "");
     setExportPassword("");
-    const enc = exportPassword !== "" ? "Záloha je zašifrovaná; na obnovu potrebuješ heslo. " : "";
-    setExportStatus(enc + (r.result === "shared"
+  };
+
+  const savePending = async () => {
+    if (!pending) return;
+    const how = await deliverBackupFile(pending.file);
+    if (how === "needsTap") return setExportStatus("Zdieľanie sa neotvorilo. Skús Uložiť pripravenú zálohu znova.");
+    setPending(null);
+    finishExport(how, pending.exportedAt, pending.encrypted);
+  };
+
+  const finishExport = (result: "shared" | "downloaded" | "cancelled", exportedAt: string, encrypted: boolean) => {
+    if (result === "cancelled") return setExportStatus("Export bol zrušený. Záloha nie je uložená.");
+    onExported(exportedAt);
+    const enc = encrypted ? "Záloha je zašifrovaná; na obnovu potrebuješ heslo. " : "";
+    setExportStatus(enc + (result === "shared"
       ? "Záloha je uložená podľa tvojho výberu. Obsahuje citlivé finančné údaje vrátane čísel dokladov: neukladaj ju do verejných priečinkov."
       : "Záloha sa stiahla. Obsahuje citlivé finančné údaje vrátane čísel dokladov: neukladaj ju do verejných priečinkov."));
   };
@@ -178,7 +211,8 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
         <input type="password" aria-label="Heslo na šifrovanie zálohy" autoComplete="new-password" maxLength={100} value={exportPassword} onChange={(e) => setExportPassword(e.target.value)} style={inp} />
       </label>
       <p style={hintStyle}>Heslo sa nedá obnoviť. Bez neho sa zašifrovaná záloha neotvorí.</p>
-      <button onClick={exportBackup} style={btnPrimary}>Uložiť zálohu</button>
+      <button onClick={exportBackup} style={pending ? btn : btnPrimary}>Uložiť zálohu</button>
+      {pending && <button onClick={savePending} style={{ ...btnPrimary, marginLeft: 8 }}>Uložiť pripravenú zálohu</button>}
       <p style={hintStyle}>Na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne do priečinka Stiahnuté.</p>
       {exportStatus && <p style={{ marginTop: 12 }}>{exportStatus}</p>}
       <h3 style={{ fontSize: "var(--font-text)", marginBottom: 8, marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border)" }}>Obnoviť zo zálohy</h3>

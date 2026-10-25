@@ -90,6 +90,19 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
   const [ready, setReady] = useState<{ name: string; blob: Blob } | null>(null);
   // Bez nehnuteľnosti a psa by tlačivo ostalo prázdne, preto sa nevypĺňa (D-208).
   const empty = properties.length === 0 && dogs.length === 0;
+  // Pripravené PDF platí len pre údaje, z ktorých vzniklo; po zmene psa alebo nehnuteľnosti sa zahodí (revízia 2026-10-25c, S-2).
+  const dataKey = JSON.stringify([properties, dogs, today]);
+  const [readyKey, setReadyKey] = useState<string | null>(null);
+  const [changed, setChanged] = useState(false);
+  useEffect(() => {
+    if (readyKey === null || readyKey === dataKey) return;
+    setReady(null);
+    setPreview(null);
+    setNotes([]);
+    setSaved(null);
+    setReadyKey(null);
+    setChanged(true);
+  }, [dataKey, readyKey]);
 
   // Náhľad sa uvoľní, keď vznikne nový, a keď sa sekcia zavrie.
   useEffect(() => () => {
@@ -101,6 +114,7 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
     setErr(null);
     setSaved(null);
     setReady(null);
+    setChanged(false);
     // Krok, v ktorom sa to zastavilo, ide do hlásenia: chybu na telefóne inak nevidno (postreh zakladateľa 5.3, D-306).
     let step = "načítanie tlačiva";
     try {
@@ -114,6 +128,7 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
       const blob = new Blob([new Uint8Array(out.bytes)], { type: "application/pdf" });
       setPreview(URL.createObjectURL(blob));
       setReady({ name, blob });
+      setReadyKey(dataKey);
       setNotes([
         ...(out.tooLong.length > 0 ? [`Tieto údaje sa do tlačiva nezmestili, doplňte ich v PDF ručne: ${out.tooLong.join(", ")}.`] : []),
         ...fields.notes,
@@ -137,10 +152,12 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
           Najprv pridaj nehnuteľnosť v Majetku alebo psa vyššie. Bez nich by tlačivo zostalo prázdne. <NextStep to="majetok">Majetok</NextStep>
         </p>
       )}
+      {changed && <p style={calloutStyle("warn")}>Údaje sa zmenili, vyplň tlačivo znova.</p>}
       {!empty && <button onClick={run} disabled={busy} style={ready ? btn : btnPrimary}>{busy ? "Vypĺňam…" : "Vyplniť tlačivo (PDF)"}</button>}
       {ready && (
         <button
           onClick={async () => {
+            setErr(null);
             try {
               setSaved({ name: ready.name, how: await saveBlobFile(ready.name, ready.blob) });
             } catch (e) {
