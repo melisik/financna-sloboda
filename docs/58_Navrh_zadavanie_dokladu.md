@@ -30,7 +30,7 @@ Cesta 3 je na telefóne zdĺhavá (prepnúť do Safari, overiť doklad, označi�
 
 ### B. Položky z fotky dokladu (rozpoznanie textu v zariadení)
 - Tlačidlo „Odfotiť doklad“: appka rozpozná text (OCR) priamo v telefóne, rozdelí ho na položky a ukáže ich na kontrolu pred pridaním.
-- Knižnica (napr. Tesseract.js so slovenčinou) má **niekoľko MB** (predpoklad, overiť); načíta sa až pri prvom použití, potom offline (ako D-284).
+- **Oprava (2026-10-25, po kontrole závislostí):** appka už rozpoznávanie textu má. Tesseract.js 7 so slovenským modelom je v `public/tesseract/` a `public/tessdata/` (spolu asi 26 MB) a používa ho Sklad na dátum spotreby z fotky obalu (`src/features/sklad/ocr.ts`). Možnosť B teda nepridáva novú knižnicu; nová je len logika rozdelenia textu dokladu na položky a kontrola. Pôvodný text („niekoľko MB, predpoklad“) bol nepresný.
 - **Riziká:** termopapier, zhyb a svetlo dávajú chyby v číslach. Rozpoznanie trvá na telefóne sekundy až desiatky sekúnd (predpoklad). Chybná suma položky = chybný výdavok, preto je kontrola pred pridaním povinná. Fotka dokladu ostáva v zariadení, neukladá sa (súkromie).
 - **Odhad:** 3 až 5 dní vrátane testov s fotkami syntetických dokladov; presnosť treba overiť na skutočných dokladoch zakladateľa (len v zariadení, nič do repozitára).
 
