@@ -2,6 +2,8 @@
 
 Reviewer: Claude (samostatná konverzácia, nie autor dokumentov ani kódu). Podklad: `review/revizia-zadanie-2026-10-25c.md`. Vetva `claude/phase2-property-card`, HEAD `4ad7e57` (D-312, zlúčenie do `main`). Zmeny D-305 až D-311 sú `80ab377` až `c5404f2`; prešiel som diff `dbf8090..c5404f2` v `src/` a `tests/`. Nič nebolo opravené; tento súbor je jediná zmena v repozitári.
 
+**Dodatok pred pushom:** pri `git pull` prišlo D-313 (`c5b177f`, `0137edc`, `dcc5641`), ktoré prepisuje formulár transakcie (`Transakcie.tsx`, `validate.ts`). D-313 som nerevidoval. Podľa rýchleho pohľadu na nový kód sa uložené položky pri úprave načítajú do jedného zoznamu `items`, súčet sa počíta z neho a každá položka má tlačidlo Odstrániť. **S-1 a N-4 preto na aktuálnom HEAD pravdepodobne už neplatia**; N-5 (DPH 0 pri ručnej položke) platí ďalej. Ostatné nálezy sa D-313 netýka. D-313 patrí do ďalšej revízie.
+
 Zmeny sú už v `main` (D-312), takže nálezy nižšie platia aj pre verejnú zostavu tam, kde sa ich týka (zbalené bloky a tlačivo sú v jadre, ručné položky dokladu tiež).
 
 ## 1. Rozsah a overenie
