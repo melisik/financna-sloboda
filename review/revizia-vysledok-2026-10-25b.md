@@ -1,6 +1,6 @@
 # Výsledok externej revízie 2026-10-25 (b): kód D-278 až D-281, D-284, D-286, D-287, D-289
 
-Reviewer: Claude (samostatná konverzácia, nie autor dokumentov ani kódu). Podklad: `review/revizia-zadanie-2026-10-24.md` (tabuľka časti 1 a časť 2) a odporúčanie v `review/revizia-vysledok-2026-10-25.md`, oddiel 5. Vetva `claude/phase2-property-card`, HEAD `d764558`. Nič nebolo opravené; tento súbor je jediná zmena v repozitári.
+Reviewer: Claude (samostatná konverzácia, nie autor dokumentov ani kódu). Podklad: `review/revizia-zadanie-2026-10-24.md` (tabuľka časti 1 a časť 2) a odporúčanie v `review/revizia-vysledok-2026-10-25.md`, oddiel 5. Vetva `claude/phase2-property-card`, HEAD `d764558`; pred pushom prišiel commit `f1c4d4f` (D-298), ktorý `Transakcie.tsx` mení len pri filtri a súčte, takže nálezy platia aj po ňom. Nič nebolo opravené; tento súbor je jediná zmena v repozitári.
 
 Nálezy, ktoré už rieši D-295 (klávesnica na iPhone pri prilepenom pruhu) a D-296 (odpovede na revíziu 2026-10-25), sa tu neopakujú.
 
@@ -47,7 +47,7 @@ Nálezy, ktoré už rieši D-295 (klávesnica na iPhone pri prilepenom pruhu) a 
 
 **S-2. Zbalený „Doklad“ skryje upozornenie na nesúlad súčtu položiek**
 - **Súbor a miesto:** `Transakcie.tsx`, `<details open={docShown} onToggle={… setDocOpen(…)}>` (riadok 312), `docShown` (riadok 272), upozornenie `itemsMismatch` (riadky 366–368).
-- **Problém:** keď je v poli položiek text, `docShown` je stále `true`. Používateľ môže blok zbaliť ťuknutím na súhrn: prehliadač ho zatvorí, `docOpen` sa nastaví na `false`, ale hodnota atribútu `open` sa pre React nezmení (`true` → `true`), takže ho znovu neotvorí. Stav a zobrazenie sa rozídu (rovnaký mechanizmus ako N-6 z revízie 2026-10-25, tu však s dôsledkom). Overené v prehliadači: po zbalení je text „Súčet položiek sa nezhoduje so sumou výdavku…“ neviditeľný a ostane neviditeľný aj po zmene sumy. Súhrn ukazuje „· priradený“ len pri čísle dokladu alebo uložených položkách, nie pri rozpísanom texte alebo nesúlade.
+- **Problém:** keď je v poli položiek text, `docShown` je stále `true`. Používateľ môže blok zbaliť ťuknutím na súhrn: prehliadač ho zatvorí, `docOpen` sa nastaví na `false`, ale hodnota atribútu `open` sa pre React nezmení (`true` → `true`), takže ho znovu neotvorí. Stav a zobrazenie sa rozídu (rovnaký mechanizmus ako N-6 z revízie 2026-10-25; D-298 ho počas tejto revízie opravilo pri filtri, pri Doklade nie). Overené v prehliadači: po zbalení je text „Súčet položiek sa nezhoduje so sumou výdavku…“ neviditeľný a ostane neviditeľný aj po zmene sumy. Súhrn ukazuje „· priradený“ len pri čísle dokladu alebo uložených položkách, nie pri rozpísanom texte alebo nesúlade.
 - **Dôsledok:** výdavok sa dá uložiť s položkami, ktorých súčet nesedí, bez viditeľného upozornenia (uloženie pri nesúlade je zámerne povolené, upozornenie je jediná ochrana). Nerozpoznané riadky zablokujú uloženie a chyba sa ukáže v prilepenom pruhu, blok sa však sám neotvorí. Zadanie sa pýtalo práve na toto („Môže sa chyba v položkách dokladu skryť v zbalenom bloku?“): áno.
 - **Návrh:** blok buď nedovoliť zbaliť, kým obsahuje nesúlad alebo nerozpoznané riadky, alebo ukázať stav v súhrne („Doklad · súčet nesedí“, „· nerozpoznané riadky“); stav `open` riadiť jedným zdrojom (ako pri pruhu Skúšobná verzia v `Shell.tsx`). Doplniť E2E test.
 - **Rozhodnutie zakladateľa:** nie.
