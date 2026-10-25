@@ -14,10 +14,10 @@ Pilot začal 2026-10-21. Plán pilota s týmto pravidlom schválil zakladateľ 2
 | 2026-10-22 | D-166 | Cieľ pri nulovom alebo zápornom sporení (r = 0) je nedosiahnuteľný namiesto chybného dátumu. | Okrajový prípad; oprava chyby | v deň schválenia D-153 |
 | 2026-10-22 | D-169 | Ročný prehľad: dátum cieľa s nehnuteľnosťami v prenájme; tok K s rovnakou hranicou ako K. | Ročný prehľad, nie hlavný dátum cieľa | v deň schválenia D-153 |
 | 2026-10-22 | D-203 (nález 9) | Automatický výnos v automatickom vyhodnotení sa počíta len z hodnoty na začiatku obdobia; vklady v období sú bez výnosu. | Kapitál v automatickom vyhodnotení, a tým dátum cieľa | v deň schválenia D-153 |
-| 2026-10-23 | D-254 | Cieľ nad stropom výpočtu sa zobrazí ako „Viac ako 50 rokov“ (T5). | Okrajový prípad | **nie je zapísaná** |
-| 2026-10-23 | D-255 | Po splatení hypotéky sa splátka už neodpočítava a čistý nájom ide do sporenia (T1). | Fáza 2: nehnuteľnosť v prenájme s hypotékou | **nie je zapísaná** |
-| 2026-10-23 | D-256 | Horizont nad 50 rokov vo výpočte s nehnuteľnosťou (T2). | Fáza 2, okrajový prípad | **nie je zapísaná** |
-| 2026-10-23 | D-263 | Inflácia 4,2 % pre prevod hypotéky na reálnu sadzbu. | Fáza 2: cieľ s hypotékou | **nie je zapísaná** |
+| 2026-10-23 | D-254 | Cieľ nad stropom výpočtu sa zobrazí ako „Viac ako 50 rokov“ (T5). | Okrajový prípad | D-292 |
+| 2026-10-23 | D-255 | Po splatení hypotéky sa splátka už neodpočítava a čistý nájom ide do sporenia (T1). | Fáza 2: nehnuteľnosť v prenájme s hypotékou | D-292 |
+| 2026-10-23 | D-256 | Horizont nad 50 rokov vo výpočte s nehnuteľnosťou (T2). | Fáza 2, okrajový prípad | D-292 |
+| 2026-10-23 | D-263 | Inflácia 4,2 % pre prevod hypotéky na reálnu sadzbu. | Fáza 2: cieľ s hypotékou | D-292 |
 | 2026-10-24 | D-285 | Oficiálny dátum cieľa, jeho rozsah, upozornenie na dlhý horizont a pokrok sa počítajú z kapitálu pri poslednom vyhodnotení. Predtým sa dátum posúval s každou transakciou po vyhodnotení. | Všetci | D-291 |
 
 **Vplyv na porovnanie:**
@@ -93,6 +93,8 @@ Proces, dokumenty, návrhy, testy a nasadenie, ktoré správanie appky nemenia:
 
 Pri D-248 a D-251 sa mení nasadenie (verejná verzia bez Fázy 2), pozri oddiel 2.
 
-## 5. Otvorené
+## 5. Výnimky
 
-Zmeny výpočtu z 2026-10-23 (D-254, D-255, D-256, D-263) nemajú výslovnú výnimku z D-153, hoci ich zakladateľ schválil. Rozhodne zakladateľ: buď zapísať výnimku ako pri D-285 (D-291), alebo ich pri vyhodnotení pilota vyhodnotiť zvlášť.
+- D-291 (2026-10-25): výnimka pre D-285.
+- D-292 (2026-10-25): výnimka pre D-254, D-255, D-256 a D-263. Dátumy cieľa účastníkov s nehnuteľnosťou sa porovnávajú až od 2026-10-23.
+- Zmeny výpočtu z 2026-10-21 a 2026-10-22 vznikli pred schválením D-153 alebo v deň schválenia, preto výnimku nemajú. Pri vyhodnotení pilota sa porovnáva až od 2026-10-23 (pri D-285 od 2026-10-24).
