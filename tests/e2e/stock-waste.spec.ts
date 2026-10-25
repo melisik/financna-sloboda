@@ -3,7 +3,6 @@ import { expect, test } from "@playwright/test";
 import { goTo, openApp, TEST_NOW } from "./helpers";
 
 // Sklad prepojený s výdavkami (D-301, docs/51 etapa 1). Syntetické názvy a sumy.
-const PASTE = ["100000001 Syntetický jogurt", "4,000x\t5%\t0,59 €\t2,36 €", "100000002 Syntetický šampón", "1,000x\t23%\t3,50 €"].join("\n");
 
 async function ready(page: import("@playwright/test").Page) {
   await page.clock.setFixedTime(TEST_NOW);
@@ -20,9 +19,12 @@ test.describe("sklad a výdavky", () => {
     await goTo(page, "nova-transakcia");
     const t = page.locator("section#nova-transakcia");
     await t.getByRole("button", { name: "Nákup po položkách" }).click();
-    await t.locator("summary", { hasText: "Doklad" }).click();
-    await t.getByLabel("Položky z dokladu").fill(PASTE);
-    await t.getByRole("button", { name: "Pridať z textu" }).click();
+    for (const [name, qty, price] of [["Syntetický jogurt", "4", "0.59"], ["Syntetický šampón", "1", "3.5"]]) {
+      await t.getByLabel("Položka", { exact: true }).fill(name);
+      await t.getByLabel("Množstvo", { exact: true }).fill(qty);
+      await t.getByLabel("Cena za kus (€)").fill(price);
+      await t.getByRole("button", { name: "Pridať položku" }).click();
+    }
     await t.getByRole("button", { name: "Uložiť transakciu" }).click();
     await t.locator("li", { hasText: "5,86" }).getByRole("button", { name: "Upraviť" }).click();
     await t.getByRole("button", { name: "Pridať do skladu" }).click();

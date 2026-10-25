@@ -65,14 +65,6 @@ test.describe("formulár transakcie (D-313)", () => {
     await expect(t.getByText("Spolu: 2,40 €")).toBeVisible();
   });
 
-  test("ručne napísaný text v poli z portálu vysvetlí, kam patria položky", async ({ page }) => {
-    const t = await ready(page);
-    await t.getByRole("button", { name: "Nákup po položkách" }).click();
-    await t.locator("summary", { hasText: "Doklad" }).click();
-    await t.getByLabel("Položky z dokladu").fill("chlieb 2 kusy");
-    await expect(t.getByText(/ručne napísané položky zadaj vyššie/)).toBeVisible();
-  });
-
   test("bez modulu Sklad potvrdenie povie, kde ho zapnúť", async ({ page }) => {
     const t = await ready(page);
     await goTo(page, "nastavenia");

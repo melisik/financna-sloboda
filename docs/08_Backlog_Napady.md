@@ -60,4 +60,5 @@ Zakladateľ odložil tieto otvorené otázky do backlogu. Návrhy ostávajú v d
   - zdroj k lehote 15 dní (zakladateľ ju uviedol zo skúsenosti);
   - či chodí jeden výmer za nehnuteľnosti aj psa spolu, alebo osobitne;
   - overenie termínov T1 až T5 zo zdroja (stránka obce, slovensko.sk, Finančná správa). Bez overeného zdroja sa termín v appke neukáže (D-104).
+- **N-19 Položky nákupu z fotky dokladu** (`docs/58`, možnosť B, D-318). Po pilote ako prototyp: rozpoznanie textu priamo v zariadení (napr. Tesseract.js), kontrola položiek pred pridaním, fotka sa neukladá. Overiť veľkosť knižnice, čas rozpoznania na telefóne a presnosť na termopapieri (fotky syntetických dokladov; skutočné doklady len v zariadení zakladateľa).
 

@@ -1,6 +1,6 @@
 # 58 – Návrh: zadávanie dokladu a položiek nákupu
 
-> Stav: **návrh na schválenie** (2026-10-25). Kód sa nemení. Podnet: prehliadka zakladateľa 2026-10-25 (bod 3, D-317): „nikto nebude prepisovať text z eKasa“. D-153: bez zmeny výpočtu (mení sa len spôsob zadania položiek).
+> Stav: **schválené a implementované** (2026-10-25, D-318): 1 zrušiť text z portálu, 2 návrhy áno, 3 fotka dokladu po pilote (backlog N-19), 4 načítanie z portálu nie. Podnet: prehliadka zakladateľa 2026-10-25 (bod 3, D-317): „nikto nebude prepisovať text z eKasa“. D-153: bez zmeny výpočtu (mení sa len spôsob zadania položiek).
 
 ## 1. Problém
 
@@ -57,7 +57,7 @@ Cesta 3 je na telefóne zdĺhavá (prepnúť do Safari, overiť doklad, označi�
 - **Kognitívna záťaž:** A + D ju znižujú (jedna cesta, menej písania). B pridáva krok kontroly.
 - **Zavádzajúce údaje:** B môže prečítať nesprávnu sumu; preto kontrola pred pridaním a zvýraznený súčet.
 - **Súkromie:** A a D nič nové neukladajú ani neposielajú. B spracuje fotku len v zariadení. C posiela údaje o nákupoch na server.
-- **Technický dlh:** A odstráni parser textu z UI; parser a test ostanú pre obnovu starších záloh netknuté (položky sú už uložené ako dáta, parser sa pri obnove nepoužíva).
+- **Technický dlh:** A odstráni parser textu aj jeho test; obnova starších záloh ho nepoužíva (položky sú uložené ako dáta), takže sa nič nestratí.
 
 ## 6. Otázky na rozhodnutie
 

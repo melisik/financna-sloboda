@@ -18,10 +18,11 @@ test.describe("zadanie výdavku a história (A3)", () => {
     expect(firstLabel).toMatch(/^Suma \(€\)/);
 
     await expect(form.getByLabel("Fotka QR kódu dokladu")).toBeHidden();
-    await expect(form.getByLabel("Položky z dokladu")).toBeHidden();
+    await expect(form.getByRole("button", { name: "Skenovať QR kód kamerou" })).toHaveCount(0);
     await form.getByRole("button", { name: "Nákup po položkách" }).click();
-    await form.locator("summary", { hasText: "Doklad" }).click();
-    await expect(form.getByLabel("Položky z dokladu")).toBeVisible();
+    await expect(form.getByRole("button", { name: "Skenovať QR kód kamerou" })).toBeHidden();
+    await form.locator("summary", { hasText: "Overiť doklad (QR)" }).click();
+    await expect(form.getByRole("button", { name: "Skenovať QR kód kamerou" })).toBeVisible();
   });
 
   test("v histórii je pri zázname len Upraviť; Prílohy a Zmazať sú v úprave a zmazanie sa dá vrátiť", async ({ page }) => {

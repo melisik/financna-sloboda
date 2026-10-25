@@ -29,15 +29,13 @@ test.describe("opravy po revízii 2026-10-25 (b)", () => {
   });
 
   // S-2 nahradené D-313: suma pri nákupe po položkách je súčet položiek, nesúlad nemôže nastať.
-  test("S-2/D-313: nepridaný vložený text zablokuje uloženie", async ({ page }) => {
+  test("S-2/D-313: nákup bez položiek sa neuloží", async ({ page }) => {
     await withBackup(page);
     await goTo(page, "nova-transakcia");
     const s = page.locator("section#nova-transakcia");
     await s.getByRole("button", { name: "Nákup po položkách" }).click();
-    await s.locator("summary", { hasText: "Doklad" }).click();
-    await s.getByLabel("Položky z dokladu").fill(["100000001 Syntetický rožok", "1,000x\t23%\t3,50 €"].join("\n"));
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
-    await expect(s.getByText(/Pridaj aspoň jednu položku|Vložený text pridaj/)).toBeVisible();
+    await expect(s.getByText("Pridaj aspoň jednu položku.")).toBeVisible();
   });
 
   test.describe("S-3: skener bez knižnice", () => {

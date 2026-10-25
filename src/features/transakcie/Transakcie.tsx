@@ -10,7 +10,6 @@ import type { Ctx } from "../../domain/context";
 import { INVESTMENTS_EXHAUSTED_TEXT, payFromCash, payFromInvestments, transferToInvestments, type Capital } from "../../domain/capital";
 import { impactWithRentals } from "../../domain/rentalGoal";
 import { formatImpactOutcome } from "../../domain/impact";
-import { parseReceiptItems } from "../../domain/receiptItems";
 import { RECEIPT_CHECK_URL, isReceiptId, receiptIdFromQr } from "../../domain/receipt";
 import { recommendedSettings } from "../../domain/recommendations";
 import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
@@ -46,7 +45,6 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const [receiptId, setReceiptId] = useState("");
   const [qrMsg, setQrMsg] = useState<string | null>(null);
   const [cameraOn, setCameraOn] = useState(false);
-  const [itemsText, setItemsText] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [undo, setUndo] = useState<Transaction | null>(null);
@@ -128,7 +126,19 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     return { blocked: false as const, impact: d, note: c.message, needsConfirm: !!c.needsConfirm };
   }, [type, source, amount, base, ctx]);
 
-  const parsedItems = useMemo(() => parseReceiptItems(itemsText), [itemsText]);
+  // Návrhy položiek z predchádzajúcich nákupov a zo skladu: názov a posledná cena za kus (docs/58, D).
+  const itemSuggestions = useMemo(() => {
+    const byName = new Map<string, { name: string; unitPriceCents: number }>();
+    for (const s of data.stockItems) if (s.unitPriceCents !== undefined) byName.set(s.name.trim().toLowerCase(), { name: s.name.trim(), unitPriceCents: s.unitPriceCents });
+    const withItems = data.transactions.filter((t) => t.receiptItems && t.receiptItems.length > 0).sort((a, b) => (a.date === b.date ? a.createdAt.localeCompare(b.createdAt) : a.date.localeCompare(b.date)));
+    for (const t of withItems) for (const i of t.receiptItems ?? []) if (i.unitPriceCents > 0) byName.set(i.name.trim().toLowerCase(), { name: i.name.trim(), unitPriceCents: i.unitPriceCents });
+    return byName;
+  }, [data.stockItems, data.transactions]);
+  const pickName = (v: string) => {
+    setMName(v);
+    const hit = itemSuggestions.get(v.trim().toLowerCase());
+    if (hit && mPrice === "") setMPrice(hit.unitPriceCents / 100);
+  };
   // Výdavok sa zapisuje buď rýchlo (jedna suma), alebo po položkách; suma sa vtedy vypočíta z položiek
   // a nezadáva sa druhýkrát (D-313, docs/57). Zľava je záporná položka.
   const [mode, setMode] = useState<"rychly" | "polozky">("rychly");
@@ -155,13 +165,6 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setItems([...items, { code: "ručne", name: mName.trim().slice(0, 200), quantity: q, vatPercent: 0, unitPriceCents, amountCents: Math.round(unitPriceCents * q) }]);
     setMName(""); setMQty(1); setMPrice(""); setErr(null);
   };
-  const addFromText = () => {
-    if (parsedItems.unparsed.length > 0) return setErr("Niektoré riadky sa nepodarilo rozpoznať. Opravte text alebo ho vymažte.");
-    setItems([...items, ...parsedItems.items]);
-    setItemsText("");
-    setErr(null);
-  };
-
   const resetForm = () => {
     setConfirmExhausted(false);
     // Po uložení aj zrušení úpravy späť na predvolené: výdavok z príjmu (D-014, D-288; revízia 2026-10-25b, S-1).
@@ -174,7 +177,6 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setReceiptId("");
     setQrMsg(null);
     setCameraOn(false);
-    setItemsText("");
     setItems([]);
     setMode("rychly");
     setOrigCents(null);
@@ -196,7 +198,6 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setNote(t.note ?? "");
     setReceiptId(t.receiptId ?? "");
     setQrMsg(null);
-    setItemsText("");
     setItems(t.receiptItems ?? []);
     setMode((t.receiptItems?.length ?? 0) > 0 ? "polozky" : "rychly");
     setOrigCents(t.amountCents);
@@ -262,7 +263,6 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     const receipt = receiptId.trim();
     if (type === "vydavok" && receipt !== "" && !isReceiptId(receipt)) return setErr("Číslo dokladu má 20 až 40 znakov: písmená, číslice a pomlčky.");
     // Vložený text, ktorý ešte nebol pridaný, sa nesmie potichu stratiť (D-129).
-    if (byItems && itemsText.trim() !== "") return setErr("Vložený text pridaj tlačidlom Pridať z textu, alebo ho vymaž.");
     const receiptItems = byItems ? items : undefined;
     // Len pri novom výdavku; pri úprave existujúceho by upozornenie len zdržiavalo.
     if (type === "vydavok" && !existing && !confirmedRecurring) {
@@ -362,7 +362,8 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
             </ul>
           )}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "flex-end" }}>
-            <label style={{ flex: "2 1 140px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Položka</span><input type="text" maxLength={200} value={mName} onChange={(e) => setMName(e.target.value)} style={inp} /></label>
+            <label style={{ flex: "2 1 140px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Položka</span><input type="text" maxLength={200} value={mName} list="navrhy-poloziek" onChange={(e) => pickName(e.target.value)} style={inp} /></label>
+            <datalist id="navrhy-poloziek">{[...itemSuggestions.values()].map((v) => <option key={v.name} value={v.name} label={eur(v.unitPriceCents)} />)}</datalist>
             <label style={{ flex: "1 1 70px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Množstvo</span><input type="number" step={0.001} value={mQty} onChange={(e) => setMQty(e.target.value === "" ? "" : Number(e.target.value))} style={inp} /></label>
             <label style={{ flex: "1 1 90px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Cena za kus (€)</span><input type="number" step={0.01} value={mPrice} onChange={(e) => setMPrice(e.target.value === "" ? "" : Number(e.target.value))} style={inp} /></label>
             <button type="button" onClick={addItem} style={btn}>Pridať položku</button>
@@ -405,7 +406,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} maxLength={200} />
       {byItems && (
         <details open={docOpen} onToggle={(e) => setDocOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
-          <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Doklad z portálu alebo QR{receiptId !== "" ? " · priradený" : ""} ▾</summary>
+          <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Overiť doklad (QR){receiptId !== "" ? " · priradený" : ""} ▾</summary>
           <div style={{ margin: "8px 0" }}>
             {cameraOn ? (
               <ReceiptCamera
@@ -439,20 +440,6 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
                 {copyMsg && <p style={hintStyle}>{copyMsg}</p>}
               </>
             )}
-          </div>
-          <div style={{ margin: "8px 0" }}>
-            <label style={{ display: "block" }}>
-              <span style={{ display: "block", fontSize: "var(--font-small)" }}>Len text skopírovaný z portálu eKasa (Overiť doklad). Položky píšeš ručne vyššie.</span>
-              <textarea aria-label="Položky z dokladu" value={itemsText} onChange={(e) => setItemsText(e.target.value)} rows={4} style={{ ...inp, fontFamily: "inherit" }} />
-            </label>
-            {parsedItems.unparsed.length > 0 && (
-              <div style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>
-                <p style={{ margin: "4px 0" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Toto pole prijme len text skopírovaný z portálu eKasa; ručne napísané položky zadaj vyššie a text tu vymaž.</p>
-                <p style={{ margin: "4px 0", color: "var(--muted)" }}>Text z portálu vyzerá takto (2 riadky na položku):</p>
-                <pre style={{ margin: 0, color: "var(--muted)", whiteSpace: "pre-wrap" }}>{"100000001 Chlieb tmavý\n1,000x   10%   1,20 €"}</pre>
-              </div>
-            )}
-            <button type="button" onClick={addFromText} disabled={itemsText.trim() === ""} style={btn}>Pridať z textu</button>
           </div>
         </details>
       )}
