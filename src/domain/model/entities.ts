@@ -246,8 +246,22 @@ export interface StockItem {
   expiryDate?: string; // dátum spotreby, YYYY-MM-DD; bez hodnoty = bez dátumu
   barcode?: string; // čiarový kód EAN-13, EAN-8 alebo UPC-A, len číslice; podľa neho sa pozná výrobok (D-232)
   warnDays?: number | null; // koľko dní vopred upozorniť na spotrebu; null = bez upozornenia; bez hodnoty = 3 dni (D-239)
+  unitPriceCents?: number; // cena za jednotku v celých centoch, nepovinná (D-301)
+  sourceTransactionId?: string; // výdavok, z ktorého dokladu položka pochádza (D-301)
   createdAt: string;
   updatedAt: string;
+}
+
+/** Vyhodená potravina (D-301): informácia o plytvaní, nie výdavok; peniaze sa minuli už pri nákupe. */
+export interface WasteRecord {
+  id: string;
+  date: string; // YYYY-MM-DD
+  name: string; // max 80 znakov
+  quantity: number; // kladné
+  unit: StockUnit;
+  valueCents?: number; // množstvo × cena za jednotku; bez hodnoty = položka nemala cenu
+  stockItemId?: string;
+  createdAt: string;
 }
 
 /** Surovina receptu: odkaz na položku skladu a množstvo v jednotke tejto položky (D-127). */
@@ -335,6 +349,7 @@ export interface AppData {
   recipes: Recipe[];
   dogs: Dog[];
   goals: InvestmentGoal[];
+  wasteRecords: WasteRecord[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */

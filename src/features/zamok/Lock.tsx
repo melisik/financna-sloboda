@@ -11,7 +11,7 @@ import { STORAGE_ERROR } from "../../ui/kit/messages";
 /** Odomknutie PIN-om (D-119). Údaje sa nezobrazia, kým PIN nie je správny. */
 const EMPTY_DATA: AppData = {
   settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [],
-  incomes: [], budgets: [], recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [],
+  incomes: [], budgets: [], recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [],
 };
 
 /** Odomknutie PIN-om. Zabudnutý PIN = vymazanie dát v zariadení po dvojitom potvrdení (D-135). */

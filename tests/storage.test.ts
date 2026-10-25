@@ -31,7 +31,7 @@ const sample: AppData = {
   incomes: [],
   budgets: [],
   recurringExpenses: [],
-  stockItems: [], recipes: [], dogs: [], goals: [],
+  stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [],
 };
 
 // Neplatné fixtúry sú zámerne mimo typu, preto vstup je unknown (buildBackup len obalí dáta).
@@ -135,7 +135,7 @@ describe("záloha: export a import (FR-17, FR-18)", () => {
   });
 
   it("vyššia verzia schémy je odmietnutá", () => {
-    const parsed = parseBackup({ app: "financna-sloboda", schemaVersion: 13, exportedAt: "x", settings: null, transactions: [], snapshots: [] }, TODAY);
+    const parsed = parseBackup({ app: "financna-sloboda", schemaVersion: 14, exportedAt: "x", settings: null, transactions: [], snapshots: [] }, TODAY);
     expect(parsed.ok).toBe(false);
     expect(!parsed.ok && parsed.errors.join(" ")).toMatch(/novšej verzie/);
   });

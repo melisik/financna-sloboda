@@ -35,7 +35,7 @@ const SOURCE_LABEL: Record<Source, string> = { z_prijmu: "z príjmu", z_hotovost
 /** Kamera je dostupná len v bezpečnom kontexte (HTTPS alebo localhost) a ak prehliadač podporuje getUserMedia. */
 const canUseCamera = (): boolean => typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getUserMedia === "function";
 
-export function TransactionSection({ repo, data, ctx, onChanged, renderAttachments }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void; renderAttachments: (transactionId: string) => ReactNode }) {
+export function TransactionSection({ repo, data, ctx, onChanged, renderAttachments, renderStockTransfer }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void; renderAttachments: (transactionId: string) => ReactNode; renderStockTransfer?: (t: Transaction) => ReactNode }) {
   const [type, setType] = useState<TransactionType>("vydavok");
   const [amount, setAmount] = useState<NumIn>("");
   const [date, setDate] = useState(todayIso());
@@ -439,6 +439,8 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
             <>
               <h3 style={{ fontSize: "var(--font-text)" }}>Prílohy</h3>
               {renderAttachments(editingTx.id)}
+              {/* Položky dokladu do skladu; len keď je Sklad zapnutý (D-301). */}
+              {renderStockTransfer && (editingTx.receiptItems?.length ?? 0) > 0 && renderStockTransfer(editingTx)}
             </>
           )}
           {confirmDeleteId === editingTx.id ? (

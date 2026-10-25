@@ -1,9 +1,9 @@
 import { openDB, type IDBPDatabase } from "idb";
 import type { Repository } from "./repository";
-import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RentalEntry, RecurringExpense, RegularIncome, Settings, Snapshot, StockItem, Transaction } from "./types";
+import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RentalEntry, RecurringExpense, RegularIncome, Settings, Snapshot, StockItem, Transaction, WasteRecord } from "./types";
 
 const DB_NAME = "financna-sloboda";
-const DB_VERSION = 9; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28); verzia 5 recepty (D-127); verzia 6 psy (D-159); verzia 7 prílohy (D-160); verzia 8 prílohy k výdavkom z prenájmu (D-221); verzia 9 ciele investícií (D-105)
+const DB_VERSION = 10; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28); verzia 5 recepty (D-127); verzia 6 psy (D-159); verzia 7 prílohy (D-160); verzia 8 prílohy k výdavkom z prenájmu (D-221); verzia 9 ciele investícií (D-105); verzia 10 vyhodené potraviny (D-301)
 const SETTINGS_KEY = "current";
 
 /** Otvorí databázu s úložiskami z 05 §4. */
@@ -48,6 +48,9 @@ export async function openRepository(name: string = DB_NAME): Promise<Repository
       if (oldVersion < 9) {
         d.createObjectStore("goals", { keyPath: "id" });
       }
+      if (oldVersion < 10) {
+        d.createObjectStore("wasteRecords", { keyPath: "id" });
+      }
     },
   });
   return new IdbRepository(db);
@@ -57,8 +60,8 @@ class IdbRepository implements Repository {
   constructor(private db: IDBPDatabase) {}
 
   async getData(): Promise<AppData> {
-    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs", "goals"], "readonly");
-    const [transactions, snapshots, settings, properties, assets, investments, liabilities, incomes, budgets, recurringExpenses, stockItems, recipes, dogs, goals] = await Promise.all([
+    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs", "goals", "wasteRecords"], "readonly");
+    const [transactions, snapshots, settings, properties, assets, investments, liabilities, incomes, budgets, recurringExpenses, stockItems, recipes, dogs, goals, wasteRecords] = await Promise.all([
       tx.objectStore("transactions").getAll(),
       tx.objectStore("snapshots").getAll(),
       tx.objectStore("settings").get(SETTINGS_KEY),
@@ -73,9 +76,10 @@ class IdbRepository implements Repository {
       tx.objectStore("recipes").getAll(),
       tx.objectStore("dogs").getAll(),
       tx.objectStore("goals").getAll(),
+      tx.objectStore("wasteRecords").getAll(),
     ]);
     await tx.done;
-    return { settings: (settings as Settings | undefined) ?? null, transactions, snapshots, properties, assets, investments, liabilities, incomes, budgets, recurringExpenses, stockItems, recipes, dogs, goals };
+    return { settings: (settings as Settings | undefined) ?? null, transactions, snapshots, properties, assets, investments, liabilities, incomes, budgets, recurringExpenses, stockItems, recipes, dogs, goals, wasteRecords };
   }
 
   async addTransaction(t: Transaction): Promise<void> {
@@ -238,6 +242,14 @@ class IdbRepository implements Repository {
     await tx.done;
   }
 
+  async discardStock(item: StockItem, record: WasteRecord): Promise<void> {
+    const tx = this.db.transaction(["stockItems", "wasteRecords"], "readwrite");
+    tx.done.catch(() => undefined);
+    await tx.objectStore("stockItems").put(item);
+    await tx.objectStore("wasteRecords").put(record);
+    await tx.done;
+  }
+
   async saveRecipe(r: Recipe): Promise<void> {
     await this.db.put("recipes", r);
   }
@@ -279,7 +291,7 @@ class IdbRepository implements Repository {
   }
 
   async replaceAll(data: AppData): Promise<void> {
-    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs", "goals"], "readwrite");
+    const tx = this.db.transaction(["transactions", "snapshots", "settings", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs", "goals", "wasteRecords"], "readwrite");
     // Pri zrušení transakcie by tx.done odmietla promise bez poslucháča (neošetrená chyba).
     tx.done.catch(() => undefined);
     try {
@@ -297,6 +309,8 @@ class IdbRepository implements Repository {
       await tx.objectStore("recipes").clear();
       await tx.objectStore("dogs").clear();
       await tx.objectStore("goals").clear();
+      await tx.objectStore("wasteRecords").clear();
+      for (const w of data.wasteRecords) await tx.objectStore("wasteRecords").put(w);
       for (const b of data.budgets) await tx.objectStore("budgets").put(b);
       for (const e of data.recurringExpenses) await tx.objectStore("recurringExpenses").put(e);
       for (const i of data.stockItems) await tx.objectStore("stockItems").put(i);

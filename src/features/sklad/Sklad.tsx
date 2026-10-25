@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { STOCK_UNITS, type Recipe, type RecipeIngredient, type StockItem, type StockUnit } from "../../storage/types";
+import { useEffect, useRef, useState } from "react";
+import { STOCK_UNITS, type Recipe, type RecipeIngredient, type StockItem, type StockUnit, type WasteRecord } from "../../storage/types";
+import { mergedUnitPriceCents, wasteSummary, wasteValueCents } from "../../domain/waste";
 import { checkDate } from "../../storage/validate";
 import type { Repository } from "../../storage/repository";
 import { DEFAULT_WARN_DAYS, STOCK_STATUS_TEXT, WARN_DAY_OPTIONS, daysUntil, findItemByBarcode, isValidBarcode, previousProducts, sortForList, stockStatus } from "../../domain/stock";
@@ -9,7 +10,7 @@ import { CameraScanner } from "./CameraScanner";
 import { findExpiryDate, findProductName } from "../../domain/scan";
 import { plural } from "../../domain/impact";
 import { cookRecipe } from "../../domain/recipe";
-import { dateSk } from "../../ui/kit/format";
+import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { uid } from "../../ui/kit/ids";
 import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
@@ -26,9 +27,14 @@ function dniText(n: number): string {
   return `pred ${-n} ${-n === 1 ? "dňom" : "dňami"}`;
 }
 
-export function StockSection({ repo, items, recipes, today, onSaved }: { repo: Repository; items: StockItem[]; recipes: Recipe[]; today: string; onSaved: () => void }) {
+export function StockSection({ repo, items, recipes, wasteRecords, today, onSaved }: { repo: Repository; items: StockItem[]; recipes: Recipe[]; wasteRecords: WasteRecord[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<StockItem | "new" | null>(null);
+  // „Ešte použiteľné“ otvorí úpravu so zameraným dátumom spotreby; nič sa nezaznamená (D-301).
+  const [focusExpiry, setFocusExpiry] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  // Vyhodiť (D-301): množstvo sa zníži a zapíše sa záznam o vyhodení; výdavok ani kapitál sa nemenia.
+  const [discardId, setDiscardId] = useState<string | null>(null);
+  const [discardQty, setDiscardQty] = useState<NumIn>("");
   const [err, setErr] = useState<string | null>(null);
   // Skener sa načíta pri otvorení Skladu, nie pri štarte appky; potom funguje aj offline (D-284).
   useEffect(() => preloadBarcodeReader(), []);
@@ -47,16 +53,38 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
     }
   };
 
+  const discard = async (i: StockItem) => {
+    const q = asNum(discardQty);
+    if (Number.isNaN(q) || q <= 0 || q > i.quantity) return setErr(`Vyhodiť sa dá 0 až ${qtyText(i.quantity)} ${i.unit}.`);
+    const value = wasteValueCents(i, q);
+    const now = new Date().toISOString();
+    const record: WasteRecord = { id: uid(), date: todayIso(), name: i.name, quantity: q, unit: i.unit, ...(value !== undefined ? { valueCents: value } : {}), stockItemId: i.id, createdAt: now };
+    try {
+      await repo.discardStock({ ...i, quantity: Math.round((i.quantity - q) * 1000) / 1000, updatedAt: now }, record);
+      setDiscardId(null);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
+
   // Karta jednej dávky položky; firstToUse označí dávku, ktorú treba spotrebovať ako prvú (D-236).
   const itemCard = (i: StockItem, firstToUse = false) => (
         <div key={i.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{i.name}</strong>{firstToUse ? <> · <strong>Použiť ako prvé</strong></> : null}</p>
-          <p style={{ margin: "4px 0" }}>{i.quantity} {i.unit}{i.quantity === 0 ? " · došlo" : ""}</p>
+          <p style={{ margin: "4px 0" }}>{qtyText(i.quantity)} {i.unit}{i.unitPriceCents !== undefined ? ` · ${eur(i.unitPriceCents)} za ${i.unit}` : ""}{i.quantity === 0 ? " · došlo" : ""}</p>
           <p style={{ ...hintStyle, margin: "4px 0" }}>
             {i.expiryDate ? `Spotrebovať do ${dateSk(i.expiryDate ?? "")} (${dniText(daysUntil(today, i.expiryDate))})` : "Bez dátumu spotreby"}
             {i.expiryDate ? <>{" · "}{STOCK_STATUS_TEXT[stockStatus(i, today)]}</> : null}
           </p>
-          {confirmId === i.id ? (
+          {discardId === i.id ? (
+            <div>
+              <Field label="Vyhodiť množstvo" value={discardQty} step={0.01} onChange={setDiscardQty} hint={`najviac ${qtyText(i.quantity)} ${i.unit}`} />
+              <button onClick={() => void discard(i)} style={btnDanger}>Potvrdiť vyhodenie</button>{" "}
+              <button onClick={() => setDiscardId(null)} style={btn}>Zrušiť</button>
+            </div>
+          ) : confirmId === i.id ? (
             <div>
               <p>Naozaj zmazať položku „{i.name}“?</p>
               {usedIn(i.id).length > 0 && (
@@ -67,7 +95,9 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
             </div>
           ) : (
             <>
-              <button onClick={() => setEditing(i)} style={btn}>Upraviť</button>{" "}
+              <button onClick={() => { setFocusExpiry(false); setEditing(i); }} style={btn}>Upraviť</button>{" "}
+              {i.quantity > 0 && <><button onClick={() => { setDiscardQty(i.quantity); setDiscardId(i.id); }} style={btn}>Vyhodiť</button>{" "}</>}
+              {i.quantity > 0 && stockStatus(i, today) === "prešlo" && <><button onClick={() => { setFocusExpiry(true); setEditing(i); }} style={btn}>Ešte použiteľné</button>{" "}</>}
               <button onClick={() => setConfirmId(i.id)} style={btnDanger}>Zmazať</button>
             </>
           )}
@@ -110,6 +140,7 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
     <section>
       <p style={{ color: "var(--muted)" }}>Potraviny doma a ich dátum spotreby. Názov a dátum môžete doplniť z fotky obalu; množstvo zadajte ručne.</p>
       <StockWarning items={items} today={today} />
+      <WasteSummary records={wasteRecords} today={today} />
       {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané položky skladu.</p>}
       {rows}
       {editing ? (
@@ -117,6 +148,7 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
           repo={repo}
           items={items}
           initial={editing === "new" ? null : editing}
+          focusExpiry={focusExpiry}
           onDone={() => { setEditing(null); onSaved(); }}
           onCancel={() => setEditing(null)}
         />
@@ -131,6 +163,30 @@ export function StockSection({ repo, items, recipes, today, onSaved }: { repo: R
 
 // Množstvo v desatinnej čiarke, ako ho píše slovenský text.
 const qtyText = (n: number) => String(n).replace(".", ",");
+
+/** Vyhodené potraviny tento mesiac a rok (D-301). Vecne, bez hodnotenia; vyhodené nie je nový výdavok. */
+function WasteSummary({ records, today }: { records: WasteRecord[]; today: string }) {
+  if (records.length === 0) return null;
+  const w = wasteSummary(records, today);
+  const month = records.filter((r) => r.date.slice(0, 7) === today.slice(0, 7)).sort((a, b) => b.date.localeCompare(a.date));
+  return (
+    <div style={{ margin: "8px 0" }}>
+      <p style={{ margin: 0 }}>
+        Vyhodené tento mesiac: {eur(w.monthCents)} ({w.monthCount} {plural(w.monthCount, "položka", "položky", "položiek")}) · tento rok: {eur(w.yearCents)}
+        {w.monthWithoutPrice > 0 ? ` · bez ceny: ${w.monthWithoutPrice}` : ""}
+      </p>
+      <p style={{ ...hintStyle, margin: "2px 0" }}>Vyhodené sa neráta ako nový výdavok; peniaze sa minuli pri nákupe.</p>
+      {month.length > 0 && (
+        <details>
+          <summary style={{ cursor: "pointer" }}>Vyhodené tento mesiac ▾</summary>
+          <ul style={{ paddingLeft: 20, margin: "4px 0" }}>
+            {month.map((r) => <li key={r.id}>{dateSk(r.date)} · {r.name} · {qtyText(r.quantity)} {r.unit} · {r.valueCents !== undefined ? eur(r.valueCents) : "bez ceny"}</li>)}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
 
 function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; recipes: Recipe[]; stock: StockItem[]; onSaved: () => void }) {
   const [editing, setEditing] = useState<Recipe | "new" | null>(null);
@@ -318,7 +374,13 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
   );
 }
 
-function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repository; items: StockItem[]; initial: StockItem | null; onDone: () => void; onCancel: () => void }) {
+function StockForm({ repo, items, initial, focusExpiry = false, onDone, onCancel }: { repo: Repository; items: StockItem[]; initial: StockItem | null; focusExpiry?: boolean; onDone: () => void; onCancel: () => void }) {
+  const formRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (focusExpiry) formRef.current?.querySelector<HTMLInputElement>('input[type="date"]')?.focus();
+  }, [focusExpiry]);
+  // Cena za jednotku je nepovinná (D-301); z nej sa počíta hodnota vyhodeného.
+  const [price, setPrice] = useState<NumIn>(initial?.unitPriceCents !== undefined ? initial.unitPriceCents / 100 : "");
   const [name, setName] = useState(initial?.name ?? "");
   const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? "");
   const [unit, setUnit] = useState<StockUnit>(initial?.unit ?? "ks");
@@ -341,6 +403,7 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
     setUnit(p.unit);
     setBarcode(p.barcode ?? "");
     setWarnDays(p.warnDays === undefined ? DEFAULT_WARN_DAYS : p.warnDays);
+    if (p.unitPriceCents !== undefined) setPrice(p.unitPriceCents / 100);
   };
 
   // Čiarový kód (z kamery alebo fotky) určí výrobok: názov a jednotku doplní uložená položka (D-232, D-233).
@@ -395,6 +458,9 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
       const dErr = checkDate(expiry.trim(), "9999-12-31", "dátum spotreby");
       if (dErr.length) return setErr(dErr[0]);
     }
+    const p = price === "" ? undefined : asNum(price);
+    if (p !== undefined && (Number.isNaN(p) || p < 0)) return setErr("Cena za jednotku musí byť 0 alebo viac, alebo prázdna.");
+    const priceCents = p === undefined ? undefined : cents(p);
     const code = barcode.trim();
     if (code !== "" && !isValidBarcode(code)) return setErr("Čiarový kód musí byť platný EAN-13, EAN-8 alebo UPC-A (len číslice).");
     const now = new Date().toISOString();
@@ -403,7 +469,8 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
     if (sameProduct) {
       if (sameProduct.unit !== unit) return setErr(`Výrobok je v sklade v jednotke ${sameProduct.unit}. Zvoľ rovnakú jednotku.`);
       try {
-        await repo.saveStockItem({ ...sameProduct, quantity: sameProduct.quantity + q, updatedAt: now });
+        const merged = mergedUnitPriceCents(sameProduct, q, priceCents);
+        await repo.saveStockItem({ ...sameProduct, quantity: sameProduct.quantity + q, ...(merged !== undefined ? { unitPriceCents: merged } : {}), updatedAt: now });
         onDone();
       } catch {
         setErr(STORAGE_ERROR);
@@ -420,6 +487,8 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
       ...(expiry.trim() !== "" ? { expiryDate: expiry.trim() } : {}),
       ...(code !== "" ? { barcode: code } : {}),
       warnDays,
+      ...(priceCents !== undefined ? { unitPriceCents: priceCents } : {}),
+      ...(initial?.sourceTransactionId ? { sourceTransactionId: initial.sourceTransactionId } : {}),
     };
     try {
       await repo.saveStockItem(item);
@@ -430,8 +499,9 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
   };
 
   return (
-    <div style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
+    <div ref={formRef} style={{ border: "1px solid var(--border-strong)", padding: 12, borderRadius: 6, background: "var(--surface)" }}>
       <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť položku skladu" : "Nová položka skladu"}</h4>
+      {focusExpiry && <p style={hintStyle}>Uprav dátum spotreby a ulož.</p>}
       {camera ? (
         <CameraScanner
           onFound={(code) => { setCamera(false); setScanMsg(applyBarcode(code)); }}
@@ -475,6 +545,7 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
           {STOCK_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
         </select>
       </label>
+      <Field label="Cena za jednotku (€, nepovinné)" value={price} step={0.01} onChange={setPrice} hint="z nej sa počíta hodnota vyhodeného" />
       <Field label="Dátum spotreby (nepovinné, bez dátumu nechajte prázdne)" value={expiry} type="date" onChange={setExpiry} />
       <label style={{ display: "block", marginBottom: 8 }}>
         <span style={{ display: "block", fontSize: "var(--font-small)" }}>Upozorniť na spotrebu</span>

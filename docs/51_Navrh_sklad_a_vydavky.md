@@ -1,6 +1,6 @@
 # 51 – Návrh: Sklad prepojený s výdavkami (S-B)
 
-> Stav: **čiastočne schválené** (2026-10-25): otázky 1 a 2 áno; otázka 4: nákupný zoznam **zapracovať** (oddiel 3.5, nové otázky 5 a 6); otázka 3 vysvetlená, čaká na odpoveď. Kód sa nemení. Zakladateľ zvolil smer S-B z `docs/50` oddiel 2. D-153: bez zmeny výpočtu (dátum cieľa ani kapitál sa nemenia; vyhodené potraviny sú informácia, nie nový výdavok).
+> Stav: **schválené** (2026-10-25, D-301): otázky 1, 2, 4, 5 áno, 6 hneď; otázka 3 čaká. **Etapa 1 (oddiely 3.1 až 3.4) implementovaná**; etapa 2 (nákupný zoznam, 3.5 a minimálna zásoba) nasleduje.
 
 ## 1. Cieľ skladu
 

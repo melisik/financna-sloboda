@@ -30,7 +30,7 @@ test.describe("recepty a sklad", () => {
     await porridge.getByRole("button", { name: "Uvariť" }).click();
     await page.getByRole("button", { name: "Odpočítať zo skladu" }).click();
     await expect(page.getByText("Uvarené: „Kaša“")).toBeVisible();
-    await expect(page.locator("section#sklad p", { hasText: /^1\.5 l$/ })).toBeVisible();
+    await expect(page.locator("section#sklad p", { hasText: /^1,5 l$/ })).toBeVisible();
     await expect(page.locator("section#sklad p", { hasText: /^400 g$/ })).toBeVisible();
 
     await page.getByRole("button", { name: "Pridať recept" }).click();
@@ -70,7 +70,7 @@ test.describe("recepty a sklad", () => {
 
     await porridge.getByRole("button", { name: "Uvariť" }).click();
     await page.getByRole("button", { name: "Odpočítať zo skladu" }).click();
-    await expect(page.locator("section#sklad p", { hasText: /^1\.5 l$/ })).toBeVisible();
+    await expect(page.locator("section#sklad p", { hasText: /^1,5 l$/ })).toBeVisible();
 
     const milk = page.locator("section#sklad section > div", { has: page.locator("strong", { hasText: /^Mlieko$/ }) });
     await milk.getByRole("button", { name: "Zmazať", exact: true }).click();

@@ -24,6 +24,7 @@ import { InvestmentSection } from "../features/investicie/Investicie";
 import { RecurringSection } from "../features/pravidelne/Pravidelne";
 import { DogSection, TaxFormBlock, TaxSection } from "../features/dane/Dane";
 import { StockSection } from "../features/sklad/Sklad";
+import { ReceiptToStock } from "../features/sklad/ReceiptToStock";
 import { RocnyPrehladSection } from "../features/rocny-prehlad/RocnyPrehlad";
 import { SettingsSection } from "../features/nastavenia/Nastavenia";
 import { PinSection } from "../features/zamok/Lock";
@@ -79,7 +80,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "nova-transakcia":
       return (
         <Section id="nova-transakcia" title="Transakcie">
-          <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} renderAttachments={(id) => <AttachmentsBlock repo={repo} owner={{ transactionId: id }} />} />
+          <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} renderAttachments={(id) => <AttachmentsBlock repo={repo} owner={{ transactionId: id }} />} renderStockTransfer={visible.has("sklad") ? (t) => <ReceiptToStock repo={repo} transaction={t} onSaved={reload} /> : undefined} />
         </Section>
       );
     case "scenar-vydavku":
@@ -148,7 +149,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "sklad":
       return (
         <Section id="sklad" title="Sklad">
-          <StockSection repo={repo} items={data.stockItems} recipes={data.recipes} today={todayIso()} onSaved={reload} />
+          <StockSection repo={repo} items={data.stockItems} recipes={data.recipes} wasteRecords={data.wasteRecords} today={todayIso()} onSaved={reload} />
         </Section>
       );
     case "rocny-prehlad":

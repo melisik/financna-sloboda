@@ -85,6 +85,7 @@ Výpočet cieľa tieto zmeny nemenia. Niektoré však menia, čo a ako používa
 | 2026-10-24 | D-289 | Prehľad: zbalený blok Vývoj v čase; skloňovanie „22 mesiacov“ (len text). |
 | 2026-10-24 | D-290 | Mesačný výdavok: zoznam opakovaných výdavkov a dátumu cieľa; doplnená testovacia záloha (viac transakcií). |
 | 2026-10-25 | D-293 | Usporiadanie obrazoviek: Nastavenia v skupinách (Moduly, Sprievodca a PIN zbalené), Rozpočet ako prehľad s „Upraviť limity“, Pravidelné výdavky s jedným tlačidlom, filter histórie zbalený a 10 záznamov, Ročný prehľad a Dane s menej nulami. Výpočty sa nemenia. |
+| 2026-10-25 | D-301 | Sklad: cena pri položke, prenos položiek dokladu do skladu, Vyhodiť a súhrn vyhodeného; nová verzia zálohy (v13). |
 | 2026-10-25 | D-300 | Transakcie: po uložení a zrušení úpravy späť na výdavok z príjmu; zbalený Doklad ukáže nesúlad súčtu; Sklad: správna hláška pri skeneri bez siete; texty o poplatkoch a tykanie v pripomienkach. Môže zmeniť zdroj výdavkov zapísaných po úprave (predtým ostal zdroj z úpravy). |
 | 2026-10-25 | D-299 | Transakcie: upozornenie pri výdavku zhodnom s pravidelným výdavkom (Uložiť aj tak / Neukladať); veta v Pravidelných výdavkoch. |
 | 2026-10-25 | D-298 | Transakcie: súčet s počtom, filter sa dá zbaliť; Pravidelné výdavky: Ukončiť len bez neuložených zmien; testovacia záloha: Energie v kategórii dom a energie. |

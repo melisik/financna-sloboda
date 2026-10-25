@@ -1,4 +1,4 @@
-import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings } from "./types";
+import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings, WasteRecord } from "./types";
 
 /** Rozhranie úložiska (05 §3): aplikácia a doména nevidia, či ide o IndexedDB. */
 export interface Repository {
@@ -32,6 +32,8 @@ export interface Repository {
   deleteStockItem(id: string): Promise<void>;
   /** Zapíše zmenené množstvá skladu v jednej transakcii (uvarenie receptu, D-127). */
   applyStockChanges(items: StockItem[]): Promise<void>;
+  /** Vyhodenie: zmenené množstvo položky a záznam o vyhodení v jednej transakcii (D-301). */
+  discardStock(item: StockItem, record: WasteRecord): Promise<void>;
   saveRecipe(r: Recipe): Promise<void>;
   deleteRecipe(id: string): Promise<void>;
   saveDog(d: Dog): Promise<void>;
