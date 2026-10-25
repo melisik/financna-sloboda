@@ -1,20 +1,98 @@
 # Zmeny kódu počas pilota
 
-Podľa `docs/17` (oddiel 8): zmena výpočtu počas pilota zneplatní porovnanie, preto ju môže povoliť len výnimka zapísaná v `decisions/Decisions.md`. Zmeny UI sú možné, ale zapisujú sa sem.
+Podľa `docs/17` (oddiel 8): zmena výpočtu počas pilota zneplatní porovnanie, preto ju má povoliť výnimka zapísaná v `decisions/Decisions.md`. Zmeny UI sú možné, ale zapisujú sa sem.
 
-Zmeny sú na vetve `claude/phase2-property-card`, teda v súkromnom náhľade pre testerov. Verejná verzia z `main` ich nemá, kým sa vetva nezlúči. Pri porovnaní výsledkov pilota treba vedieť, ktorú verziu kto používal.
+Pilot začal 2026-10-21. Plán pilota s týmto pravidlom schválil zakladateľ 2026-10-22 (D-153). Záznam zostavil autor kódu 2026-10-25 z `decisions/Decisions.md` (rozhodnutia s dátumom od 2026-10-21). Zaradenie každého rozhodnutia je jeho čítanie textu rozhodnutia, nie overenie v kóde. Ak niečo nesedí, treba to opraviť tu aj v rozhodnutí.
 
-| Dátum | Rozhodnutie | Druh | Zmena | Vplyv na porovnanie |
+## 1. Zmeny výpočtu
+
+| Dátum | Rozhodnutie | Zmena | Koho sa týka | Výnimka z D-153 |
 |---|---|---|---|---|
-| 2026-10-24 | D-285 (výnimka D-291) | **výpočet** | Oficiálny dátum cieľa, jeho rozsah, upozornenie na dlhý horizont a pokrok sa počítajú z kapitálu pri poslednom vyhodnotení. Predtým sa dátum posúval s každou transakciou po vyhodnotení. | Dátum cieľa zapísaný pred touto zmenou mohol obsahovať transakcie po vyhodnotení; od zmeny sa mení len pri vyhodnotení. Porovnávať dátumy treba od rovnakého vyhodnotenia. |
-| 2026-10-24 | D-288 | UI (predvolená hodnota) | Predvolený zdroj nového výdavku je „z príjmu“ (predtým „z hotovosti“). | Výdavky zadané bez zmeny zdroja už neznižujú kapitál. Výpočet sa nemení, mení sa to, čo používateľ zvyčajne zadá. |
-| 2026-10-24 | D-289 | UI (text) | Skloňovanie čísel 22 až 24, 32 až 34 a pod. („22 mesiacov“). | Len text. |
-| 2026-10-24 | D-281 | UI | Pruh „Skúšobná verzia“ je zbaliteľný. | Žiadny. |
-| 2026-10-24 | D-282 | UI (text) | Text výnosu uvádza infláciu 4,2 % z výpočtu namiesto 2 %. | Len text; výpočet bol už predtým so 4,2 %. |
-| 2026-10-24 | D-283 | UI | Prehľad: dátum cieľa, pokrok a posun hore; Moduly na telefóne zbalené. | Žiadny na výpočet; mení sa poradie obrazovky. |
-| 2026-10-24 | D-284 | UI (načítanie) | Skener čiarových kódov sa načíta až v Sklade. | Žiadny. |
-| 2026-10-24 | D-286, D-287 | UI | Formulár transakcie: suma prvá, doklad zbalený, Prílohy a Zmazať v úprave, Uložiť prilepené dole. | Môže zmeniť čas a počet dotykov pri zadaní transakcie (metrika v `tyzdenny-zapis.md`). |
-| 2026-10-24 | D-289 | UI | Prehľad: zbalený blok Vývoj v čase. | Žiadny na výpočet. |
-| 2026-10-24 | D-290 | UI | Mesačný výdavok: zoznam opakovaných výdavkov a dátumu cieľa; doplnená testovacia záloha. | Nový zoznam; výpočet cieľa sa nemení. Testovacia záloha má viac transakcií. |
+| 2026-10-21 | D-137 | Zostatok hypotéky sa automaticky znižuje o istinu za uplynulé mesiace; bývanie v rozpočte sú splátky mínus nájom. | Fáza 2: cieľ s nehnuteľnosťou v prenájme; rozpočet | pred schválením D-153 |
+| 2026-10-21 | D-139, D-145, D-150 | Mimoriadna splátka hypotéky (znížiť splátku alebo skrátiť termín) a jej vrátenie. | Fáza 2: nehnuteľnosť s hypotékou | pred schválením D-153 |
+| 2026-10-21 | D-140 | Zostatok úveru sa automaticky znižuje; splátky úverov sú v Prehľade nevyhnutné výdavky. | Rozpočet a blok Tento mesiac, nie dátum cieľa | pred schválením D-153 |
+| 2026-10-22 | D-166 | Cieľ pri nulovom alebo zápornom sporení (r = 0) je nedosiahnuteľný namiesto chybného dátumu. | Okrajový prípad; oprava chyby | v deň schválenia D-153 |
+| 2026-10-22 | D-169 | Ročný prehľad: dátum cieľa s nehnuteľnosťami v prenájme; tok K s rovnakou hranicou ako K. | Ročný prehľad, nie hlavný dátum cieľa | v deň schválenia D-153 |
+| 2026-10-22 | D-203 (nález 9) | Automatický výnos v automatickom vyhodnotení sa počíta len z hodnoty na začiatku obdobia; vklady v období sú bez výnosu. | Kapitál v automatickom vyhodnotení, a tým dátum cieľa | v deň schválenia D-153 |
+| 2026-10-23 | D-254 | Cieľ nad stropom výpočtu sa zobrazí ako „Viac ako 50 rokov“ (T5). | Okrajový prípad | **nie je zapísaná** |
+| 2026-10-23 | D-255 | Po splatení hypotéky sa splátka už neodpočítava a čistý nájom ide do sporenia (T1). | Fáza 2: nehnuteľnosť v prenájme s hypotékou | **nie je zapísaná** |
+| 2026-10-23 | D-256 | Horizont nad 50 rokov vo výpočte s nehnuteľnosťou (T2). | Fáza 2, okrajový prípad | **nie je zapísaná** |
+| 2026-10-23 | D-263 | Inflácia 4,2 % pre prevod hypotéky na reálnu sadzbu. | Fáza 2: cieľ s hypotékou | **nie je zapísaná** |
+| 2026-10-24 | D-285 | Oficiálny dátum cieľa, jeho rozsah, upozornenie na dlhý horizont a pokrok sa počítajú z kapitálu pri poslednom vyhodnotení. Predtým sa dátum posúval s každou transakciou po vyhodnotení. | Všetci | D-291 |
 
-Zmeny od začiatku pilota (2026-10-21) do 2026-10-23 sem zatiaľ zapísané nie sú. Ich zoznam je v `decisions/Decisions.md` (rozhodnutia s dátumom od 2026-10-21).
+**Vplyv na porovnanie:**
+- Dátum cieľa zapísaný pred 2026-10-24 mohol obsahovať transakcie po vyhodnotení (D-285). Dátumy treba porovnávať od rovnakého vyhodnotenia.
+- Pri účastníkoch s nehnuteľnosťou v prenájme sa dátum cieľa mohol zmeniť aj 2026-10-23 (D-255, D-256, D-263).
+- Kapitál v automatickom vyhodnotení sa počíta inak od 2026-10-22 (D-203).
+
+## 2. Ktorú verziu mal kto
+
+- **Verejná verzia** (GitHub Pages z `main`):
+  - od 2026-10-21 s Fázou 2 (D-142);
+  - od zlúčenia 2026-10-23 bez Fázy 2 (D-248, D-251, commit `8943d4c`).
+  - Obsahuje zmeny do 2026-10-23 (posledný commit `d654ef7`). Na vetve je navyše z 2026-10-23 len `daa4596`, vzhľad tlačidla „Rozpis výdavkov“.
+- **Súkromný náhľad pre testerov** (Cloudflare Pages z vetvy `claude/phase2-property-card`, s Fázou 2): od 2026-10-24 (D-270 až D-273). Obsahuje aj všetky zmeny z 2026-10-24.
+- Pri vyhodnotení pilota treba pri každom účastníkovi vedieť, ktorú verziu používal a od kedy.
+
+## 3. Zmeny UI, vstupov a dát
+
+Výpočet cieľa tieto zmeny nemenia. Niektoré však menia, čo a ako používateľ zadáva. To môže ovplyvniť metriky pilota (čas a počet dotykov pri transakcii, počet otázok).
+
+| Dátum | Rozhodnutia | Zmena |
+|---|---|---|
+| 2026-10-21 | D-131, D-136 | Prehľad: blok Tento mesiac (plnenie plánu, rozpis na nevyhnutné a nie nevyhnutné); nové kategórie dom a energie, voľný čas a dovolenka, dôchodok. |
+| 2026-10-21 | D-133, D-134, D-143 | Číslo dokladu z QR sa nezobrazuje; Záloha ukazuje dátum poslednej zálohy a náhľad pred importom; import nevynucuje uloženie aktuálnych dát. |
+| 2026-10-21 | D-135 | Zabudnutý PIN: vymazanie dát až po potvrdení. |
+| 2026-10-21 | D-139 | Ocenenie investícií staršie ako 3 mesiace sa označí. |
+| 2026-10-21 | D-141 | Sklad: dátum spotreby, uvarenie s potvrdením, hlásenia pri receptoch. |
+| 2026-10-21 | D-144 | Upozornenie na skúšobnú verziu; sumy vždy s centami; dátumy dd.mm.rrrr. |
+| 2026-10-21 | D-146 | Testovacia záloha sa pri nasadení posúva na aktuálny mesiac. |
+| 2026-10-21 | D-149, D-151 | Tlačidlo „Nahlásiť pripomienku“; pripomienka ročnej kontroly nastavení. |
+| 2026-10-22 | D-152 | Sprievodca prvým nastavením. Prázdne polia v Nastaveniach použijú východiskové hodnoty, takže pri prázdnom poli sa mení vstup výpočtu. |
+| 2026-10-22 | D-154, D-155 | Výhľad príjmov (len zobrazenie); týždenný súhrn výdavkov. |
+| 2026-10-22 | D-156 až D-159, D-161, D-208, D-220 | Dane (Fáza 2): evidencia prenájmu a psov, tlačivo 17-dp-md a šablóna priznania. Daň sa nepočíta. |
+| 2026-10-22 | D-160, D-221 | Prílohy k výdavkom a k výdavkom z prenájmu (nová schéma zálohy). |
+| 2026-10-22 | D-162 až D-164 | Moduly: voliteľné sekcie sa dajú skryť. |
+| 2026-10-22 | D-165, D-218 | Záporné mesačné sporenie sa odmietne; stará záloha sa načíta bez neho. |
+| 2026-10-22 | D-167, D-215 | Prečerpanie investícií sa zobrazí v Prehľade; kapitál sa nemení (D-045). |
+| 2026-10-22 | D-168 | iPhone: výzva „Pridaj na plochu“ povinná len v Safari. |
+| 2026-10-22 | D-170, D-204 až D-207 | Navigácia: päť skupín, odkazy medzi sekciami, tlačidlá na ďalší krok. |
+| 2026-10-22 | D-171 až D-198 | Presun kódu do vrstiev a features. Podľa rozhodnutí sa správanie nemení. |
+| 2026-10-22 | D-199 až D-202 | Vzhľad tlačidiel a riadkov histórie; oprava zostavy na Windows. |
+| 2026-10-22 | D-203 (okrem nálezu 9) | Obmedzenie pokusov pri PIN-e, kontrola dátumov pravidelných výdavkov, CSP. |
+| 2026-10-22 | D-209 až D-214, D-216, D-219 | Predvyplnenie nehnuteľnosti z listu vlastníctva (Fáza 2). |
+| 2026-10-22 | D-224, D-227 | Znenie hlásení pri cieli (GC-08, GC-14); pripomienka konca mesiaca. |
+| 2026-10-23 | D-132 | Limit veľkosti súboru zálohy 100 MB. |
+| 2026-10-23 | D-229 až D-231 | Výpis listu vlastníctva v HTML a výber bytu (Fáza 2). |
+| 2026-10-23 | D-232 až D-239 | Sklad: čiarový kód, kamera, dávky, upozornenie na spotrebu (aj na Prehľade). |
+| 2026-10-23 | D-240, D-249, D-252, D-253, D-262, D-264 | Texty: rozsahy a východiskové hodnoty sú neoverený predpoklad; vysvetlenie horizontu. |
+| 2026-10-23 | D-242 | Drobné nálezy auditu (robustnosť vstupov, sieťová izolácia, testy). |
+| 2026-10-23 | D-258, D-259 | Ciele v sekcii Investície (len zobrazenie). |
+| 2026-10-23 | D-260 | Potvrdenie pri zmene kapitálu o viac ako 50 % vo vyhodnotení. |
+| 2026-10-23 | D-265 | Upozornenie na splátku hypotéky pod nominálnym úrokom (Fáza 2). |
+| 2026-10-23 | D-266 až D-268 | Dane z prenájmu: pojem príjmu, výdavky, vzorec riadku 11 tlačiva (Fáza 2). Dátum cieľa nemenia. |
+| 2026-10-23 | D-269 | Ročný prehľad: porovnanie výdavkov v kategóriách s predchádzajúcim rokom. |
+| 2026-10-24 | D-274, D-275 | Scenáre Veľký výdavok a Mesačný výdavok (nič sa neukladá). |
+| 2026-10-24 | D-276, D-277 | Šifrovaná záloha; týždenný súhrn mailom. |
+| 2026-10-24 | D-278 až D-280 | Vizuálny štýl, menu na telefóne, pripomienky v náhľade len formulárom. |
+| 2026-10-24 | D-281 | Pruh „Skúšobná verzia“ je zbaliteľný. |
+| 2026-10-24 | D-282 | Text výnosu uvádza infláciu 4,2 % z výpočtu namiesto 2 % (len text). |
+| 2026-10-24 | D-283 | Prehľad: dátum cieľa, pokrok a posun hore; Moduly na telefóne zbalené. |
+| 2026-10-24 | D-284 | Skener čiarových kódov sa načíta až v Sklade. |
+| 2026-10-24 | D-286, D-287 | Formulár transakcie: suma prvá, doklad zbalený, Prílohy a Zmazať v úprave, Uložiť prilepené dole. Môže zmeniť čas a počet dotykov pri transakcii (metrika v `tyzdenny-zapis.md`). |
+| 2026-10-24 | D-288 | Predvolený zdroj nového výdavku je „z príjmu“ (predtým „z hotovosti“). Výdavok zadaný bez zmeny zdroja už neznižuje kapitál. |
+| 2026-10-24 | D-289 | Prehľad: zbalený blok Vývoj v čase; skloňovanie „22 mesiacov“ (len text). |
+| 2026-10-24 | D-290 | Mesačný výdavok: zoznam opakovaných výdavkov a dátumu cieľa; doplnená testovacia záloha (viac transakcií). |
+
+## 4. Rozhodnutia bez zmeny správania appky
+
+Proces, dokumenty, návrhy, testy a nasadenie, ktoré správanie appky nemenia:
+- D-138, D-147, D-148, D-153, D-193, D-217, D-222, D-223, D-225, D-226, D-228, D-241, D-243 až D-248, D-250, D-251, D-257, D-261;
+- D-270 až D-273: súkromný náhľad a jeho prístup;
+- D-291: výnimka pre D-285.
+
+Pri D-248 a D-251 sa mení nasadenie (verejná verzia bez Fázy 2), pozri oddiel 2.
+
+## 5. Otvorené
+
+Zmeny výpočtu z 2026-10-23 (D-254, D-255, D-256, D-263) nemajú výslovnú výnimku z D-153, hoci ich zakladateľ schválil. Rozhodne zakladateľ: buď zapísať výnimku ako pri D-285 (D-291), alebo ich pri vyhodnotení pilota vyhodnotiť zvlášť.
