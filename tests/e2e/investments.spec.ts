@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openFormFolds } from "./helpers";
 
 // D-101: ručné položky investícií; suma vo Vyhodnotení je súčtom položiek. Syntetické hodnoty.
 test.describe("sekcia Investície (D-101)", () => {
@@ -7,6 +7,7 @@ test.describe("sekcia Investície (D-101)", () => {
     await openApp(page);
     await goTo(page, "investicie");
     await page.getByRole("button", { name: "Pridať položku" }).click();
+    await openFormFolds(page); // D-311
     await page.getByLabel("Názov alebo ticker").fill("ETF syntetický");
     await page.getByLabel("Počet kusov").fill("10");
     await page.getByLabel("Cena za kus (v mene položky)").fill("50");
@@ -14,6 +15,8 @@ test.describe("sekcia Investície (D-101)", () => {
     await expect(page.getByText("Spolu: 500,00 €")).toBeVisible();
 
     await page.getByRole("button", { name: "Pridať položku" }).click();
+
+    await openFormFolds(page); // D-311
     await page.getByLabel("Názov alebo ticker").fill("akcia syntetická USD");
     await page.getByLabel("Počet kusov").fill("2");
     await page.getByLabel("Cena za kus (v mene položky)").fill("100");

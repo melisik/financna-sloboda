@@ -65,3 +65,9 @@ export async function openPropertyFolds(page: Page) {
   const closed = page.locator("section#majetok details:not([open]) > summary");
   while ((await closed.count()) > 0) await closed.first().click();
 }
+
+/** Otvorí zbalené bloky formulárov Záväzkov a Investícií (D-311). */
+export async function openFormFolds(page: Page) {
+  const closed = page.locator("section#zavazky details:not([open]) > summary, section#investicie details:not([open]) > summary").filter({ hasText: "▾" });
+  while ((await closed.count()) > 0) await closed.first().click();
+}

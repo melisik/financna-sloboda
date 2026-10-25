@@ -8,6 +8,7 @@ import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { FoldBlock } from "../../ui/kit/FoldBlock";
 import { calloutStyle, card, hintStyle } from "../../ui/kit/controls";
 
 /** Záväzky okrem hypotéky (D-103, D-140): úvery a kreditné karty. Hypotéka je v Majetku. Feature „zavazky“ (docs/23). */
@@ -164,17 +165,20 @@ function LiabilityForm({ repo, initial, today, onDone, onCancel }: { repo: Repos
         </select>
       </label>
       <Field label="Zostatok dlhu (€)" value={balance} onChange={setBalance} />
-      {typeof balance === "number" && balance > 0 && (
-        <Field label="Zostatok platí k (dátum)" value={balanceDate} type="date" max={today} onChange={setBalanceDate} hint="od tohto dátumu sa každý mesiac automaticky znižuje o istinu" />
-      )}
-      <Field label="Úroková sadzba (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak úrok nie je" />
       <Field label="Splátka mesačne (€)" value={payment} onChange={setPayment} hint="0, ak splátku nemáš" />
+      {/* Menej časté údaje sú zbalené so súhrnom (D-311, docs/56 otázka 3). */}
+      <FoldBlock title="Podrobnosti" summary={rate !== "" && asNum(rate) > 0 ? `úrok ${String(rate).replace(".", ",")} %` : "bez úroku"} openWhen={!!err || belowInterest}>
+        {typeof balance === "number" && balance > 0 && (
+          <Field label="Zostatok platí k (dátum)" value={balanceDate} type="date" max={today} onChange={setBalanceDate} hint="od tohto dátumu sa každý mesiac automaticky znižuje o istinu" />
+        )}
+        <Field label="Úroková sadzba (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak úrok nie je" />
+        <Field label="Koniec (nepovinné)" value={endDate} type="date" onChange={setEndDate} />
+      </FoldBlock>
       {belowInterest && (
         <p role="note" style={{ ...calloutStyle("warn"), fontSize: "var(--font-small)" }}>
           Splátka nepokryje mesačný úrok ({eur(Math.round((cents(asNum(balance)) * asNum(rate)) / 100 / 12))}). Zostatok by sa nezmenšil; skontroluj splátku.
         </p>
       )}
-      <Field label="Koniec (nepovinné)" value={endDate} type="date" onChange={setEndDate} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>Uložiť záväzok</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>

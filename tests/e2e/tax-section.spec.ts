@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openFormFolds } from "./helpers";
 
 // Daňový rámec (FR-24, FR-25, D-104): režim investície a sekcia Dane bez čísel po dani. Syntetické hodnoty.
 test.describe("Dane (FR-24, FR-25)", () => {
@@ -7,6 +7,7 @@ test.describe("Dane (FR-24, FR-25)", () => {
     await openApp(page);
     await goTo(page, "investicie");
     await page.getByRole("button", { name: "Pridať položku" }).click();
+    await openFormFolds(page); // D-311
     await page.getByLabel("Názov alebo ticker").fill("ETF – syntetický");
     await page.getByLabel("Počet kusov").fill("10");
     await page.getByLabel("Cena za kus (v mene položky)").fill("100");
@@ -19,6 +20,7 @@ test.describe("Dane (FR-24, FR-25)", () => {
 
     await goTo(page, "investicie");
     await page.getByRole("button", { name: "Upraviť" }).click();
+    await openFormFolds(page); // D-311
     await page.getByLabel("Daňový režim investície").selectOption("zdanene");
     await page.getByRole("button", { name: "Uložiť položku" }).click();
 

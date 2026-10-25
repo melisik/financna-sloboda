@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openFormFolds } from "./helpers";
 
 // Opravy po audite 2026-10-22 (docs/22). Syntetické hodnoty.
 const CHROME_IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0.6723.90 Mobile/15E148 Safari/604.1";
@@ -60,6 +60,7 @@ test.describe("splátka pod úrokom (nález 8, D-169)", () => {
     await openApp(page);
     await goTo(page, "zavazky");
     await page.getByRole("button", { name: "Pridať záväzok" }).click();
+    await openFormFolds(page); // D-311
     await page.getByLabel("Názov", { exact: true }).fill("úver syntetický");
     await page.getByLabel("Zostatok dlhu (€)").fill("1000");
     await page.getByLabel("Úroková sadzba (% p. a.)").fill("12");

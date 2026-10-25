@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openFormFolds } from "./helpers";
 
 // D-105: ciele v sekcii Investície zoskupujú položky a ukazujú pokrok. Syntetické hodnoty.
 test.describe("ciele v sekcii Investície (D-105)", () => {
@@ -14,6 +14,8 @@ test.describe("ciele v sekcii Investície (D-105)", () => {
     await expect(page.getByText(/Dovolenka syntetická · cieľová suma/)).toBeVisible();
 
     await page.getByRole("button", { name: "Pridať položku" }).click();
+
+    await openFormFolds(page); // D-311
     await page.getByLabel("Názov alebo ticker").fill("ETF cieľový");
     await page.getByLabel("Počet kusov").fill("10");
     await page.getByLabel("Cena za kus (v mene položky)").fill("50");
@@ -23,6 +25,8 @@ test.describe("ciele v sekcii Investície (D-105)", () => {
     await expect(page.getByText(/Dovolenka syntetická: 500,00 €.*50 % z/)).toBeVisible();
 
     await page.getByRole("button", { name: "Pridať položku" }).click();
+
+    await openFormFolds(page); // D-311
     await page.getByLabel("Názov alebo ticker").fill("Sporiaci účet syntetický");
     await page.getByLabel("Počet kusov").fill("1");
     await page.getByLabel("Cena za kus (v mene položky)").fill("200");

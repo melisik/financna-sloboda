@@ -8,6 +8,7 @@ import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/kit/controls";
+import { FoldBlock } from "../../ui/kit/FoldBlock";
 import { NextStep } from "../../ui/kit/NextStep";
 import { calloutStyle, hintStyle } from "../../ui/kit/controls";
 import { card } from "../../ui/kit/controls";
@@ -265,24 +266,29 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
         <>
           <Field label="Počet kusov" value={quantity} step={0.0001} onChange={setQuantity} />
           <Field label="Cena za kus (v mene položky)" value={unitPrice} step={0.0001} onChange={setUnitPrice} />
-          <Field label="Mena (napr. EUR, USD)" value={currency} type="text" onChange={setCurrency} maxLength={3} />
-          {!isEur && <Field label="Kurz: koľko € za 1 jednotku meny" value={fx} step={0.0001} onChange={setFx} hint="zadaj kurz v deň ocenenia" />}
+          <FoldBlock title="Mena a kurz" summary={currency.trim().toUpperCase() || "EUR"} openWhen={!isEur || !!err}>
+            <Field label="Mena (napr. EUR, USD)" value={currency} type="text" onChange={setCurrency} maxLength={3} />
+            {!isEur && <Field label="Kurz: koľko € za 1 jednotku meny" value={fx} step={0.0001} onChange={setFx} hint="zadaj kurz v deň ocenenia" />}
+          </FoldBlock>
         </>
       )}
-      <label style={{ display: "block", marginBottom: 8 }}>
-        Cieľ (nepovinné)
-        <select aria-label="Cieľ položky" value={goalId} onChange={(e) => setGoalId(e.target.value)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
-          <option value="">Bez cieľa</option>
-          {goals.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-        </select>
-      </label>
       <Field label="Dátum ocenenia" value={valueDate} type="date" max={today} onChange={setValueDate} />
-      <label style={{ display: "block", marginBottom: 8 }}>
-        Daňový režim (zatiaľ bez výpočtu, FR-24)
-        <select aria-label="Daňový režim investície" value={taxRegime} onChange={(e) => setTaxRegime(e.target.value as TaxRegime)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
-          {TAX_REGIMES.map((r) => <option key={r} value={r}>{TAX_CATALOG[r].label}</option>)}
-        </select>
-      </label>
+      {/* Cieľ a daňový režim sú zbalené so súhrnom (D-311). */}
+      <FoldBlock title="Cieľ a daňový režim" summary={goalId ? (goals.find((g) => g.id === goalId)?.name ?? "cieľ") : "bez cieľa"} openWhen={!!err}>
+        <label style={{ display: "block", marginBottom: 8 }}>
+          Cieľ (nepovinné)
+          <select aria-label="Cieľ položky" value={goalId} onChange={(e) => setGoalId(e.target.value)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+            <option value="">Bez cieľa</option>
+            {goals.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+          </select>
+        </label>
+        <label style={{ display: "block", marginBottom: 8 }}>
+          Daňový režim (zatiaľ bez výpočtu, FR-24)
+          <select aria-label="Daňový režim investície" value={taxRegime} onChange={(e) => setTaxRegime(e.target.value as TaxRegime)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
+            {TAX_REGIMES.map((r) => <option key={r} value={r}>{TAX_CATALOG[r].label}</option>)}
+          </select>
+        </label>
+      </FoldBlock>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>Uložiť položku</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>

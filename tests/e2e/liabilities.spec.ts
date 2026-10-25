@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, openFormFolds } from "./helpers";
 
 // D-103: záväzky okrem hypotéky majú vlastnú sekciu. Syntetické hodnoty.
 test.describe("sekcia Záväzky (D-103)", () => {
@@ -9,6 +9,8 @@ test.describe("sekcia Záväzky (D-103)", () => {
     await expect(page.getByText("Zatiaľ nie je zapísaný žiadny záväzok.")).toBeVisible();
 
     await page.getByRole("button", { name: "Pridať záväzok" }).click();
+
+    await openFormFolds(page); // D-311
     await page.getByLabel("Názov", { exact: true }).fill("úver syntetický");
     await page.getByLabel("Zostatok dlhu (€)").fill("12000");
     await page.getByLabel("Úroková sadzba (% p. a.)").fill("9");
@@ -40,6 +42,7 @@ test.describe("sekcia Záväzky (D-103)", () => {
 
     await goTo(page, "zavazky");
     await page.getByRole("button", { name: "Pridať záväzok" }).click();
+    await openFormFolds(page); // D-311
     await page.getByLabel("Názov", { exact: true }).fill("úver syntetický");
     await page.getByLabel("Zostatok dlhu (€)").fill("1200");
     await expect(page.getByLabel("Zostatok platí k (dátum)")).toBeVisible();

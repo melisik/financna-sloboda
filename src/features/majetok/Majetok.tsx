@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Repository } from "../../storage/repository";
 import type { Asset, AssetKind, ExtraPaymentMode, Property, PropertyMode, RentalEntry, RentalEntryKind } from "../../storage/types";
@@ -14,6 +14,7 @@ import { Field, asNum, btn, type NumIn, btnPrimary, btnDanger } from "../../ui/k
 import { parseLvText, type LvFields, type LvFlatChoice, type LvTaxFields } from "../../domain/listVlastnictva";
 import { LV_MAX_FILE_BYTES, parseLvHtml } from "./lvHtml";
 import { NextStep } from "../../ui/kit/NextStep";
+import { FoldBlock } from "../../ui/kit/FoldBlock";
 import { calloutStyle, hintStyle } from "../../ui/kit/controls";
 import { card } from "../../ui/kit/controls";
 
@@ -536,21 +537,6 @@ function ExtraPaymentForm({ repo, property, today, onDone }: { repo: Repository;
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btn}>Zapísať mimoriadnu splátku</button>
     </div>
-  );
-}
-
-/**
- * Zbalený blok formulára s jedným zdrojom stavu otvorenia (D-310, docs/56): súhrn v nadpise, sám sa otvorí,
- * keď dostane obsah alebo chybu (`open`), a dá sa zbaliť.
- */
-function FoldBlock({ title, summary, openWhen, children }: { title: string; summary?: string; openWhen: boolean; children: ReactNode }) {
-  const [open, setOpen] = useState(openWhen);
-  useEffect(() => { if (openWhen) setOpen(true); }, [openWhen]);
-  return (
-    <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
-      <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>{title}{summary ? ` · ${summary}` : ""} ▾</summary>
-      <div style={{ fontSize: "var(--font-small)" }}>{children}</div>
-    </details>
   );
 }
 

@@ -86,6 +86,7 @@ Výpočet cieľa tieto zmeny nemenia. Niektoré však menia, čo a ako používa
 | 2026-10-24 | D-289 | Prehľad: zbalený blok Vývoj v čase; skloňovanie „22 mesiacov“ (len text). |
 | 2026-10-24 | D-290 | Mesačný výdavok: zoznam opakovaných výdavkov a dátumu cieľa; doplnená testovacia záloha (viac transakcií). |
 | 2026-10-25 | D-293 | Usporiadanie obrazoviek: Nastavenia v skupinách (Moduly, Sprievodca a PIN zbalené), Rozpočet ako prehľad s „Upraviť limity“, Pravidelné výdavky s jedným tlačidlom, filter histórie zbalený a 10 záznamov, Ročný prehľad a Dane s menej nulami. Výpočty sa nemenia. |
+| 2026-10-25 | D-311 | Záväzky a Investície: menej časté polia v zbalených blokoch. |
 | 2026-10-25 | D-310 | Majetok: formulár nehnuteľnosti s hlavnými poľami hore a zbalenými blokmi (hypotéka, náklady, kúpa, daň). |
 | 2026-10-25 | D-309 | Nastavenia: Moduly, Sprievodca a PIN nad formulárom. |
 | 2026-10-25 | D-308 | Návod ako tlačidlo, Uložiť zálohu, väčší dátum cieľa, potvrdenie chýbajúcich surovín, tlačivo bez tlačidla bez údajov, ručné položky dokladu. |
