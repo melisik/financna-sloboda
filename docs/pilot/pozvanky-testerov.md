@@ -1,6 +1,6 @@
 # Pozvánky pre testerov súkromného náhľadu
 
-> Stav: návrh textov, pripravené 2026-10-25 na žiadosť zakladateľa. Posiela zakladateľ, spolu s odkazom na návod (`docs/41`, stránka https://claude.ai/artifact/2WhrQGtkHfUeNPUYLaX9pQ).
+> Stav: návrh textov, pripravené 2026-10-25 na žiadosť zakladateľa; aktualizované 2026-10-25 večer (návod verzia 9, formulár transakcie D-313 až D-318). Posiela zakladateľ, spolu s odkazom na návod (`docs/41`, stránka https://claude.ai/artifact/2WhrQGtkHfUeNPUYLaX9pQ).
 >
 > Tri verzie pre rôznych testerov: dôchodca, študent, človek v produktívnom veku. Fakty sú vo všetkých rovnaké, mení sa tón, dĺžka a to, čo je pre koho dôležité. Rozdelenie podľa veku nie je v dokumentoch; je to predpoklad pre výber tónu.
 
@@ -9,7 +9,8 @@
 1. **Zdieľaj stránku s návodom** (na stránke menu Share). Kým je súkromná, testeri ju neotvoria. Odkaz vlož namiesto [odkaz na návod].
 2. **Heslo nikdy neposielaj v tom istom maile.** Pošli ho zvlášť (SMS alebo osobne), ako počíta `docs/41`.
 3. Doplň hodnoty v hranatých zátvorkách. Termín testovania nie je v dokumentoch určený. Ak ho nechceš uvádzať, vetu s [dátum] vymaž.
-4. Osobné údaje testerov (mená, adresy, telefóny) do repozitára nepatria. Text doplň až v mailovom programe.
+4. **Posielaj až po revízii D-313 až D-318** (`review/revizia-vysledok-2026-10-25d.md`) a opravách jej nálezov, aby testeri nenarážali na známe chyby. Návod musí byť vo verzii 9 alebo novšej (päta stránky).
+5. Osobné údaje testerov (mená, adresy, telefóny) do repozitára nepatria. Text doplň až v mailovom programe.
 
 ## Čo platí pre všetky verzie
 
@@ -44,7 +45,7 @@ Vaša pomoc je pre mňa veľmi cenná práve preto, že sa na ňu pozriete iným
 - Nič sa nedá pokaziť. Údaje ostávajú len vo Vašom mobile a nikam sa neposielajú.
 - Čísla v aplikácii sú len odhady, nie rada, čo robiť s peniazmi.
 
-Nemusíte vyskúšať všetko. Stačí, ak sa pozriete na prvú obrazovku a poviete mi, či rozumiete, čo ukazuje. Každá úloha z návodu trvá pár minút.
+Nemusíte vyskúšať všetko. Stačí, ak sa pozriete na prvú obrazovku a poviete mi, či rozumiete, čo ukazuje. Ak budete mať chuť, skúste zapísať vymyslený nákup: či je jasné, kam napísať sumu. Každá úloha z návodu trvá pár minút.
 
 **Ako mi dať vedieť:** dole v aplikácii je tlačidlo **Nahlásiť pripomienku**. Ak sa Vám s ním nechce pracovať, pokojne mi odpíšte na tento mail alebo zavolajte na [telefón]. Rád to s Vami prejdem aj spolu.
 
@@ -75,7 +76,7 @@ robím appku na osobné financie, **Finančná sloboda**. Ukáže, kedy by si pr
 - Dáta sú len v tvojom zariadení, appka nič nikam neposiela.
 - Výpočty sú odhad, nie finančná rada.
 
-Stačí jedna alebo dve úlohy z návodu, každá trvá 2 až 5 minút. Najviac mi pomôže, keď mi napíšeš, kde si sa zasekol(-la), čomu si nerozumel(-a), alebo čo vyzerá zle na tvojom telefóne (aj v tmavom režime).
+Stačí jedna alebo dve úlohy z návodu, každá trvá 2 až 5 minút. Zaujíma ma najmä zápis nákupu (Rýchly výdavok alebo Nákup po položkách): je jasné, čo kedy použiť? Najviac mi pomôže, keď mi napíšeš, kde si sa zasekol(-la), čomu si nerozumel(-a), alebo čo vyzerá zle na tvojom telefóne (aj v tmavom režime).
 
 **Pripomienky** cez tlačidlo **Nahlásiť pripomienku** dole v appke. Napíš, aký máš telefón a prehliadač, čo si spravil(-a) a čo sa stalo. Screenshot pomôže, len skontroluj, že na ňom nie je nič osobné. Heslo ani skutočné údaje tam nikdy nepíš.
 
@@ -111,6 +112,7 @@ pripravujem aplikáciu **Finančná sloboda**. Ukazuje, kedy by ste pri súčasn
 
 **Čo ma zaujíma najviac:**
 - Je hneď jasné, čo aplikácia ukazuje a čo je hlavná akcia?
+- Je jasné, ako zapísať výdavok (jednou sumou alebo po položkách)?
 - Kde ste zaváhali alebo čomu ste nerozumeli?
 - Používali by ste niečo také? Čo by Vám chýbalo?
 
