@@ -102,6 +102,8 @@ Proces, dokumenty, návrhy, testy a nasadenie, ktoré správanie appky nemenia:
 - D-138, D-147, D-148, D-153, D-193, D-217, D-222, D-223, D-225, D-226, D-228, D-241, D-243 až D-248, D-250, D-251, D-257, D-261;
 - D-270 až D-273: súkromný náhľad a jeho prístup;
 - D-291: výnimka pre D-285.
+- D-295: prilepený pruh pri klávesnici na iPhone ostáva (bez zmeny kódu);
+- D-303: otvorené otázky do backlogu, návod pre testerov.
 
 Pri D-248 a D-251 sa mení nasadenie (verejná verzia bez Fázy 2), pozri oddiel 2.
 
