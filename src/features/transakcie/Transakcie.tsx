@@ -35,7 +35,7 @@ const SOURCE_LABEL: Record<Source, string> = { z_prijmu: "z príjmu", z_hotovost
 /** Kamera je dostupná len v bezpečnom kontexte (HTTPS alebo localhost) a ak prehliadač podporuje getUserMedia. */
 const canUseCamera = (): boolean => typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getUserMedia === "function";
 
-export function TransactionSection({ repo, data, ctx, onChanged, renderAttachments, renderStockTransfer }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void; renderAttachments: (transactionId: string) => ReactNode; renderStockTransfer?: (t: Transaction) => ReactNode }) {
+export function TransactionSection({ repo, data, ctx, onChanged, renderAttachments, renderStockTransfer, stockModuleOff }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void; renderAttachments: (transactionId: string) => ReactNode; renderStockTransfer?: (t: Transaction) => ReactNode; stockModuleOff?: boolean }) {
   const [type, setType] = useState<TransactionType>("vydavok");
   const [amount, setAmount] = useState<NumIn>("");
   const [date, setDate] = useState(todayIso());
@@ -140,6 +140,11 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   // Potvrdenie po uložení (D-313); pri nákupe po položkách aj ponuka Pridať do skladu.
   const [saved, setSaved] = useState<Transaction | null>(null);
   const byItems = type === "vydavok" && mode === "polozky";
+  const changeQty = (n: number, delta: number) => setItems((all) => all.map((i, k) => {
+    if (k !== n) return i;
+    const quantity = Math.round((i.quantity + delta) * 1000) / 1000;
+    return quantity > 0 ? { ...i, quantity, amountCents: Math.round(i.unitPriceCents * quantity) } : i;
+  }));
   const itemsTotal = items.reduce((sum, i) => sum + i.amountCents, 0);
   useEffect(() => { if (byItems) setAmount(items.length > 0 ? itemsTotal / 100 : ""); }, [byItems, itemsTotal, items.length]);
   const addItem = () => {
@@ -346,7 +351,12 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
               {items.map((i, n) => (
                 <li key={`${i.code}-${n}`} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", padding: "2px 0" }}>
                   <span>{i.name} · {String(i.quantity).replace(".", ",")} × {eur(i.unitPriceCents)} = <strong>{eur(i.amountCents)}</strong></span>
+                  {/* Množstvo sa mení o 1 bez prepisovania položky (prehliadka 2026-10-25, bod 4). */}
+                  <span style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                  <button type="button" aria-label={`Menej: ${i.name}`} disabled={i.quantity <= 1} onClick={() => changeQty(n, -1)} style={{ ...btn, padding: "2px 12px", marginTop: 0 }}>−</button>
+                  <button type="button" aria-label={`Viac: ${i.name}`} onClick={() => changeQty(n, 1)} style={{ ...btn, padding: "2px 12px", marginTop: 0 }}>+</button>
                   <button type="button" aria-label={`Odstrániť položku ${i.name}`} onClick={() => setItems(items.filter((_, k) => k !== n))} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Odstrániť</button>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -432,11 +442,15 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           </div>
           <div style={{ margin: "8px 0" }}>
             <label style={{ display: "block" }}>
-              <span style={{ display: "block", fontSize: "var(--font-small)" }}>Položky z dokladu: vložte text skopírovaný z portálu</span>
+              <span style={{ display: "block", fontSize: "var(--font-small)" }}>Len text skopírovaný z portálu eKasa (Overiť doklad). Položky píšeš ručne vyššie.</span>
               <textarea aria-label="Položky z dokladu" value={itemsText} onChange={(e) => setItemsText(e.target.value)} rows={4} style={{ ...inp, fontFamily: "inherit" }} />
             </label>
             {parsedItems.unparsed.length > 0 && (
-              <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Opravte text alebo ho vymažte.</p>
+              <div style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>
+                <p style={{ margin: "4px 0" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Toto pole prijme len text skopírovaný z portálu eKasa; ručne napísané položky zadaj vyššie a text tu vymaž.</p>
+                <p style={{ margin: "4px 0", color: "var(--muted)" }}>Text z portálu vyzerá takto (2 riadky na položku):</p>
+                <pre style={{ margin: 0, color: "var(--muted)", whiteSpace: "pre-wrap" }}>{"100000001 Chlieb tmavý\n1,000x   10%   1,20 €"}</pre>
+              </div>
             )}
             <button type="button" onClick={addFromText} disabled={itemsText.trim() === ""} style={btn}>Pridať z textu</button>
           </div>
@@ -468,6 +482,10 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           <div style={{ ...calloutStyle("ok"), margin: "4px 0" }}>
             <p style={{ margin: 0 }}>Zapísané: {TYPE_LABEL[saved.type]} {eur(saved.amountCents)}. <button type="button" onClick={() => { setSaved(null); document.getElementById("historia-transakcii")?.scrollIntoView({ block: "start" }); }} style={{ ...btn, marginTop: 0, padding: "2px 8px" }}>Zobraziť v histórii</button></p>
             {renderStockTransfer && (saved.receiptItems?.length ?? 0) > 0 && renderStockTransfer(saved)}
+            {/* Bez modulu Sklad sa tlačidlo neukáže (D-162); veta povie prečo (prehliadka 2026-10-25, bod 2.5). */}
+            {stockModuleOff && (saved.receiptItems?.length ?? 0) > 0 && (
+              <p style={{ ...hintStyle, margin: "4px 0 0" }}>Položky sa dajú pridať do skladu, keď zapneš modul Sklad. <NextStep to="nastavenia">Nastavenia → Moduly</NextStep></p>
+            )}
           </div>
         )}
         {recurringMatch && (

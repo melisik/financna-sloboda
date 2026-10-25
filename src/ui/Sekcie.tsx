@@ -80,7 +80,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "nova-transakcia":
       return (
         <Section id="nova-transakcia" title="Transakcie">
-          <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} renderAttachments={(id) => <AttachmentsBlock repo={repo} owner={{ transactionId: id }} />} renderStockTransfer={visible.has("sklad") ? (t) => <ReceiptToStock repo={repo} transaction={t} onSaved={reload} /> : undefined} />
+          <TransactionSection repo={repo} data={data} ctx={ctx} onChanged={reload} renderAttachments={(id) => <AttachmentsBlock repo={repo} owner={{ transactionId: id }} />} renderStockTransfer={visible.has("sklad") ? (t) => <ReceiptToStock repo={repo} transaction={t} onSaved={reload} /> : undefined} stockModuleOff={PHASE2_ENABLED && !visible.has("sklad")} />
         </Section>
       );
     case "scenar-vydavku":
