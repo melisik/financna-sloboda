@@ -248,6 +248,19 @@ export interface StockItem {
   warnDays?: number | null; // koľko dní vopred upozorniť na spotrebu; null = bez upozornenia; bez hodnoty = 3 dni (D-239)
   unitPriceCents?: number; // cena za jednotku v celých centoch, nepovinná (D-301)
   sourceTransactionId?: string; // výdavok, z ktorého dokladu položka pochádza (D-301)
+  minQuantity?: number; // minimálna zásoba; pod ňou sa položka ponúkne na nákupný zoznam (D-302)
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Položka nákupného zoznamu (D-302). Nemení výdavky ani rozpočet. */
+export interface ShoppingItem {
+  id: string;
+  name: string; // max 80 znakov
+  quantity?: number; // kladné, nepovinné
+  unit?: StockUnit;
+  stockItemId?: string; // položka skladu, z ktorej vznikla (došlo, recept)
+  done: boolean; // kúpené
   createdAt: string;
   updatedAt: string;
 }
@@ -350,6 +363,7 @@ export interface AppData {
   dogs: Dog[];
   goals: InvestmentGoal[];
   wasteRecords: WasteRecord[];
+  shoppingItems: ShoppingItem[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */

@@ -33,7 +33,7 @@ import type { AppData } from "../src/storage/types";
 describe("psy v zálohe (D-159)", () => {
   const data: AppData = {
     settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [],
-    incomes: [], budgets: [], recurringExpenses: [], stockItems: [], recipes: [], dogs: [base], goals: [], wasteRecords: [],
+    incomes: [], budgets: [], recurringExpenses: [], stockItems: [], recipes: [], dogs: [base], goals: [], wasteRecords: [], shoppingItems: [],
   };
 
   it("export a import zachová psy", () => {

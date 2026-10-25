@@ -21,7 +21,7 @@ const emptyData = (over: Partial<AppData> = {}): AppData => ({
   stockItems: [],
   recipes: [],
   dogs: [],
-  goals: [], wasteRecords: [],
+  goals: [], wasteRecords: [], shoppingItems: [],
   ...over,
 });
 

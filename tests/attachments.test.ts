@@ -8,7 +8,7 @@ const TODAY = "2026-10-22";
 const expense: Transaction = { id: "t1", date: "2026-10-20", type: "vydavok", amountCents: 1220, source: "z_hotovosti", category: "jedlo", createdAt: "x", updatedAt: "x" };
 const data: AppData = {
   settings: null, transactions: [expense], snapshots: [], properties: [], assets: [], investments: [], liabilities: [],
-  incomes: [], budgets: [], recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [],
+  incomes: [], budgets: [], recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [], shoppingItems: [],
 };
 const att: Attachment = { id: "a1", transactionId: "t1", name: "doklad.png", type: "image/png", size: 3, createdAt: "2026-10-20T10:00:00Z", data: new Blob([new Uint8Array([1, 2, 3])], { type: "image/png" }) };
 

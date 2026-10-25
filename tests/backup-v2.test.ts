@@ -36,9 +36,9 @@ describe("záloha verzie 2 a import verzie 1 (FR-28)", () => {
 
   it("export a import verzie 2 zachová nehnuteľnosť", () => {
     const asset: Asset = { id: "a1", kind: "automobil", name: "auto – syntetické", valueCents: 1_200_000, valueDate: "2026-10-01", createdAt: "2026-10-19T10:00:00Z", updatedAt: "2026-10-19T10:00:00Z" };
-    const data: AppData = { settings: null, transactions: [], snapshots: [], properties: [property], assets: [asset], investments: [], liabilities: [], incomes: [], budgets: [], recurringExpenses: [], dogs: [], stockItems: [], recipes: [], goals: [], wasteRecords: [] };
+    const data: AppData = { settings: null, transactions: [], snapshots: [], properties: [property], assets: [asset], investments: [], liabilities: [], incomes: [], budgets: [], recurringExpenses: [], dogs: [], stockItems: [], recipes: [], goals: [], wasteRecords: [], shoppingItems: [] };
     const backup = JSON.parse(JSON.stringify(buildBackup(data, "2026-10-19T10:00:00Z")));
-    expect(backup.schemaVersion).toBe(13); // v13 cena položky skladu a vyhodené (D-301); v12 ciele investícií (D-105); v11 lehota upozornenia položky skladu (D-239); v10 čiarový kód položky skladu (D-232); v9 prílohy k výdavkom z prenájmu (D-221); v8 prílohy (D-160); v7 psy (D-159); v6 pridáva položky dokladu (D-129); v5 recepty (D-127); v4 sklad; v3 pravidelné výdavky (D-124)
+    expect(backup.schemaVersion).toBe(14); // v14 nákupný zoznam (D-302); v13 cena položky skladu a vyhodené (D-301); v12 ciele investícií (D-105); v11 lehota upozornenia položky skladu (D-239); v10 čiarový kód položky skladu (D-232); v9 prílohy k výdavkom z prenájmu (D-221); v8 prílohy (D-160); v7 psy (D-159); v6 pridáva položky dokladu (D-129); v5 recepty (D-127); v4 sklad; v3 pravidelné výdavky (D-124)
     const parsed = parseBackup(backup, TODAY);
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;

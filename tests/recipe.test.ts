@@ -65,7 +65,7 @@ describe("validácia a záloha receptov", () => {
   it("export a import zachová recepty a staršia záloha ich načíta prázdne", () => {
     const data: AppData = {
       settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [],
-      incomes: [], budgets: [], recurringExpenses: [], stockItems: [milk, rice], recipes: [porridge], dogs: [], goals: [], wasteRecords: [],
+      incomes: [], budgets: [], recurringExpenses: [], stockItems: [milk, rice], recipes: [porridge], dogs: [], goals: [], wasteRecords: [], shoppingItems: [],
     };
     const backup = JSON.parse(JSON.stringify(buildBackup(data, NOW)));
     const parsed = parseBackup(backup, TODAY);

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { STOCK_UNITS, type Recipe, type RecipeIngredient, type StockItem, type StockUnit, type WasteRecord } from "../../storage/types";
+import { STOCK_UNITS, type Recipe, type RecipeIngredient, type StockItem, type StockUnit, type WasteRecord, type ShoppingItem } from "../../storage/types";
+import { addToShoppingList, missingForRecipe, restockOffers } from "../../domain/shopping";
+import { ShoppingList } from "./ShoppingList";
 import { mergedUnitPriceCents, wasteSummary, wasteValueCents } from "../../domain/waste";
 import { checkDate } from "../../storage/validate";
 import type { Repository } from "../../storage/repository";
@@ -27,8 +29,23 @@ function dniText(n: number): string {
   return `pred ${-n} ${-n === 1 ? "dňom" : "dňami"}`;
 }
 
-export function StockSection({ repo, items, recipes, wasteRecords, today, onSaved }: { repo: Repository; items: StockItem[]; recipes: Recipe[]; wasteRecords: WasteRecord[]; today: string; onSaved: () => void }) {
+export function StockSection({ repo, items, recipes, wasteRecords, shoppingItems, today, onSaved }: { repo: Repository; items: StockItem[]; recipes: Recipe[]; wasteRecords: WasteRecord[]; shoppingItems: ShoppingItem[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<StockItem | "new" | null>(null);
+  // Nová položka z kúpenej položky zoznamu: formulár sa predvyplní a po uložení sa položka zo zoznamu odstráni (D-302).
+  const [fromList, setFromList] = useState<ShoppingItem | null>(null);
+  // Položky, ktoré práve došli alebo klesli pod minimálnu zásobu: ponúknu sa raz na zoznam (D-302, docs/51 otázky 5 a 6).
+  const [offers, setOffers] = useState<StockItem[]>([]);
+  const offerAfter = (before: StockItem[], after: StockItem[]) => setOffers(restockOffers(before, after, shoppingItems));
+  const addEntries = async (entries: Parameters<typeof addToShoppingList>[1]) => {
+    const added = addToShoppingList(shoppingItems, entries, new Date().toISOString(), uid);
+    try {
+      if (added.length > 0) await repo.saveShoppingItems(added);
+      setErr(null);
+      onSaved();
+    } catch {
+      setErr(STORAGE_ERROR);
+    }
+  };
   // „Ešte použiteľné“ otvorí úpravu so zameraným dátumom spotreby; nič sa nezaznamená (D-301).
   const [focusExpiry, setFocusExpiry] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -60,7 +77,9 @@ export function StockSection({ repo, items, recipes, wasteRecords, today, onSave
     const now = new Date().toISOString();
     const record: WasteRecord = { id: uid(), date: todayIso(), name: i.name, quantity: q, unit: i.unit, ...(value !== undefined ? { valueCents: value } : {}), stockItemId: i.id, createdAt: now };
     try {
-      await repo.discardStock({ ...i, quantity: Math.round((i.quantity - q) * 1000) / 1000, updatedAt: now }, record);
+      const updated = { ...i, quantity: Math.round((i.quantity - q) * 1000) / 1000, updatedAt: now };
+      await repo.discardStock(updated, record);
+      offerAfter([i], [updated]);
       setDiscardId(null);
       setErr(null);
       onSaved();
@@ -141,21 +160,39 @@ export function StockSection({ repo, items, recipes, wasteRecords, today, onSave
       <p style={{ color: "var(--muted)" }}>Potraviny doma a ich dátum spotreby. Názov a dátum môžete doplniť z fotky obalu; množstvo zadajte ručne.</p>
       <StockWarning items={items} today={today} />
       <WasteSummary records={wasteRecords} today={today} />
+      {offers.length > 0 && (
+        <div style={{ ...card, marginBottom: 8 }}>
+          <p style={{ margin: 0 }}>Došlo alebo je pod minimálnou zásobou: {offers.map((o) => o.name).join(", ")}.</p>
+          <button onClick={() => { void addEntries(offers.map((o) => ({ name: o.name, unit: o.unit, stockItemId: o.id }))); setOffers([]); }} style={btn}>Pridať na zoznam</button>{" "}
+          <button onClick={() => setOffers([])} style={btn}>Nie</button>
+        </div>
+      )}
       {items.length === 0 && editing === null && <p>Zatiaľ nie sú zapísané položky skladu.</p>}
       {rows}
       {editing ? (
         <StockForm
+          key={fromList?.id ?? (editing === "new" ? "new" : editing.id)}
           repo={repo}
           items={items}
           initial={editing === "new" ? null : editing}
           focusExpiry={focusExpiry}
-          onDone={() => { setEditing(null); onSaved(); }}
-          onCancel={() => setEditing(null)}
+          prefill={editing === "new" && fromList ? fromList : undefined}
+          onDone={async (before, after) => {
+            if (after) offerAfter(before ? [before] : [], [after]);
+            if (fromList) {
+              try { await repo.deleteShoppingItems([fromList.id]); } catch { setErr(STORAGE_ERROR); }
+            }
+            setFromList(null);
+            setEditing(null);
+            onSaved();
+          }}
+          onCancel={() => { setFromList(null); setEditing(null); }}
         />
       ) : (
-        <button onClick={() => setEditing("new")} style={btnPrimary}>Pridať položku skladu</button>
+        <button onClick={() => { setFromList(null); setEditing("new"); }} style={btnPrimary}>Pridať položku skladu</button>
       )}
-      <RecipesBlock repo={repo} recipes={recipes} stock={items} onSaved={onSaved} />
+      <ShoppingList repo={repo} items={shoppingItems} onToStock={(s) => { setFocusExpiry(false); setFromList(s); setEditing("new"); }} onSaved={onSaved} />
+      <RecipesBlock repo={repo} recipes={recipes} stock={items} onSaved={onSaved} onCooked={offerAfter} onMissing={(r) => void addEntries(missingForRecipe(r, items))} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
   );
@@ -188,7 +225,7 @@ function WasteSummary({ records, today }: { records: WasteRecord[]; today: strin
   );
 }
 
-function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; recipes: Recipe[]; stock: StockItem[]; onSaved: () => void }) {
+function RecipesBlock({ repo, recipes, stock, onSaved, onCooked, onMissing }: { repo: Repository; recipes: Recipe[]; stock: StockItem[]; onSaved: () => void; onCooked: (before: StockItem[], after: StockItem[]) => void; onMissing: (r: Recipe) => void }) {
   const [editing, setEditing] = useState<Recipe | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
@@ -219,6 +256,7 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
     }
     try {
       await repo.applyStockChanges(res.changed);
+      onCooked(stock.filter((s) => res.changed.some((c) => c.id === s.id)), res.changed);
       setPending(null);
       setResult({ ok: true, text: `Uvarené: „${r.name}“. Suroviny sú odpočítané zo skladu.` });
       setErr(null);
@@ -264,6 +302,7 @@ function RecipesBlock({ repo, recipes, stock, onSaved }: { repo: Repository; rec
           ) : (
             <>
               <button onClick={() => askCook(r)} style={btn}>Uvariť</button>{" "}
+              {missingForRecipe(r, stock).length > 0 && <><button onClick={() => onMissing(r)} style={btn}>Chýbajúce na zoznam</button>{" "}</>}
               <button onClick={() => setEditing(r)} style={btn}>Upraviť</button>{" "}
               <button onClick={() => setConfirmId(r.id)} style={btnDanger}>Zmazať</button>
             </>
@@ -374,17 +413,21 @@ function RecipeForm({ repo, initial, stock, onDone, onCancel }: { repo: Reposito
   );
 }
 
-function StockForm({ repo, items, initial, focusExpiry = false, onDone, onCancel }: { repo: Repository; items: StockItem[]; initial: StockItem | null; focusExpiry?: boolean; onDone: () => void; onCancel: () => void }) {
+function StockForm({ repo, items, initial, focusExpiry = false, prefill, onDone, onCancel }: { repo: Repository; items: StockItem[]; initial: StockItem | null; focusExpiry?: boolean; prefill?: ShoppingItem; onDone: (before?: StockItem, after?: StockItem) => void | Promise<void>; onCancel: () => void }) {
+  // Z kúpenej položky zoznamu: názov, jednotka a čiarový kód z pôvodnej položky skladu (D-302).
+  const linked = prefill?.stockItemId ? items.find((i) => i.id === prefill.stockItemId) : undefined;
+  // Minimálna zásoba (D-302): pod ňou appka ponúkne položku na nákupný zoznam.
+  const [minQty, setMinQty] = useState<NumIn>(initial?.minQuantity ?? linked?.minQuantity ?? "");
   const formRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (focusExpiry) formRef.current?.querySelector<HTMLInputElement>('input[type="date"]')?.focus();
   }, [focusExpiry]);
   // Cena za jednotku je nepovinná (D-301); z nej sa počíta hodnota vyhodeného.
   const [price, setPrice] = useState<NumIn>(initial?.unitPriceCents !== undefined ? initial.unitPriceCents / 100 : "");
-  const [name, setName] = useState(initial?.name ?? "");
-  const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? "");
-  const [unit, setUnit] = useState<StockUnit>(initial?.unit ?? "ks");
-  const [barcode, setBarcode] = useState(initial?.barcode ?? "");
+  const [name, setName] = useState(initial?.name ?? prefill?.name ?? "");
+  const [quantity, setQuantity] = useState<NumIn>(initial?.quantity ?? prefill?.quantity ?? "");
+  const [unit, setUnit] = useState<StockUnit>(initial?.unit ?? prefill?.unit ?? linked?.unit ?? "ks");
+  const [barcode, setBarcode] = useState(initial?.barcode ?? linked?.barcode ?? "");
   // Lehota upozornenia si vyberie používateľ; null = bez upozornenia (D-239).
   const [warnDays, setWarnDays] = useState<number | null>(initial?.warnDays === undefined ? DEFAULT_WARN_DAYS : initial.warnDays);
   // Dátum spotreby sa nepredvypĺňa: prázdne pole znamená položku bez dátumu (skener ho môže doplniť).
@@ -461,6 +504,8 @@ function StockForm({ repo, items, initial, focusExpiry = false, onDone, onCancel
     const p = price === "" ? undefined : asNum(price);
     if (p !== undefined && (Number.isNaN(p) || p < 0)) return setErr("Cena za jednotku musí byť 0 alebo viac, alebo prázdna.");
     const priceCents = p === undefined ? undefined : cents(p);
+    const m = minQty === "" ? undefined : asNum(minQty);
+    if (m !== undefined && (Number.isNaN(m) || m < 0)) return setErr("Minimálna zásoba musí byť 0 alebo viac, alebo prázdna.");
     const code = barcode.trim();
     if (code !== "" && !isValidBarcode(code)) return setErr("Čiarový kód musí byť platný EAN-13, EAN-8 alebo UPC-A (len číslice).");
     const now = new Date().toISOString();
@@ -470,8 +515,9 @@ function StockForm({ repo, items, initial, focusExpiry = false, onDone, onCancel
       if (sameProduct.unit !== unit) return setErr(`Výrobok je v sklade v jednotke ${sameProduct.unit}. Zvoľ rovnakú jednotku.`);
       try {
         const merged = mergedUnitPriceCents(sameProduct, q, priceCents);
-        await repo.saveStockItem({ ...sameProduct, quantity: sameProduct.quantity + q, ...(merged !== undefined ? { unitPriceCents: merged } : {}), updatedAt: now });
-        onDone();
+        const after = { ...sameProduct, quantity: sameProduct.quantity + q, ...(merged !== undefined ? { unitPriceCents: merged } : {}), updatedAt: now };
+        await repo.saveStockItem(after);
+        await onDone(sameProduct, after);
       } catch {
         setErr(STORAGE_ERROR);
       }
@@ -489,10 +535,11 @@ function StockForm({ repo, items, initial, focusExpiry = false, onDone, onCancel
       warnDays,
       ...(priceCents !== undefined ? { unitPriceCents: priceCents } : {}),
       ...(initial?.sourceTransactionId ? { sourceTransactionId: initial.sourceTransactionId } : {}),
+      ...(m !== undefined ? { minQuantity: m } : {}),
     };
     try {
       await repo.saveStockItem(item);
-      onDone();
+      await onDone(initial ?? undefined, item);
     } catch {
       setErr(STORAGE_ERROR);
     }
@@ -545,6 +592,7 @@ function StockForm({ repo, items, initial, focusExpiry = false, onDone, onCancel
           {STOCK_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
         </select>
       </label>
+      <Field label="Minimálna zásoba (nepovinné)" value={minQty} step={0.01} onChange={setMinQty} hint="pod ňou appka ponúkne položku na nákupný zoznam; bez nej, keď dôjde" />
       <Field label="Cena za jednotku (€, nepovinné)" value={price} step={0.01} onChange={setPrice} hint="z nej sa počíta hodnota vyhodeného" />
       <Field label="Dátum spotreby (nepovinné, bez dátumu nechajte prázdne)" value={expiry} type="date" onChange={setExpiry} />
       <label style={{ display: "block", marginBottom: 8 }}>

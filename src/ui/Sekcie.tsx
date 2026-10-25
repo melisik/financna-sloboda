@@ -149,7 +149,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "sklad":
       return (
         <Section id="sklad" title="Sklad">
-          <StockSection repo={repo} items={data.stockItems} recipes={data.recipes} wasteRecords={data.wasteRecords} today={todayIso()} onSaved={reload} />
+          <StockSection repo={repo} items={data.stockItems} recipes={data.recipes} wasteRecords={data.wasteRecords} shoppingItems={data.shoppingItems} today={todayIso()} onSaved={reload} />
         </Section>
       );
     case "rocny-prehlad":

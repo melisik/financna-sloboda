@@ -1,6 +1,6 @@
 import { WARN_DAY_OPTIONS, isValidBarcode } from "../domain/stock";
 import { isReceiptId } from "../domain/receipt";
-import { ASSET_KINDS, ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Dog, type InvestmentGoal, type Recipe, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type WasteRecord, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Dog, type InvestmentGoal, type Recipe, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type WasteRecord, type ShoppingItem, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -178,7 +178,7 @@ export function validateLiability(l: unknown, today: string, label = "záväzok"
 export function validateStockItem(i: unknown, label = "položka skladu"): string[] {
   if (typeof i !== "object" || i === null || Array.isArray(i)) return [`${label}: musí byť objekt`];
   const o = i as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "quantity", "unit", "expiryDate", "barcode", "warnDays", "unitPriceCents", "sourceTransactionId", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "quantity", "unit", "expiryDate", "barcode", "warnDays", "unitPriceCents", "sourceTransactionId", "minQuantity", "createdAt", "updatedAt"], label);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
   if (typeof o.quantity !== "number" || !(o.quantity >= 0)) errors.push(`${label}: množstvo musí byť číslo 0 alebo väčšie`);
@@ -188,6 +188,21 @@ export function validateStockItem(i: unknown, label = "položka skladu"): string
   if (o.warnDays !== undefined && o.warnDays !== null && !(WARN_DAY_OPTIONS as readonly unknown[]).includes(o.warnDays)) errors.push(`${label}: upozornenie musí byť ${WARN_DAY_OPTIONS.join(", ")} dní alebo bez upozornenia`);
   if (o.unitPriceCents !== undefined && !isCents(o.unitPriceCents)) errors.push(`${label}: cena za jednotku musí byť celé číslo v centoch`);
   if (o.sourceTransactionId !== undefined && (typeof o.sourceTransactionId !== "string" || o.sourceTransactionId.length === 0)) errors.push(`${label}: odkaz na výdavok musí byť text`);
+  if (o.minQuantity !== undefined && (typeof o.minQuantity !== "number" || !(o.minQuantity >= 0))) errors.push(`${label}: minimálna zásoba musí byť číslo 0 alebo väčšie`);
+  return errors;
+}
+
+/** Položka nákupného zoznamu (D-302). */
+export function validateShoppingItem(i: unknown, label = "položka zoznamu"): string[] {
+  if (typeof i !== "object" || i === null || Array.isArray(i)) return [`${label}: musí byť objekt`];
+  const o = i as Record<string, unknown>;
+  const errors = unknownKeys(o, ["id", "name", "quantity", "unit", "stockItemId", "done", "createdAt", "updatedAt"], label);
+  if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
+  if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
+  if (o.quantity !== undefined && (typeof o.quantity !== "number" || !(o.quantity > 0))) errors.push(`${label}: množstvo musí byť kladné číslo`);
+  if (o.unit !== undefined && !(STOCK_UNITS as readonly unknown[]).includes(o.unit)) errors.push(`${label}: jednotka musí byť z katalógu`);
+  if (o.stockItemId !== undefined && typeof o.stockItemId !== "string") errors.push(`${label}: odkaz na položku musí byť text`);
+  if (typeof o.done !== "boolean") errors.push(`${label}: kúpené musí byť áno alebo nie`);
   return errors;
 }
 
@@ -357,7 +372,7 @@ export function validateSettings(s: unknown, today: string): string[] {
 export function validateAppData(d: unknown, today: string): Check & { data?: AppData } {
   if (typeof d !== "object" || d === null || Array.isArray(d)) return { ok: false, errors: ["záloha musí byť objekt"] };
   const o = d as Record<string, unknown>;
-  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs", "goals", "wasteRecords"], "záloha");
+  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs", "goals", "wasteRecords", "shoppingItems"], "záloha");
   if (o.settings !== null && o.settings !== undefined) errors.push(...validateSettings(o.settings, today));
   if (!Array.isArray(o.transactions)) errors.push("záloha: transactions musí byť pole");
   else o.transactions.forEach((t, i) => errors.push(...validateTransaction(t, today, `transakcia ${i + 1}`)));
@@ -395,6 +410,8 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
   if (!Array.isArray(o.dogs)) errors.push("záloha: dogs musí byť pole");
   else o.dogs.forEach((x, n) => errors.push(...validateDog(x, today, `pes ${n + 1}`)));
   const dogList = Array.isArray(o.dogs) ? (o.dogs as unknown[]) : [];
+  if (!Array.isArray(o.shoppingItems)) errors.push("záloha: shoppingItems musí byť pole");
+  else o.shoppingItems.forEach((w, n) => errors.push(...validateShoppingItem(w, `položka zoznamu ${n + 1}`)));
   if (!Array.isArray(o.wasteRecords)) errors.push("záloha: wasteRecords musí byť pole");
   else o.wasteRecords.forEach((w, n) => errors.push(...validateWasteRecord(w, `vyhodená potravina ${n + 1}`)));
   if (!Array.isArray(o.goals)) errors.push("záloha: goals musí byť pole");
@@ -429,6 +446,7 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
       dogs: o.dogs as Dog[],
       goals: o.goals as InvestmentGoal[],
       wasteRecords: o.wasteRecords as WasteRecord[],
+      shoppingItems: o.shoppingItems as ShoppingItem[],
     },
   };
 }

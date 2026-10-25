@@ -33,7 +33,7 @@ const empty = {
   stockItems: [],
   recipes: [],
   dogs: [],
-  goals: [], wasteRecords: [],
+  goals: [], wasteRecords: [], shoppingItems: [],
 };
 
 describe("ciele investícií (D-105): validácia", () => {

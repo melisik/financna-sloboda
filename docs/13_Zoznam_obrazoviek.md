@@ -15,7 +15,7 @@
 | Príjmy | na vetve (len zobrazenie, D-102) | len zobrazenie; m sa mení pri vyhodnotení (D-102) |
 | Pravidelné výdavky | na vetve | predplatné, poistky, paušály; pri položke len Upraviť, Ukončiť a Zmazať v úprave (D-293) |
 | Rozpočet | na vetve (D-106) | limit na kategóriu za mesiac (D-106); prehľad, polia až po Upraviť limity (D-293) |
-| Sklad | na vetve (D-232 až D-239, D-301) | položky potravín: čiarový kód, dátum spotreby, dávky, výber predchádzajúceho výrobku, lehota upozornenia; cena za jednotku, prenos z dokladu, Vyhodiť a súhrn vyhodeného (D-301) |
+| Sklad | na vetve (D-232 až D-239, D-301) | položky potravín: čiarový kód, dátum spotreby, dávky, výber predchádzajúceho výrobku, lehota upozornenia; cena za jednotku, prenos z dokladu, Vyhodiť a súhrn vyhodeného (D-301); nákupný zoznam a minimálna zásoba (D-302) |
 | Dane | na vetve (sekcia existuje) | daňové pravidlá len po overení (D-104); bez investícií jedna veta namiesto kariet s nulami (D-293) |
 | Ročný prehľad | na vetve (docs/13, oddiel 4) | história kapitálu a dátumu cieľa; poradie súhrn, kategórie, zbalené vyhodnotenia (D-293) |
 | Scenáre | navrhnuté | porovnanie nastavení, len na vyžiadanie |

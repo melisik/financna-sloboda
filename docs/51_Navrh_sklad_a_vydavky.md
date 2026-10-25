@@ -1,6 +1,6 @@
 # 51 – Návrh: Sklad prepojený s výdavkami (S-B)
 
-> Stav: **schválené** (2026-10-25, D-301): otázky 1, 2, 4, 5 áno, 6 hneď; otázka 3 čaká. **Etapa 1 (oddiely 3.1 až 3.4) implementovaná**; etapa 2 (nákupný zoznam, 3.5 a minimálna zásoba) nasleduje.
+> Stav: **schválené a implementované** (2026-10-25): etapa 1 (3.1 až 3.4) v D-301, etapa 2 (nákupný zoznam 3.5, otázky 5 a 6) v D-302. Otvorená je len otázka 3 (vyhodené v bloku Opakované výdavky).
 
 ## 1. Cieľ skladu
 
