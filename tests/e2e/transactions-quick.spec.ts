@@ -19,6 +19,7 @@ test.describe("zadanie výdavku a história (A3)", () => {
 
     await expect(form.getByLabel("Fotka QR kódu dokladu")).toBeHidden();
     await expect(form.getByLabel("Položky z dokladu")).toBeHidden();
+    await form.getByRole("button", { name: "Nákup po položkách" }).click();
     await form.locator("summary", { hasText: "Doklad" }).click();
     await expect(form.getByLabel("Položky z dokladu")).toBeVisible();
   });

@@ -9,6 +9,7 @@ test.describe("QR kód dokladu", () => {
   test("z fotky QR kódu sa doklad priradí bez zobrazenia čísla", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nova-transakcia");
+    await page.getByRole("button", { name: "Nákup po položkách" }).click();
     await page.getByLabel("Fotka QR kódu dokladu").setInputFiles(path.join(process.cwd(), "tests", "e2e", "fixtures", "receipt-qr.png"));
 
     await expect(page.getByText("Doklad je priradený.")).toBeVisible();
@@ -20,6 +21,7 @@ test.describe("QR kód dokladu", () => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await openApp(page);
     await goTo(page, "nova-transakcia");
+    await page.getByRole("button", { name: "Nákup po položkách" }).click();
     await page.getByLabel("Fotka QR kódu dokladu").setInputFiles(path.join(process.cwd(), "tests", "e2e", "fixtures", "receipt-qr.png"));
     await expect(page.getByText("Doklad je priradený.")).toBeVisible();
 
@@ -32,6 +34,7 @@ test.describe("QR kód dokladu", () => {
   test("doklad sa dá odstrániť", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nova-transakcia");
+    await page.getByRole("button", { name: "Nákup po položkách" }).click();
     await page.getByLabel("Fotka QR kódu dokladu").setInputFiles(path.join(process.cwd(), "tests", "e2e", "fixtures", "receipt-qr.png"));
     await expect(page.getByText("Doklad je priradený.")).toBeVisible();
     await page.getByRole("button", { name: "Odstrániť doklad" }).click();
@@ -43,6 +46,7 @@ test.describe("QR kód na veľkej fotke", () => {
   test("malý QR kód na fotke z telefónu sa prečíta", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nova-transakcia");
+    await page.getByRole("button", { name: "Nákup po položkách" }).click();
     await page.getByLabel("Fotka QR kódu dokladu").setInputFiles(path.join(process.cwd(), "tests", "e2e", "fixtures", "receipt-qr-large.png"));
 
     await expect(page.getByText("Doklad je priradený.")).toBeVisible();

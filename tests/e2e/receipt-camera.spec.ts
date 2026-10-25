@@ -18,6 +18,7 @@ test.describe("živé skenovanie kamerou", () => {
     await openApp(page);
     await goTo(page, "nova-transakcia");
     // Doklad je zbalený, kým ho používateľ neotvorí (D-286).
+    await page.getByRole("button", { name: "Nákup po položkách" }).click();
     await page.locator("section#nova-transakcia summary", { hasText: "Doklad" }).click();
     await page.getByRole("button", { name: "Skenovať QR kód kamerou" }).click();
     await expect(page.getByLabel("Živý náhľad kamery")).toBeVisible();
@@ -30,6 +31,7 @@ test.describe("živé skenovanie kamerou", () => {
   test("zrušenie zatvorí náhľad kamery", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nova-transakcia");
+    await page.getByRole("button", { name: "Nákup po položkách" }).click();
     await page.locator("section#nova-transakcia summary", { hasText: "Doklad" }).click();
     await page.getByRole("button", { name: "Skenovať QR kód kamerou" }).click();
     await page.getByRole("button", { name: "Zrušiť" }).click();

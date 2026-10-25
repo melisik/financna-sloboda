@@ -28,18 +28,16 @@ test.describe("opravy po revízii 2026-10-25 (b)", () => {
     await expect(s.getByLabel("Zdroj úhrady")).toHaveValue("z_prijmu");
   });
 
-  test("S-2: zbalený Doklad ukáže v súhrne nesúlad súčtu a nerozpoznané riadky", async ({ page }) => {
+  // S-2 nahradené D-313: suma pri nákupe po položkách je súčet položiek, nesúlad nemôže nastať.
+  test("S-2/D-313: nepridaný vložený text zablokuje uloženie", async ({ page }) => {
     await withBackup(page);
     await goTo(page, "nova-transakcia");
     const s = page.locator("section#nova-transakcia");
-    await s.getByLabel("Suma (€)").fill("10");
+    await s.getByRole("button", { name: "Nákup po položkách" }).click();
     await s.locator("summary", { hasText: "Doklad" }).click();
     await s.getByLabel("Položky z dokladu").fill(["100000001 Syntetický rožok", "1,000x\t23%\t3,50 €"].join("\n"));
-    await expect(s.getByText(/Súčet položiek sa nezhoduje/)).toBeVisible();
-    await s.locator("summary", { hasText: "Doklad" }).click();
-    await expect(s.locator("summary", { hasText: "Doklad" })).toContainText("súčet nesedí");
-    await s.getByLabel("Suma (€)").fill("11");
-    await expect(s.locator("summary", { hasText: "Doklad" })).toContainText("súčet nesedí");
+    await s.getByRole("button", { name: "Uložiť transakciu" }).click();
+    await expect(s.getByText(/Pridaj aspoň jednu položku|Vložený text pridaj/)).toBeVisible();
   });
 
   test.describe("S-3: skener bez knižnice", () => {

@@ -466,7 +466,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         {err && <p style={{ color: "var(--danger)", margin: "4px 0" }}>{err}</p>}
         {saved && !inEdit && (
           <div style={{ ...calloutStyle("ok"), margin: "4px 0" }}>
-            <p style={{ margin: 0 }}>Zapísané: {TYPE_LABEL[saved.type]} {eur(saved.amountCents)}. <a href="#historia-transakcii" onClick={() => setSaved(null)}>Zobraziť v histórii</a></p>
+            <p style={{ margin: 0 }}>Zapísané: {TYPE_LABEL[saved.type]} {eur(saved.amountCents)}. <button type="button" onClick={() => { setSaved(null); document.getElementById("historia-transakcii")?.scrollIntoView({ block: "start" }); }} style={{ ...btn, marginTop: 0, padding: "2px 8px" }}>Zobraziť v histórii</button></p>
             {renderStockTransfer && (saved.receiptItems?.length ?? 0) > 0 && renderStockTransfer(saved)}
           </div>
         )}

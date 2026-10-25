@@ -1,6 +1,6 @@
 # 57 – Návrh: formulár transakcie so sumou zadanou len raz
 
-> Stav: **návrh na schválenie** (2026-10-25). Kód sa nemení. Z prehliadky zakladateľa: „sumy zadávam na rôznych miestach a nerozumiem prečo“. Zakladateľ už rozhodol: bez zľavy a zaokrúhlenia (suma = súčet položiek), pri položke aj množstvo. D-153: bez zmeny výpočtu (mení sa len spôsob zadania; uložená transakcia má rovnaké polia).
+> Stav: **schválené a implementované** (2026-10-25, D-313). Z prehliadky zakladateľa: „sumy zadávam na rôznych miestach a nerozumiem prečo“. Zakladateľ už rozhodol: bez zľavy a zaokrúhlenia (suma = súčet položiek), pri položke aj množstvo. D-153: bez zmeny výpočtu (mení sa len spôsob zadania; uložená transakcia má rovnaké polia).
 
 ## 1. Problém
 

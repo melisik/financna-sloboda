@@ -19,9 +19,10 @@ test.describe("sklad a výdavky", () => {
     await ready(page);
     await goTo(page, "nova-transakcia");
     const t = page.locator("section#nova-transakcia");
-    await t.getByLabel("Suma (€)").fill("5.86");
+    await t.getByRole("button", { name: "Nákup po položkách" }).click();
     await t.locator("summary", { hasText: "Doklad" }).click();
     await t.getByLabel("Položky z dokladu").fill(PASTE);
+    await t.getByRole("button", { name: "Pridať z textu" }).click();
     await t.getByRole("button", { name: "Uložiť transakciu" }).click();
     await t.locator("li", { hasText: "5,86" }).getByRole("button", { name: "Upraviť" }).click();
     await t.getByRole("button", { name: "Pridať do skladu" }).click();

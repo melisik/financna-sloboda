@@ -27,16 +27,19 @@ test.describe("položky dokladu z portálu", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
     await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("15");
+    await page.getByRole("button", { name: "Nákup po položkách" }).click();
     // Doklad je zbalený, kým ho používateľ neotvorí (D-286).
     await page.locator("section#nova-transakcia summary", { hasText: "Doklad" }).click();
     await page.getByLabel("Položky z dokladu").fill(PASTE);
-    await expect(page.getByText("Súčet položiek: 15,00 €")).toBeVisible();
     await expect(page.getByText("Nerozpoznané")).toHaveCount(0);
+    await page.getByRole("button", { name: "Pridať z textu" }).click();
+    // Suma sa nezadáva; je súčtom položiek (D-313).
+    await expect(page.getByText("Spolu: 15,00 €")).toBeVisible();
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 
     await expect(page.locator("section#nova-transakcia li", { hasText: "položiek: 2" })).toBeVisible();
     await page.getByRole("button", { name: "Upraviť" }).first().click();
-    await expect(page.getByText("Uložené položky: 2")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Odstrániť položku Výrobok C" })).toBeVisible();
+    await expect(page.getByText("Spolu: 15,00 €")).toBeVisible();
   });
 });
