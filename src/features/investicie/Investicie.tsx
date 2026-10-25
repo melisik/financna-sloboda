@@ -266,7 +266,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
         <>
           <Field label="Počet kusov" value={quantity} step={0.0001} onChange={setQuantity} />
           <Field label="Cena za kus (v mene položky)" value={unitPrice} step={0.0001} onChange={setUnitPrice} />
-          <FoldBlock title="Mena a kurz" summary={currency.trim().toUpperCase() || "EUR"} openWhen={!isEur || !!err}>
+          <FoldBlock title="Mena a kurz" summary={currency.trim().toUpperCase() || "EUR"} openWhen={!isEur || !!err} reopenOn={err}>
             <Field label="Mena (napr. EUR, USD)" value={currency} type="text" onChange={setCurrency} maxLength={3} />
             {!isEur && <Field label="Kurz: koľko € za 1 jednotku meny" value={fx} step={0.0001} onChange={setFx} hint="zadaj kurz v deň ocenenia" />}
           </FoldBlock>
@@ -274,7 +274,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
       )}
       <Field label="Dátum ocenenia" value={valueDate} type="date" max={today} onChange={setValueDate} />
       {/* Cieľ a daňový režim sú zbalené so súhrnom (D-311). */}
-      <FoldBlock title="Cieľ a daňový režim" summary={goalId ? (goals.find((g) => g.id === goalId)?.name ?? "cieľ") : "bez cieľa"} openWhen={!!err}>
+      <FoldBlock title="Cieľ a daňový režim" summary={[goalId ? (goals.find((g) => g.id === goalId)?.name ?? "cieľ") : "bez cieľa", ...(taxRegime !== "nezadane" ? [TAX_CATALOG[taxRegime].label] : [])].join(" · ")} openWhen={!!err} reopenOn={err}>
         <label style={{ display: "block", marginBottom: 8 }}>
           Cieľ (nepovinné)
           <select aria-label="Cieľ položky" value={goalId} onChange={(e) => setGoalId(e.target.value)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>

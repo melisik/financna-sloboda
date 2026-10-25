@@ -161,7 +161,6 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "nastavenia":
       return (
         <Section id="nastavenia" title="Nastavenia">
-          {settingsFlash && <p style={{ ...calloutStyle("ok"), color: "var(--ok)" }}>{settingsFlash} <NextStep to="prehlad">Prehľad</NextStep></p>}
           {/* Zriedka používané časti sú zbalené (D-293); sú nad formulárom, aby sa dali nájsť (D-309). */}
           {PHASE2_ENABLED && (
             <details style={{ marginTop: 0 }}>
@@ -180,6 +179,8 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
           </details>
           <div style={{ marginTop: 16 }} />
           <SettingsSection key={JSON.stringify(data.settings)} repo={repo} settings={data.settings} derived={ctx.derived} onSaved={() => { reload(); setSettingsFlash("Nastavenia sú uložené."); }} />
+          {/* Potvrdenie je pod formulárom, pri tlačidle Uložiť (revízia 2026-10-25c, N-8). */}
+          {settingsFlash && <p role="status" style={{ ...calloutStyle("ok"), color: "var(--ok)" }}>{settingsFlash} <NextStep to="prehlad">Prehľad</NextStep></p>}
         </Section>
       );
     case "zaloha":

@@ -116,9 +116,10 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
     setReady(null);
     setChanged(false);
     // Krok, v ktorom sa to zastavilo, ide do hlásenia: chybu na telefóne inak nevidno (postreh zakladateľa 5.3, D-306).
-    let step = "načítanie tlačiva";
+    let step = "príprava údajov";
     try {
       const fields = buildTaxFormFields(properties, dogs, today);
+      step = "načítanie tlačiva";
       const res = await fetch(TAX_FORM_PATH);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const pdf = new Uint8Array(await res.arrayBuffer());

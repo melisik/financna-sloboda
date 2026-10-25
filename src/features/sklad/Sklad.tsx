@@ -45,6 +45,8 @@ export function StockSection({ repo, items, recipes, wasteRecords, shoppingItems
       onSaved();
     } catch {
       setErr(STORAGE_ERROR);
+      // Pri chybe úložiska nič nepribudlo; volajúci nesmie hlásiť opak (revízia 2026-10-25c, N-7).
+      return null;
     }
     return added;
   };
@@ -197,6 +199,7 @@ export function StockSection({ repo, items, recipes, wasteRecords, shoppingItems
       <RecipesBlock repo={repo} recipes={recipes} stock={items} onSaved={onSaved} onCooked={offerAfter} onMissing={async (r) => {
         const added = await addEntries(missingForRecipe(r, items));
         // Potvrdenie, čo a kam pribudlo (D-308, docs/55, postreh 4.5).
+        if (added === null) return "Na zoznam Nakúpiť sa nič nepridalo. Skús to znova.";
         return added.length === 0
           ? "Všetko chýbajúce už na zozname Nakúpiť je."
           : `Na zoznam Nakúpiť (vyššie, pod položkami skladu) pribudlo: ${added.map((a) => `${a.name}${a.quantity !== undefined ? ` ${qtyText(a.quantity)}${a.unit ? ` ${a.unit}` : ""}` : ""}`).join(", ")}.`;

@@ -616,8 +616,10 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
   // Súhrny zbalených blokov (D-310): je v bloku niečo vyplnené?
   const filled = (v: NumIn | string) => v !== "" && v !== 0 && !(typeof v === "number" && Number.isNaN(v));
   const mortgageOn = filled(mortgage) && asNum(mortgage) > 0;
+  // Splátka alebo sadzba bez zostatku sa tiež ukáže v súhrne a blok otvorí; splátka ide do mesačných nákladov (N-2).
+  const mortgageAny = [rate, payment].some(filled);
   const costsOn = filled(otherCosts) && asNum(otherCosts) > 0;
-  const buyOn = [acqDate, acqCost, rentalStart].some(filled);
+  const buyOn = [acqDate, acqCost, ...(mode === "prenajom" ? [rentalStart] : [])].some(filled);
   const taxOn = [taxKind, taxMuni, cadastral, parcel, building, flat, floorArea].some(filled);
   const [err, setErr] = useState<string | null>(null);
 
@@ -704,7 +706,7 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       <Field label="Dátum odhadu" value={valueDate} type="date" max={today} onChange={setValueDate} />
       {mode === "prenajom" && <Field label="Mesačný nájom (€, nepovinné)" value={rent} onChange={setRent} />}
       {/* Menej časté údaje sú v zbalených blokoch so súhrnom (D-310, docs/56). */}
-      <FoldBlock title="Hypotéka" summary={mortgageOn ? eur(cents(asNum(mortgage))) : "bez hypotéky"} openWhen={mortgageOn || !!err}>
+      <FoldBlock title="Hypotéka" summary={mortgageOn ? eur(cents(asNum(mortgage))) : mortgageAny ? `bez zostatku${filled(payment) ? ` · splátka ${eur(cents(asNum(payment)))}` : ""}` : "bez hypotéky"} openWhen={mortgageOn || mortgageAny || !!err} reopenOn={err}>
         <Field label="Zostatok hypotéky (€)" value={mortgage} onChange={setMortgage} hint="0, ak hypotéku nemáš" />
         {typeof mortgage === "number" && mortgage > 0 && (
           <Field label="Zostatok platí k (dátum)" value={balanceDate} type="date" max={today} onChange={setBalanceDate} hint="nechaj dnešný dátum, ak si zostatok práve zistil; od tohto dátumu sa každý mesiac automaticky znižuje o istinu" />
@@ -712,15 +714,15 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
         <Field label="Úroková sadzba hypotéky (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak hypotéku nemáš" />
         <Field label="Mesačná splátka hypotéky (€)" value={payment} onChange={setPayment} hint="0, ak hypotéku nemáš" />
       </FoldBlock>
-      <FoldBlock title="Mesačné náklady" summary={costsOn ? eur(cents(asNum(otherCosts))) : "žiadne"} openWhen={!!err}>
+      <FoldBlock title="Mesačné náklady" summary={costsOn ? eur(cents(asNum(otherCosts))) : "žiadne"} openWhen={!!err} reopenOn={err}>
         <Field label="Ostatné mesačné náklady (€)" value={otherCosts} onChange={setOtherCosts} hint="údržba, poistenie, poplatky; 0, ak nie sú" />
       </FoldBlock>
-      <FoldBlock title="Kúpa" summary={buyOn ? "vyplnené" : "nevyplnené"} openWhen={!!err}>
+      <FoldBlock title="Kúpa" summary={buyOn ? "vyplnené" : "nevyplnené"} openWhen={!!err} reopenOn={err}>
         <Field label="Dátum obstarania (nepovinné)" value={acqDate} type="date" max={today} onChange={setAcqDate} hint="evidencia pre dane; nepočíta sa" />
         <Field label="Obstarávacia cena (€, nepovinné)" value={acqCost} onChange={setAcqCost} hint="cena pri kúpe, nie odhad; nepočíta sa" />
         {mode === "prenajom" && <Field label="Dátum začiatku prenájmu (nepovinné)" value={rentalStart} type="date" max={today} onChange={setRentalStart} />}
       </FoldBlock>
-      <FoldBlock title="Údaje pre daň z nehnuteľností" summary={taxOn ? "vyplnené" : "nevyplnené"} openWhen={lvOpen || !!err}>
+      <FoldBlock title="Údaje pre daň z nehnuteľností" summary={taxOn ? "vyplnené" : "nevyplnené"} openWhen={lvOpen || !!err} reopenOn={err}>
         <button type="button" onClick={() => setLvOpen((o) => !o)} aria-expanded={lvOpen} style={{ ...btn, marginBottom: 8 }}>Predvyplniť z listu vlastníctva</button>
         {lvOpen && (
           <div style={{ marginBottom: 12 }}>
