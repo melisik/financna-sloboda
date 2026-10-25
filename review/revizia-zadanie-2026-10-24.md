@@ -1,5 +1,7 @@
 # Zadanie pre externú revíziu zmien z 2026-10-24
 
+> Pokračovanie: `review/revizia-zadanie-2026-10-25.md` (D-290 až D-294).
+
 Pre reviewera v **novej, samostatnej konverzácii** (CLAUDE.md: revízia nesmie byť v tom istom chate, kde sa písalo). Reviewer nie je autor dokumentov ani kódu. Tento podklad pripravil autor zmien; opisuje, čo sa zmenilo a kde, ale nehodnotí, či je to správne.
 
 ## Stav
