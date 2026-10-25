@@ -1,6 +1,6 @@
 # 52 – Návrh: upozornenia na daňové termíny
 
-> Stav: **návrh na schválenie a zoznam termínov na overenie** (2026-10-25). Kód sa nemení. Zakladateľ zvolil začať termínmi (`docs/50` oddiel 3, otázka 2). Appka neukáže žiadnu sumu dane. D-153: bez zmeny výpočtu.
+> Stav: **návrh upravený podľa odpovedí zakladateľa** (2026-10-25, oddiel 6); čaká na overenie termínov a potvrdenie oddielu 6. Kód sa nemení. Zakladateľ zvolil začať termínmi (`docs/50` oddiel 3, otázka 2). Appka neukáže žiadnu sumu dane. D-153: bez zmeny výpočtu.
 
 ## 1. Termíny na overenie
 
@@ -44,3 +44,40 @@ T6 navrhujem **neukazovať** ako termín: dátum je v rozhodnutí obce, appka ho
 2. Pripomienka **30 dní vopred (odporúčam)**, alebo inak?
 3. T6 (splatnosť podľa rozhodnutia obce) len ako veta, nie termín: súhlas?
 4. Overíš T1 až T5? Stačí poslať odkaz na zdroj pri každom.
+
+## 6. Odpovede zakladateľa (2026-10-25) a upravený návrh
+
+**Čo zakladateľ uviedol** (zo skúsenosti; zdroj ešte nie je zapísaný):
+- Priznanie k miestnym daniam (nehnuteľnosť, pes) sa podáva **len raz**, pri vzniku povinnosti. Pripomienka na podanie má zmysel.
+- **Splatnosť miestnych daní je do 15 dní od doručenia výmeru** obce. Pripomienka 30 dní vopred sa sem nehodí: appka nevie, kedy výmer príde.
+- Pri dani z príjmu (DPFO) ostáva pripomienka 30 dní vopred, na **podanie aj zaplatenie**.
+- 30 dní vopred tam, kde sa dá.
+
+**Čo sú T1 až T5:** riadky tabuľky v oddiele 1, teda jednotlivé termíny, ktoré treba overiť:
+- **T1:** priznanie k dani z nehnuteľností (do 31. januára po nadobudnutí, len raz);
+- **T2:** to isté priznanie pri psovi;
+- **T3:** lehota pri zániku (predaj nehnuteľnosti, pes uhynul);
+- **T4:** daňové priznanie z prenájmu a jeho zaplatenie (31. marca, prípadne odklad);
+- **T5:** lehota na registráciu na daňovom úrade pri začiatku prenájmu.
+
+Overiť znamená: pri každom termíne poslať odkaz na oficiálny zdroj (stránka obce, slovensko.sk, Finančná správa), z ktorého autor dátum prepíše do appky. Bez zdroja sa termín v appke neukáže.
+
+**Upravený návrh:**
+
+| Pripomienka | Kedy sa ukáže | Ako appka vie dátum |
+| --- | --- | --- |
+| Podať priznanie k dani z nehnuteľností (T1) | 30 dní pred 31. januárom po roku nadobudnutia; len raz | dátum obstarania nehnuteľnosti (D-156) |
+| Podať priznanie pri psovi (T2) | 30 dní pred 31. januárom po roku vzniku; len raz | dátum vzniku pri psovi (D-159) |
+| Zánik (T3) | podľa overenej lehoty | dátum zániku pri psovi; pri nehnuteľnosti až s evidenciou predaja |
+| **Zaplatiť miestnu daň (T6)** | **hneď po zadaní dátumu doručenia výmeru**, termín = doručenie + 15 dní | nové nepovinné pole v Daniach: „Výmer doručený dňa“ (za rok, za nehnuteľnosti a psov spolu, alebo osobitne; otázka 7) |
+| Podať a zaplatiť DPFO (T4) | 30 dní pred termínom podania | evidencia prenájmu s príjmom v predchádzajúcom roku (D-157) |
+| Registrácia (T5) | podľa overenej lehoty od začiatku prenájmu | dátum začiatku prenájmu (D-156) |
+
+T6 sa tým mení z vety (pôvodná otázka 3) na pripomienku, ktorá sa ukáže len po zadaní dátumu doručenia výmeru. Sumu dane appka nepočíta ani nežiada.
+
+**Otázky:**
+5. Súhlasíš s upravenou tabuľkou (najmä T6 cez dátum doručenia výmeru)?
+6. Lehotu 15 dní od doručenia výmeru máš zo skúsenosti; vieš k nej poslať aj zdroj (napr. text výmeru alebo VZN obce)?
+7. Výmer býva jeden za nehnuteľnosti aj psa spolu, alebo osobitne? Od toho závisí, či je pole jedno, alebo pri každej položke.
+8. Overíš T1 až T5 podľa vysvetlenia vyššie?
+

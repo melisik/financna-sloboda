@@ -1,6 +1,6 @@
 # 51 – Návrh: Sklad prepojený s výdavkami (S-B)
 
-> Stav: **návrh na schválenie** (2026-10-25). Kód sa nemení. Zakladateľ zvolil smer S-B z `docs/50` oddiel 2. D-153: bez zmeny výpočtu (dátum cieľa ani kapitál sa nemenia; vyhodené potraviny sú informácia, nie nový výdavok).
+> Stav: **čiastočne schválené** (2026-10-25): otázky 1 a 2 áno; otázka 4: nákupný zoznam **zapracovať** (oddiel 3.5, nové otázky 5 a 6); otázka 3 vysvetlená, čaká na odpoveď. Kód sa nemení. Zakladateľ zvolil smer S-B z `docs/50` oddiel 2. D-153: bez zmeny výpočtu (dátum cieľa ani kapitál sa nemenia; vyhodené potraviny sú informácia, nie nový výdavok).
 
 ## 1. Cieľ skladu
 
@@ -42,6 +42,17 @@ Konflikt nevidím. Zmena schémy (cena pri položke, záznam vyhodených) vyžad
 - Bez hodnotenia a bez porovnania s inými.
 - **Neskôr (otázka 3):** priemer za 3 mesiace v bloku Opakované výdavky a dátum cieľa (D-290) ako ďalší riadok „vyhodené potraviny“.
 
+### 3.5 Nákupný zoznam (zakladateľ 2026-10-25: zapracovať)
+- Nový zoznam **Nakúpiť** v Sklade: názov, množstvo a jednotka (nepovinné), zaškrtnutie „kúpené“.
+- **Zdroje položiek:**
+  1. ručne (tlačidlo Pridať na zoznam);
+  2. **z receptu:** pri recepte tlačidlo „Chýbajúce na zoznam“ pridá suroviny, ktorých je v sklade menej, než recept potrebuje (rozdiel);
+  3. **došlo:** keď množstvo položky klesne na 0 (uvarením alebo Vyhodiť), appka ponúkne „Pridať na zoznam?“ (otázka 5);
+  4. **minimálna zásoba** pri položke (nepovinné pole): pod ňou sa položka ponúkne na zoznam (otázka 6).
+- **Kúpené:** zaškrtnutá položka sa dá jedným ťuknutím pridať do skladu (predvyplní názov, jednotku, čiarový kód z predchádzajúceho výrobku, D-238), alebo len odstrániť zo zoznamu. Ak sa nákup zapíše z dokladu (3.1), zoznam sa s ním nespája automaticky (názvy na doklade sú skrátené).
+- **Zdieľanie:** zoznam sa dá odoslať ako text cez zdieľací list (rovnako ako týždenný súhrn, D-155, D-277), napríklad partnerovi do správy. Nič sa neodosiela samo.
+- Zoznam nemení výdavky ani rozpočet.
+
 ## 4. Čo sa nemení
 
 - Transakcie, kapitál, dátum cieľa, rozpočet.
@@ -63,11 +74,17 @@ Konflikt nevidím. Zmena schémy (cena pri položke, záznam vyhodených) vyžad
 3. UI v `src/features/sklad/` a tlačidlo v úprave výdavku (bez importu inej feature, D-174: cez vykresľovaciu funkciu ako pri prílohách, D-195).
 4. Overenie: `tsc`, `vitest`, celé Playwright; zápis do pilotného záznamu, `docs/41` (nová úloha pre testerov), D-číslo.
 
-Odhad: 1 až 2 dni.
+Odhad: 1 až 2 dni bez nákupného zoznamu; nákupný zoznam ďalší 1 deň. Navrhujem dve etapy: najprv 3.1 až 3.4, potom 3.5.
 
 ## 7. Otázky na rozhodnutie
 
 1. Položky dokladu pri prenose: **predvolene nezaškrtnuté (odporúčam)**, alebo zaškrtnuté?
 2. Pri prešlej spotrebe ponúknuť **Vyhodiť** a **Ešte použiteľné**: áno (odporúčam)?
 3. Vyhodené potraviny v bloku Opakované výdavky a dátum cieľa: **neskôr, po pilote (odporúčam)**, alebo hneď?
-4. Nákupný zoznam (S-C) zatiaľ nerobiť: súhlas?
+4. ~~Nákupný zoznam zatiaľ nerobiť~~ → zakladateľ: zapracovať (oddiel 3.5).
+
+**Vysvetlenie k otázke 3:** na obrazovke Mesačný výdavok je blok „Opakované výdavky a dátum cieľa“ (D-290). Pri každom opakovanom výdavku ukazuje, o koľko mesiacov skôr by bol cieľ, keby sa tá suma mesačne investovala, napríklad „Streaming 12 € mesačne · o 1 mesiac skôr“. Otázka je, či tam má pribudnúť aj riadok **„vyhodené potraviny“** s mesačným priemerom za posledné 3 mesiace (napr. „vyhodené potraviny 15 € mesačne · o 2 mesiace skôr“). Odporúčam to až po pilote: priemer potrebuje aspoň 3 mesiace záznamov o vyhodení, ktoré zatiaľ nikto nemá.
+
+**Nové otázky:**
+5. Keď množstvo klesne na 0, ponúknuť „Pridať na zoznam?“: **áno (odporúčam)**?
+6. Minimálna zásoba pri položke: **zatiaľ nie, až keď zoznam začneš používať (odporúčam)**, alebo hneď?

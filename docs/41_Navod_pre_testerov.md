@@ -40,7 +40,7 @@ Každá úloha trvá 2 až 5 minút. Nemusíte robiť všetky; aj jedna poctivo 
 | 3 | Veľký výdavok | Peniaze → Veľký výdavok (scenár) | Zadajte napríklad 5 000 € a skúste rôzne zdroje. Je výsledok zrozumiteľný? Do transakcií sa nič nesmie zapísať. |
 | 4 | Mesačný výdavok | Peniaze → Mesačný výdavok (scenár) | Zadajte napríklad 50 €. Rozumiete, koľko mesiacov vás to stojí? Pod scenárom je zoznam opakovaných výdavkov z testovacej zálohy. Je jasné, čo „o N mesiacov skôr“ znamená? Nepôsobí ako výčitka? |
 | 5 | Ročný prehľad | Plán a výsledky → Ročný prehľad | Súhrn po rokoch a výdavky podľa kategórií. Dávajú zmysel? Vyhodnotenia sú zbalené. |
-| 6 | Rozpočet a pravidelné výdavky | Peniaze → Rozpočet, Pravidelné výdavky | V Rozpočte ťuknite na Upraviť limity, nastavte limit a uložte. V Pravidelných výdavkoch je pri položke len Upraviť; Ukončiť a Zmazať sú v úprave. Je to jasné? |
+| 6 | Rozpočet a pravidelné výdavky | Peniaze → Rozpočet, Pravidelné výdavky | V Rozpočte ťuknite na Upraviť limity, nastavte limit a uložte. V Pravidelných výdavkoch je pri položke len Upraviť; Ukončiť a Zmazať sú v úprave. Skúste potom v Transakciách zapísať výdavok 650 € v kategórii bývanie: appka upozorní, že nájom sa už ráta automaticky. Je to jasné? |
 | 7 | Záloha s heslom | Nastavenia a záloha → Záloha | Exportujte zálohu s heslom (aspoň 8 znakov) a obnovte ju. Zlé heslo musí byť odmietnuté. |
 | 8 | Týždenný súhrn mailom | Prehľad → Týždenný súhrn → Poslať mailom | Otvorí sa mailová aplikácia s textom súhrnu. Odoslať ho nemusíte. |
 | 9 | Menu na telefóne | Horné menu | Prepínajte skupiny a sekcie. Riadok sekcií sa dá posúvať do strany. |

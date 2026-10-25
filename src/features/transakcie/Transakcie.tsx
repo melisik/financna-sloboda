@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Repository } from "../../storage/repository";
-import type { AppData, Attachment, BudgetCategory, Transaction, TransactionType, Source } from "../../storage/types";
+import type { AppData, Attachment, BudgetCategory, RecurringExpense, Transaction, TransactionType, Source } from "../../storage/types";
+import { matchingRecurring } from "../../domain/recurring";
 import { BUDGET_CATEGORIES, SOURCES } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import { expenseTotalsByCategory, filterHistory, totalsByType } from "../../domain/history";
@@ -64,6 +65,10 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
   const [confirmExhausted, setConfirmExhausted] = useState(false);
   useEffect(() => setConfirmExhausted(false), [type, source, amount]);
+  // Upozornenie na dvojitý zápis pravidelného výdavku; „Uložiť aj tak“ ho pre tento formulár potvrdí (D-299, docs/53).
+  const [recurringMatch, setRecurringMatch] = useState<RecurringExpense | null>(null);
+  const [recurringConfirmed, setRecurringConfirmed] = useState(false);
+  useEffect(() => { setRecurringMatch(null); setRecurringConfirmed(false); }, [type, amount, category, date]);
 
   useEffect(() => {
     if (!undo) return;
@@ -129,6 +134,8 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
 
   const resetForm = () => {
     setConfirmExhausted(false);
+    setRecurringMatch(null);
+    setRecurringConfirmed(false);
     setEditingId(null);
     setNote("");
     setReceiptId("");
@@ -194,7 +201,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     }
   };
 
-  const save = async () => {
+  const save = async (confirmedRecurring = recurringConfirmed) => {
     if (!ctx.latest) return setErr("Najprv zapíš stav investícií a hotovosti vo Vyhodnotení.");
     const a = asNum(amount);
     if (Number.isNaN(a) || !(a > 0)) return setErr("Suma musí byť kladná.");
@@ -211,6 +218,11 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     // Nerozpoznané riadky sa nesmú potichu vynechať (D-129).
     if (type === "vydavok" && parsedItems.unparsed.length > 0) return setErr("Niektoré riadky položiek sa nepodarilo rozpoznať. Opravte text alebo ho vymažte.");
     const receiptItems = type === "vydavok" ? (parsedItems.items.length > 0 ? parsedItems.items : existing?.receiptItems) : undefined;
+    // Len pri novom výdavku; pri úprave existujúceho by upozornenie len zdržiavalo.
+    if (type === "vydavok" && !existing && !confirmedRecurring) {
+      const match = matchingRecurring(data.recurringExpenses, { date, category: category === "" ? undefined : category, amountCents: cents(a) });
+      if (match) { setErr(null); return setRecurringMatch(match); }
+    }
     const t: Transaction = {
       id: existing?.id ?? uid(),
       date,
@@ -393,7 +405,14 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           </p>
         )}
         {err && <p style={{ color: "var(--danger)", margin: "4px 0" }}>{err}</p>}
-        <button onClick={save} style={btnPrimary}>{inEdit ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
+        {recurringMatch && (
+          <div style={{ ...calloutStyle("warn"), margin: "4px 0" }}>
+            <p style={{ margin: 0 }}>Toto vyzerá ako pravidelný výdavok „{recurringMatch.name}“, ktorý sa už ráta automaticky každý mesiac. Uložiť aj tak?</p>
+            <button onClick={() => { setRecurringConfirmed(true); void save(true); }} style={btn}>Uložiť aj tak</button>{" "}
+            <button onClick={resetForm} style={btn}>Neukladať</button>
+          </div>
+        )}
+        <button onClick={() => void save()} style={btnPrimary}>{inEdit ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
         {inEdit && <button onClick={resetForm} style={{ ...btn, marginLeft: 8 }}>Zrušiť úpravu</button>}
       </div>
       {undo && (

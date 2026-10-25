@@ -50,6 +50,8 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
   return (
     <section>
       <p style={{ color: "var(--muted)" }}>Predplatné, poistky a paušály. Iba zobrazenie: nemenia Kapitál, dátum cieľa ani sporenie.</p>
+      {/* Pravidlo proti dvojitému zápisu (D-299, docs/53: P-A). */}
+      <p style={hintStyle}>Pravidelné výdavky sa rátajú do rozpočtu automaticky každý mesiac. Nezapisuj ich aj ako transakciu.</p>
       <p>Spolu za mesiac: <strong>{eur(total)}</strong> · za rok: <strong>{eur(annual)}</strong></p>
       {Object.keys(byCat).length > 0 && (
         <ul style={{ paddingLeft: 20 }}>

@@ -1,6 +1,6 @@
 # 53 – Návrh: pravidelné výdavky a transakcie bez dvojitého zápisu
 
-> Stav: **návrh na schválenie** (2026-10-25). Kód sa nemení. Vychádza z externej revízie 2026-10-25 (S-1), D-296 a `docs/50` oddiel 4.
+> Stav: **schválené a implementované** (2026-10-25, D-299): P-A + P-B, tolerancia ±1 €. Upozornenie sa ukáže len pri novom výdavku, nie pri úprave existujúceho; „Neukladať“ vyprázdni formulár. Vychádza z externej revízie 2026-10-25 (S-1), D-296 a `docs/50` oddiel 4.
 
 ## 1. Problém
 

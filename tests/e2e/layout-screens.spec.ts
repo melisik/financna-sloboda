@@ -162,5 +162,27 @@ test.describe("usporiadanie obrazoviek", () => {
     await goTo(page, "rozpocet");
     await expect(page.locator("section#rozpocet p", { hasText: /^dom a energie: minuté 95,00\s€/ })).toBeVisible();
   });
+
+  test("Transakcie: výdavok zhodný s pravidelným výdavkom sa uloží až po potvrdení (D-299, docs/53)", async ({ page }) => {
+    await withBackup(page);
+    await goTo(page, "pravidelne-vydavky");
+    await expect(page.locator("section#pravidelne-vydavky")).toContainText("Nezapisuj ich aj ako transakciu.");
+    await goTo(page, "nova-transakcia");
+    const s = page.locator("section#nova-transakcia");
+    await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
+    await s.getByLabel("Suma (€)").fill("650");
+    await s.getByLabel("Kategória").selectOption("bývanie");
+    await s.getByRole("button", { name: "Uložiť transakciu" }).click();
+    await expect(s.getByText("Toto vyzerá ako pravidelný výdavok „Nájom“, ktorý sa už ráta automaticky každý mesiac.")).toBeVisible();
+    await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
+    await s.getByRole("button", { name: "Neukladať" }).click();
+    await expect(s.getByText(/ktorý sa už ráta automaticky/)).toHaveCount(0);
+    await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
+    await s.getByLabel("Suma (€)").fill("650");
+    await s.getByLabel("Kategória").selectOption("bývanie");
+    await s.getByRole("button", { name: "Uložiť transakciu" }).click();
+    await s.getByRole("button", { name: "Uložiť aj tak" }).click();
+    await expect(s.getByText(/Súčet všetkých transakcií \(24\):/)).toBeVisible();
+  });
 });
 

@@ -42,3 +42,18 @@ function dateParts(iso: string): [number, number, number] {
   const [y, m, d] = iso.split("-").map(Number);
   return [y, m - 1, d];
 }
+
+/** Tolerancia zhody sumy výdavku s pravidelným výdavkom (D-299, docs/53). */
+const MATCH_TOLERANCE_CENTS = 100;
+
+/**
+ * Pravidelný výdavok, ktorému sa zhoduje nový výdavok: platí v deň výdavku, rovnaká kategória a suma ±1 €
+ * (ročný sa porovnáva s ročnou sumou). Slúži len na upozornenie na dvojitý zápis (D-299, docs/53: P-B); nič neblokuje.
+ */
+export function matchingRecurring(list: RecurringExpense[], t: { date: string; category: BudgetCategory | undefined; amountCents: number }): RecurringExpense | null {
+  if (t.category === undefined) return null;
+  const candidates = list
+    .filter((e) => e.category === t.category && isRecurringActive(e, t.date) && Math.abs(e.amountCents - t.amountCents) <= MATCH_TOLERANCE_CENTS)
+    .sort((a, b) => Math.abs(a.amountCents - t.amountCents) - Math.abs(b.amountCents - t.amountCents));
+  return candidates[0] ?? null;
+}
