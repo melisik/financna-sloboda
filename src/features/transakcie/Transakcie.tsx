@@ -423,7 +423,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       )}
 
       <h3 style={{ fontSize: "var(--font-text)", marginTop: 24 }}>História</h3>
-      <details open={filterOpen || filterActive} onToggle={(e) => setFilterOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
+      <details open={filterOpen} onToggle={(e) => setFilterOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
         <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Filter{filterActive ? " · zapnutý" : ""} ▾</summary>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
         <select aria-label="Filter typu" value={fType} onChange={(e) => setFType(e.target.value as "all" | TransactionType)} style={{ ...inp, width: "auto" }}>
@@ -443,7 +443,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       )}
       </details>
       <p style={hintStyle}>
-        Súčet transakcií {filterActive ? "vo filtri" : "spolu"}: {(Object.keys(totals) as TransactionType[]).length === 0
+        {filterActive ? "Súčet transakcií vo filtri" : "Súčet všetkých transakcií"}{list.length > 0 ? ` (${list.length})` : ""}: {(Object.keys(totals) as TransactionType[]).length === 0
           ? "žiadne transakcie"
           : (Object.keys(totals) as TransactionType[]).map((t) => `${TYPE_LABEL[t]} ${eur(totals[t] ?? 0)}`).join(" · ")}
       </p>

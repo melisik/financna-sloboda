@@ -1,6 +1,6 @@
 # 50 – Prehľad rozpracovaných a neúplných oblastí
 
-> Stav: **prehľad na rozhodnutie** (2026-10-25). Zostavil autor kódu z `decisions/Decisions.md`, návrhov v `docs/` a kódu. Kód sa nemení. Čo nie je v dokumentoch, je označené ako predpoklad.
+> Stav: **rozhodnuté** (2026-10-25, D-298): 1 S-B (`docs/51`), 2 áno (`docs/52`), 3 áno (`docs/53`), 4 áno (druhá revízia), 5 áno (hotové). Zostavil autor kódu z `decisions/Decisions.md`, návrhov v `docs/` a kódu. Kód sa nemení. Čo nie je v dokumentoch, je označené ako predpoklad.
 
 ## 1. Zhrnutie
 

@@ -16,7 +16,7 @@ test.describe("texty z revízie", () => {
     await goTo(page, "nova-transakcia");
     await openDetails(page, "section#nova-transakcia", "Filter"); // D-293
     await expect(page.getByLabel("Od dátumu")).toBeVisible();
-    await expect(page.getByText("Súčet transakcií spolu: žiadne transakcie")).toBeVisible(); // D-293: súčet ráta všetky, nie len zobrazených 10
+    await expect(page.getByText("Súčet všetkých transakcií: žiadne transakcie")).toBeVisible(); // D-293, revízia N-7
   });
 
   test("dátumy sú natívny výber dátumu a PIN je skrytý s číselnou klávesnicou", async ({ page }) => {

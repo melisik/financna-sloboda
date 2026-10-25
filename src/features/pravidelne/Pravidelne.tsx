@@ -115,6 +115,8 @@ function RecurringForm({ repo, initial, today, onDone, onCancel, actions }: { re
   const [amount, setAmount] = useState<NumIn>(initial ? initial.amountCents / 100 : "");
   const [startDate, setStartDate] = useState(initial?.startDate ?? today);
   const [endDate, setEndDate] = useState(initial?.endDate ?? "");
+  const dirty = initial !== null && (name !== initial.name || category !== initial.category || frequency !== initial.frequency
+    || Math.round(asNum(amount) * 100) !== initial.amountCents || startDate !== initial.startDate || endDate !== (initial.endDate ?? ""));
   const [err, setErr] = useState<string | null>(null);
 
   const save = async () => {
@@ -174,7 +176,9 @@ function RecurringForm({ repo, initial, today, onDone, onCancel, actions }: { re
       <button onClick={onCancel} style={btn}>Zrušiť</button>
       {actions && (
         <div style={{ marginTop: 16, borderTop: "1px solid var(--border-soft)", paddingTop: 8 }}>
-          {actions.canEnd && <><button onClick={actions.onEnd} style={btn}>Ukončiť od zajtra</button>{" "}</>}
+          {/* Ukončiť uloží len dátum konca; rozpísané zmeny by sa stratili, preto je dostupné len bez nich (revízia N-9). */}
+          {actions.canEnd && <><button onClick={actions.onEnd} disabled={dirty} style={btn}>Ukončiť od zajtra</button>{" "}</>}
+          {actions.canEnd && dirty && <p style={hintStyle}>Ukončiť sa dá po uložení alebo zrušení zmien.</p>}
           {/* Zmazanie len s potvrdením (D-199). */}
           {confirmDelete ? (
             <p>

@@ -85,6 +85,7 @@ Výpočet cieľa tieto zmeny nemenia. Niektoré však menia, čo a ako používa
 | 2026-10-24 | D-289 | Prehľad: zbalený blok Vývoj v čase; skloňovanie „22 mesiacov“ (len text). |
 | 2026-10-24 | D-290 | Mesačný výdavok: zoznam opakovaných výdavkov a dátumu cieľa; doplnená testovacia záloha (viac transakcií). |
 | 2026-10-25 | D-293 | Usporiadanie obrazoviek: Nastavenia v skupinách (Moduly, Sprievodca a PIN zbalené), Rozpočet ako prehľad s „Upraviť limity“, Pravidelné výdavky s jedným tlačidlom, filter histórie zbalený a 10 záznamov, Ročný prehľad a Dane s menej nulami. Výpočty sa nemenia. |
+| 2026-10-25 | D-298 | Transakcie: súčet s počtom, filter sa dá zbaliť; Pravidelné výdavky: Ukončiť len bez neuložených zmien; testovacia záloha: Energie v kategórii dom a energie. |
 | 2026-10-25 | D-297 | Opravné verzie knižnice úložiska `idb` (8.0.4); akcie GitHubu v5. Bez zmeny správania a výpočtu. |
 | 2026-10-25 | D-296 | Opakované výdavky a dátum cieľa (D-290): bez kategórie dôchodok, priemery až pri výdavku v každom z 3 mesiacov, presnejšie poznámky; Rozpočet: Zrušiť zahodí rozpísané limity; Prehľad: text „skontroluj výnos“ namiesto inflácie. Dátum cieľa sa nemení. |
 | 2026-10-25 | D-294 | Záloha: časti Uložiť zálohu a Obnoviť zo zálohy s nadpismi; správa o exporte pri tlačidle Exportovať. |

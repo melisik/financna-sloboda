@@ -130,4 +130,37 @@ test.describe("usporiadanie obrazoviek", () => {
     await expect(msg).toBeVisible();
     expect(await y(msg)).toBeLessThan(await y(restore));
   });
+
+  test("Transakcie: súčet uvádza počet; zbalený filter sa dá zbaliť aj pri zapnutom filtri (revízia N-6, N-7)", async ({ page }) => {
+    await withBackup(page);
+    await goTo(page, "nova-transakcia");
+    const s = page.locator("section#nova-transakcia");
+    await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
+    await s.locator("summary", { hasText: "Filter" }).click();
+    await s.getByLabel("Filter typu").selectOption("sporenie");
+    await expect(s.getByText(/Súčet transakcií vo filtri \(4\):/)).toBeVisible();
+    const details = s.locator("details", { has: page.locator("summary", { hasText: "Filter · zapnutý" }) });
+    await s.locator("summary", { hasText: "Filter · zapnutý" }).click();
+    await expect(details).not.toHaveAttribute("open", "");
+    await s.locator("summary", { hasText: "Filter · zapnutý" }).click();
+    await expect(details).toHaveAttribute("open", "");
+  });
+
+  test("Pravidelné výdavky: Ukončiť nejde pri neuložených zmenách (revízia N-9)", async ({ page }) => {
+    await withBackup(page);
+    await goTo(page, "pravidelne-vydavky");
+    const s = page.locator("section#pravidelne-vydavky");
+    await s.locator("div", { hasText: "Streaming" }).last().getByRole("button", { name: "Upraviť" }).click();
+    await expect(s.getByRole("button", { name: "Ukončiť od zajtra" })).toBeEnabled();
+    await s.getByLabel("Suma mesačne (€)").fill("15");
+    await expect(s.getByRole("button", { name: "Ukončiť od zajtra" })).toBeDisabled();
+    await expect(s.getByText("Ukončiť sa dá po uložení alebo zrušení zmien.")).toBeVisible();
+  });
+
+  test("Testovacia záloha: Energie sú v kategórii dom a energie (revízia N-4)", async ({ page }) => {
+    await withBackup(page);
+    await goTo(page, "rozpocet");
+    await expect(page.locator("section#rozpocet p", { hasText: /^dom a energie: minuté 95,00\s€/ })).toBeVisible();
+  });
 });
+
