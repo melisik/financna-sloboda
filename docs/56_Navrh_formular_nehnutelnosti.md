@@ -33,3 +33,15 @@ Pri novej nehnuteľnosti bez hypotéky 5 polí namiesto 22. Dĺžku formulára p
 1. Tri úrovne podľa oddielu 2: **áno (odporúčam)**?
 2. Mesačný nájom pri prenájme vždy viditeľný (ovplyvňuje cieľ): **áno (odporúčam)**?
 3. Rovnaký prístup neskôr aj pre Záväzky a Investície: áno, po overení na nehnuteľnosti?
+
+## 6. Výsledok (2026-10-25, D-310, D-311)
+
+Merané na prázdnom formulári (nová položka), zostava s Fázou 2; výška formulára v px a počet viditeľných polí.
+
+| Formulár | Pred, 390 px | Po, 390 px | Pred, 320 px | Po, 320 px |
+| --- | --- | --- | --- | --- |
+| Nehnuteľnosť | 1 521 (17 polí) | 634 (4 polia), −58 % | 1 713 | 754, −56 % |
+| Záväzok | 585 (6) | 478 (4), −18 % | 585 | 478 |
+| Investícia | 728 (8) | 581 (5), −20 % | 728 | 603 |
+
+Pri 320 px v tmavom režime bez vodorovného presahu, súhrny blokov čitateľné.
