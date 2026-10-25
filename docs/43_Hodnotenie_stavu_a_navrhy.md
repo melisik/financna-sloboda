@@ -134,7 +134,7 @@ Náročnosť: S = do pol dňa, M = 1 až 2 dni, L = viac. Každý návrh by pre�
 
 **C1 Skener (D-284)**
 - `@zxing/library` sa načíta až pri použití skenera (`src/features/sklad/barcode.ts`).
-- Sklad knižnicu načíta pri otvorení, aby ju offline cache uložila. Skener potom funguje bez siete, ak bol Sklad aspoň raz otvorený online. Rovnaké obmedzenie už mali čítačka QR kódu a tlačivo PDF.
+- Sklad knižnicu načíta pri otvorení, aby ju offline cache uložila. Skener potom funguje bez siete, ak bol Sklad aspoň raz otvorený online. Rovnaké obmedzenie už mali čítačka QR kódu a tlačivo PDF. Spresnenie (revízia 2026-10-25b, S-3; D-300): platí od poslednej aktualizácie appky, lebo nová zostava môže mať nový súbor knižnice; bez neho appka napíše „Skener sa nepodarilo načítať bez siete…“, nie chybu kamery.
 - Hlavný balík (gzip):
 
 | | Predtým | Teraz |

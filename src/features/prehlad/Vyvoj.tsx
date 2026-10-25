@@ -40,7 +40,7 @@ export function VyvojBlock({ data, ctx }: { data: AppData; ctx: Ctx }) {
           />
           {shift && <p>{historyLine(shift)}</p>}
           <p style={hintStyle}>
-            Kapitál sú investície a hotovosť z vyhodnotení.{s ? " Dátumy cieľa sú prepočítané s dnešnými nastaveniami." : ""} Je to minulosť, nie odhad budúcnosti.
+            Kapitál sú investície a hotovosť z vyhodnotení.{s ? " Dátumy cieľa sú prepočítané s dnešnými nastaveniami." : ""} Body sú vyhodnotenia v poradí, nie časová os. Je to minulosť, nie odhad budúcnosti.
           </p>
           {ctx.rentals.length > 0 && (
             <p style={hintStyle}>Graf ukazuje investície a hotovosť. Nehnuteľnosti v prenájme v ňom nie sú, lebo ich minulé hodnoty sa neukladajú; pokrok na Prehľade ich zahŕňa.</p>

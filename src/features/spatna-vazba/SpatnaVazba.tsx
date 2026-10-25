@@ -11,7 +11,7 @@ export function FeedbackBlock({ preview }: { preview: boolean }) {
     <div style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
       {onlyForm ? (
         <>
-          <p>Pripomienku pošlite cez formulár; odpovede nie sú verejné. Nepíšte čísla účtov ani osobné údaje.</p>
+          <p>Pripomienku pošli cez formulár; odpovede nie sú verejné. Nepíš čísla účtov ani osobné údaje.</p>
           <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" style={btn}>Otvoriť formulár</a>{" "}
         </>
       ) : (

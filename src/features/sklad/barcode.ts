@@ -12,9 +12,21 @@ export function preloadBarcodeReader(): void {
   void loadZxing().catch(() => undefined);
 }
 
-/** Čítač EAN-13, EAN-8 a UPC-A (D-232). Používa ho fotka aj živá kamera. */
+/** Hlásenie, keď sa knižnica skenera nenačítala (bez siete a Sklad nebol od poslednej aktualizácie otvorený online), D-300. */
+export const SCANNER_OFFLINE_TEXT = "Skener sa nepodarilo načítať bez siete. Otvor Sklad raz s pripojením na internet.";
+
+/** Chyba načítania knižnice, nie kamery ani fotky (revízia 2026-10-25b, S-3). */
+export class ScannerLoadError extends Error {}
+
+/** Čítač EAN-13, EAN-8 a UPC-A (D-232). Používa ho fotka aj živá kamera. Pri nenačítanej knižnici vyhodí ScannerLoadError. */
 export async function createBarcodeReader(): Promise<BrowserMultiFormatReader> {
-  const { BarcodeFormat, BrowserMultiFormatReader, DecodeHintType } = await loadZxing();
+  let zxing: Awaited<ReturnType<typeof loadZxing>>;
+  try {
+    zxing = await loadZxing();
+  } catch {
+    throw new ScannerLoadError();
+  }
+  const { BarcodeFormat, BrowserMultiFormatReader, DecodeHintType } = zxing;
   const hints = new Map<HintType, unknown>([
     [DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A]],
     [DecodeHintType.TRY_HARDER, true],
@@ -22,7 +34,7 @@ export async function createBarcodeReader(): Promise<BrowserMultiFormatReader> {
   return new BrowserMultiFormatReader(hints);
 }
 
-/** Čítanie čiarového kódu z fotky obalu (D-232): offline, bez siete. Vráti číslice alebo undefined. */
+/** Čítanie čiarového kódu z fotky obalu (D-232): offline, bez siete. Vráti číslice alebo undefined; nenačítaná knižnica vyhodí ScannerLoadError. */
 export async function readBarcode(file: File): Promise<string | undefined> {
   try {
     const bitmap = await createImageBitmap(file);
@@ -36,7 +48,8 @@ export async function readBarcode(file: File): Promise<string | undefined> {
     const result = await (await createBarcodeReader()).decodeFromImageUrl(canvas.toDataURL("image/png"));
     const text = result.getText();
     return isValidBarcode(text) ? text : undefined;
-  } catch {
+  } catch (e) {
+    if (e instanceof ScannerLoadError) throw e;
     return undefined;
   }
 }

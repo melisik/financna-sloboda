@@ -7,7 +7,7 @@ describe("pripomienky", () => {
   it("odkaz na GitHub je nové hlásenie so šablónou a bez údajov z appky", () => {
     const url = new URL(feedbackIssueUrl());
     expect(url.origin + url.pathname).toBe("https://github.com/melisik/financna-sloboda-app/issues/new");
-    expect(url.searchParams.get("body")).toMatch(/Nepíšte čísla účtov/);
+    expect(url.searchParams.get("body")).toMatch(/Nepíš čísla účtov/);
     expect(url.searchParams.get("body")).not.toMatch(/€|IBAN|zostatok/i);
   });
 

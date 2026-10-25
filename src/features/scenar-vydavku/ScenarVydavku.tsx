@@ -82,7 +82,7 @@ export function ScenarVydavkuSection({ ctx }: { ctx: Ctx }) {
           )}
         </div>
       )}
-      <p style={hintStyle}>Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.</p>
+      <p style={hintStyle}>Odhad je pred daňou, po poplatkoch, ak ich zadáš, a nie je finančným poradenstvom.</p>
     </div>
   );
 }

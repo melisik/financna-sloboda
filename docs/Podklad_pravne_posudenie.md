@@ -54,7 +54,7 @@ Doplnené 2026-10-24: šifrovaná záloha (D-276) a zbaliteľné upozornenie (D-
 5. Šifrovanie zálohy heslom je voliteľné (D-276). Stačí to, alebo má byť povinné, prípadne je nutné šifrovanie údajov v zariadení (D-026)?
 6. Monetizácia: appka je zatiaľ zadarmo, bez reklám a bez zberu údajov (D-297). Aké podmienky by platili pri jednorazovom nákupe alebo príspevku? Aké sú podmienky pre účty a synchronizáciu, ak sa neskôr zavedú (N-07, D-148 odkladá)?
 7. Aké riziká prináša zverejnenie čísel dokladov a skladu v zálohe pre testerov?
-8. Stačí, ak je upozornenie na skúšobnú verziu (bez záruky, nie je finančné poradenstvo, riziko straty údajov) pri prvom otvorení rozbalené a po potvrdení používateľom zbalené na jednu vetu? Alebo musia byť „bez záruky“ a „nie je finančné poradenstvo“ viditeľné stále (D-144, D-281)?
+8. Stačí, ak je upozornenie na skúšobnú verziu (bez záruky, nie je finančné poradenstvo, riziko straty údajov) pri prvom otvorení rozbalené a po potvrdení používateľom zbalené na jednu vetu? Alebo musia byť „bez záruky“ a „nie je finančné poradenstvo“ viditeľné stále (D-144, D-281)? Spresnenie (revízia 2026-10-25b, N-4): pruh sa zbalí tlačidlom „Rozumiem, zbaliť“ aj ťuknutím na jeho súhrn; v zbalenom stave na Prehľade nie je iné upozornenie, že appka nie je finančné poradenstvo (scenáre a dopad transakcie ho majú vo vlastnom texte).
 
 ## 6. Bezpečnostný audit: rozsah
 - Kód: validácia zálohy pri importe (`src/storage/validate.ts`), PIN a jeho obnova (`src/features/zamok/pin.ts`, `src/features/zamok/Lock.tsx`), CSP a závislosti (`npm audit`).

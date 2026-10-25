@@ -59,7 +59,8 @@ Každá úloha trvá 2 až 5 minút. Nemusíte robiť všetky; aj jedna poctivo 
 
 ## 6. Známe obmedzenia
 
-- Skúšobná verzia: výpočty sú odhady pred daňou a poplatkami, nie finančné poradenstvo.
+- Skúšobná verzia: výpočty sú odhady pred daňou, po poplatkoch, ak ich zadáte, nie finančné poradenstvo.
+- Skener čiarových kódov v Sklade funguje bez internetu, len ak ste Sklad po poslednej aktualizácii appky aspoň raz otvorili s pripojením. Inak appka napíše, že sa skener nepodarilo načítať.
 - Funkcie Fázy 2 zatiaľ nie sú právne posúdené ani bezpečnostne auditované.
 - Heslo zašifrovanej zálohy sa nedá obnoviť.
 - Údaje v náhľade sú oddelené od verejnej verzie aplikácie.

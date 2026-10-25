@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { BrowserMultiFormatReader } from "@zxing/library";
 import { isValidBarcode } from "../../domain/stock";
 import { btn } from "../../ui/kit/controls";
-import { createBarcodeReader } from "./barcode";
+import { createBarcodeReader, SCANNER_OFFLINE_TEXT, ScannerLoadError } from "./barcode";
 import { hintStyle } from "../../ui/kit/controls";
 
 /** Hlásenie, keď kamera nejde. Mimo HTTPS (aj na adrese z lokálnej siete) prehliadač kameru vôbec nesprístupní. */
@@ -56,8 +56,8 @@ export function CameraScanner({ onFound, onCancel }: { onFound: (code: string) =
         void video.play().catch(() => undefined);
         setMsg("Namier kameru na čiarový kód.");
         await decoding;
-      } catch {
-        if (alive) setMsg(cameraError());
+      } catch (e) {
+        if (alive) setMsg(e instanceof ScannerLoadError ? SCANNER_OFFLINE_TEXT : cameraError());
       }
     })();
     return () => {

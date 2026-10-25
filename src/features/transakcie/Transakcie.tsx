@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Repository } from "../../storage/repository";
 import type { AppData, Attachment, BudgetCategory, RecurringExpense, Transaction, TransactionType, Source } from "../../storage/types";
 import { matchingRecurring } from "../../domain/recurring";
@@ -64,6 +64,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   useEffect(() => setShown(10), [fType, fFrom, fTo, fCategory]);
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
   const [confirmExhausted, setConfirmExhausted] = useState(false);
+  const exhaustedRef = useRef<HTMLInputElement>(null);
   useEffect(() => setConfirmExhausted(false), [type, source, amount]);
   // Upozornenie na dvojitý zápis pravidelného výdavku; „Uložiť aj tak“ ho pre tento formulár potvrdí (D-299, docs/53).
   const [recurringMatch, setRecurringMatch] = useState<RecurringExpense | null>(null);
@@ -134,6 +135,9 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
 
   const resetForm = () => {
     setConfirmExhausted(false);
+    // Po uložení aj zrušení úpravy späť na predvolené: výdavok z príjmu (D-014, D-288; revízia 2026-10-25b, S-1).
+    setType("vydavok");
+    setSource("z_prijmu");
     setRecurringMatch(null);
     setRecurringConfirmed(false);
     setEditingId(null);
@@ -209,13 +213,18 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     if (dateErr.length) return setErr(dateErr[0]);
     const c = check();
     if (c.after === null) return setErr(c.message ?? "Transakciu nie je možné uložiť.");
-    if (c.needsConfirm && !confirmExhausted) return setErr("Potvrď, že investície sa vyčerpajú.");
+    if (c.needsConfirm && !confirmExhausted) {
+      // Políčko je nad prilepeným pruhom; zameranie ho posunie do zobrazenia (revízia 2026-10-25b, N-1).
+      exhaustedRef.current?.focus();
+      return setErr("Potvrď, že investície sa vyčerpajú.");
+    }
     const existing = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
     const excess = type === "vydavok" && source === "z_investicii" && c.needsConfirm ? cents(a) - base.capital.inv : 0;
     const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad K_inv` : ""].filter(Boolean).join("; ");
     const receipt = receiptId.trim();
     if (type === "vydavok" && receipt !== "" && !isReceiptId(receipt)) return setErr("Číslo dokladu má 20 až 40 znakov: písmená, číslice a pomlčky.");
     // Nerozpoznané riadky sa nesmú potichu vynechať (D-129).
+    if (type === "vydavok" && parsedItems.unparsed.length > 0) setDocOpen(true);
     if (type === "vydavok" && parsedItems.unparsed.length > 0) return setErr("Niektoré riadky položiek sa nepodarilo rozpoznať. Opravte text alebo ho vymažte.");
     const receiptItems = type === "vydavok" ? (parsedItems.items.length > 0 ? parsedItems.items : existing?.receiptItems) : undefined;
     // Len pri novom výdavku; pri úprave existujúceho by upozornenie len zdržiavalo.
@@ -281,7 +290,10 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const filterActive = fType !== "all" || fCategory !== "all" || fFrom !== "" || fTo !== "";
 
   const editingTx = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
-  const docShown = docOpen || cameraOn || qrMsg !== null || receiptId !== "" || itemsText.trim() !== "";
+  // Doklad sa sám rozbalí, keď v ňom niečo pribudne; stav otvorenia má jeden zdroj, aby sa dal aj zbaliť (revízia 2026-10-25b, S-2).
+  const docHasContent = cameraOn || qrMsg !== null || receiptId !== "" || itemsText.trim() !== "";
+  useEffect(() => { if (docHasContent) setDocOpen(true); }, [docHasContent, itemsText]);
+  const docProblem = parsedItems.unparsed.length > 0 ? " · nerozpoznané riadky" : itemsMismatch ? " · súčet nesedí" : "";
   const docAssigned = receiptId !== "" || storedItems.length > 0;
 
   // Poradie (D-286, docs/43 A3): suma, typ, zdroj, kategória, dátum, poznámka; doklad zbalený; potom upozornenia a prilepený pruh s dopadom a uložením (D-287).
@@ -321,8 +333,8 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       <Field label="Dátum" value={date} type="date" max={todayIso()} onChange={setDate} />
       <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} maxLength={200} />
       {type === "vydavok" && (
-        <details open={docShown} onToggle={(e) => setDocOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
-          <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Doklad (voliteľné){docAssigned ? " · priradený" : ""} ▾</summary>
+        <details open={docOpen} onToggle={(e) => setDocOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
+          <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Doklad (voliteľné){docAssigned ? " · priradený" : ""}{docProblem} ▾</summary>
           <div style={{ margin: "8px 0" }}>
             {cameraOn ? (
               <ReceiptCamera
@@ -389,7 +401,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       )}
       {preview && !preview.blocked && preview.needsConfirm && (
         <label style={{ display: "block", margin: "8px 0" }}>
-          <input type="checkbox" checked={confirmExhausted} onChange={(e) => setConfirmExhausted(e.target.checked)} /> Rozumiem, investície sa vyčerpajú a K_inv bude 0 €.
+          <input ref={exhaustedRef} type="checkbox" checked={confirmExhausted} onChange={(e) => setConfirmExhausted(e.target.checked)} /> Rozumiem, investície sa vyčerpajú a K_inv bude 0 €.
         </label>
       )}
       {inEdit && date <= (ctx.latest?.date ?? "") && (

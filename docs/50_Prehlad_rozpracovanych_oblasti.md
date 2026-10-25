@@ -87,4 +87,4 @@ Kritické ani vysoké nálezy nie sú. Pred zlúčením do `main` reviewer odpor
 | N-8 | Posúvateľný riadok sekcií nemá vždy signál, že pokračuje; obrys zamerania môže byť orezaný. | autor | Okraj riadku a jemný signál; overiť úlohou v `docs/41`. |
 | N-9 | Blok pripomienok vyká v náhľade, inde appka tyká. | autor | Zjednotiť na tykanie. |
 
-Poradie po oboch revíziách: (1) S-1 až S-3 a nízke nálezy N-1 až N-6, N-8, N-9 ako jeden balík opráv; (2) Sklad etapa 1 (`docs/51`); (3) termíny daní po overení (`docs/52`); (4) zlúčenie do `main` na pokyn zakladateľa.
+Stav: S-1 až S-3 a N-1 až N-6, N-8 (okraj), N-9 opravené v D-300. Poradie po oboch revíziách: (1) S-1 až S-3 a nízke nálezy N-1 až N-6, N-8, N-9 ako jeden balík opráv; (2) Sklad etapa 1 (`docs/51`); (3) termíny daní po overení (`docs/52`); (4) zlúčenie do `main` na pokyn zakladateľa.

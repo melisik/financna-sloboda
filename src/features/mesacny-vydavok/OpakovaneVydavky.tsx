@@ -40,7 +40,7 @@ export function OpakovaneVydavkyBlock({ data, ctx }: { data: AppData; ctx: Ctx }
         <p>Zoznam sa ukáže, keď bude dátum cieľa do 50 rokov. <NextStep to="nastavenia">Nastavenia</NextStep></p>
       ) : (
         <>
-          <p style={hintStyle}>Keby sa suma z riadku mesačne investovala namiesto výdavku, dátum cieľa by bol približne o toľko skôr. Odhad pred daňou a poplatkami, nie odporúčanie.</p>
+          <p style={hintStyle}>Keby sa suma z riadku mesačne investovala namiesto výdavku, dátum cieľa by bol približne o toľko skôr. Odhad pred daňou, po poplatkoch, ak ich zadáš, nie odporúčanie.</p>
           {r.groups.length === 0 && (
             <p>Zatiaľ tu nie sú pravidelné výdavky ani výdavky za 3 celé mesiace. <NextStep to="pravidelne-vydavky">Pravidelné výdavky</NextStep></p>
           )}

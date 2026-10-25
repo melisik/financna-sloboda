@@ -64,7 +64,7 @@ export function MesacnyVydavokSection({ ctx, data }: { ctx: Ctx; data: AppData }
         </p>
       )}
       {outcome && outcome.ok && <Result outcome={outcome} today={today} />}
-      <p style={hintStyle}>Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.</p>
+      <p style={hintStyle}>Odhad je pred daňou, po poplatkoch, ak ich zadáš, a nie je finančným poradenstvom.</p>
       <OpakovaneVydavkyBlock data={data} ctx={ctx} />
     </div>
   );

@@ -3,7 +3,7 @@ import type { Impact } from "./rentalGoal";
 
 /**
  * Text, ak dopad nemožno vyčísliť, lebo niektorý stav cieľ nedosiahne (R26b, schválené zakladateľom).
- * Uvádza aj možnosti, ako cieľ dosiahnuť. Nie je to finančné poradenstvo; odhad je pred daňou a poplatkami.
+ * Uvádza aj možnosti, ako cieľ dosiahnuť. Nie je to finančné poradenstvo; odhad je pred daňou, po poplatkoch, ak ich zadáš.
  */
 export const UNREACHABLE_IMPACT_TEXT =
   "Po tejto transakcii sa cieľ pri súčasnom sporení a výnose nedosiahne. Ako sa k nemu dostať: " +
@@ -11,7 +11,7 @@ export const UNREACHABLE_IMPACT_TEXT =
   "(2) znížiť ročné výdavky, čím sa zmenší cieľová suma; " +
   "(3) pri výdavku zvoliť zdroj „z príjmu“, ak to ide, aby kapitál zostal; " +
   "(4) vyššia miera výberu zníži cieľovú sumu, ale kapitál by pri zlom vývoji trhu vydržal kratšie; vhodná miera je neoverený predpoklad, ktorý si nastavuje každý sám. " +
-  "Odhad je pred daňou a poplatkami a nie je finančným poradenstvom.";
+  "Odhad je pred daňou, po poplatkoch, ak ich zadáš, a nie je finančným poradenstvom.";
 
 /** Priemerný počet dní v mesiaci (FR-04, N1: 1 mesiac = 30,44 dňa). */
 const DAYS_PER_MONTH = 30.44;

@@ -4,7 +4,7 @@ import { checkDate } from "../../storage/validate";
 import type { Repository } from "../../storage/repository";
 import { DEFAULT_WARN_DAYS, STOCK_STATUS_TEXT, WARN_DAY_OPTIONS, daysUntil, findItemByBarcode, isValidBarcode, previousProducts, sortForList, stockStatus } from "../../domain/stock";
 import { StockWarning } from "../../ui/StockWarning";
-import { preloadBarcodeReader, readBarcode } from "./barcode";
+import { preloadBarcodeReader, readBarcode, SCANNER_OFFLINE_TEXT, ScannerLoadError } from "./barcode";
 import { CameraScanner } from "./CameraScanner";
 import { findExpiryDate, findProductName } from "../../domain/scan";
 import { plural } from "../../domain/impact";
@@ -358,8 +358,15 @@ function StockForm({ repo, items, initial, onDone, onCancel }: { repo: Repositor
   // Záložný skener: fotka obalu. Čiarový kód z fotky sa použije rovnako; dátum sa len navrhne z textu.
   const onPhoto = async (file: File) => {
     setScanMsg("Rozpoznávam fotku…");
-    const code = await readBarcode(file);
-    const barcodeMsg = code === undefined ? "Čiarový kód sa z fotky nenašiel." : applyBarcode(code);
+    let code: string | undefined;
+    let loadFailed = false;
+    try {
+      code = await readBarcode(file);
+    } catch (e) {
+      if (!(e instanceof ScannerLoadError)) throw e;
+      loadFailed = true;
+    }
+    const barcodeMsg = loadFailed ? SCANNER_OFFLINE_TEXT : code === undefined ? "Čiarový kód sa z fotky nenašiel." : applyBarcode(code);
     const known = code !== undefined ? findItemByBarcode(items, code) : undefined;
     try {
       const { recognizeImage } = await import("./ocr");

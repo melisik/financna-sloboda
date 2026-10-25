@@ -24,7 +24,7 @@ test.describe("opakované výdavky a dátum cieľa", () => {
     await loadBackup(page, testBackup());
     const block = page.getByRole("region", { name: "Opakované výdavky a dátum cieľa" });
     await expect(block).toBeVisible();
-    await expect(block).toContainText("Odhad pred daňou a poplatkami, nie odporúčanie.");
+    await expect(block).toContainText("Odhad pred daňou, po poplatkoch, ak ich zadáš, nie odporúčanie.");
     const headings = await block.getByRole("heading", { level: 4 }).allInnerTexts();
     expect(headings[0]).toBe("Nie nevyhnutné");
     expect(headings.at(-1)).toBe("Nevyhnutné");
