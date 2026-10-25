@@ -1,6 +1,6 @@
 # 45 – Návrh: opakované výdavky a dátum cieľa (B1)
 
-> Stav: **schválené (U1, V3, S1, doplnenie zálohy) a implementované** (D-290, 2026-10-24). Otázka 5 (D-153 a D-285) **čaká na rozhodnutie zakladateľa**. Nadväzuje na `docs/43`, návrh B1. Výsledok je v oddiele 9.
+> Stav: **schválené (U1, V3, S1, doplnenie zálohy) a implementované** (D-290, 2026-10-24). Otázka 5 (D-153 a D-285): zakladateľ zvolil (a), výnimka D-291 (2026-10-25). Nadväzuje na `docs/43`, návrh B1. Výsledok je v oddiele 9.
 >
 > Čísla v náčrte vypočítala funkcia appky `goalMonths`. Vstupy sú syntetické: kapitál 304 000 €, cieľová suma 600 000 €, r 3,5 %, sporenie 500 € mesačne do investícií. Dnes je cieľ o 171 mesiacov.
 
@@ -84,7 +84,8 @@ Záloha dnes nemá výdavky za 3 celé mesiace ani pravidelné výdavky, takže 
 - Možnosti:
   - **(a)** Zapísať do `decisions/Decisions.md` výnimku z D-153: D-285 je oprava chyby voči FR-04, nie nová logika. Zmenu zapísať aj do denníka pilota (`docs/pilot/`) s dátumom, od ktorého sa dátum cieľa počíta inak.
   - **(b)** D-285 vrátiť a nasadiť až po skončení pilotu (január 2027).
-- Odporúčam (a). Starý výpočet odporoval textu priamo pod dátumom („Dátum sa zmení až po ďalšom vyhodnotení“), takže porovnanie by skresľoval aj on. Rozhodnutie je na zakladateľovi.
+- **Rozhodnutie 2026-10-25: (a), D-291.** Zmena je zapísaná v `docs/pilot/zmeny-pocas-pilota.md`.
+- Odporúčal som (a). Starý výpočet odporoval textu priamo pod dátumom („Dátum sa zmení až po ďalšom vyhodnotení“), takže porovnanie by skresľoval aj on. Rozhodnutie je na zakladateľovi.
 - Rovnakú otázku som doplnil do podkladu pre externú revíziu (`review/revizia-zadanie-2026-10-24.md`).
 
 ## 7. Otázky na rozhodnutie
