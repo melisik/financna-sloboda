@@ -1,6 +1,6 @@
 # 47 – Návrh: údržba (C3, C4) a brány G1 až G5
 
-> Stav: **návrh na rozhodnutie** (2026-10-25). Kód sa nemení. Vychádza z `docs/43` (C3, C4, D4) a `docs/06` (tabuľka brán G1 až G5).
+> Stav: **rozhodnuté** (2026-10-25, D-297): 1 áno, 2 odložiť, 3 A, 4 A, 5 áno, 6 áno. Vykonanie je v D-297; podklady `docs/48` (G4) a `docs/49` (G5). Vychádza z `docs/43` (C3, C4, D4) a `docs/06` (tabuľka brán G1 až G5).
 
 ## 1. Zhrnutie
 

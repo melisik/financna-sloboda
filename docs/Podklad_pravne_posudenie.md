@@ -36,7 +36,7 @@ Doplnené 2026-10-24: šifrovaná záloha (D-276) a zbaliteľné upozornenie (D-
 - **Analytika, reklamy, sledovanie:** v kóde nenájdené (overiť externe v build výstupe).
 
 ## 4. Riziká na posúdenie
-1. **Šifrovanie:** údaje v zariadení nie sú šifrované (D-026). Ochrana je len zámok zariadenia a PIN, ktorý nešifruje dáta.
+1. **Šifrovanie:** údaje v zariadení nie sú šifrované (D-026). Ochrana je len zámok zariadenia a PIN, ktorý nešifruje dáta. Zakladateľ to prijal pri uzavretí brány G3 (D-297); ak právne posúdenie šifrovanie vyžaduje, otvorí sa znova.
 2. **Zálohy:** JSON so všetkými údajmi, uložený napr. do Dropboxu či e-mailu. Šifrovanie heslom je voliteľné (D-276, mení odloženie z D-108): PBKDF2-SHA256 so 600 000 iteráciami, AES-GCM-256, heslo aspoň 8 znakov. Zabudnuté heslo sa nedá obnoviť. Záloha bez hesla zostáva nešifrovaná. Zatiaľ len na vetve `claude/phase2-property-card`, nie v `main`.
 3. **Zabudnutý PIN:** po potvrdení sa dáta v zariadení vymažú (D-135). Obnova je len zo zálohy.
 4. **Čísla dokladov:** identifikátor, ktorý sa dá použiť na overenie dokladu na portáli. Nezobrazuje sa v appke (D-133), ale je v zálohe.
@@ -52,7 +52,7 @@ Doplnené 2026-10-24: šifrovaná záloha (D-276) a zbaliteľné upozornenie (D-
 3. Je potrebné posúdiť finančné poradenstvo podľa slovenského práva (napr. zákon o finančných službách)? Kde je hranica pri výpočtoch K a odporúčaniach?
 4. Ako posúdiť údaje o iných osobách (partner, dieťa), ktoré používateľ zadá?
 5. Šifrovanie zálohy heslom je voliteľné (D-276). Stačí to, alebo má byť povinné, prípadne je nutné šifrovanie údajov v zariadení (D-026)?
-6. Aké sú podmienky pre účty a synchronizáciu, ak sa neskôr zavedú (N-07, D-148 odkladá)?
+6. Monetizácia: appka je zatiaľ zadarmo, bez reklám a bez zberu údajov (D-297). Aké podmienky by platili pri jednorazovom nákupe alebo príspevku? Aké sú podmienky pre účty a synchronizáciu, ak sa neskôr zavedú (N-07, D-148 odkladá)?
 7. Aké riziká prináša zverejnenie čísel dokladov a skladu v zálohe pre testerov?
 8. Stačí, ak je upozornenie na skúšobnú verziu (bez záruky, nie je finančné poradenstvo, riziko straty údajov) pri prvom otvorení rozbalené a po potvrdení používateľom zbalené na jednu vetu? Alebo musia byť „bez záruky“ a „nie je finančné poradenstvo“ viditeľné stále (D-144, D-281)?
 

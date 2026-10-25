@@ -72,17 +72,17 @@
 **Gate checklist pred spustením Fázy 2 pre používateľov (návrh, 2026-10-20; čaká na revíziu a schválenie zakladateľa):**
 
 Pravidlá:
-- Vývoj Fázy 2 pokračuje na vetve `claude/phase2-property-card`. Do `main` sa nemerguje, kým nie sú splnené G1–G4.
+- Vývoj Fázy 2 pokračuje na vetve `claude/phase2-property-card`. Zlúčenie do `main` je povolené; verejná zostava Fázu 2 neobsahuje (`VITE_PHASE2 "0"`, D-248). Pôvodná podmienka G1–G4 pre zlúčenie (D-217) je zrušená.
 - Interné testy, pilot a vývoj nie sú spustenie pre používateľov a túto bránu nevyžadujú.
 - Každé splnenie sa zapíše do `decisions/Decisions.md`. Tento checklist sám nie je rozhodnutie.
 
 | ID | Podmienka | Dôkaz o splnení | Kto | Stav |
 |---|---|---|---|---|
 | G1 | Právne posúdenie: hranica investičného poradenstva (MiFID II), GDPR (správca, právny základ, práva dotknutých), spotrebiteľské právo, predvolené hodnoty (D-028, M6). | Písomné posúdenie právnika uložené mimo repozitára; v `Decisions.md` zhrnutie výsledku a prijaté obmedzenia. | zakladateľ, právnik | otvorené |
-| G2 | Monetizácia. | Rozhodnutie v `Decisions.md`. Otvorený bod z `00_Project_Vision`. | zakladateľ | otvorené |
-| G3 | Účty a synchronizácia (cloud alebo lokálne) a s tým šifrovanie údajov a záloh (D-108). PIN je len prístupová brána (D-119), nie šifrovanie. | Rozhodnutie o účtoch a šifrovaní v `Decisions.md` a overený návrh implementácie. | zakladateľ | otvorené |
-| G4 | Bezpečnostný audit kódu a dátovej vrstvy vrátane CSP a overenia, že appka neodosiela údaje (FR-16, D-009, test 07 §7). | Správa z auditu uložená mimo repozitára; nálezy opravené alebo prijaté rozhodnutím v `Decisions.md`. | zakladateľ, auditor | otvorené |
-| G5 | Persony EÚ overené rozhovormi s cieľovou skupinou (07 oddiel 10). Táto podmienka je v pôvodnej bráne roadmapy, v D-094 nie je; navrhujem ju zachovať. | Zápisy z rozhovorov alebo zhrnutie uložené v `docs/`. | zakladateľ | otvorené |
+| G2 | Monetizácia. | Rozhodnutie v `Decisions.md`. Otvorený bod z `00_Project_Vision`. | zakladateľ | **splnené** (D-297: zatiaľ zadarmo, bez reklám a bez zberu údajov) |
+| G3 | Účty a synchronizácia (cloud alebo lokálne) a s tým šifrovanie údajov a záloh (D-108). PIN je len prístupová brána (D-119), nie šifrovanie. | Rozhodnutie o účtoch a šifrovaní v `Decisions.md` a overený návrh implementácie. | zakladateľ | **splnené** (D-297: bez účtov, šifrovaná záloha, údaje v zariadení nešifrované) |
+| G4 | Bezpečnostný audit kódu a dátovej vrstvy vrátane CSP a overenia, že appka neodosiela údaje (FR-16, D-009, test 07 §7). | Správa z auditu uložená mimo repozitára; nálezy opravené alebo prijaté rozhodnutím v `Decisions.md`. | zakladateľ, auditor | otvorené; podklad pre audítora `docs/48` |
+| G5 | Persony EÚ overené rozhovormi s cieľovou skupinou (07 oddiel 10). Táto podmienka je v pôvodnej bráne roadmapy, v D-094 nie je; navrhujem ju zachovať. | Zápisy z rozhovorov alebo zhrnutie uložené v `docs/`. | zakladateľ | otvorené; scenár `docs/49` |
 
 Bez splnenia G1–G5 sa Fáza 2 nespúšťa pre používateľov, ani keď je kód hotový.
 
