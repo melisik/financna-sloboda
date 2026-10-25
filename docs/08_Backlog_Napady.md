@@ -60,5 +60,6 @@ Zakladateľ odložil tieto otvorené otázky do backlogu. Návrhy ostávajú v d
   - zdroj k lehote 15 dní (zakladateľ ju uviedol zo skúsenosti);
   - či chodí jeden výmer za nehnuteľnosti aj psa spolu, alebo osobitne;
   - overenie termínov T1 až T5 zo zdroja (stránka obce, slovensko.sk, Finančná správa). Bez overeného zdroja sa termín v appke neukáže (D-104).
+- **N-20 Ochrana výpočtu pri vstupoch mimo rozsahu** (kontrola výpočtov 2026-10-25, D-320; zakladateľ: po pilote). `monthsToTarget` pri výnose −100 % vráti −0 (vyzerá ako dosiahnutý cieľ), `targetDate` pri zápornom alebo NaN vstupe vráti nezmysel; nejednotné null a Infinity pri nedosiahnuteľnom cieli (`goal.ts`, `capital.ts`, `rentalGoal.ts`). Mimo dokumentovaného rozsahu; mení výpočtový modul, preto až po pilote (D-153).
 - **N-19 Položky nákupu z fotky dokladu** (`docs/58`, možnosť B, D-318). Po pilote ako prototyp: rozpoznanie textu priamo v zariadení (Tesseract.js už je v appke pre dátum spotreby, `src/features/sklad/ocr.ts`), kontrola položiek pred pridaním, fotka sa neukladá. Overiť veľkosť knižnice, čas rozpoznania na telefóne a presnosť na termopapieri (fotky syntetických dokladov; skutočné doklady len v zariadení zakladateľa).
 
