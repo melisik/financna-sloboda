@@ -49,3 +49,15 @@ Personas v `docs/01_Personas.md` sú zatiaľ len zakladateľ (fáza 1) a fáza 2
 - **N-14 Súhrnný majetok (odložené, D-137):** spoločný súhrn všetkého majetku. Automobily a ocenitelné práva sa odkladajú, lebo sú skôr zahraničný aspekt.
 - **N-15 Mimoriadna splátka hypotéky (implementované, D-145; dohodnuté 2026-10-21):** pole s dátumom a sumou mimoriadnej splátky. Appka prepočíta zostatok. Používateľ si pri zadaní vyberie, či sa zníži splátka (pri zachovanom termíne), alebo sa skráti termín (pri zachovanej splátke). Súvisí s D-137.
 - **N-16 Pripomienka na starý odhad investícií (schválené 2026-10-21, D-139):** upozornenie, ak je ocenenie staršie ako 3 mesiace. **Implementované** (Investície a Vyhodnotenie, D-139).
+
+## Odložené otázky (2026-10-25, D-303)
+
+Zakladateľ odložil tieto otvorené otázky do backlogu. Návrhy ostávajú v dokumentoch; nič z toho sa neimplementuje, kým sa otázka nezodpovie.
+
+- **N-17 Vyhodené potraviny v bloku Opakované výdavky a dátum cieľa** (`docs/51`, otázka 3). Riadok „vyhodené potraviny“ s mesačným priemerom za 3 mesiace a údajom „o N mesiacov skôr“. Odporúčanie autora: až po pilote, keď budú aspoň 3 mesiace záznamov o vyhodení (D-301).
+- **N-18 Upozornenia na daňové termíny** (`docs/52`, oddiel 6, otázky 5 až 8). Čaká na:
+  - súhlas s tabuľkou pripomienok (priznanie k miestnym daniam len raz, 30 dní vopred; zaplatenie miestnej dane do 15 dní od doručenia výmeru cez pole „Výmer doručený dňa“; DPFO podanie aj zaplatenie 30 dní vopred);
+  - zdroj k lehote 15 dní (zakladateľ ju uviedol zo skúsenosti);
+  - či chodí jeden výmer za nehnuteľnosti aj psa spolu, alebo osobitne;
+  - overenie termínov T1 až T5 zo zdroja (stránka obce, slovensko.sk, Finančná správa). Bez overeného zdroja sa termín v appke neukáže (D-104).
+

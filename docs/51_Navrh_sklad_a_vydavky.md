@@ -1,6 +1,6 @@
 # 51 – Návrh: Sklad prepojený s výdavkami (S-B)
 
-> Stav: **schválené a implementované** (2026-10-25): etapa 1 (3.1 až 3.4) v D-301, etapa 2 (nákupný zoznam 3.5, otázky 5 a 6) v D-302. Otvorená je len otázka 3 (vyhodené v bloku Opakované výdavky).
+> Stav: **schválené a implementované** (2026-10-25): etapa 1 (3.1 až 3.4) v D-301, etapa 2 (nákupný zoznam 3.5, otázky 5 a 6) v D-302. Otázka 3 (vyhodené v bloku Opakované výdavky) je odložená do backlogu (`docs/08`, N-17, D-303).
 
 ## 1. Cieľ skladu
 

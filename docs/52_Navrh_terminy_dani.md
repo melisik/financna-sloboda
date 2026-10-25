@@ -1,6 +1,6 @@
 # 52 – Návrh: upozornenia na daňové termíny
 
-> Stav: **návrh upravený podľa odpovedí zakladateľa** (2026-10-25, oddiel 6); čaká na overenie termínov a potvrdenie oddielu 6. Kód sa nemení. Zakladateľ zvolil začať termínmi (`docs/50` oddiel 3, otázka 2). Appka neukáže žiadnu sumu dane. D-153: bez zmeny výpočtu.
+> Stav: **odložené do backlogu** (2026-10-25, D-303; `docs/08`, N-18). Návrh je upravený podľa odpovedí zakladateľa (oddiel 6); otázky 5 až 8 a overenie termínov čakajú.
 
 ## 1. Termíny na overenie
 
