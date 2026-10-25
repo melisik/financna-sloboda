@@ -67,3 +67,24 @@ Dane menia výpočty len pri bode 5; body 1 až 4 sú evidencia a upozornenia (D
 3. **Pravidelné výdavky a transakcie:** pripraviť malý návrh pravidla?
 4. **Revízia časti 2:** spustiť ďalšiu samostatnú revíziu?
 5. **Drobnosti z revízie:** urobiť balík N-4, N-6, N-7, N-9?
+
+## 6. Doplnenie po druhej externej revízii (2026-10-25, `review/revizia-vysledok-2026-10-25b.md`)
+
+Kritické ani vysoké nálezy nie sú. Pred zlúčením do `main` reviewer odporúča opraviť S-1 až S-3.
+
+| Nález | Čo | Kto | Odporúčanie autora |
+| --- | --- | --- | --- |
+| **S-1** | Po uložení alebo zrušení úpravy ostane vo formulári typ a zdroj z poslednej transakcie (napr. „z investícií“), nie predvolené „z príjmu“ (D-288). Nechcený zdroj mení kapitál. | **zakladateľ:** pri sérii nových zápisov pamätať posledný zdroj, alebo vždy „z príjmu“? Návrat po úprave je technická oprava. | Vždy vrátiť na „výdavok, z príjmu“ (predvídateľné, `docs/03`). |
+| **S-2** | Zbalený blok Doklad skryje upozornenie, že súčet položiek nesedí so sumou. | autor | Opraviť: stav v súhrne („Doklad · súčet nesedí“) a jeden zdroj stavu `open`, test. |
+| **S-3** | Skener bez siete hlási „Kamera nie je dostupná“, hoci sa nenačítala knižnica; obmedzenie platí znova po každej aktualizácii appky. | autor | Opraviť hlášku, spresniť D-284 a `docs/43`, veta do `docs/41`. |
+| N-1 | Upozornenie a potvrdenie vyčerpania investícií nie sú v prilepenom pruhu pri tlačidle. | autor | Posunúť políčko do zobrazenia pri tejto chybe. |
+| N-2 | Oprava vypnutia kamery (D-284) nemá test. | autor | Doplniť test. |
+| N-3 | Zmena textu pruhu Skúšobná verzia bez zvýšenia verzie kľúča by sa neukázala. | autor | Test viazaný na text. |
+| N-4 | Otázka 8 pre právnika je užšia než správanie (pruh sa zbalí aj ťuknutím; potom na Prehľade nie je iné upozornenie). | autor | Spresniť podklad pre právnika. |
+| N-5 | Texty o poplatkoch si odporujú („pred daňou a poplatkami“ vs. výnos po poplatkoch). | autor | Zjednotiť na „pred daňou, po poplatkoch, ak ich zadáš“. |
+| N-6 | Body grafu Vývoj sú rovnomerne, nie podľa dátumu. | autor | Veta pod grafom alebo os podľa dátumu. |
+| N-7 | Skloňovanie „22 mesiacov“: pravdepodobne prípustné obe formy; primárny zdroj neoverený. | zakladateľ alebo Jazyková poradňa | Nemeniť; overiť pri príležitosti. |
+| N-8 | Posúvateľný riadok sekcií nemá vždy signál, že pokračuje; obrys zamerania môže byť orezaný. | autor | Okraj riadku a jemný signál; overiť úlohou v `docs/41`. |
+| N-9 | Blok pripomienok vyká v náhľade, inde appka tyká. | autor | Zjednotiť na tykanie. |
+
+Poradie po oboch revíziách: (1) S-1 až S-3 a nízke nálezy N-1 až N-6, N-8, N-9 ako jeden balík opráv; (2) Sklad etapa 1 (`docs/51`); (3) termíny daní po overení (`docs/52`); (4) zlúčenie do `main` na pokyn zakladateľa.
