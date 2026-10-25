@@ -34,7 +34,7 @@
 5. Tretí pilier v karte Investície; ciele sa v Investíciách delia (D-105).
 6. Otvorené: čo ešte chýba v pravidelných tokoch. Vlastník to zatiaľ nevie a odložil to.
 
-Rozpočet kategórií je schválený (D-106). Pripomienky sú schválené (D-107). Šifrovanie môže počkať (D-108).
+Rozpočet kategórií je schválený (D-106). Pripomienky sú schválené (D-107). Šifrovanie zálohy bolo odložené (D-108); heslom šifrovaná záloha je od D-276.
 
 ## 3. Otvorené body
 

@@ -55,7 +55,7 @@ Nové testy: `tests/recurring-impact.test.ts`, `tests/e2e/recurring-impact.spec.
 
 ## Známe obmedzenia (uvedené vedome)
 
-- Prilepený pruh v Transakciách (D-287) nie je overený na iPhone s otvorenou klávesnicou.
+- Prilepený pruh v Transakciách (D-287): na iPhone overený 2026-10-25, pri otvorenej klávesnici je pod ňou; ponechané (D-295).
 - Stránka Záloha je po D-294 o 67 px dlhšia (dva nadpisy a oddelenie).
 - Merania dĺžky stránok v `docs/46` sú z testovacej zálohy, nie z reálneho používania.
 

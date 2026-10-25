@@ -1,12 +1,13 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TEST_NOW } from "./helpers";
 
 // Prehľad: dátum cieľa, pokrok a hlavná akcia na prvej obrazovke telefónu (D-283, docs/43 A1). Testovacia záloha, syntetické dáta.
 test.describe("Prehľad: cieľ na prvej obrazovke", () => {
   test("dátum cieľa, pokrok, posun od minulého vyhodnotenia a Pridať transakciu sú pri 390 px bez posúvania", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript(() => localStorage.setItem("fs-trial-note-collapsed-v1", "1"));
+    await page.clock.setFixedTime(TEST_NOW); // revízia V-1: testovacia záloha má pevné dátumy
     await openApp(page);
     await goTo(page, "zaloha");
     await page.getByLabel("Súbor zálohy").setInputFiles(path.resolve("public/testovacia-zaloha.json"));

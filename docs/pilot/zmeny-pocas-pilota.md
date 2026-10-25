@@ -24,6 +24,7 @@ Pilot začal 2026-10-21. Plán pilota s týmto pravidlom schválil zakladateľ 2
 - Dátum cieľa zapísaný pred 2026-10-24 mohol obsahovať transakcie po vyhodnotení (D-285). Dátumy treba porovnávať od rovnakého vyhodnotenia.
 - Pri účastníkoch s nehnuteľnosťou v prenájme sa dátum cieľa mohol zmeniť aj 2026-10-23 (D-255, D-256, D-263).
 - Kapitál v automatickom vyhodnotení sa počíta inak od 2026-10-22 (D-203).
+- Predvolený zdroj výdavku sa 2026-10-24 zmenil z „z hotovosti“ na „z príjmu“ (D-288). Výpočet je rovnaký, ale pri rovnakom správaní testera sa inak vyvíja kapitál: výdavky zapísané 2026-10-21 až 2026-10-24 bez zmeny zdroja znížili hotovosť, neskoršie nie. Pri porovnaní skontrolovať zdroj týchto výdavkov (externá revízia 2026-10-25, S-4).
 
 ## 2. Ktorú verziu mal kto
 
@@ -84,6 +85,7 @@ Výpočet cieľa tieto zmeny nemenia. Niektoré však menia, čo a ako používa
 | 2026-10-24 | D-289 | Prehľad: zbalený blok Vývoj v čase; skloňovanie „22 mesiacov“ (len text). |
 | 2026-10-24 | D-290 | Mesačný výdavok: zoznam opakovaných výdavkov a dátumu cieľa; doplnená testovacia záloha (viac transakcií). |
 | 2026-10-25 | D-293 | Usporiadanie obrazoviek: Nastavenia v skupinách (Moduly, Sprievodca a PIN zbalené), Rozpočet ako prehľad s „Upraviť limity“, Pravidelné výdavky s jedným tlačidlom, filter histórie zbalený a 10 záznamov, Ročný prehľad a Dane s menej nulami. Výpočty sa nemenia. |
+| 2026-10-25 | D-296 | Opakované výdavky a dátum cieľa (D-290): bez kategórie dôchodok, priemery až pri výdavku v každom z 3 mesiacov, presnejšie poznámky; Rozpočet: Zrušiť zahodí rozpísané limity; Prehľad: text „skontroluj výnos“ namiesto inflácie. Dátum cieľa sa nemení. |
 | 2026-10-25 | D-294 | Záloha: časti Uložiť zálohu a Obnoviť zo zálohy s nadpismi; správa o exporte pri tlačidle Exportovať. |
 
 ## 4. Rozhodnutia bez zmeny správania appky

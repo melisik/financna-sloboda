@@ -21,10 +21,12 @@ describe("okno priemeru a história", () => {
     expect(averageWindow("2026-01-15")).toEqual({ from: "2025-10-01", to: "2025-12-31" });
   });
 
-  it("história stačí, ak je prvá transakcia najneskôr v prvý deň okna", () => {
-    expect(hasHistory([tx("2026-07-01", 10, "jedlo")], "2026-07-01")).toBe(true);
-    expect(hasHistory([tx("2026-07-02", 10, "jedlo")], "2026-07-01")).toBe(false);
-    expect(hasHistory([], "2026-07-01")).toBe(false);
+  it("história je výdavok v každom z 3 mesiacov okna; iné typy a jedna stará transakcia nestačia (D-296, revízia S-3)", () => {
+    const w = { from: "2026-07-01", to: "2026-09-30" };
+    expect(hasHistory([tx("2026-07-31", 10, "jedlo"), tx("2026-08-01", 10), tx("2026-09-30", 10, "zábava")], w)).toBe(true);
+    expect(hasHistory([tx("2025-01-05", 10, "jedlo"), tx("2026-09-10", 10, "jedlo")], w)).toBe(false);
+    expect(hasHistory([tx("2026-07-05", 10, "jedlo"), tx("2026-08-05", 500, undefined, "sporenie"), tx("2026-09-05", 10, "jedlo")], w)).toBe(false);
+    expect(hasHistory([], w)).toBe(false);
   });
 
   it("priemer kategórie je súčet výdavkov v okne delený 3; mimo okna, iné typy a nuly sa nerátajú; bez kategórie je „nezaradené“", () => {
@@ -78,8 +80,27 @@ describe("dopad opakovaných výdavkov na dátum cieľa", () => {
   });
 
   it("bez dosiahnuteľného dátumu cieľa (bez sporenia alebo viac ako 50 rokov) sa nič nepočíta", () => {
-    expect(recurringImpact({ ...goal, mInv: 0, transactions: [], recurring: [rec("Nájom", 500, "bývanie")], today: "2026-10-24" }).status).toBe("no_goal");
-    expect(recurringImpact({ ...goal, mInv: eur(100), transactions: [], recurring: [rec("Nájom", 500, "bývanie")], today: "2026-10-24" }).status).toBe("no_goal");
+    expect(recurringImpact({ ...goal, mInv: 0, transactions: [], recurring: [rec("Nájom", 500, "bývanie")], today: "2026-10-24" })).toEqual({ status: "no_goal", reason: "far" });
+    expect(recurringImpact({ ...goal, mInv: eur(100), transactions: [], recurring: [rec("Nájom", 500, "bývanie")], today: "2026-10-24" })).toEqual({ status: "no_goal", reason: "far" });
+  });
+
+  it("dosiahnutý cieľ má vlastný dôvod (revízia N-2)", () => {
+    expect(recurringImpact({ ...goal, capital: { inv: eur(600_000), cash: 0 }, transactions: [], recurring: [rec("Nájom", 500, "bývanie")], today: "2026-10-24" })).toEqual({ status: "no_goal", reason: "reached" });
+  });
+
+  it("kategória dôchodok sa nezobrazuje ani ako pravidelný výdavok, ani ako priemer: je to sporenie (D-296, revízia S-2)", () => {
+    const transactions = [tx("2026-07-01", 100, "dôchodok"), tx("2026-08-01", 100, "dôchodok"), tx("2026-09-01", 100, "dôchodok"), tx("2026-09-02", 30, "jedlo")];
+    const r = recurringImpact({ ...goal, transactions, recurring: [rec("III. pilier", 50, "dôchodok"), rec("Nájom", 500, "bývanie")], today: "2026-10-24" });
+    if (r.status !== "ok") throw new Error(r.status);
+    expect(r.groups.flatMap((g) => g.items).map((i) => i.name)).toEqual(["Nájom", "jedlo"]);
+  });
+
+  it("riadky majú jedinečný kľúč aj pri rovnakom názve pravidelného výdavku (revízia N-3)", () => {
+    const a = { ...rec("Poistenie", 10, "zdravie"), id: "a" };
+    const b = { ...rec("Poistenie", 20, "zdravie"), id: "b" };
+    const r = recurringImpact({ ...goal, transactions: [], recurring: [a, b], today: "2026-10-24" });
+    if (r.status !== "ok") throw new Error(r.status);
+    expect(r.groups.flatMap((g) => g.items).map((i) => i.key)).toEqual(["pravidelny-b", "pravidelny-a"]);
   });
 });
 

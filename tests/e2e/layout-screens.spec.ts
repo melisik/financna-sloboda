@@ -1,9 +1,10 @@
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TEST_NOW } from "./helpers";
 
 // Prehľadnejšie usporiadanie obrazoviek (D-293, docs/46: priority 1 a 2). Testovacia záloha, syntetické dáta.
 async function withBackup(page: Page) {
+  await page.clock.setFixedTime(TEST_NOW); // revízia V-1: záloha má pevné dátumy (júl až október 2026)
   await openApp(page);
   await goTo(page, "zaloha");
   await page.getByLabel("Súbor zálohy").setInputFiles(path.resolve("public/testovacia-zaloha.json"));
@@ -43,6 +44,22 @@ test.describe("usporiadanie obrazoviek", () => {
     await expect(s.getByLabel("jedlo: limit (€)")).toBeHidden();
     await expect(s).toContainText(/Minuté .* z plánu 50,00\s€/);
     await expect(s.getByText(/jedlo/).first()).toBeVisible();
+  });
+
+  test("Rozpočet: Zrušiť zahodí rozpísané limity (revízia S-6)", async ({ page }) => {
+    await withBackup(page);
+    await goTo(page, "rozpocet");
+    const s = page.locator("section#rozpocet");
+    await s.getByRole("button", { name: "Upraviť limity" }).click();
+    await s.getByLabel("jedlo: limit (€)").fill("50");
+    await s.getByRole("button", { name: "Uložiť rozpočet" }).click();
+    await s.getByRole("button", { name: "Upraviť limity" }).click();
+    await s.getByLabel("jedlo: limit (€)").fill("999");
+    await s.getByLabel("zábava: limit (€)").fill("20");
+    await s.getByRole("button", { name: "Zrušiť" }).click();
+    await s.getByRole("button", { name: "Upraviť limity" }).click();
+    await expect(s.getByLabel("jedlo: limit (€)")).toHaveValue("50");
+    await expect(s.getByLabel("zábava: limit (€)")).toHaveValue("");
   });
 
   test("Pravidelné výdavky: pri položke len Upraviť; Ukončiť a Zmazať sú v úprave", async ({ page }) => {

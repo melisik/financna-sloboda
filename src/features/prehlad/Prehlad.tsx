@@ -133,7 +133,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       )}
       {data.settings !== null && settingsCheckOverdue(data.settings.checkedAt, today) && (
         <p style={calloutStyle("warn")}>
-          Nastavenia sa ešte neoverili alebo sú staršie ako rok. Skontroluj infláciu, rezervu a mieru výberu v sekcii <a href="#nastavenia">Nastavenia</a>.
+          Nastavenia sa ešte neoverili alebo sú staršie ako rok. Skontroluj výnos, rezervu a mieru výberu v sekcii <a href="#nastavenia">Nastavenia</a>.
         </p>
       )}
       {(data.snapshots.length > 0 || data.transactions.length > 0 || data.settings !== null) && backupOverdue(lastExport, today) && (

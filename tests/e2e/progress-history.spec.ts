@@ -2,10 +2,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TEST_NOW } from "./helpers";
 
 // Vývoj v čase na Prehľade (D-289, docs/44: U1, A, N1). Testovacia záloha, syntetické dáta.
 async function loadBackup(page: Page, backup: unknown) {
+  await page.clock.setFixedTime(TEST_NOW); // revízia V-1: testovacia záloha má pevné dátumy
   await openApp(page);
   await goTo(page, "zaloha");
   await page.getByLabel("Súbor zálohy").setInputFiles({ name: "zaloha.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(backup)) });

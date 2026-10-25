@@ -51,6 +51,11 @@ export async function openDetails(page: Page, scope: string, summaryText: string
 
 /** Rozpočet: polia na limity sú až po „Upraviť limity“ (D-293). */
 export async function openBudgetLimits(page: Page) {
-  const button = page.locator("section#rozpocet").getByRole("button", { name: "Upraviť limity" });
+  const section = page.locator("section#rozpocet");
+  const button = section.getByRole("button", { name: "Upraviť limity" });
   if (await button.isVisible()) await button.click();
+  await expect(section.getByRole("button", { name: "Uložiť rozpočet" })).toBeVisible(); // revízia N-5: regresia nesmie prejsť ticho
 }
+
+/** Pevný „dnešok“ pre testy s testovacou zálohou (dátumy júl až október 2026), revízia V-1. */
+export const TEST_NOW = new Date("2026-10-25T10:00:00");

@@ -178,3 +178,9 @@ Rozsah: 1 až 2 dni.
   - kratšia história.
 - Overenie: `tsc` bez chýb, `vitest` 529 testov (93 súborov), Playwright 442 testov (221 × 2).
 
+## 10. Zmeny po externej revízii (2026-10-25, D-296)
+
+- Kategória dôchodok sa v zozname nezobrazuje (sporenie, nie výdavok).
+- Priemery kategórií sa ukážu, len ak je výdavok v každom z 3 mesiacov okna (predtým stačila jedna transakcia najneskôr v prvý deň okna).
+- Poznámka uvádza, že splátky zo Záväzkov tu nie sú, ale ak sa zapisujú ako výdavky, sú v priemere kategórie, a z akého kapitálu sa počíta.
+- Pri dosiahnutom cieli sa ukáže vlastná veta namiesto „keď bude dátum cieľa do 50 rokov“.

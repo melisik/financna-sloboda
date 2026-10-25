@@ -34,7 +34,9 @@ export function OpakovaneVydavkyBlock({ data, ctx }: { data: AppData; ctx: Ctx }
   return (
     <section aria-labelledby="opakovane-vydavky" style={{ marginTop: 24 }}>
       <h3 id="opakovane-vydavky" style={{ fontSize: "var(--font-text)", marginBottom: 4 }}>Opakované výdavky a dátum cieľa</h3>
-      {r.status === "no_goal" ? (
+      {r.status === "no_goal" && r.reason === "reached" ? (
+        <p>Cieľ je podľa posledného vyhodnotenia dosiahnutý, zoznam sa preto neukazuje.</p>
+      ) : r.status === "no_goal" ? (
         <p>Zoznam sa ukáže, keď bude dátum cieľa do 50 rokov. <NextStep to="nastavenia">Nastavenia</NextStep></p>
       ) : (
         <>
@@ -47,7 +49,7 @@ export function OpakovaneVydavkyBlock({ data, ctx }: { data: AppData; ctx: Ctx }
               <h4 style={{ fontSize: "var(--font-small)", color: "var(--muted)", margin: "14px 0 4px" }}>{GROUP_LABEL[g.necessity]}</h4>
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                 {g.items.map((i) => (
-                  <li key={`${i.kind}-${i.name}`} style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "0 8px", padding: "8px 0", borderBottom: "1px solid var(--border-soft)" }}>
+                  <li key={i.key} style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "0 8px", padding: "8px 0", borderBottom: "1px solid var(--border-soft)" }}>
                     {/* Na úzkej obrazovke sa výsledok presunie pod názov, aby ho nestláčal. */}
                     <span style={{ flex: "1 1 170px" }}>
                       <strong>{i.name}</strong>
@@ -62,7 +64,7 @@ export function OpakovaneVydavkyBlock({ data, ctx }: { data: AppData; ctx: Ctx }
           {!r.categoriesShown && <p style={hintStyle}>Priemery kategórií sa ukážu, keď budú zapísané výdavky aspoň za 3 celé mesiace.</p>}
           <p style={hintStyle}>
             {r.categoriesShown && <>Priemer je z výdavkov v transakciách za posledné 3 celé mesiace ({mm(r.window.from)} až {mm(r.window.to)}). </>}
-            Pravidelné výdavky sú zo sekcie Pravidelné výdavky. Splátky úverov a hypoték tu nie sú. Riadky sa nesčítavajú: viac položiek naraz neposunie cieľ o súčet riadkov. Zaradenie kategórií je ako v rozpise výdavkov na Prehľade.
+            Pravidelné výdavky sú zo sekcie Pravidelné výdavky. Splátky úverov a hypoték zo sekcie Záväzky tu nie sú; ak ich zapisuješ ako výdavky, sú v priemere kategórie. Kategória dôchodok tu nie je, je to sporenie. Počíta sa z kapitálu pri poslednom vyhodnotení, ako dátum cieľa na Prehľade; scenár vyššie počíta aj s transakciami po vyhodnotení. Riadky sa nesčítavajú: viac položiek naraz neposunie cieľ o súčet riadkov. Zaradenie kategórií je ako v rozpise výdavkov na Prehľade.
           </p>
         </>
       )}

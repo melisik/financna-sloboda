@@ -50,6 +50,12 @@ Pilot je úspešný, ak sú splnené všetky body z roadmapy §5 a metriky z tab
 
 - **Nepravidelné používanie:** ak sa vynechá týždenný zápis, výsledky nebudú reprezentatívne. Pripomienky (D-107) majú pomôcť.
 - **Zmena kódu počas pilotu:** každá zmena výpočtu zneplatní porovnanie. Zmeny UI sú možné, ale zapíšu sa do denníka.
+
+**Postup pri zmenách počas pilota (D-296, externá revízia 2026-10-25, S-5):**
+1. Každý návrh a každé rozhodnutie, ktoré mení kód v `src/domain/` alebo vstupy výpočtu (predvolené hodnoty, zdroj, kapitál), uvedie v texte jedno z dvoch: „D-153: bez zmeny výpočtu“ s dôvodom, alebo odkaz na výnimku.
+2. Výnimku schvaľuje zakladateľ **pred** zmenou alebo v rovnaký deň a zapíše sa do `decisions/Decisions.md` ako samostatné rozhodnutie.
+3. Zmena sa v deň schválenia zapíše do `docs/pilot/zmeny-pocas-pilota.md`, aj zmena UI.
+4. Zmena predvoleného vstupu (napr. D-288) sa zapíše aj do „Vplyvu na porovnanie“, hoci výpočet nemení.
 - **Privacy:** údaje ostávajú lokálne (FR-16). Do repozitára sa dávajú len anonymizované výsledky.
 
 ## 9. Odpovede na otvorené otázky (schválené 2026-10-22)

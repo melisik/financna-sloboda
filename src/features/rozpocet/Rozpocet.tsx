@@ -12,12 +12,12 @@ import { Field, asNum, type NumIn, btn, btnPrimary, hintStyle } from "../../ui/k
 /** Rozpočet kategórií (D-106): mesačný limit a čo sa za aktuálny mesiac minulo. Prázdny limit = bez rozpočtu. */
 
 export function BudgetSection({ repo, budgets, transactions, recurring, properties, today, onSaved }: { repo: Repository; budgets: Budget[]; transactions: Transaction[]; recurring: RecurringExpense[]; properties: Property[]; today: string; onSaved: () => void }) {
-  const [limits, setLimits] = useState<Record<string, NumIn>>(() =>
+  const savedLimits = (): Record<string, NumIn> =>
     Object.fromEntries(BUDGET_CATEGORIES.map((c) => {
       const b = budgets.find((x) => x.category === c);
       return [c, b ? b.limitCents / 100 : ""];
-    })),
-  );
+    }));
+  const [limits, setLimits] = useState<Record<string, NumIn>>(savedLimits);
   const [err, setErr] = useState<string | null>(null);
   // Polia na limity sú až po „Upraviť limity“; inak je rozpočet prehľad (D-293, docs/46).
   const [editing, setEditing] = useState(false);
@@ -94,7 +94,7 @@ export function BudgetSection({ repo, budgets, transactions, recurring, properti
           })}
           {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
           <button onClick={save} style={btnPrimary}>Uložiť rozpočet</button>{" "}
-          <button onClick={() => { setEditing(false); setErr(null); }} style={btn}>Zrušiť</button>
+          <button onClick={() => { setEditing(false); setErr(null); setLimits(savedLimits()); }} style={btn}>Zrušiť</button>
         </>
       ) : (
         <>
@@ -107,7 +107,7 @@ export function BudgetSection({ repo, budgets, transactions, recurring, properti
               {other.map(line)}
             </details>
           )}
-          <button onClick={() => setEditing(true)} style={btnPrimary}>Upraviť limity</button>
+          <button onClick={() => { setLimits(savedLimits()); setEditing(true); }} style={btnPrimary}>Upraviť limity</button>
         </>
       )}
     </section>
