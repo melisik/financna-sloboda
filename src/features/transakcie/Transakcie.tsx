@@ -129,23 +129,33 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   }, [type, source, amount, base, ctx]);
 
   const parsedItems = useMemo(() => parseReceiptItems(itemsText), [itemsText]);
-  // Ručne pridané položky dokladu (D-308, docs/55): na telefóne sa text z portálu napísať nedá.
-  const [manualItems, setManualItems] = useState<ReceiptItem[]>([]);
+  // Výdavok sa zapisuje buď rýchlo (jedna suma), alebo po položkách; suma sa vtedy vypočíta z položiek
+  // a nezadáva sa druhýkrát (D-313, docs/57). Zľava je záporná položka.
+  const [mode, setMode] = useState<"rychly" | "polozky">("rychly");
+  const [items, setItems] = useState<ReceiptItem[]>([]);
   const [mName, setMName] = useState("");
   const [mQty, setMQty] = useState<NumIn>(1);
-  const [mSum, setMSum] = useState<NumIn>("");
-  const addManualItem = () => {
+  const [mPrice, setMPrice] = useState<NumIn>("");
+  const [origCents, setOrigCents] = useState<number | null>(null);
+  // Potvrdenie po uložení (D-313); pri nákupe po položkách aj ponuka Pridať do skladu.
+  const [saved, setSaved] = useState<Transaction | null>(null);
+  const byItems = type === "vydavok" && mode === "polozky";
+  const itemsTotal = items.reduce((sum, i) => sum + i.amountCents, 0);
+  useEffect(() => { if (byItems) setAmount(items.length > 0 ? itemsTotal / 100 : ""); }, [byItems, itemsTotal, items.length]);
+  const addItem = () => {
     const q = asNum(mQty);
-    const sum = asNum(mSum);
-    if (mName.trim() === "" || Number.isNaN(q) || q <= 0 || Number.isNaN(sum) || sum <= 0) return setErr("Položka potrebuje názov, množstvo a sumu väčšiu ako 0.");
-    const amountCents = cents(sum);
-    setManualItems([...manualItems, { code: "ručne", name: mName.trim().slice(0, 200), quantity: q, vatPercent: 0, unitPriceCents: Math.round(amountCents / q), amountCents }]);
-    setMName(""); setMQty(1); setMSum(""); setErr(null);
+    const p = asNum(mPrice);
+    if (mName.trim() === "" || Number.isNaN(q) || q <= 0 || Number.isNaN(p) || p === 0) return setErr("Položka potrebuje názov, množstvo a cenu za kus (zľavu zadaj zápornou cenou).");
+    const unitPriceCents = cents(p);
+    setItems([...items, { code: "ručne", name: mName.trim().slice(0, 200), quantity: q, vatPercent: 0, unitPriceCents, amountCents: Math.round(unitPriceCents * q) }]);
+    setMName(""); setMQty(1); setMPrice(""); setErr(null);
   };
-  const allNewItems = [...parsedItems.items, ...manualItems];
-  const itemsTotal = allNewItems.reduce((sum, i) => sum + i.amountCents, 0);
-  const itemsMismatch = allNewItems.length > 0 && !Number.isNaN(asNum(amount)) && cents(asNum(amount)) !== itemsTotal;
-  const storedItems = (editingId ? data.transactions.find((x) => x.id === editingId)?.receiptItems : undefined) ?? [];
+  const addFromText = () => {
+    if (parsedItems.unparsed.length > 0) return setErr("Niektoré riadky sa nepodarilo rozpoznať. Opravte text alebo ho vymažte.");
+    setItems([...items, ...parsedItems.items]);
+    setItemsText("");
+    setErr(null);
+  };
 
   const resetForm = () => {
     setConfirmExhausted(false);
@@ -160,7 +170,9 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setQrMsg(null);
     setCameraOn(false);
     setItemsText("");
-    setManualItems([]);
+    setItems([]);
+    setMode("rychly");
+    setOrigCents(null);
     setCategory("");
     setAmount("");
     setDate(todayIso());
@@ -180,9 +192,12 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setReceiptId(t.receiptId ?? "");
     setQrMsg(null);
     setItemsText("");
-    setManualItems([]);
+    setItems(t.receiptItems ?? []);
+    setMode((t.receiptItems?.length ?? 0) > 0 ? "polozky" : "rychly");
+    setOrigCents(t.amountCents);
+    setSaved(null);
     setErr(null);
-    setDocOpen(!!t.receiptId || (t.receiptItems?.length ?? 0) > 0);
+    setDocOpen(!!t.receiptId);
     setConfirmDeleteId(null);
     // Úprava je vo formulári hore; z histórie dole by ju na telefóne nebolo vidieť (D-286).
     window.scrollTo(0, 0);
@@ -222,9 +237,11 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   };
 
   const save = async (confirmedRecurring = recurringConfirmed) => {
+    setSaved(null);
     if (!ctx.latest) return setErr("Najprv zapíš stav investícií a hotovosti vo Vyhodnotení.");
     const a = asNum(amount);
-    if (Number.isNaN(a) || !(a > 0)) return setErr("Suma musí byť kladná.");
+    if (byItems && items.length === 0) return setErr("Pridaj aspoň jednu položku.");
+    if (Number.isNaN(a) || !(a > 0)) return setErr(byItems ? "Súčet položiek musí byť kladný." : "Suma musí byť kladná.");
     const dateErr = checkDate(date, todayIso(), "dátum");
     if (dateErr.length) return setErr(dateErr[0]);
     const c = check();
@@ -239,10 +256,9 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad K_inv` : ""].filter(Boolean).join("; ");
     const receipt = receiptId.trim();
     if (type === "vydavok" && receipt !== "" && !isReceiptId(receipt)) return setErr("Číslo dokladu má 20 až 40 znakov: písmená, číslice a pomlčky.");
-    // Nerozpoznané riadky sa nesmú potichu vynechať (D-129).
-    if (type === "vydavok" && parsedItems.unparsed.length > 0) setDocOpen(true);
-    if (type === "vydavok" && parsedItems.unparsed.length > 0) return setErr("Niektoré riadky položiek sa nepodarilo rozpoznať. Opravte text alebo ho vymažte.");
-    const receiptItems = type === "vydavok" ? (parsedItems.items.length > 0 ? [...parsedItems.items, ...manualItems] : [...(existing?.receiptItems ?? []), ...manualItems]) : undefined;
+    // Vložený text, ktorý ešte nebol pridaný, sa nesmie potichu stratiť (D-129).
+    if (byItems && itemsText.trim() !== "") return setErr("Vložený text pridaj tlačidlom Pridať z textu, alebo ho vymaž.");
+    const receiptItems = byItems ? items : undefined;
     // Len pri novom výdavku; pri úprave existujúceho by upozornenie len zdržiavalo.
     if (type === "vydavok" && !existing && !confirmedRecurring) {
       const match = matchingRecurring(data.recurringExpenses, { date, category: category === "" ? undefined : category, amountCents: cents(a) });
@@ -267,6 +283,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       return setErr(STORAGE_ERROR);
     }
     resetForm();
+    setSaved(t);
     onChanged();
   };
 
@@ -307,17 +324,45 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
 
   const editingTx = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
   // Doklad sa sám rozbalí, keď v ňom niečo pribudne; stav otvorenia má jeden zdroj, aby sa dal aj zbaliť (revízia 2026-10-25b, S-2).
-  const docHasContent = cameraOn || qrMsg !== null || receiptId !== "" || itemsText.trim() !== "" || manualItems.length > 0;
-  useEffect(() => { if (docHasContent) setDocOpen(true); }, [docHasContent, itemsText]);
-  const docProblem = parsedItems.unparsed.length > 0 ? " · nerozpoznané riadky" : itemsMismatch ? " · súčet nesedí" : "";
-  const docAssigned = receiptId !== "" || storedItems.length > 0;
+  const docHasContent = cameraOn || qrMsg !== null || receiptId !== "";
+  useEffect(() => { if (docHasContent) setDocOpen(true); }, [docHasContent]);
 
   // Poradie (D-286, docs/43 A3): suma, typ, zdroj, kategória, dátum, poznámka; doklad zbalený; potom upozornenia a prilepený pruh s dopadom a uložením (D-287).
   return (
     <section>
       {!ctx.latest && <p style={calloutStyle("warn")}>Najprv urob vyhodnotenie, potom môžeš zapisovať transakcie. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
       {inEdit && <h2 style={{ fontSize: "var(--font-heading)" }}>Úprava transakcie</h2>}
-      <Field label="Suma (€)" value={amount} onChange={setAmount} />
+      {type === "vydavok" && (
+        <div role="group" aria-label="Spôsob zápisu" style={{ display: "flex", gap: 8, margin: "4px 0 8px" }}>
+          <button type="button" aria-pressed={mode === "rychly"} onClick={() => setMode("rychly")} style={mode === "rychly" ? btnPrimary : btn}>Rýchly výdavok</button>
+          <button type="button" aria-pressed={mode === "polozky"} onClick={() => setMode("polozky")} style={mode === "polozky" ? btnPrimary : btn}>Nákup po položkách</button>
+        </div>
+      )}
+      {!byItems && <Field label="Suma (€)" value={amount} onChange={setAmount} />}
+      {byItems && (
+        <div style={{ margin: "8px 0" }}>
+          {items.length > 0 && (
+            <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
+              {items.map((i, n) => (
+                <li key={`${i.code}-${n}`} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", padding: "2px 0" }}>
+                  <span>{i.name} · {String(i.quantity).replace(".", ",")} × {eur(i.unitPriceCents)} = <strong>{eur(i.amountCents)}</strong></span>
+                  <button type="button" aria-label={`Odstrániť položku ${i.name}`} onClick={() => setItems(items.filter((_, k) => k !== n))} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Odstrániť</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "flex-end" }}>
+            <label style={{ flex: "2 1 140px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Položka</span><input type="text" maxLength={200} value={mName} onChange={(e) => setMName(e.target.value)} style={inp} /></label>
+            <label style={{ flex: "1 1 70px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Množstvo</span><input type="number" step={0.001} value={mQty} onChange={(e) => setMQty(e.target.value === "" ? "" : Number(e.target.value))} style={inp} /></label>
+            <label style={{ flex: "1 1 90px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Cena za kus (€)</span><input type="number" step={0.01} value={mPrice} onChange={(e) => setMPrice(e.target.value === "" ? "" : Number(e.target.value))} style={inp} /></label>
+            <button type="button" onClick={addItem} style={btn}>Pridať položku</button>
+          </div>
+          <p style={hintStyle}>Zľavu zadaj ako položku „zľava“ so zápornou cenou.</p>
+          {origCents !== null && items.length > 0 && origCents !== itemsTotal && (
+            <p style={calloutStyle("warn")}>Pôvodná suma bola {eur(origCents)}; po uložení bude súčet položiek {eur(itemsTotal)}.</p>
+          )}
+        </div>
+      )}
       <label style={{ display: "block", margin: "8px 0" }}>
         <span style={{ display: "block", fontSize: "var(--font-small)" }}>Typ</span>
         <select aria-label="Typ transakcie" value={type} onChange={(e) => setType(e.target.value as TransactionType)} style={inp}>
@@ -348,9 +393,9 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       )}
       <Field label="Dátum" value={date} type="date" max={todayIso()} onChange={setDate} />
       <Field label="Poznámka (voliteľná)" value={note} type="text" onChange={setNote} maxLength={200} />
-      {type === "vydavok" && (
+      {byItems && (
         <details open={docOpen} onToggle={(e) => setDocOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
-          <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Doklad (voliteľné){docAssigned ? " · priradený" : ""}{docProblem} ▾</summary>
+          <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Doklad z portálu alebo QR{receiptId !== "" ? " · priradený" : ""} ▾</summary>
           <div style={{ margin: "8px 0" }}>
             {cameraOn ? (
               <ReceiptCamera
@@ -387,34 +432,13 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           </div>
           <div style={{ margin: "8px 0" }}>
             <label style={{ display: "block" }}>
-              <span style={{ display: "block", fontSize: "var(--font-small)" }}>Položky z dokladu (nepovinné; vložte text skopírovaný z portálu, alebo pridajte položky ručne nižšie)</span>
+              <span style={{ display: "block", fontSize: "var(--font-small)" }}>Položky z dokladu: vložte text skopírovaný z portálu</span>
               <textarea aria-label="Položky z dokladu" value={itemsText} onChange={(e) => setItemsText(e.target.value)} rows={4} style={{ ...inp, fontFamily: "inherit" }} />
             </label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "flex-end" }}>
-              <label style={{ flex: "2 1 140px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Položka ručne: názov</span><input type="text" maxLength={200} value={mName} onChange={(e) => setMName(e.target.value)} style={inp} /></label>
-              <label style={{ flex: "1 1 70px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Množstvo položky</span><input type="number" step={0.001} value={mQty} onChange={(e) => setMQty(e.target.value === "" ? "" : Number(e.target.value))} style={inp} /></label>
-              <label style={{ flex: "1 1 90px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Suma položky (€)</span><input type="number" step={0.01} value={mSum} onChange={(e) => setMSum(e.target.value === "" ? "" : Number(e.target.value))} style={inp} /></label>
-              <button type="button" onClick={addManualItem} style={btn}>Pridať položku ručne</button>
-            </div>
-            {allNewItems.length > 0 && (
-              <>
-                <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "var(--font-small)" }}>
-                  {allNewItems.map((i, n) => (
-                    <li key={`${i.code}-${n}`}>{i.name}: {i.quantity} ks, DPH {i.vatPercent} %, {eur(i.amountCents)}</li>
-                  ))}
-                </ul>
-                <p style={{ fontSize: "var(--font-small)" }}>Súčet položiek: <strong>{eur(itemsTotal)}</strong></p>
-              </>
-            )}
             {parsedItems.unparsed.length > 0 && (
-              <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Opravte text alebo ho vymažte; bez toho sa výdavok neuloží.</p>
+              <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Nerozpoznané riadky: {parsedItems.unparsed.length}. Opravte text alebo ho vymažte.</p>
             )}
-            {itemsMismatch && (
-              <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Súčet položiek sa nezhoduje so sumou výdavku {eur(cents(asNum(amount)))} (napr. zľava). Uložiť sa dá, ak je to v poriadku.</p>
-            )}
-            {itemsText.trim() === "" && storedItems.length > 0 && (
-              <p style={hintStyle}>Uložené položky: {storedItems.length}. Vložením nového textu sa nahradia; ručne pridané sa k nim pripočítajú.</p>
-            )}
+            <button type="button" onClick={addFromText} disabled={itemsText.trim() === ""} style={btn}>Pridať z textu</button>
           </div>
         </details>
       )}
@@ -438,7 +462,14 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
               : <>Predbežný dopad: <strong>{formatImpactOutcome(preview.impact)}</strong></>}
           </p>
         )}
+        {byItems && <p style={{ margin: "4px 0", fontSize: "var(--font-heading)" }}>Spolu: <strong>{eur(itemsTotal)}</strong></p>}
         {err && <p style={{ color: "var(--danger)", margin: "4px 0" }}>{err}</p>}
+        {saved && !inEdit && (
+          <div style={{ ...calloutStyle("ok"), margin: "4px 0" }}>
+            <p style={{ margin: 0 }}>Zapísané: {TYPE_LABEL[saved.type]} {eur(saved.amountCents)}. <a href="#historia-transakcii" onClick={() => setSaved(null)}>Zobraziť v histórii</a></p>
+            {renderStockTransfer && (saved.receiptItems?.length ?? 0) > 0 && renderStockTransfer(saved)}
+          </div>
+        )}
         {recurringMatch && (
           <div style={{ ...calloutStyle("warn"), margin: "4px 0" }}>
             <p style={{ margin: 0 }}>Toto vyzerá ako pravidelný výdavok „{recurringMatch.name}“, ktorý sa už ráta automaticky každý mesiac. Uložiť aj tak?</p>
@@ -477,7 +508,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         </div>
       )}
 
-      <h3 style={{ fontSize: "var(--font-text)", marginTop: 24 }}>História</h3>
+      <h3 id="historia-transakcii" style={{ fontSize: "var(--font-text)", marginTop: 24 }}>História</h3>
       <details open={filterOpen} onToggle={(e) => setFilterOpen(e.currentTarget.open)} style={{ margin: "8px 0" }}>
         <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Filter{filterActive ? " · zapnutý" : ""} ▾</summary>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>

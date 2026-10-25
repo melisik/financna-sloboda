@@ -229,8 +229,9 @@ function validateReceiptItem(i: unknown, label = "položka dokladu"): string[] {
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 200) errors.push(`${label}: názov je povinný, max 200 znakov`);
   if (typeof o.quantity !== "number" || !(o.quantity > 0)) errors.push(`${label}: počet musí byť kladné číslo`);
   if (typeof o.vatPercent !== "number" || !(o.vatPercent >= 0)) errors.push(`${label}: DPH musí byť číslo 0 alebo väčšie`);
-  if (!isCents(o.unitPriceCents)) errors.push(`${label}: jednotková cena musí byť celé číslo v centoch`);
-  if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť kladné celé číslo v centoch`);
+  // Zľava je záporná položka (D-313, docs/57): cena a suma riadku môžu byť záporné, nie nulové.
+  if (typeof o.unitPriceCents !== "number" || !Number.isInteger(o.unitPriceCents)) errors.push(`${label}: jednotková cena musí byť celé číslo v centoch`);
+  if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents === 0) errors.push(`${label}: suma musí byť nenulové celé číslo v centoch`);
   return errors;
 }
 
