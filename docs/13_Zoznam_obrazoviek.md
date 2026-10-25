@@ -7,7 +7,7 @@
 | Obrazovka | Stav | Poznámka |
 |---|---|---|
 | Prehľad | na main | cieľ, dátum, vyhodnotenie, podrobnosti; v main aj pokrok a posun dátumu cieľa na prvej obrazovke (D-283) a zbalený Vývoj v čase (D-289) |
-| Transakcie | na main | sporenie, investícia, výdavok, rezerva, výber z rezervy; v main suma ako prvé pole, doklad zbalený, Prílohy a Zmazať v úprave (D-286); filter histórie zbalený, 10 záznamov (D-293) |
+| Transakcie | na main | sporenie, investícia, výdavok, rezerva, výber z rezervy; v main suma ako prvé pole, doklad zbalený, Prílohy a Zmazať v úprave (D-286); filter histórie zbalený, 10 záznamov (D-293); výdavok v režime Rýchly výdavok alebo Nákup po položkách, suma = súčet položiek (D-313); blok Overiť doklad (QR) bez vkladania textu z portálu, návrhy položiek s poslednou cenou (D-318) |
 | Vyhodnotenie | v main (zoznam a mazanie vyhodnotení); mesačné zadanie na main | mesačné zadanie; investície sa odvodia zo súčtu položiek (D-101) |
 | Majetok | v main, len náhľad (Fáza 2) | nehnuteľnosť (hypotéka, splátka s úrokom), automobil, ocenitelné právo |
 | Investície | v main, len náhľad (Fáza 2) | ručné položky (D-101); tretí pilier a ciele zoskupenia so súčtom a pokrokom (D-105, D-258) |

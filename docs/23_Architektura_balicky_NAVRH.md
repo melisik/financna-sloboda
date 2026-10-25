@@ -76,7 +76,7 @@ Tri vrstvy a jedna aplikačná. Závislosti smerujú len dole.
 - Znovupoužiteľné: áno, ktorákoľvek appka s rovnakými dátami.
 
 ### 3.2 `core/finance` – výpočty
-- Obsah: `goal`, `capital`, `mortgage`, `liabilities`, `budget`, `recurring`, `monthSummary`, `rental`, `rentalGoal`, `investments`, `tax`, `outlook`, `weekly`, `saving`, `impact`, `annualOverview`, `goalDisplay`, `goalText`, `recipe`, `stock`, `scan`, `receipt`, `receiptItems`, `taxForm`, `dogs`, `ztp`.
+- Obsah: `goal`, `capital`, `mortgage`, `liabilities`, `budget`, `recurring`, `monthSummary`, `rental`, `rentalGoal`, `investments`, `tax`, `outlook`, `weekly`, `saving`, `impact`, `annualOverview`, `goalDisplay`, `goalText`, `recipe`, `stock`, `scan`, `receipt`, `taxForm`, `dogs`, `ztp`.
 - Závisí len na `core/model`. Žiadny React, žiadne úložisko, žiadne `Date.now()` bez parametra.
 - Znovupoužiteľné: áno. Najcennejšia časť: golden testy výpočtov (GC-01 až GC-24) sa dajú použiť aj v inom projekte.
 - Poznámka: `taxForm`, `dogs` a `ztp` sú domény daní; môžu byť samostatný balíček `core/tax`, ak sa to ukáže ako užitočné.
