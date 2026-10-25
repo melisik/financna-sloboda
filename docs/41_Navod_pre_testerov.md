@@ -40,8 +40,8 @@ Každá úloha trvá 2 až 5 minút. Nemusíte robiť všetky; aj jedna poctivo 
 | 3 | Veľký výdavok | Peniaze → Veľký výdavok (scenár) | Zadajte napríklad 5 000 € a skúste rôzne zdroje. Je výsledok zrozumiteľný? Do transakcií sa nič nesmie zapísať. |
 | 4 | Mesačný výdavok | Peniaze → Mesačný výdavok (scenár) | Zadajte napríklad 50 €. Rozumiete, koľko mesiacov vás to stojí? Pod scenárom je zoznam opakovaných výdavkov z testovacej zálohy. Je jasné, čo „o N mesiacov skôr“ znamená? Nepôsobí ako výčitka? |
 | 5 | Ročný prehľad | Plán a výsledky → Ročný prehľad | Súhrn po rokoch a výdavky podľa kategórií. Dávajú zmysel? Vyhodnotenia sú zbalené. |
-| 6 | Rozpočet a pravidelné výdavky | Peniaze → Rozpočet, Pravidelné výdavky | V Rozpočte ťuknite na Upraviť limity, nastavte limit a uložte. V Pravidelných výdavkoch je pri položke len Upraviť; Ukončiť a Zmazať sú v úprave. Skúste potom v Transakciách zapísať výdavok 650 € v kategórii bývanie: appka upozorní, že nájom sa už ráta automaticky. Je to jasné? |
-| 7 | Sklad, vyhodené a nákupný zoznam | Majetok a zásoby → Sklad | Pridajte položku s cenou za jednotku, potom ju čiastočne vyhoďte (Vyhodiť). Je súhrn „Vyhodené tento mesiac“ zrozumiteľný? Pri výdavku s položkami dokladu skúste v úprave Pridať do skladu. V bloku Nakúpiť pridajte položku, zaškrtnite ju ako kúpenú a dajte Do skladu; vyskúšajte aj Poslať zoznam. |
+| 6 | Rozpočet a pravidelné výdavky | Peniaze → Rozpočet, Pravidelné výdavky | V Rozpočte ťuknite na Upraviť limity, nastavte limit a uložte. V Pravidelných výdavkoch je pri položke len Upraviť; Ukončiť a Zmazať sú v úprave. Skúste potom v Transakciách zapísať výdavok 650 € v kategórii bývanie: appka upozorní, že nájom sa už ráta automaticky (Uložiť aj tak / Neukladať). Je to jasné? |
+| 7 | Sklad, vyhodené a nákupný zoznam | Majetok a zásoby → Sklad | Pridajte položku s cenou za jednotku, potom ju čiastočne vyhoďte (Vyhodiť). Je súhrn „Vyhodené tento mesiac“ zrozumiteľný? Pri výdavku s položkami dokladu skúste v úprave Pridať do skladu. V bloku Nakúpiť pridajte položku, zaškrtnite ju ako kúpenú a dajte Do skladu; vyskúšajte aj Poslať zoznam. Pri položke s prešlým dátumom spotreby skúste Ešte použiteľné. Pri recepte, na ktorý chýbajú suroviny, ťuknite Chýbajúce na zoznam. Položky dokladu môžete pridať aj ručne (Doklad → Pridať položku ručne). |
 | 8 | Záloha s heslom | Nastavenia a záloha → Záloha | Uložte zálohu s heslom (tlačidlo Uložiť zálohu) (aspoň 8 znakov) a obnovte ju. Zlé heslo musí byť odmietnuté. |
 | 9 | Týždenný súhrn mailom | Prehľad → Týždenný súhrn → Poslať mailom | Otvorí sa mailová aplikácia s textom súhrnu. Odoslať ho nemusíte. |
 | 10 | Menu na telefóne | Horné menu | Prepínajte skupiny a sekcie. Riadok sekcií sa dá posúvať do strany. |
@@ -65,3 +65,4 @@ Každá úloha trvá 2 až 5 minút. Nemusíte robiť všetky; aj jedna poctivo 
 - Funkcie Fázy 2 zatiaľ nie sú právne posúdené ani bezpečnostne auditované.
 - Heslo zašifrovanej zálohy sa nedá obnoviť.
 - Údaje v náhľade sú oddelené od verejnej verzie aplikácie.
+- Zálohu uloženú v novšej verzii appky staršia verzia neotvorí. Ak sa vám ukazuje stará verzia, appku zatvorte a otvorte znova.
