@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Repository } from "../../storage/repository";
-import type { AppData, Attachment, BudgetCategory, RecurringExpense, Transaction, TransactionType, Source } from "../../storage/types";
+import type { AppData, Attachment, BudgetCategory, ReceiptItem, RecurringExpense, Transaction, TransactionType, Source } from "../../storage/types";
 import { matchingRecurring } from "../../domain/recurring";
 import { BUDGET_CATEGORIES, SOURCES } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
@@ -129,8 +129,22 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   }, [type, source, amount, base, ctx]);
 
   const parsedItems = useMemo(() => parseReceiptItems(itemsText), [itemsText]);
-  const itemsTotal = parsedItems.items.reduce((sum, i) => sum + i.amountCents, 0);
-  const itemsMismatch = parsedItems.items.length > 0 && !Number.isNaN(asNum(amount)) && cents(asNum(amount)) !== itemsTotal;
+  // Ručne pridané položky dokladu (D-308, docs/55): na telefóne sa text z portálu napísať nedá.
+  const [manualItems, setManualItems] = useState<ReceiptItem[]>([]);
+  const [mName, setMName] = useState("");
+  const [mQty, setMQty] = useState<NumIn>(1);
+  const [mSum, setMSum] = useState<NumIn>("");
+  const addManualItem = () => {
+    const q = asNum(mQty);
+    const sum = asNum(mSum);
+    if (mName.trim() === "" || Number.isNaN(q) || q <= 0 || Number.isNaN(sum) || sum <= 0) return setErr("Položka potrebuje názov, množstvo a sumu väčšiu ako 0.");
+    const amountCents = cents(sum);
+    setManualItems([...manualItems, { code: "ručne", name: mName.trim().slice(0, 200), quantity: q, vatPercent: 0, unitPriceCents: Math.round(amountCents / q), amountCents }]);
+    setMName(""); setMQty(1); setMSum(""); setErr(null);
+  };
+  const allNewItems = [...parsedItems.items, ...manualItems];
+  const itemsTotal = allNewItems.reduce((sum, i) => sum + i.amountCents, 0);
+  const itemsMismatch = allNewItems.length > 0 && !Number.isNaN(asNum(amount)) && cents(asNum(amount)) !== itemsTotal;
   const storedItems = (editingId ? data.transactions.find((x) => x.id === editingId)?.receiptItems : undefined) ?? [];
 
   const resetForm = () => {
@@ -146,6 +160,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setQrMsg(null);
     setCameraOn(false);
     setItemsText("");
+    setManualItems([]);
     setCategory("");
     setAmount("");
     setDate(todayIso());
@@ -165,6 +180,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setReceiptId(t.receiptId ?? "");
     setQrMsg(null);
     setItemsText("");
+    setManualItems([]);
     setErr(null);
     setDocOpen(!!t.receiptId || (t.receiptItems?.length ?? 0) > 0);
     setConfirmDeleteId(null);
@@ -226,7 +242,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     // Nerozpoznané riadky sa nesmú potichu vynechať (D-129).
     if (type === "vydavok" && parsedItems.unparsed.length > 0) setDocOpen(true);
     if (type === "vydavok" && parsedItems.unparsed.length > 0) return setErr("Niektoré riadky položiek sa nepodarilo rozpoznať. Opravte text alebo ho vymažte.");
-    const receiptItems = type === "vydavok" ? (parsedItems.items.length > 0 ? parsedItems.items : existing?.receiptItems) : undefined;
+    const receiptItems = type === "vydavok" ? (parsedItems.items.length > 0 ? [...parsedItems.items, ...manualItems] : [...(existing?.receiptItems ?? []), ...manualItems]) : undefined;
     // Len pri novom výdavku; pri úprave existujúceho by upozornenie len zdržiavalo.
     if (type === "vydavok" && !existing && !confirmedRecurring) {
       const match = matchingRecurring(data.recurringExpenses, { date, category: category === "" ? undefined : category, amountCents: cents(a) });
@@ -291,7 +307,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
 
   const editingTx = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
   // Doklad sa sám rozbalí, keď v ňom niečo pribudne; stav otvorenia má jeden zdroj, aby sa dal aj zbaliť (revízia 2026-10-25b, S-2).
-  const docHasContent = cameraOn || qrMsg !== null || receiptId !== "" || itemsText.trim() !== "";
+  const docHasContent = cameraOn || qrMsg !== null || receiptId !== "" || itemsText.trim() !== "" || manualItems.length > 0;
   useEffect(() => { if (docHasContent) setDocOpen(true); }, [docHasContent, itemsText]);
   const docProblem = parsedItems.unparsed.length > 0 ? " · nerozpoznané riadky" : itemsMismatch ? " · súčet nesedí" : "";
   const docAssigned = receiptId !== "" || storedItems.length > 0;
@@ -371,14 +387,20 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           </div>
           <div style={{ margin: "8px 0" }}>
             <label style={{ display: "block" }}>
-              <span style={{ display: "block", fontSize: "var(--font-small)" }}>Položky z dokladu (nepovinné; vložte text skopírovaný z portálu)</span>
+              <span style={{ display: "block", fontSize: "var(--font-small)" }}>Položky z dokladu (nepovinné; vložte text skopírovaný z portálu, alebo pridajte položky ručne nižšie)</span>
               <textarea aria-label="Položky z dokladu" value={itemsText} onChange={(e) => setItemsText(e.target.value)} rows={4} style={{ ...inp, fontFamily: "inherit" }} />
             </label>
-            {parsedItems.items.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "flex-end" }}>
+              <label style={{ flex: "2 1 140px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Položka ručne: názov</span><input type="text" maxLength={200} value={mName} onChange={(e) => setMName(e.target.value)} style={inp} /></label>
+              <label style={{ flex: "1 1 70px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Množstvo položky</span><input type="number" step={0.001} value={mQty} onChange={(e) => setMQty(e.target.value === "" ? "" : Number(e.target.value))} style={inp} /></label>
+              <label style={{ flex: "1 1 90px" }}><span style={{ display: "block", fontSize: "var(--font-small)" }}>Suma položky (€)</span><input type="number" step={0.01} value={mSum} onChange={(e) => setMSum(e.target.value === "" ? "" : Number(e.target.value))} style={inp} /></label>
+              <button type="button" onClick={addManualItem} style={btn}>Pridať položku ručne</button>
+            </div>
+            {allNewItems.length > 0 && (
               <>
                 <ul style={{ paddingLeft: 20, margin: "4px 0", fontSize: "var(--font-small)" }}>
-                  {parsedItems.items.map((i) => (
-                    <li key={i.code}>{i.name}: {i.quantity} ks, DPH {i.vatPercent} %, {eur(i.amountCents)}</li>
+                  {allNewItems.map((i, n) => (
+                    <li key={`${i.code}-${n}`}>{i.name}: {i.quantity} ks, DPH {i.vatPercent} %, {eur(i.amountCents)}</li>
                   ))}
                 </ul>
                 <p style={{ fontSize: "var(--font-small)" }}>Súčet položiek: <strong>{eur(itemsTotal)}</strong></p>
@@ -391,7 +413,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
               <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Súčet položiek sa nezhoduje so sumou výdavku {eur(cents(asNum(amount)))} (napr. zľava). Uložiť sa dá, ak je to v poriadku.</p>
             )}
             {itemsText.trim() === "" && storedItems.length > 0 && (
-              <p style={hintStyle}>Uložené položky: {storedItems.length}. Vložením nového textu sa nahradia.</p>
+              <p style={hintStyle}>Uložené položky: {storedItems.length}. Vložením nového textu sa nahradia; ručne pridané sa k nim pripočítajú.</p>
             )}
           </div>
         </details>

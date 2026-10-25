@@ -12,7 +12,7 @@ test.describe("import zálohy – D-078, D-134", () => {
     await goTo(page, "zaloha");
     const [download] = await Promise.all([
       page.waitForEvent("download"),
-      page.getByRole("button", { name: "Exportovať zálohu" }).click(),
+      page.getByRole("button", { name: "Uložiť zálohu" }).click(),
     ]);
     return (await download.path())!;
   }
@@ -45,7 +45,7 @@ test.describe("import zálohy – D-078, D-134", () => {
 
     await Promise.all([
       page.waitForEvent("download"),
-      page.getByRole("button", { name: "Exportovať zálohu" }).click(),
+      page.getByRole("button", { name: "Uložiť zálohu" }).click(),
     ]);
   });
 

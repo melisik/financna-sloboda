@@ -11,7 +11,7 @@ import { card } from "../../ui/kit/controls";
 
 import { qtyText } from "./format";
 
-export function RecipesBlock({ repo, recipes, stock, onSaved, onCooked, onMissing }: { repo: Repository; recipes: Recipe[]; stock: StockItem[]; onSaved: () => void; onCooked: (before: StockItem[], after: StockItem[]) => void; onMissing: (r: Recipe) => void }) {
+export function RecipesBlock({ repo, recipes, stock, onSaved, onCooked, onMissing }: { repo: Repository; recipes: Recipe[]; stock: StockItem[]; onSaved: () => void; onCooked: (before: StockItem[], after: StockItem[]) => void; onMissing: (r: Recipe) => Promise<string> }) {
   const [editing, setEditing] = useState<Recipe | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
@@ -88,7 +88,7 @@ export function RecipesBlock({ repo, recipes, stock, onSaved, onCooked, onMissin
           ) : (
             <>
               <button onClick={() => askCook(r)} style={btn}>Uvariť</button>{" "}
-              {missingForRecipe(r, stock).length > 0 && <><button onClick={() => onMissing(r)} style={btn}>Chýbajúce na zoznam</button>{" "}</>}
+              {missingForRecipe(r, stock).length > 0 && <><button onClick={async () => setResult({ ok: true, text: await onMissing(r) })} style={btn}>Chýbajúce na zoznam</button>{" "}</>}
               <button onClick={() => setEditing(r)} style={btn}>Upraviť</button>{" "}
               <button onClick={() => setConfirmId(r.id)} style={btnDanger}>Zmazať</button>
             </>

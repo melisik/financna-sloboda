@@ -38,7 +38,7 @@ test.describe("moduly (D-162)", () => {
     await openApp(page);
     await goTo(page, "dane");
     await expect(page.getByRole("button", { name: "Pridať psa" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Vyplniť tlačivo (PDF)" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Tlačivo 17-dp-md" })).toBeVisible(); // D-308: bez údajov len veta, nie tlačidlo
 
     await goTo(page, "majetok");
     await expect(page.locator("section#majetok").getByRole("button", { name: "Pridať psa" })).toHaveCount(0);

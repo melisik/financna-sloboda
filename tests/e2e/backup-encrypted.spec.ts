@@ -15,7 +15,7 @@ test.describe("šifrovaná záloha (N-05)", () => {
     await page.getByLabel("Heslo na šifrovanie zálohy").fill("heslo-na-zalohu-1");
     const [download] = await Promise.all([
       page.waitForEvent("download"),
-      page.getByRole("button", { name: "Exportovať zálohu" }).click(),
+      page.getByRole("button", { name: "Uložiť zálohu" }).click(),
     ]);
     expect(download.suggestedFilename()).toMatch(/-sifrovana\.json$/);
     const backupPath = await download.path();
@@ -42,7 +42,7 @@ test.describe("šifrovaná záloha (N-05)", () => {
     await openApp(page);
     await goTo(page, "zaloha");
     await page.getByLabel("Heslo na šifrovanie zálohy").fill("kratke");
-    await page.getByRole("button", { name: "Exportovať zálohu" }).click();
+    await page.getByRole("button", { name: "Uložiť zálohu" }).click();
     await expect(page.getByText("Heslo musí mať aspoň 8 znakov. Nič sa neexportovalo.")).toBeVisible();
   });
 });

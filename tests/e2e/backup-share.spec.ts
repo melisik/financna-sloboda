@@ -19,7 +19,7 @@ test.describe("export zálohy so zdieľaním", () => {
   test("export ponúkne zdieľací list a záloha sa uloží", async ({ page }) => {
     await openApp(page);
     await goTo(page, "zaloha");
-    await page.getByRole("button", { name: "Exportovať zálohu" }).click();
+    await page.getByRole("button", { name: "Uložiť zálohu" }).click();
     await expect(page.getByText("Záloha je uložená podľa tvojho výberu.")).toBeVisible();
     const shared = await page.evaluate(() => (window as unknown as { __shared: string[] }).__shared);
     expect(shared).toHaveLength(1);

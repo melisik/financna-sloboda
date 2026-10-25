@@ -18,7 +18,7 @@ test.describe("záloha v UI (FR-17, FR-18)", () => {
     // Export: stiahne sa súbor so správnym názvom.
     const [download] = await Promise.all([
       page.waitForEvent("download"),
-      page.getByRole("button", { name: "Exportovať zálohu" }).click(),
+      page.getByRole("button", { name: "Uložiť zálohu" }).click(),
     ]);
     expect(download.suggestedFilename()).toMatch(/^financna-sloboda-zaloha-\d{4}-\d{2}-\d{2}\.json$/);
     const backupPath = await download.path();

@@ -137,7 +137,7 @@ export function TaxFormBlock({ properties, dogs, today }: { properties: Property
           Najprv pridaj nehnuteľnosť v Majetku alebo psa vyššie. Bez nich by tlačivo zostalo prázdne. <NextStep to="majetok">Majetok</NextStep>
         </p>
       )}
-      <button onClick={run} disabled={busy || empty} style={ready ? btn : btnPrimary}>{busy ? "Vypĺňam…" : "Vyplniť tlačivo (PDF)"}</button>
+      {!empty && <button onClick={run} disabled={busy} style={ready ? btn : btnPrimary}>{busy ? "Vypĺňam…" : "Vyplniť tlačivo (PDF)"}</button>}
       {ready && (
         <button
           onClick={async () => {

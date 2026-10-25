@@ -42,7 +42,7 @@ Každá úloha trvá 2 až 5 minút. Nemusíte robiť všetky; aj jedna poctivo 
 | 5 | Ročný prehľad | Plán a výsledky → Ročný prehľad | Súhrn po rokoch a výdavky podľa kategórií. Dávajú zmysel? Vyhodnotenia sú zbalené. |
 | 6 | Rozpočet a pravidelné výdavky | Peniaze → Rozpočet, Pravidelné výdavky | V Rozpočte ťuknite na Upraviť limity, nastavte limit a uložte. V Pravidelných výdavkoch je pri položke len Upraviť; Ukončiť a Zmazať sú v úprave. Skúste potom v Transakciách zapísať výdavok 650 € v kategórii bývanie: appka upozorní, že nájom sa už ráta automaticky. Je to jasné? |
 | 7 | Sklad, vyhodené a nákupný zoznam | Majetok a zásoby → Sklad | Pridajte položku s cenou za jednotku, potom ju čiastočne vyhoďte (Vyhodiť). Je súhrn „Vyhodené tento mesiac“ zrozumiteľný? Pri výdavku s položkami dokladu skúste v úprave Pridať do skladu. V bloku Nakúpiť pridajte položku, zaškrtnite ju ako kúpenú a dajte Do skladu; vyskúšajte aj Poslať zoznam. |
-| 8 | Záloha s heslom | Nastavenia a záloha → Záloha | Exportujte zálohu s heslom (aspoň 8 znakov) a obnovte ju. Zlé heslo musí byť odmietnuté. |
+| 8 | Záloha s heslom | Nastavenia a záloha → Záloha | Uložte zálohu s heslom (tlačidlo Uložiť zálohu) (aspoň 8 znakov) a obnovte ju. Zlé heslo musí byť odmietnuté. |
 | 9 | Týždenný súhrn mailom | Prehľad → Týždenný súhrn → Poslať mailom | Otvorí sa mailová aplikácia s textom súhrnu. Odoslať ho nemusíte. |
 | 10 | Menu na telefóne | Horné menu | Prepínajte skupiny a sekcie. Riadok sekcií sa dá posúvať do strany. |
 | 11 | Tmavý režim | Nastavenie telefónu | Je všetko čitateľné? |

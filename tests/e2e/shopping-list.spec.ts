@@ -70,6 +70,6 @@ test.describe("nákupný zoznam", () => {
     await s.getByRole("button", { name: "Uložiť recept" }).click();
     await s.getByRole("button", { name: "Chýbajúce na zoznam" }).click();
     await expect(s.getByRole("checkbox", { name: "Syntetické mlieko" })).toBeVisible();
-    await expect(s.getByText("0,3 l")).toBeVisible();
+    await expect(s.locator("li", { hasText: "Syntetické mlieko" }).getByText("0,3 l")).toBeVisible();
   });
 });

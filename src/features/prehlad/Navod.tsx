@@ -1,9 +1,10 @@
+import { btn } from "../../ui/kit/controls";
 import { hintStyle } from "../../ui/kit/controls";
 /** Návod na používanie a odkaz na testovaciu zálohu (docs/23: časť prehľadu, D-190). Statický text bez údajov. */
 export function NavodBlock() {
   return (
     <details id="navod" style={{ marginTop: 16, background: "var(--surface)", padding: 12, borderRadius: 8 }}>
-      <summary style={{ fontWeight: 600, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Návod</summary>
+      <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Návod ▾</summary>
       <ol style={{ paddingLeft: 20 }}>
         <li><strong>Prvé nastavenie:</strong> pri prvom spustení zadaj ročné výdavky a mieru výberu. Ostatné polia majú východiskové hodnoty.</li>
         <li><strong>Vyhodnotenie:</strong> mesačné vyhodnotenie vzniká automaticky. Ručne ho zadáš len na opravu. Dátum cieľa sa mení len po vyhodnotení.</li>

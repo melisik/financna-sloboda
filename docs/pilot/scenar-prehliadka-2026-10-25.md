@@ -53,7 +53,7 @@
 ## 6. Nastavenia a záloha (5 min)
 1. Nastavenia: skupiny Cieľ, Sporenie, Predpoklady; Moduly, Sprievodca, PIN zbalené.
 2. Moduly: vypni Sklad → zmizne z menu. Zapni späť.
-3. Záloha: časť Uložiť zálohu (nadpis) → pole Heslo na šifrovanie zálohy (8+ znakov) → tlačidlo **Exportovať zálohu** → Uložiť do Súborov → ostaneš v appke a pod tlačidlom je správa. Obnoviť zo zálohy so zlým heslom → odmietnuté.
+3. Záloha: časť Záloha do súboru (nadpis) → pole Heslo na šifrovanie zálohy (8+ znakov) → tlačidlo **Uložiť zálohu** → Uložiť do Súborov → ostaneš v appke a pod tlačidlom je správa. Obnoviť zo zálohy so zlým heslom → odmietnuté.
 4. Tmavý režim telefónu: prejdi 2 až 3 obrazovky.
 
 ## 7. Na záver

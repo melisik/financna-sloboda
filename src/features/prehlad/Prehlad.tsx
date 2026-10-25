@@ -57,7 +57,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       )}
       {ctx.latest && ctx.target !== null && progress ? (
         <>
-          <p style={{ fontSize: "var(--font-heading)", margin: "8px 0 4px" }}>Dátum cieľa: <strong>{scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</strong></p>
+          <p style={{ fontSize: "var(--font-heading)", margin: "8px 0 4px" }}>Dátum cieľa: <strong style={{ fontSize: "1.4em", display: "inline-block" }}>{scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</strong></p>
           <p style={{ margin: "4px 0" }}>{progressLine(progress)}</p>
           <div aria-hidden="true" style={{ height: 8, borderRadius: 4, background: "var(--border-soft)", overflow: "hidden", margin: "4px 0 8px" }}>
             <div style={{ width: `${progress.percent}%`, height: "100%", background: "var(--primary-bg)" }} />

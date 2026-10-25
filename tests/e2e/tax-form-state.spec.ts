@@ -6,7 +6,7 @@ test.describe("tlačivo 17-dp-md: stav a výsledok", () => {
   test("bez nehnuteľnosti a psa je tlačidlo neaktívne a vysvetlí, čo chýba", async ({ page }) => {
     await openApp(page);
     await goTo(page, "dane");
-    await expect(page.getByRole("button", { name: "Vyplniť tlačivo (PDF)" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Vyplniť tlačivo (PDF)" })).toHaveCount(0); // D-308: bez psa a nehnuteľnosti len veta
     await expect(page.getByText("Najprv pridaj nehnuteľnosť v Majetku alebo psa vyššie.")).toBeVisible();
   });
 

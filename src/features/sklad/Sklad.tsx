@@ -46,6 +46,7 @@ export function StockSection({ repo, items, recipes, wasteRecords, shoppingItems
     } catch {
       setErr(STORAGE_ERROR);
     }
+    return added;
   };
   // „Ešte použiteľné“ otvorí úpravu so zameraným dátumom spotreby; nič sa nezaznamená (D-301).
   const [focusExpiry, setFocusExpiry] = useState(false);
@@ -193,7 +194,13 @@ export function StockSection({ repo, items, recipes, wasteRecords, shoppingItems
         <button onClick={() => { setFromList(null); setEditing("new"); }} style={btnPrimary}>Pridať položku skladu</button>
       )}
       <ShoppingList repo={repo} items={shoppingItems} onToStock={(s) => { setFocusExpiry(false); setFromList(s); setEditing("new"); }} onSaved={onSaved} />
-      <RecipesBlock repo={repo} recipes={recipes} stock={items} onSaved={onSaved} onCooked={offerAfter} onMissing={(r) => void addEntries(missingForRecipe(r, items))} />
+      <RecipesBlock repo={repo} recipes={recipes} stock={items} onSaved={onSaved} onCooked={offerAfter} onMissing={async (r) => {
+        const added = await addEntries(missingForRecipe(r, items));
+        // Potvrdenie, čo a kam pribudlo (D-308, docs/55, postreh 4.5).
+        return added.length === 0
+          ? "Všetko chýbajúce už na zozname Nakúpiť je."
+          : `Na zoznam Nakúpiť (vyššie, pod položkami skladu) pribudlo: ${added.map((a) => `${a.name}${a.quantity !== undefined ? ` ${qtyText(a.quantity)}${a.unit ? ` ${a.unit}` : ""}` : ""}`).join(", ")}.`;
+      }} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
     </section>
   );

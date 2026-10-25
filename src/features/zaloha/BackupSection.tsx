@@ -168,7 +168,7 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
   return (
     <section>
       <p style={{ color: "var(--muted)" }}>Dáta sú len v tomto zariadení. Pravidelne si ulož zálohu. Záloha obsahuje aj čísla dokladov, preto ju chráň.</p>
-      <h3 style={{ fontSize: "var(--font-text)", marginBottom: 0 }}>Uložiť zálohu</h3>
+      <h3 style={{ fontSize: "var(--font-text)", marginBottom: 0 }}>Záloha do súboru</h3>
       <p>Posledná záloha: <strong>{lastExport ? lastExportText(lastExport, todayIso()) : "zatiaľ žiadna"}</strong></p>
       {backupOverdue(lastExport, todayIso()) && (
         <p style={calloutStyle("warn")}>Záloha je staršia ako 7 dní alebo ešte nebola urobená. Odporúčame novú zálohu.</p>
@@ -178,7 +178,7 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
         <input type="password" aria-label="Heslo na šifrovanie zálohy" autoComplete="new-password" maxLength={100} value={exportPassword} onChange={(e) => setExportPassword(e.target.value)} style={inp} />
       </label>
       <p style={hintStyle}>Heslo sa nedá obnoviť. Bez neho sa zašifrovaná záloha neotvorí.</p>
-      <button onClick={exportBackup} style={btnPrimary}>Exportovať zálohu</button>
+      <button onClick={exportBackup} style={btnPrimary}>Uložiť zálohu</button>
       <p style={hintStyle}>Na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne do priečinka Stiahnuté.</p>
       {exportStatus && <p style={{ marginTop: 12 }}>{exportStatus}</p>}
       <h3 style={{ fontSize: "var(--font-text)", marginBottom: 8, marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border)" }}>Obnoviť zo zálohy</h3>
@@ -216,7 +216,7 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
           <p style={hintStyle}>Teraz v zariadení: {summarizeData(data)}.</p>
           {preview.notes.map((n) => <p key={n} style={{ ...calloutStyle("warn"), fontSize: "var(--font-small)" }}>{n}</p>)}
           <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong></p>
-          <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Aktuálne dáta sa nenávratne prepíšu. Ak ich chceš zachovať, najprv ulož zálohu tlačidlom „Exportovať zálohu“ hore.</p>
+          <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Aktuálne dáta sa nenávratne prepíšu. Ak ich chceš zachovať, najprv ulož zálohu tlačidlom „Uložiť zálohu“ hore.</p>
           <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}
           <button onClick={() => setPreview(null)} style={btn}>Zrušiť</button>
         </div>
