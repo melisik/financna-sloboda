@@ -32,6 +32,10 @@ jobs:
           VITE_PHASE2: "1"
           # D-280: v náhľade sa pripomienky posielajú len formulárom (GitHub je verejný).
           VITE_PREVIEW: "1"
+      # D-322 (audit A-01, docs/54 A-3): E2E testy aj pred nasadením náhľadu, rovnako ako vo verejnom nasadení;
+      # chyba rozloženia sa tak ukáže už v náhľade. Testy používajú vlastnú zostavu dist-test, dist sa nemení.
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
       # Kontrola hesla (D-271) sa pridá len do náhľadu; verejné Pages ju nedostanú.
       - run: cp preview/_worker.js dist/_worker.js
       # D-272: nasadzuje sa do produkčnej vetvy projektu (main), teda do prostredia Production s PREVIEW_PASSWORD.
