@@ -56,7 +56,7 @@ function TrialNotice({ section }: { section?: SectionId }) {
 export function Shell({ children, nav }: { children: React.ReactNode; nav?: SectionId }) {
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
-      <h1 style={{ fontSize: "var(--font-title)" }}>Finančná sloboda</h1>
+      <h1 style={{ fontSize: "var(--font-title)" }}>Compaven</h1>
       <TrialNotice section={nav} />
       {typeof navigator !== "undefined" && isIosOtherBrowser(navigator.userAgent) && !isStandalone() && (
         <p role="note" style={{ background: "var(--ok-bg)", padding: 10, borderRadius: 6, fontSize: "var(--font-small)" }}>

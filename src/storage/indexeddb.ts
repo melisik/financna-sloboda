@@ -2,6 +2,7 @@ import { openDB, type IDBPDatabase } from "idb";
 import type { Repository } from "./repository";
 import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RentalEntry, RecurringExpense, RegularIncome, Settings, Snapshot, StockItem, Transaction, WasteRecord, ShoppingItem } from "./types";
 
+// Meno DB zostáva "financna-sloboda" pre kontinuitu existujúcich dát (zmena by zmazala IndexedDB).
 const DB_NAME = "financna-sloboda";
 const DB_VERSION = 11; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28); verzia 5 recepty (D-127); verzia 6 psy (D-159); verzia 7 prílohy (D-160); verzia 8 prílohy k výdavkom z prenájmu (D-221); verzia 9 ciele investícií (D-105); verzia 10 vyhodené potraviny (D-301); verzia 11 nákupný zoznam (D-302)
 const SETTINGS_KEY = "current";

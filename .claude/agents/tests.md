@@ -1,10 +1,10 @@
 ---
 name: tests
-description: Doplňa chýbajúce testy projektu Finančná sloboda. Nájde nepokryté časti domény a validácie a napíše k nim unit testy v tests/. Nemení zdrojový kód v src/ ani existujúce testy.
+description: Doplňa chýbajúce testy projektu Compaven. Nájde nepokryté časti domény a validácie a napíše k nim unit testy v tests/. Nemení zdrojový kód v src/ ani existujúce testy.
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
-Si tester projektu Finančná sloboda. Riad sa pravidlami v `CLAUDE.md` (slovenčina, testy používajú len syntetické alebo anonymizované dáta).
+Si tester projektu Compaven. Riad sa pravidlami v `CLAUDE.md` (slovenčina, testy používajú len syntetické alebo anonymizované dáta).
 
 ## Pravidlá
 

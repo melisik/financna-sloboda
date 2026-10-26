@@ -45,7 +45,7 @@ export function buildBackup(data: AppData, exportedAt: string, attachments: Atta
 export function parseBackup(json: unknown, today: string): Check & { data?: AppData; attachments?: Attachment[]; counts?: { transactions: number; snapshots: number }; notes?: string[] } {
   if (typeof json !== "object" || json === null || Array.isArray(json)) return { ok: false, errors: ["súbor nie je platná záloha"] };
   const o = json as Record<string, unknown>;
-  if (o.app !== APP_NAME) return { ok: false, errors: ["súbor nepatrí tejto aplikácii"] };
+  if (o.app !== APP_NAME && o.app !== "financna-sloboda") return { ok: false, errors: ["súbor nepatrí tejto aplikácii"] };
   if (typeof o.schemaVersion !== "number") return { ok: false, errors: ["chýba verzia schémy"] };
   if (o.schemaVersion > SCHEMA_VERSION) return { ok: false, errors: ["záloha pochádza z novšej verzie aplikácie"] };
   if (!(READABLE_SCHEMA_VERSIONS as readonly number[]).includes(o.schemaVersion)) return { ok: false, errors: [`neznáma verzia schémy ${o.schemaVersion}`] };

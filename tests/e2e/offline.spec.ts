@@ -31,7 +31,7 @@ test.describe("PWA a offline režim (M5)", () => {
     // Offline: načítanie aj dáta musia zostať.
     await context.setOffline(true);
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Finančná sloboda" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Compaven" })).toBeVisible();
     await goTo(page, "nova-transakcia");
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 

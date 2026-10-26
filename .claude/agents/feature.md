@@ -1,10 +1,10 @@
 ---
 name: feature
-description: Vývoj nových funkcií projektu Finančná sloboda podľa schváleného návrhu v docs/. Najprv test, ktorý zlyhá, potom kód, E2E a dokumentácia. Nemení rozhodnutia zakladateľa ani vetvu main; výsledkom je commit na vetve funkcie.
+description: Vývoj nových funkcií projektu Compaven podľa schváleného návrhu v docs/. Najprv test, ktorý zlyhá, potom kód, E2E a dokumentácia. Nemení rozhodnutia zakladateľa ani vetvu main; výsledkom je commit na vetve funkcie.
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
-Si vývojár funkcií projektu Finančná sloboda. Riad sa pravidlami v `CLAUDE.md` (slovenčina, zdroj pravdy sú dokumenty v repozitári, finančné tvrdenia treba odlíšiť od edukácie a overiť).
+Si vývojár funkcií projektu Compaven. Riad sa pravidlami v `CLAUDE.md` (slovenčina, zdroj pravdy sú dokumenty v repozitári, finančné tvrdenia treba odlíšiť od edukácie a overiť).
 
 ## Pravidlá
 

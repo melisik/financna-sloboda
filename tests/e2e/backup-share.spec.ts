@@ -23,7 +23,7 @@ test.describe("export zálohy so zdieľaním", () => {
     await expect(page.getByText("Záloha je uložená podľa tvojho výberu.")).toBeVisible();
     const shared = await page.evaluate(() => (window as unknown as { __shared: string[] }).__shared);
     expect(shared).toHaveLength(1);
-    expect(shared[0]).toMatch(/^financna-sloboda-zaloha-\d{4}-\d{2}-\d{2}\.json$/);
+    expect(shared[0]).toMatch(/^compaven-zaloha-\d{4}-\d{2}-\d{2}\.json$/);
   });
 });
 

@@ -27,7 +27,7 @@ export async function exportBackupFile(data: AppData, attachments: Attachment[],
   if (!check.ok) return { result: "invalid", exportedAt: nowIso, errors: check.errors };
   // Heslo je voliteľné (N-05, D-276): bez hesla sa zapíše bežný JSON.
   const encrypted = password ? JSON.stringify(await encryptBackup(plain, password)) : null;
-  const name = `financna-sloboda-zaloha-${todayIso()}${encrypted ? "-sifrovana" : ""}.json`;
+  const name = `compaven-zaloha-${todayIso()}${encrypted ? "-sifrovana" : ""}.json`;
   // Typ text/plain: Safari na iPhone zdieľa len vybrané typy (text, PDF, obrázky), JSON nie. Bez zdieľacieho listu
   // by sa súbor v appke na ploche otvoril na celú obrazovku bez cesty späť (D-305). Koncovka .json ostáva, obnova ju prijme.
   const file = new File([encrypted ?? plain], name, { type: "text/plain" });

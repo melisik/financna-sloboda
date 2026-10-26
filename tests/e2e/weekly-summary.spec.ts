@@ -11,7 +11,7 @@ test.describe("týždenný súhrn výdavkov", () => {
       page.waitForEvent("download"),
       page.getByRole("button", { name: "Uložiť týždenný súhrn" }).click(),
     ]);
-    expect(download.suggestedFilename()).toMatch(/^financna-sloboda-tyzden-\d{4}-\d{2}-\d{2}\.txt$/);
+    expect(download.suggestedFilename()).toMatch(/^compaven-tyzden-\d{4}-\d{2}-\d{2}\.txt$/);
     const text = await readFile((await download.path())!, "utf8");
     expect(text).toContain("Týždenný súhrn výdavkov");
     expect(text).toContain("Výdavky spolu: 0,00 €");

@@ -1,4 +1,4 @@
-# Finančná sloboda (pracovný názov) – projektový kontext
+# Compaven (pracovný názov) – projektový kontext
 
 ## Stav projektu
 Fáza: MVP je zadefinovaný rozhodnutiami (`decisions/Decisions.md`, D-001 až D-336) a čiastočne implementovaný. Cieľ, cieľová skupina a rozsah MVP vyplývajú z týchto rozhodnutí; nie sú to predpoklady. Kód je v `src/` (doménová vrstva, úložisko, UI), testy v `tests/` a `tests/e2e/`.

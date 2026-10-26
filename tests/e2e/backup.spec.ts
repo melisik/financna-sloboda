@@ -20,7 +20,7 @@ test.describe("záloha v UI (FR-17, FR-18)", () => {
       page.waitForEvent("download"),
       page.getByRole("button", { name: "Uložiť zálohu" }).click(),
     ]);
-    expect(download.suggestedFilename()).toMatch(/^financna-sloboda-zaloha-\d{4}-\d{2}-\d{2}\.json$/);
+    expect(download.suggestedFilename()).toMatch(/^compaven-zaloha-\d{4}-\d{2}-\d{2}\.json$/);
     const backupPath = await download.path();
 
     // Neplatný JSON: chyba a dáta ostanú.

@@ -1,4 +1,4 @@
-# Finančná sloboda (pracovný názov)
+# Compaven (pracovný názov)
 
 Projekt je vo fáze MVP (stav k 2026-10-23, pozri `CLAUDE.md`): rozhodnutia sú v `decisions/Decisions.md`, kód je čiastočne implementovaný. Názov je pracovný a určite sa zmení.
 

@@ -174,7 +174,7 @@ function WeeklySummaryBlock({ transactions, today, thresholdCents }: { transacti
   const s = weeklySummary(transactions, today, thresholdCents);
   const save = async () => {
     try {
-      await saveTextFile(`financna-sloboda-tyzden-${today}.txt`, weeklySummaryLines(s).join("\n"));
+      await saveTextFile(`compaven-tyzden-${today}.txt`, weeklySummaryLines(s).join("\n"));
       setErr(null);
     } catch {
       setErr("Súhrn sa nepodarilo uložiť. Skús to znova.");
