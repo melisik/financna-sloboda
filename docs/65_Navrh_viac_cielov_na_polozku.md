@@ -50,3 +50,7 @@ Odhad: 1 deň.
 1. **Percentá (A, odporúčam)**, pevné sumy (B), alebo pevná suma + zvyšok (C)?
 2. Pri položke bez rozdelenia je **zvyšok „bez cieľa“ (odporúčam)**, alebo má zvyšok automaticky ísť do posledného cieľa?
 3. Súhlasíš so zmenou D-258 („najviac v jednom cieli“) a s migráciou starých záloh?
+
+## 8. Doplnenie 2026-10-26 (D-335)
+
+Zakladateľ k otázke 2: nepriradený zvyšok má ísť automaticky do Dôchodku. Implementované ako príznak cieľa „Sem patrí všetko, čo nepatrí do iného cieľa“ (najviac jeden cieľ); bez takého cieľa zostáva zvyšok „bez cieľa“.

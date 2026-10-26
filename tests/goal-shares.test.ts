@@ -102,3 +102,40 @@ describe("záloha a validácia podielov (D-334)", () => {
     expect(bad.ok).toBe(false);
   });
 });
+
+// D-335: cieľ „zvyšok“ (zakladateľ: čo nepatrí nikam, je automaticky Dôchodok).
+describe("cieľ, do ktorého patrí nepriradený zvyšok (D-335)", () => {
+  const rest = (id: string, target: number): InvestmentGoal => ({ ...goal(id, target), receivesRest: true });
+  it("položka bez cieľa aj nepriradený zvyšok idú do cieľa zvyšku; „bez cieľa“ nevznikne", () => {
+    const positions = [pos("a", 1_000), pos("b", 1_000, { goalShares: [{ goalId: "auto", percent: 30 }] })];
+    const groups = groupByGoal(positions, [rest("dochodok", 5_000), goal("auto", 1_000)]);
+    expect(groups.map((g) => [g.goal?.id, g.totalCents])).toEqual([["dochodok", 100_000 + 70_000], ["auto", 30_000]]);
+    expect(groups.some((g) => g.goal === null)).toBe(false);
+    expect(groups[0].parts.map((p) => [p.position.id, p.percent])).toEqual([["a", 100], ["b", 70]]);
+  });
+  it("výslovný podiel v cieli zvyšku sa spočíta s nepriradeným zvyškom", () => {
+    const groups = groupByGoal([pos("a", 1_000, { goalShares: [{ goalId: "dochodok", percent: 20 }, { goalId: "auto", percent: 30 }] })], [rest("dochodok", 5_000), goal("auto", 1_000)]);
+    expect(groups.map((g) => g.totalCents)).toEqual([70_000, 30_000]);
+    expect(groups[0].parts[0].percent).toBe(70);
+  });
+  it("podiel na zmazaný cieľ ide tiež do cieľa zvyšku", () => {
+    const groups = groupByGoal([pos("a", 1_000, { goalShares: [{ goalId: "zmazany", percent: 50 }] })], [rest("dochodok", 5_000)]);
+    expect(groups[0].totalCents).toBe(100_000);
+  });
+  it("INVARIANT: súčet cieľov je vždy celá hodnota investícií aj s cieľom zvyšku", () => {
+    fc.assert(fc.property(fc.array(fc.record({ v: fc.integer({ min: 0, max: 5_000_000 }), p1: fc.integer({ min: 0, max: 60 }), p2: fc.integer({ min: 0, max: 40 }) }), { maxLength: 8 }), (items) => {
+      const positions = items.map((it, i) => pos(`p${i}`, it.v / 100, { goalShares: [...(it.p1 ? [{ goalId: "g1", percent: it.p1 }] : []), ...(it.p2 ? [{ goalId: "g2", percent: it.p2 }] : [])] }));
+      const total = positions.reduce((s, p) => s + positionValueCents(p), 0);
+      const groups = groupByGoal(positions, [goal("g1", 1), rest("g2", 1)]);
+      expect(groups.reduce((s, g) => s + g.totalCents, 0)).toBe(total);
+      expect(groups.some((g) => g.goal === null)).toBe(false);
+    }), { numRuns: 200 });
+  });
+  it("validácia: receivesRest je logická hodnota a v zálohe je najviac jeden takýto cieľ", async () => {
+    const { validateGoal } = await import("../src/storage/validate");
+    expect(validateGoal({ ...goal("g1", 10), receivesRest: true })).toEqual([]);
+    expect(validateGoal({ ...goal("g1", 10), receivesRest: "ano" }).join()).toMatch(/zvyšku/);
+    const two = parseBackup({ app: "financna-sloboda", schemaVersion: 16, exportedAt: "2026-10-26T10:00:00Z", settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [], recurringExpenses: [], dogs: [], stockItems: [], recipes: [], wasteRecords: [], shoppingItems: [], goals: [rest("a", 10), rest("b", 10)] }, "2026-10-26");
+    expect(two.ok).toBe(false);
+  });
+});

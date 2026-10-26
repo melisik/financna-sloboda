@@ -187,6 +187,7 @@ export interface InvestmentGoal {
   id: string;
   name: string; // max 80 znakov
   targetCents: number; // cieľová suma v centoch, kladná celá
+  receivesRest?: boolean; // sem patrí všetko, čo nie je priradené inému cieľu (D-335); najviac jeden cieľ
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }

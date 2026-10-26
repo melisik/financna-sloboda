@@ -110,7 +110,7 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
         ) : (
           <div key={g.id} style={{ marginBottom: 6 }}>
             <p style={{ margin: "4px 0" }}>
-              <strong>{g.name}</strong> · cieľová suma {eur(g.targetCents)}
+              <strong>{g.name}</strong> · cieľová suma {eur(g.targetCents)}{g.receivesRest ? " · prijíma všetko nepriradené" : ""}
             </p>
             {goalConfirm === g.id ? (
               <div>
@@ -334,7 +334,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
             {goals.map((g) => (
               <Field key={g.id} label={`Podiel v cieli „${g.name}“ (%)`} value={shares[g.id] ?? ""} onChange={(v) => setShares({ ...shares, [g.id]: v })} />
             ))}
-            <p style={hintStyle}>Jedna investícia môže byť vo viacerých cieľoch; súčet podielov je najviac 100 %, zvyšok je bez cieľa.</p>
+            <p style={hintStyle}>Jedna investícia môže byť vo viacerých cieľoch; súčet podielov je najviac 100 %. {goals.some((g) => g.receivesRest) ? `Zvyšok patrí cieľu „${goals.find((g) => g.receivesRest)?.name}“.` : "Zvyšok je bez cieľa."}</p>
           </fieldset>
         ) : <p style={hintStyle}>Cieľ vytvoríš v časti Ciele vyššie.</p>}
         <label style={{ display: "block", marginBottom: 8 }}>
@@ -356,6 +356,7 @@ function GoalForm({ repo, positions, goals, initial = null, onDone, onCancel }: 
   const [name, setName] = useState(initial?.name ?? "");
   const [target, setTarget] = useState<NumIn>(initial ? initial.targetCents / 100 : "");
   // Položky cieľa a ich podiel v %: kľúč je v zozname, keď položka do cieľa patrí (D-331, D-334).
+  const [receivesRest, setReceivesRest] = useState(initial?.receivesRest === true);
   const [percents, setPercents] = useState<Record<string, NumIn>>(() => Object.fromEntries(positions.flatMap((p) => { const s = initial ? positionShares(p).find((x) => x.goalId === initial.id) : undefined; return s ? [[p.id, s.percent]] : []; })));
   const [err, setErr] = useState<string | null>(null);
   // Voľné percento položky: 100 mínus podiely v iných cieľoch.
@@ -368,9 +369,11 @@ function GoalForm({ repo, positions, goals, initial = null, onDone, onCancel }: 
     const sum = asNum(target);
     if (Number.isNaN(sum) || !(sum > 0)) return setErr("Vyplň cieľovú sumu väčšiu ako 0.");
     const now = new Date().toISOString();
-    const goal: InvestmentGoal = initial
+    const base: InvestmentGoal = initial
       ? { ...initial, name: trimmed, targetCents: cents(sum), updatedAt: now }
       : { id: uid(), name: trimmed, targetCents: cents(sum), createdAt: now, updatedAt: now };
+    const { receivesRest: _was, ...withoutRest } = base;
+    const goal: InvestmentGoal = receivesRest ? { ...withoutRest, receivesRest: true } : withoutRest;
     const wanted: Record<string, number> = {};
     for (const p of positions) {
       const v = percents[p.id];
@@ -380,6 +383,8 @@ function GoalForm({ repo, positions, goals, initial = null, onDone, onCancel }: 
     if (applied.error) return setErr(applied.error);
     try {
       await repo.saveGoal(goal);
+      // Zvyšok prijíma najviac jeden cieľ (D-335): ostatným sa príznak zruší.
+      if (receivesRest) for (const other of goals) if (other.id !== goal.id && other.receivesRest) { const { receivesRest: _r, ...rest } = other; await repo.saveGoal({ ...rest, updatedAt: now }); }
       for (const p of applied.changed) await repo.savePosition(p);
       onDone();
     } catch {
@@ -392,6 +397,11 @@ function GoalForm({ repo, positions, goals, initial = null, onDone, onCancel }: 
       <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť cieľ" : "Nový cieľ"}</h4>
       <Field label="Názov cieľa" value={name} type="text" onChange={setName} maxLength={80} />
       <Field label="Cieľová suma (€)" value={target} onChange={setTarget} />
+      <label style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44 }}>
+        <input type="checkbox" checked={receivesRest} onChange={(e) => setReceivesRest(e.target.checked)} />
+        <span>Sem patrí všetko, čo nepatrí do iného cieľa</span>
+      </label>
+      {receivesRest && goals.some((g) => g.id !== initial?.id && g.receivesRest) && <p style={hintStyle}>Zvyšok doteraz patril cieľu „{goals.find((g) => g.id !== initial?.id && g.receivesRest)?.name}“; po uložení bude patriť tomuto cieľu.</p>}
       {positions.length > 0 ? (
         <fieldset style={{ border: "none", padding: 0, margin: "8px 0" }}>
           <legend>Ktoré položky patria do cieľa?</legend>

@@ -292,7 +292,8 @@ export function validateAttachmentRecord(a: unknown, label = "príloha"): string
 export function validateGoal(g: unknown, label = "cieľ"): string[] {
   if (typeof g !== "object" || g === null || Array.isArray(g)) return [`${label}: musí byť objekt`];
   const o = g as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "targetCents", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "targetCents", "receivesRest", "createdAt", "updatedAt"], label);
+  if (o.receivesRest !== undefined && typeof o.receivesRest !== "boolean") errors.push(`${label}: príznak zvyšku musí byť áno alebo nie`);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
   if (typeof o.targetCents !== "number" || !Number.isInteger(o.targetCents) || o.targetCents <= 0) errors.push(`${label}: cieľová suma musí byť celé kladné číslo v centoch`);
@@ -463,6 +464,7 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
     if (Array.isArray(shares) && shares.some((s) => typeof s === "object" && s !== null && !goalIds.has((s as { goalId?: unknown }).goalId))) errors.push("záloha: položka odkazuje na neznámy cieľ");
   }
   if (new Set(goalIds).size !== goalList.length) errors.push("záloha: duplicitné id v cieľoch");
+  if (goalList.filter((g) => (g as { receivesRest?: unknown }).receivesRest === true).length > 1) errors.push("záloha: najviac jeden cieľ môže prijímať nepriradený zvyšok");
   for (const [name, list] of [["transakcie", ids(o.transactions as unknown[])], ["vyhodnotenia", ids(o.snapshots as unknown[])], ["majetok", ids(propertyList)], ["aktíva", ids(assetList)], ["investície", ids(investmentList)], ["záväzky", ids(liabilityList)], ["príjmy", ids(incomeList)], ["rozpočty", ids(budgetList)], ["pravidelné výdavky", ids(recurringList)], ["sklad", ids(stockList)], ["psy", ids(dogList)]] as const) {
     if (new Set(list).size !== list.length) errors.push(`záloha: duplicitné id v ${name}`);
   }

@@ -64,6 +64,32 @@ test.describe("ciele investícií (D-331)", () => {
     await expect(page.getByText(/Cieľ B: 300,00 € z 1\s000,00 € · 30 %/)).toBeVisible();
   });
 
+  test("cieľ „zvyšok“: všetko nepriradené patrí do Dôchodku (D-335)", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "investicie");
+    await addPosition(page, "ETF syntetický", "10", "50");
+    await addPosition(page, "Fond syntetický", "5", "100");
+    await page.getByRole("button", { name: "Pridať cieľ" }).click();
+    await page.getByLabel("Názov cieľa").fill("Dôchodok");
+    await page.getByLabel("Cieľová suma (€)").fill("1000");
+    await page.getByRole("checkbox", { name: "Sem patrí všetko, čo nepatrí do iného cieľa" }).check();
+    await page.getByRole("button", { name: "Uložiť cieľ" }).click();
+    await expect(page.getByText(/Dôchodok: 1\s000,00 € · cieľ dosiahnutý/)).toBeVisible();
+    await expect(page.getByText(/Bez cieľa/)).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Pridať cieľ" }).click();
+    await page.getByLabel("Názov cieľa").fill("Auto");
+    await page.getByLabel("Cieľová suma (€)").fill("1000");
+    await page.getByRole("checkbox", { name: /Fond syntetický/ }).check();
+    await page.getByLabel(/Podiel položky „Fond syntetický“ v tomto cieli/).fill("40");
+    await page.getByRole("button", { name: "Uložiť cieľ" }).click();
+    await expect(page.getByText(/Dôchodok: 800,00 € · 80 % z 1\s000,00 €/)).toBeVisible();
+    await expect(page.getByText(/Auto: 200,00 € · 20 % z 1\s000,00 €/)).toBeVisible();
+    await expect(page.getByText(/Bez cieľa/)).toHaveCount(0);
+    await goTo(page, "prehlad");
+    await expect(page.getByText(/Dôchodok: 800,00 € z 1\s000,00 € · 80 %/)).toBeVisible();
+  });
+
   test("súčet podielov nad 100 % sa odmietne s vysvetlením", async ({ page }) => {
     await openApp(page);
     await goTo(page, "investicie");

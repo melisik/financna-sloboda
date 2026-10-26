@@ -65,18 +65,28 @@ export const shareCents = (p: Position, percent: number): number => Math.floor((
  */
 export function groupByGoal(positions: Position[], goals: InvestmentGoal[]): GoalGroup[] {
   const known = new Set(goals.map((g) => g.id));
+  const restGoal = goals.find((g) => g.receivesRest === true);
+  const restOf = (position: Position) => {
+    const assigned = positionShares(position).filter((s) => known.has(s.goalId));
+    return {
+      cents: positionValueCents(position) - assigned.reduce((sum, s) => sum + shareCents(position, s.percent), 0),
+      percent: 100 - assigned.reduce((sum, s) => sum + s.percent, 0),
+    };
+  };
   const groups: GoalGroup[] = goals.map((goal) => {
     const parts = positions.flatMap((position) => {
       const s = positionShares(position).find((x) => x.goalId === goal.id);
-      return s ? [{ position, percent: s.percent, cents: shareCents(position, s.percent) }] : [];
+      // Cieľ zvyšku (D-335) dostane aj nepriradenú časť každej položky.
+      const r = goal.id === restGoal?.id ? restOf(position) : { cents: 0, percent: 0 };
+      if (!s && r.cents <= 0) return [];
+      return [{ position, percent: (s?.percent ?? 0) + r.percent, cents: (s ? shareCents(position, s.percent) : 0) + r.cents }];
     });
     return { goal, positions: parts.map((x) => x.position), parts, totalCents: parts.reduce((sum, x) => sum + x.cents, 0) };
   });
+  if (restGoal) return groups;
   const rest = positions.flatMap((position) => {
-    const assigned = positionShares(position).filter((s) => known.has(s.goalId));
-    const cents = positionValueCents(position) - assigned.reduce((sum, s) => sum + shareCents(position, s.percent), 0);
-    const percent = 100 - assigned.reduce((sum, s) => sum + s.percent, 0);
-    return cents > 0 ? [{ position, percent, cents }] : [];
+    const r = restOf(position);
+    return r.cents > 0 ? [{ position, percent: r.percent, cents: r.cents }] : [];
   });
   if (rest.length > 0) groups.push({ goal: null, positions: rest.map((x) => x.position), parts: rest, totalCents: rest.reduce((sum, x) => sum + x.cents, 0) });
   return groups;
