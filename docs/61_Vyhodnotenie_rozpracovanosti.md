@@ -1,6 +1,6 @@
 # 61 – Vyhodnotenie: čo ostalo rozpracované a nedokončené (2026-10-26)
 
-> Stav: **vyhodnotenie na rozhodnutie**. Kód sa nemení. Zostavil autor kódu z `docs/06` (roadmapa), `docs/04` (FR), `docs/07`, `docs/08` (backlog), `docs/60`, `decisions/Decisions.md` (D-001 až D-324) a kódu na `main` (`f7be2c3`). Na rozdiel od `docs/60` (čo vidí tester) pokrýva celý vývoj: milníky, pilot, Fázu 2, brány a dokumentáciu. Čo nie je v dokumentoch, je označené ako predpoklad.
+> Stav: **rozhodnuté** (2026-10-26, D-325): 1 až 4 áno. Zostavil autor kódu z `docs/06` (roadmapa), `docs/04` (FR), `docs/07`, `docs/08` (backlog), `docs/60`, `decisions/Decisions.md` (D-001 až D-324) a kódu na `main` (`f7be2c3`). Na rozdiel od `docs/60` (čo vidí tester) pokrýva celý vývoj: milníky, pilot, Fázu 2, brány a dokumentáciu. Čo nie je v dokumentoch, je označené ako predpoklad.
 
 ## 1. Zhrnutie
 
