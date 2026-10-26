@@ -37,6 +37,7 @@ Pilot začal 2026-10-21. Plán pilota s týmto pravidlom schválil zakladateľ 2
   - Od 2026-10-25 neskoro večer (D-316, beh #132, `fcd518f`) obsahuje zmeny jadra do D-315.
   - Od 2026-10-25 v noci (D-319, beh #134, `a91e07c`) obsahuje zmeny jadra do D-318.
   - Od 2026-10-25 v noci (D-321, beh #136, `7e60628`) obsahuje zmeny jadra do D-320.
+  - Od 2026-10-26 (D-324, beh #138, `e7ef590`) obsahuje zmeny jadra do D-323.
 - **Súkromný náhľad pre testerov** (Cloudflare Pages z vetvy `claude/phase2-property-card`, s Fázou 2): od 2026-10-24 (D-270 až D-273). Obsahuje aj všetky zmeny z 2026-10-24.
 - Pri vyhodnotení pilota treba pri každom účastníkovi vedieť, ktorú verziu používal a od kedy.
 
