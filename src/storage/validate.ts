@@ -143,6 +143,25 @@ export function validateAsset(a: unknown, today: string, label = "aktívum"): st
   return errors;
 }
 
+function validateGoalShares(v: unknown, label: string): string[] {
+  if (!Array.isArray(v)) return [`${label}: podiely v cieľoch musia byť pole`];
+  const errors: string[] = [];
+  let sum = 0;
+  const seen = new Set<string>();
+  for (const s of v) {
+    if (typeof s !== "object" || s === null || Array.isArray(s)) { errors.push(`${label}: podiel v cieli musí byť objekt`); continue; }
+    const o = s as Record<string, unknown>;
+    errors.push(...unknownKeys(o, ["goalId", "percent"], `${label}: podiel v cieli`));
+    if (typeof o.goalId !== "string" || o.goalId.length === 0) errors.push(`${label}: podiel v cieli musí mať cieľ`);
+    else if (seen.has(o.goalId)) errors.push(`${label}: cieľ sa v podieloch opakuje`);
+    else seen.add(o.goalId);
+    if (typeof o.percent !== "number" || !Number.isInteger(o.percent) || o.percent < 1 || o.percent > 100) errors.push(`${label}: podiel v cieli je celé percento 1 až 100`);
+    else sum += o.percent;
+  }
+  if (sum > 100) errors.push(`${label}: súčet podielov v cieľoch je nad 100 %`);
+  return errors;
+}
+
 function validateProviderRef(v: unknown, label: string): string[] {
   if (typeof v !== "object" || v === null || Array.isArray(v)) return [`${label}: poskytovateľ musí byť objekt`];
   const o = v as Record<string, unknown>;
@@ -155,10 +174,11 @@ function validateProviderRef(v: unknown, label: string): string[] {
 export function validatePosition(p: unknown, today: string, label = "položka"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "kind", "quantity", "unitPrice", "currency", "fxToEur", "valueDate", "monthlyContributionCents", "taxRegime", "goalId", "provider", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "kind", "quantity", "unitPrice", "currency", "fxToEur", "valueDate", "monthlyContributionCents", "taxRegime", "goalId", "goalShares", "provider", "createdAt", "updatedAt"], label);
   if (o.provider !== undefined) errors.push(...validateProviderRef(o.provider, label));
   if (o.taxRegime !== undefined && !(TAX_REGIMES as readonly unknown[]).includes(o.taxRegime)) errors.push(`${label}: daňový režim musí byť z katalógu`);
   if (o.goalId !== undefined && (typeof o.goalId !== "string" || o.goalId.length === 0)) errors.push(`${label}: cieľ musí byť identifikátor`);
+  if (o.goalShares !== undefined) errors.push(...validateGoalShares(o.goalShares, label));
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
   if (!(INVESTMENT_KINDS as readonly unknown[]).includes(o.kind)) errors.push(`${label}: druh musí byť z katalógu`);
@@ -439,6 +459,8 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
   for (const p of investmentList) {
     const goalId = (p as { goalId?: unknown }).goalId;
     if (goalId !== undefined && !goalIds.has(goalId)) errors.push("záloha: položka odkazuje na neznámy cieľ");
+    const shares = (p as { goalShares?: unknown }).goalShares;
+    if (Array.isArray(shares) && shares.some((s) => typeof s === "object" && s !== null && !goalIds.has((s as { goalId?: unknown }).goalId))) errors.push("záloha: položka odkazuje na neznámy cieľ");
   }
   if (new Set(goalIds).size !== goalList.length) errors.push("záloha: duplicitné id v cieľoch");
   for (const [name, list] of [["transakcie", ids(o.transactions as unknown[])], ["vyhodnotenia", ids(o.snapshots as unknown[])], ["majetok", ids(propertyList)], ["aktíva", ids(assetList)], ["investície", ids(investmentList)], ["záväzky", ids(liabilityList)], ["príjmy", ids(incomeList)], ["rozpočty", ids(budgetList)], ["pravidelné výdavky", ids(recurringList)], ["sklad", ids(stockList)], ["psy", ids(dogList)]] as const) {

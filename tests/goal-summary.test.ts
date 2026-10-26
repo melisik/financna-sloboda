@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { goalSummaries, assignToGoal } from "../src/domain/investments";
+import { goalSummaries } from "../src/domain/investments";
 import type { InvestmentGoal, Position } from "../src/storage/types";
 
 // D-331: pokrok cieľov investícií na Prehľade a priradenie položiek pri tvorbe cieľa. Syntetické hodnoty.
@@ -17,18 +17,5 @@ describe("goalSummaries (D-331)", () => {
   it("prázdny cieľ má 0 % a 0 položiek; bez cieľov prázdny zoznam", () => {
     expect(goalSummaries([], [goal("g1", "Rezerva", 1000)])).toEqual([{ id: "g1", name: "Rezerva", totalCents: 0, targetCents: 100000, percent: 0, reached: false, count: 0 }]);
     expect(goalSummaries([pos("a", 10)], [])).toEqual([]);
-  });
-});
-
-describe("assignToGoal (D-331)", () => {
-  it("vráti len zmenené položky: pridané dostanú goalId, odobrané ho stratia, ostatné sa nedotknú", () => {
-    const positions = [pos("a", 1, "g1"), pos("b", 1), pos("c", 1, "g2"), pos("d", 1)];
-    const changed = assignToGoal(positions, "g1", ["b", "c"], "2026-10-26T10:00:00Z");
-    expect(changed.map((p) => [p.id, p.goalId])).toEqual([["a", undefined], ["b", "g1"], ["c", "g1"]]);
-    expect(changed.every((p) => p.updatedAt === "2026-10-26T10:00:00Z")).toBe(true);
-    expect("goalId" in changed[0]).toBe(false);
-  });
-  it("bez zmeny nevráti nič", () => {
-    expect(assignToGoal([pos("a", 1, "g1")], "g1", ["a"], "2026-10-26T10:00:00Z")).toEqual([]);
   });
 });

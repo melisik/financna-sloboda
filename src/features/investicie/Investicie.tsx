@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Repository } from "../../storage/repository";
 import { BALANCE_INVESTMENT_KINDS, INVESTMENT_KINDS, TAX_REGIMES, type InvestmentGoal, type InvestmentKind, type Position, type TaxRegime } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
-import { assignToGoal, goalProgress, groupByGoal, investmentsByKindCents, investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents, staleValuationNames } from "../../domain/investments";
+import { applyGoalShares, goalProgress, groupByGoal, investmentsByKindCents, investmentsTotalCents, monthlyContributionsTotalCents, positionShares, positionValueCents, staleValuationNames } from "../../domain/investments";
 import { TAX_CATALOG } from "../../domain/tax";
 import providerList from "../../data/nbsProviders.json";
 import type { Provider } from "../../domain/nbsProviders";
@@ -42,9 +42,10 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
   const removeGoal = async (id: string) => {
     try {
       for (const p of positions) {
-        if (p.goalId !== id) continue;
-        const { goalId: _goalId, ...detached } = p;
-        await repo.savePosition(detached);
+        if (!positionShares(p).some((s) => s.goalId === id)) continue;
+        const { goalId: _legacy, goalShares: _old, ...rest } = p;
+        const left = positionShares(p).filter((s) => s.goalId !== id);
+        await repo.savePosition({ ...rest, ...(left.length > 0 ? { goalShares: left } : {}) });
       }
       await repo.deleteGoal(id);
       setGoalConfirm(null);
@@ -143,7 +144,7 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
               </p>
             )}
             {g.goal && g.positions.length === 0 && <p style={{ color: "var(--muted)" }}>Zatiaľ žiadna položka v tomto cieli.</p>}
-            {g.positions.map((p) => (
+            {g.parts.map(({ position: p, percent, cents }) => (
         <div key={p.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}{p.provider ? ` · ${p.provider.name}` : ""}</p>
           {(BALANCE_INVESTMENT_KINDS as readonly string[]).includes(p.kind) ? (
@@ -158,6 +159,7 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
             </p>
           )}
           <p style={{ margin: "4px 0" }}>Hodnota: <strong>{eur(positionValueCents(p))}</strong> (k {dateSk(p.valueDate)})</p>
+          {percent < 100 && <p style={{ ...hintStyle, margin: "4px 0" }}>{g.goal ? `Podiel v tomto cieli: ${percent} % (${eur(cents)})` : `Nepriradené: ${percent} % (${eur(cents)})`}</p>}
           {confirmId === p.id ? (
             <div>
               <p>Naozaj zmazať položku „{p.name}“?</p>
@@ -202,6 +204,11 @@ function providerFromInput(input: string): { ico?: string; name: string } {
 }
 
 /** Výber poskytovateľa zo zoznamu firiem registra NBS alebo vlastný názov (D-329, docs/63, docs/64). Nie je to odporúčanie. */
+function goalSummaryText(goals: InvestmentGoal[], shares: Record<string, NumIn>): string {
+  const parts = goals.flatMap((g) => { const v = shares[g.id]; const n = v === undefined || v === "" ? 0 : asNum(v); return n > 0 ? [`${g.name} ${n} %`] : []; });
+  return parts.length > 0 ? parts.join(", ") : "bez cieľa";
+}
+
 function ProviderField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const hit = providerByName(value);
   return (
@@ -233,7 +240,8 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
   const [contribution, setContribution] = useState<NumIn>(initial?.monthlyContributionCents !== undefined ? initial.monthlyContributionCents / 100 : "");
   const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
   const [taxRegime, setTaxRegime] = useState<TaxRegime>(initial?.taxRegime ?? "nezadane");
-  const [goalId, setGoalId] = useState(initial?.goalId ?? "");
+  // Podiel v % pri každom cieli ako text poľa; prázdne alebo 0 = položka v cieli nie je (D-334).
+  const [shares, setShares] = useState<Record<string, NumIn>>(() => Object.fromEntries((initial ? positionShares(initial) : []).map((s) => [s.goalId, s.percent])));
   const [providerName, setProviderName] = useState(initial?.provider?.name ?? "");
   const [err, setErr] = useState<string | null>(null);
   const balance = (BALANCE_INVESTMENT_KINDS as readonly string[]).includes(kind);
@@ -256,6 +264,13 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
     if (Number.isNaN(vklad) || vklad < 0) return setErr("Mesačný vklad musí byť číslo 0 alebo viac.");
     const dateErr = checkDate(valueDate, today, "dátum ocenenia");
     if (dateErr.length) return setErr(dateErr[0]);
+    const goalShares = goals.flatMap((g) => {
+      const v = shares[g.id];
+      const n = v === undefined || v === "" ? 0 : asNum(v);
+      return n === 0 ? [] : [{ goalId: g.id, percent: n }];
+    });
+    if (goalShares.some((s) => !Number.isInteger(s.percent) || s.percent < 1 || s.percent > 100)) return setErr("Podiel v cieli je celé percento od 1 do 100.");
+    if (goalShares.reduce((sum, s) => sum + s.percent, 0) > 100) return setErr("Súčet podielov v cieľoch je nad 100 %.");
     if (providerName.trim().length > 120) return setErr("Poskytovateľ môže mať najviac 120 znakov.");
     const now = new Date().toISOString();
     const position: Position = {
@@ -271,7 +286,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
       updatedAt: now,
       ...(balance && vklad > 0 ? { monthlyContributionCents: cents(vklad) } : {}),
       taxRegime,
-      ...(goalId ? { goalId } : {}),
+      ...(goalShares.length > 0 ? { goalShares } : {}),
       ...(providerName.trim() !== "" ? { provider: providerFromInput(providerName) } : {}),
     };
     try {
@@ -312,14 +327,16 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
       <ProviderField value={providerName} onChange={setProviderName} />
       <Field label="Dátum ocenenia" value={valueDate} type="date" max={today} onChange={setValueDate} />
       {/* Cieľ a daňový režim sú zbalené so súhrnom (D-311). */}
-      <FoldBlock title="Cieľ a daňový režim" summary={[goalId ? (goals.find((g) => g.id === goalId)?.name ?? "cieľ") : "bez cieľa", ...(taxRegime !== "nezadane" ? [TAX_CATALOG[taxRegime].label] : [])].join(" · ")} openWhen={!!err} reopenOn={err}>
-        <label style={{ display: "block", marginBottom: 8 }}>
-          Cieľ (nepovinné)
-          <select aria-label="Cieľ položky" value={goalId} onChange={(e) => setGoalId(e.target.value)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
-            <option value="">Bez cieľa</option>
-            {goals.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-          </select>
-        </label>
+      <FoldBlock title="Cieľ a daňový režim" summary={[goalSummaryText(goals, shares), ...(taxRegime !== "nezadane" ? [TAX_CATALOG[taxRegime].label] : [])].join(" · ")} openWhen={!!err} reopenOn={err}>
+        {goals.length > 0 ? (
+          <fieldset style={{ border: "none", padding: 0, margin: "0 0 8px" }}>
+            <legend>Podiel položky v cieľoch (nepovinné)</legend>
+            {goals.map((g) => (
+              <Field key={g.id} label={`Podiel v cieli „${g.name}“ (%)`} value={shares[g.id] ?? ""} onChange={(v) => setShares({ ...shares, [g.id]: v })} />
+            ))}
+            <p style={hintStyle}>Jedna investícia môže byť vo viacerých cieľoch; súčet podielov je najviac 100 %, zvyšok je bez cieľa.</p>
+          </fieldset>
+        ) : <p style={hintStyle}>Cieľ vytvoríš v časti Ciele vyššie.</p>}
         <label style={{ display: "block", marginBottom: 8 }}>
           Daňový režim (len evidencia, nepočíta sa)
           <select aria-label="Daňový režim investície" value={taxRegime} onChange={(e) => setTaxRegime(e.target.value as TaxRegime)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
@@ -337,10 +354,12 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
 /** Cieľ investícií (D-105): nový alebo úprava názvu a cieľovej sumy. Cieľ nemení výpočet cieľa nezávislosti. */
 function GoalForm({ repo, positions, goals, initial = null, onDone, onCancel }: { repo: Repository; positions: Position[]; goals: InvestmentGoal[]; initial?: InvestmentGoal | null; onDone: () => void; onCancel: () => void }) {
   const [name, setName] = useState(initial?.name ?? "");
-  // Položky, ktoré do cieľa patria: výber hneď pri tvorbe cieľa, nie až v zbalenom bloku položky (D-331).
-  const [members, setMembers] = useState<string[]>(initial ? positions.filter((p) => p.goalId === initial.id).map((p) => p.id) : []);
   const [target, setTarget] = useState<NumIn>(initial ? initial.targetCents / 100 : "");
+  // Položky cieľa a ich podiel v %: kľúč je v zozname, keď položka do cieľa patrí (D-331, D-334).
+  const [percents, setPercents] = useState<Record<string, NumIn>>(() => Object.fromEntries(positions.flatMap((p) => { const s = initial ? positionShares(p).find((x) => x.goalId === initial.id) : undefined; return s ? [[p.id, s.percent]] : []; })));
   const [err, setErr] = useState<string | null>(null);
+  // Voľné percento položky: 100 mínus podiely v iných cieľoch.
+  const freePercent = (p: Position) => 100 - positionShares(p).filter((s) => s.goalId !== initial?.id && goals.some((g) => g.id === s.goalId)).reduce((sum, s) => sum + s.percent, 0);
 
   const save = async () => {
     const trimmed = name.trim();
@@ -352,9 +371,16 @@ function GoalForm({ repo, positions, goals, initial = null, onDone, onCancel }: 
     const goal: InvestmentGoal = initial
       ? { ...initial, name: trimmed, targetCents: cents(sum), updatedAt: now }
       : { id: uid(), name: trimmed, targetCents: cents(sum), createdAt: now, updatedAt: now };
+    const wanted: Record<string, number> = {};
+    for (const p of positions) {
+      const v = percents[p.id];
+      wanted[p.id] = v === undefined || v === "" ? 0 : asNum(v);
+    }
+    const applied = applyGoalShares(positions, goal.id, wanted, now);
+    if (applied.error) return setErr(applied.error);
     try {
       await repo.saveGoal(goal);
-      for (const p of assignToGoal(positions, goal.id, members, now)) await repo.savePosition(p);
+      for (const p of applied.changed) await repo.savePosition(p);
       onDone();
     } catch {
       setErr(STORAGE_ERROR);
@@ -370,12 +396,22 @@ function GoalForm({ repo, positions, goals, initial = null, onDone, onCancel }: 
         <fieldset style={{ border: "none", padding: 0, margin: "8px 0" }}>
           <legend>Ktoré položky patria do cieľa?</legend>
           {positions.map((p) => {
-            const other = p.goalId !== undefined && p.goalId !== initial?.id ? goals.find((g) => g.id === p.goalId) : undefined;
+            const checked = p.id in percents;
+            const free = freePercent(p);
             return (
-              <label key={p.id} style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44 }}>
-                <input type="checkbox" checked={members.includes(p.id)} onChange={(e) => setMembers(e.target.checked ? [...members, p.id] : members.filter((id) => id !== p.id))} />
-                <span>{p.name} · {eur(positionValueCents(p))}{other ? <span style={hintStyle}> (teraz v cieli „{other.name}“, presunie sa)</span> : null}</span>
-              </label>
+              <div key={p.id} style={{ margin: "4px 0" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44 }}>
+                  <input type="checkbox" checked={checked} onChange={(e) => {
+                    const next = { ...percents };
+                    if (e.target.checked) next[p.id] = free > 0 ? free : 100; else delete next[p.id];
+                    setPercents(next);
+                  }} />
+                  <span>{p.name} · {eur(positionValueCents(p))}{!checked && free < 100 ? <span style={hintStyle}> (voľných {free} %)</span> : null}</span>
+                </label>
+                {checked && (
+                  <Field label={`Podiel položky „${p.name}“ v tomto cieli (%)`} value={percents[p.id]} onChange={(v) => setPercents({ ...percents, [p.id]: v })} hint={free < 100 ? `voľných ${free} %, zvyšok je v iných cieľoch` : "100 % = celá položka"} />
+                )}
+              </div>
             );
           })}
         </fieldset>

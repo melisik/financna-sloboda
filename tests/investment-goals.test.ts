@@ -79,6 +79,6 @@ describe("ciele investícií: záloha", () => {
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     expect(parsed.data?.goals).toEqual([goal]);
-    expect(parsed.data?.investments[0].goalId).toBe("g1");
+    expect(parsed.data?.investments[0].goalShares).toEqual([{ goalId: "g1", percent: 100 }]); // staré goalId sa prevedie na podiel 100 % (D-334)
   });
 });

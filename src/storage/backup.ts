@@ -1,4 +1,5 @@
 import { validateAppData, type Check } from "./validate";
+import { normalizePosition } from "../domain/investments";
 import { APP_NAME, READABLE_SCHEMA_VERSIONS, SCHEMA_VERSION, type AppData, type Attachment, type AttachmentRecord } from "./types";
 import { decodeAttachmentRecord } from "./attachments";
 import { validateAttachmentRecord as validateAttachmentRecordLocal } from "./validate";
@@ -22,7 +23,7 @@ export function buildBackup(data: AppData, exportedAt: string, attachments: Atta
     snapshots: data.snapshots,
     properties: data.properties,
     assets: data.assets,
-    investments: data.investments,
+    investments: data.investments.map(normalizePosition),
     liabilities: data.liabilities,
     incomes: data.incomes,
     recurringExpenses: data.recurringExpenses,
@@ -92,5 +93,7 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
     }
   }
   if (errors.length) return { ok: false, errors };
+  // Záloha v15 a staršia má jeden cieľ pri položke (goalId); prevedie sa na podiely (D-334).
+  if (v.data) v.data = { ...v.data, investments: v.data.investments.map(normalizePosition) };
   return { ok: true, data: v.data, attachments, counts: { transactions: v.data!.transactions.length, snapshots: v.data!.snapshots.length }, notes };
 }

@@ -21,4 +21,4 @@ Každý zmätok jednou vetou, bez reálnych súm a osobných údajov. Riadky do 
 | 2026-10-25 | Transakcie | Pridať do skladu sa po uložení neukázalo (vypnutý modul Sklad). | opravené D-317 (veta o module) |
 | 2026-10-25 | Transakcie | Úprava množstva vyžadovala zmazať a znova zadať položku. | opravené D-317 (+ a −) |
 | 2026-10-26 | Investície | Odkaz „Overiť v registri NBS“ sa na iPhone otvoril až po dlhšom pridržaní; pri Trading 212 odkaz nebol. | opravené D-333 |
-| 2026-10-26 | Investície | Jednu investíciu sa dá priradiť len k jednému cieľu, ale treba ju rozdeliť na viac cieľov. | návrh docs/65 |
+| 2026-10-26 | Investície | Jednu investíciu sa dá priradiť len k jednému cieľu, ale treba ju rozdeliť na viac cieľov. | opravené D-334 |

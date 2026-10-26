@@ -152,6 +152,12 @@ export type InvestmentKind = (typeof INVESTMENT_KINDS)[number];
 export const TAX_REGIMES = ["nezadane", "zdanene", "oslobodene"] as const;
 export type TaxRegime = (typeof TAX_REGIMES)[number];
 
+/** Podiel položky v cieli investícií (D-334): celé percento 1 až 100. */
+export interface GoalShare {
+  goalId: string;
+  percent: number;
+}
+
 /** Poskytovateľ investície: zo zoznamu NBS (s IČO) alebo vlastný názov (D-329, docs/63). */
 export interface ProviderRef {
   ico?: string; // 6 až 8 číslic, len pri výbere zo zoznamu NBS
@@ -169,7 +175,8 @@ export interface Position {
   valueDate: string; // dátum ocenenia, YYYY-MM-DD
   monthlyContributionCents?: number; // mesačný vklad, len pri treťom pilieri; len na zobrazenie (D-102, D-105)
   taxRegime?: TaxRegime; // daňový režim (FR-24); bez hodnoty = nezadané
-  goalId?: string; // cieľ, do ktorého položka patrí (D-105); bez hodnoty = bez cieľa
+  goalId?: string; // STARÉ (D-105, D-258): jeden cieľ; čítať cez positionShares, zapisuje sa goalShares (D-334)
+  goalShares?: GoalShare[]; // podiely položky v cieľoch v % (D-334); súčet najviac 100, zvyšok je bez cieľa
   provider?: ProviderRef; // u koho je investícia (D-329); nepovinné
   createdAt: string; // ISO
   updatedAt: string; // ISO

@@ -1,6 +1,6 @@
 # 65 – Návrh: jedna investícia na viac cieľov
 
-> Stav: **návrh na schválenie** (2026-10-26). Kód sa nemení. Podnet: test náhľadu zakladateľom: „jednu investíciu viem alokovať len na 1 cieľ; ak mám vyššiu investíciu, potrebujem ju alokovať na viacero cieľov“. Mení D-258 („položka je najviac v jednom cieli“). D-153: bez zmeny výpočtu (ciele sú len zobrazenie, D-258).
+> Stav: **schválené a implementované** (2026-10-26, D-334): percentá, zvyšok je „bez cieľa“, staré zálohy sa prevedú. Podnet: test náhľadu zakladateľom: „jednu investíciu viem alokovať len na 1 cieľ; ak mám vyššiu investíciu, potrebujem ju alokovať na viacero cieľov“. Mení D-258 („položka je najviac v jednom cieli“). D-153: bez zmeny výpočtu (ciele sú len zobrazenie, D-258).
 
 ## 1. Problém
 

@@ -1,4 +1,4 @@
-import type { InvestmentGoal, Position } from "./model/entities";
+import type { GoalShare, InvestmentGoal, Position } from "./model/entities";
 import { fullMonthsBetween } from "./dates";
 
 /** Hodnota položky v centoch: počet × cena × kurz k euru (D-101). */
@@ -37,17 +37,48 @@ export function staleValuationNames(positions: Position[], today: string, months
 export interface GoalGroup {
   goal: InvestmentGoal | null;
   positions: Position[];
+  /** Časti položiek v skupine: podiel v % a hodnota (D-334). */
+  parts: { position: Position; percent: number; cents: number }[];
   totalCents: number;
 }
 
-/** Zoskupí položky podľa cieľov v poradí, v akom sú ciele. Skupina bez cieľa vznikne, len ak sú takéto položky (D-105). */
+/** Podiely položky v cieľoch; staré `goalId` sa číta ako 100 % (D-334). */
+export function positionShares(p: Position): GoalShare[] {
+  if (p.goalShares) return p.goalShares;
+  return p.goalId ? [{ goalId: p.goalId, percent: 100 }] : [];
+}
+
+/** Prevedie staré `goalId` na `goalShares` (záloha v15 a staršie, D-334). */
+export function normalizePosition(p: Position): Position {
+  if (p.goalId === undefined) return p;
+  const { goalId, ...rest } = p;
+  return p.goalShares ? rest : { ...rest, goalShares: [{ goalId, percent: 100 }] };
+}
+
+/** Časť hodnoty položky pre podiel: zaokrúhlené nadol, aby súčet cieľov nikdy neprekročil hodnotu položky (D-334). */
+export const shareCents = (p: Position, percent: number): number => Math.floor((positionValueCents(p) * percent) / 100);
+
+/**
+ * Zoskupí položky podľa cieľov v poradí, v akom sú ciele; položka rozdelená na viac cieľov je v každom svojom cieli
+ * s podielom. Skupina bez cieľa je nepriradený zvyšok (aj podiel na zmazaný cieľ) a vznikne, len ak nejaký je (D-105, D-334).
+ * Súčet všetkých skupín je vždy celá hodnota investícií.
+ */
 export function groupByGoal(positions: Position[], goals: InvestmentGoal[]): GoalGroup[] {
+  const known = new Set(goals.map((g) => g.id));
   const groups: GoalGroup[] = goals.map((goal) => {
-    const own = positions.filter((p) => p.goalId === goal.id);
-    return { goal, positions: own, totalCents: investmentsTotalCents(own) };
+    const parts = positions.flatMap((position) => {
+      const s = positionShares(position).find((x) => x.goalId === goal.id);
+      return s ? [{ position, percent: s.percent, cents: shareCents(position, s.percent) }] : [];
+    });
+    return { goal, positions: parts.map((x) => x.position), parts, totalCents: parts.reduce((sum, x) => sum + x.cents, 0) };
   });
-  const orphans = positions.filter((p) => p.goalId === undefined || !goals.some((g) => g.id === p.goalId));
-  if (orphans.length > 0) groups.push({ goal: null, positions: orphans, totalCents: investmentsTotalCents(orphans) });
+  const rest = positions.flatMap((position) => {
+    const assigned = positionShares(position).filter((s) => known.has(s.goalId));
+    const cents = positionValueCents(position) - assigned.reduce((sum, s) => sum + shareCents(position, s.percent), 0);
+    const percent = 100 - assigned.reduce((sum, s) => sum + s.percent, 0);
+    return cents > 0 ? [{ position, percent, cents }] : [];
+  });
+  if (rest.length > 0) groups.push({ goal: null, positions: rest.map((x) => x.position), parts: rest, totalCents: rest.reduce((sum, x) => sum + x.cents, 0) });
   return groups;
 }
 
@@ -70,19 +101,23 @@ export function goalSummaries(positions: Position[], goals: InvestmentGoal[]): G
 }
 
 /**
- * Položky, ktorým sa zmení priradenie k cieľu, keď cieľ obsahuje presne `memberIds` (D-331): pridané dostanú goalId
- * (aj z iného cieľa), odobrané ho stratia. Nezmenené sa nevracajú.
+ * Nastaví podiel cieľa `goalId` pri položkách (`percents`: id položky → celé percento 0 až 100; 0 = odobrať).
+ * Vráti len zmenené položky v novom tvare (goalShares). Chyba, ak súčet podielov položky prekročí 100 % alebo je percento neplatné;
+ * vtedy sa nič nevráti (D-334).
  */
-export function assignToGoal(positions: Position[], goalId: string, memberIds: string[], nowIso: string): Position[] {
-  const members = new Set(memberIds);
-  const out: Position[] = [];
+export function applyGoalShares(positions: Position[], goalId: string, percents: Record<string, number>, nowIso: string): { changed: Position[]; error?: string } {
+  const changed: Position[] = [];
   for (const p of positions) {
-    const inGoal = p.goalId === goalId;
-    if (members.has(p.id) && !inGoal) out.push({ ...p, goalId, updatedAt: nowIso });
-    else if (!members.has(p.id) && inGoal) {
-      const { goalId: _removed, ...rest } = p;
-      out.push({ ...rest, updatedAt: nowIso });
-    }
+    if (!(p.id in percents)) continue;
+    const percent = percents[p.id];
+    if (!Number.isInteger(percent) || percent < 0 || percent > 100) return { changed: [], error: `Podiel pri položke „${p.name}“ musí byť celé percento od 0 do 100.` };
+    const others = positionShares(p).filter((s) => s.goalId !== goalId);
+    const next = percent > 0 ? [...others, { goalId, percent }] : others;
+    if (next.reduce((sum, s) => sum + s.percent, 0) > 100) return { changed: [], error: `Súčet podielov položky „${p.name}“ v cieľoch je nad 100 %.` };
+    const before = positionShares(p).find((s) => s.goalId === goalId)?.percent ?? 0;
+    if (before === percent) continue;
+    const { goalId: _legacy, goalShares: _old, ...rest } = p;
+    changed.push({ ...rest, ...(next.length > 0 ? { goalShares: next } : {}), updatedAt: nowIso });
   }
-  return out;
+  return { changed };
 }
