@@ -50,7 +50,7 @@ describe("úložisko a záloha", () => {
   it("záloha v13 obsahuje vyhodené; staršia záloha bez nich sa načíta s prázdnym zoznamom", () => {
     const data = { ...empty, wasteRecords: [waste()] };
     const backup = buildBackup(data, TS) as { schemaVersion: number; wasteRecords: unknown[] };
-    expect(backup.schemaVersion).toBe(14);
+    expect(backup.schemaVersion).toBe(15);
     expect(parseBackup(JSON.parse(JSON.stringify(backup)), "2026-10-25").data?.wasteRecords).toHaveLength(1);
     const { wasteRecords: _w, ...v12 } = { ...data, app: "financna-sloboda", schemaVersion: 12, exportedAt: TS };
     expect(parseBackup(v12, "2026-10-25").data?.wasteRecords).toEqual([]);

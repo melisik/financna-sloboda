@@ -4,6 +4,8 @@ import { BALANCE_INVESTMENT_KINDS, INVESTMENT_KINDS, TAX_REGIMES, type Investmen
 import { checkDate } from "../../storage/validate";
 import { goalProgress, groupByGoal, investmentsByKindCents, investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents, staleValuationNames } from "../../domain/investments";
 import { TAX_CATALOG } from "../../domain/tax";
+import providerList from "../../data/nbsProviders.json";
+import type { Provider } from "../../domain/nbsProviders";
 import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
@@ -141,7 +143,7 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
             {g.goal && g.positions.length === 0 && <p style={{ color: "var(--muted)" }}>Zatiaľ žiadna položka v tomto cieli.</p>}
             {g.positions.map((p) => (
         <div key={p.id} style={{ ...card, marginBottom: 8 }}>
-          <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}</p>
+          <p style={{ margin: 0 }}><strong>{p.name}</strong> · {INVESTMENT_KIND_LABEL[p.kind]}{p.provider ? ` · ${p.provider.name}` : ""}</p>
           {(BALANCE_INVESTMENT_KINDS as readonly string[]).includes(p.kind) ? (
             <p style={{ margin: "4px 0" }}>
               Stav účtu: {eur(positionValueCents(p))}
@@ -189,6 +191,34 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
   );
 }
 
+const PROVIDERS: Provider[] = providerList.providers;
+const providerByName = (name: string): Provider | undefined => PROVIDERS.find((p) => p.name.trim().toLowerCase() === name.trim().toLowerCase());
+/** Zo zoznamu NBS (s IČO), inak vlastný názov (D-329). */
+function providerFromInput(input: string): { ico?: string; name: string } {
+  const hit = providerByName(input);
+  return hit ? { ico: hit.ico, name: hit.name.trim() } : { name: input.trim() };
+}
+
+/** Výber poskytovateľa zo zoznamu firiem registra NBS alebo vlastný názov (D-329, docs/63, docs/64). Nie je to odporúčanie. */
+function ProviderField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const hit = providerByName(value);
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <label style={{ display: "block" }}>
+        Poskytovateľ (nepovinné)
+        <input list="poskytovatelia-nbs" aria-label="Poskytovateľ" value={value} maxLength={120} onChange={(e) => onChange(e.target.value)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4, boxSizing: "border-box" }} />
+      </label>
+      <datalist id="poskytovatelia-nbs">
+        {PROVIDERS.map((p) => <option key={p.ico + p.type} value={p.name.trim()} label={p.type} />)}
+      </datalist>
+      <p style={hintStyle}>
+        Vyber zo zoznamu alebo napíš vlastný názov (napr. Trading 212). Zdroj zoznamu: {providerList.source}, stav k {dateSk(providerList.updated)}. Výber firiem, nie odporúčanie ani záruka úplnosti.
+        {hit && <> <a href={`https://subjekty.nbs.sk/sk/search?q=${hit.ico}`} target="_blank" rel="noopener noreferrer">Overiť v registri NBS</a></>}
+      </p>
+    </div>
+  );
+}
+
 function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { repo: Repository; initial: Position | null; goals: InvestmentGoal[]; today: string; onDone: () => void; onCancel: () => void }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [kind, setKind] = useState<InvestmentKind>(initial?.kind ?? "etf");
@@ -200,6 +230,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
   const [valueDate, setValueDate] = useState(initial?.valueDate ?? today);
   const [taxRegime, setTaxRegime] = useState<TaxRegime>(initial?.taxRegime ?? "nezadane");
   const [goalId, setGoalId] = useState(initial?.goalId ?? "");
+  const [providerName, setProviderName] = useState(initial?.provider?.name ?? "");
   const [err, setErr] = useState<string | null>(null);
   const balance = (BALANCE_INVESTMENT_KINDS as readonly string[]).includes(kind);
   const code = balance ? "EUR" : currency.trim().toUpperCase();
@@ -221,6 +252,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
     if (Number.isNaN(vklad) || vklad < 0) return setErr("Mesačný vklad musí byť číslo 0 alebo viac.");
     const dateErr = checkDate(valueDate, today, "dátum ocenenia");
     if (dateErr.length) return setErr(dateErr[0]);
+    if (providerName.trim().length > 120) return setErr("Poskytovateľ môže mať najviac 120 znakov.");
     const now = new Date().toISOString();
     const position: Position = {
       id: initial?.id ?? uid(),
@@ -236,6 +268,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
       ...(balance && vklad > 0 ? { monthlyContributionCents: cents(vklad) } : {}),
       taxRegime,
       ...(goalId ? { goalId } : {}),
+      ...(providerName.trim() !== "" ? { provider: providerFromInput(providerName) } : {}),
     };
     try {
       await repo.savePosition(position);
@@ -272,6 +305,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
           </FoldBlock>
         </>
       )}
+      <ProviderField value={providerName} onChange={setProviderName} />
       <Field label="Dátum ocenenia" value={valueDate} type="date" max={today} onChange={setValueDate} />
       {/* Cieľ a daňový režim sú zbalené so súhrnom (D-311). */}
       <FoldBlock title="Cieľ a daňový režim" summary={[goalId ? (goals.find((g) => g.id === goalId)?.name ?? "cieľ") : "bez cieľa", ...(taxRegime !== "nezadane" ? [TAX_CATALOG[taxRegime].label] : [])].join(" · ")} openWhen={!!err} reopenOn={err}>

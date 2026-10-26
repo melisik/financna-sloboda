@@ -60,7 +60,7 @@ describe("úložisko a záloha", () => {
 
   it("záloha v14 obsahuje zoznam; staršia sa načíta s prázdnym", () => {
     const backup = buildBackup({ ...empty, shoppingItems: [shop()] }, TS) as { schemaVersion: number };
-    expect(backup.schemaVersion).toBe(14);
+    expect(backup.schemaVersion).toBe(15);
     expect(parseBackup(JSON.parse(JSON.stringify(backup)), "2026-10-25").data?.shoppingItems).toHaveLength(1);
     const { shoppingItems: _s, ...v13 } = { ...empty, app: "financna-sloboda", schemaVersion: 13, exportedAt: TS };
     expect(parseBackup(v13, "2026-10-25").data?.shoppingItems).toEqual([]);

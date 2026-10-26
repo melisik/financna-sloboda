@@ -1,0 +1,511 @@
+{
+ "source": "Register subjektov finančného trhu, Národná banka Slovenska (subjekty.nbs.sk)",
+ "updated": "2026-10-25",
+ "providers": [
+  {
+   "ico": "35763388",
+   "name": "Across Private Investments, o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "54575486",
+   "name": "B.I.G. Invest, o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "36853054",
+   "name": "CAPITAL MARKETS, o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "54597447",
+   "name": "CYRRUS, a.s. organizačná zložka",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "36864633",
+   "name": "European Investment Centre, o.c.p., a. s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "51306727",
+   "name": "Finax, o.c.p., a. s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "56176660",
+   "name": "FUMBI Wealth Management, o. c. p., a. s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "53070194",
+   "name": "HABERL Wealth Management, o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "51322790",
+   "name": "Instant trading EU Ltd (SK)",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "35771801",
+   "name": "International Investment Platform, o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "51713934",
+   "name": "Invest4Life, o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "51157471",
+   "name": "Mercurius Pro, o. c. p., a. s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "51306573",
+   "name": "OMNIUM CAPITAL, o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "52413179",
+   "name": "PARTNERS INVESTMENTS, o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "57203423",
+   "name": "Patria Finance, a.s., organizačná zložka",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "47238054",
+   "name": "PROXENTA Finance, o.c.p., a. s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "55096018",
+   "name": "Quantic Financial Solutions GmbH organizačná zložka",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "50387308",
+   "name": "QuantOn Solutions, o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "35799072",
+   "name": "RM - S Market o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "35960990",
+   "name": "SAB o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "35842369",
+   "name": "Sympatia Financie, o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "47256982",
+   "name": "VALOR o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "51127113",
+   "name": "Wealth Effect Management o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "55111459",
+   "name": "Winners Investments o.c.p., a.s.",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "47233648",
+   "name": "WOOD & Company Financial Services, a.s., organizačná zložka",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "56297572",
+   "name": "WOOD Retail Investments, a.s., organizačná zložka",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "36859699",
+   "name": "XTB S.A., organizačná zložka",
+   "type": "obchodník s cennými papiermi"
+  },
+  {
+   "ico": "31621317",
+   "name": "365.invest, správ. spol., a. s.",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "56333714",
+   "name": "Across Asset Management, správ. spol., a. s.",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "51410818",
+   "name": "Erste Asset Management GmbH, pobočka Slovenská republika",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "35786272",
+   "name": "Eurizon Asset Management Slovakia, správ. spol., a.s.",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "50549065",
+   "name": "HB Reavis Investment Management správ. spol., a.s.",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "17330254",
+   "name": "IAD Investments, správ. spol., a.s.",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "53859111",
+   "name": "J&T INVESTIČNÁ SPOLOČNOSŤ, správ. spol., a.s.",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "47243929",
+   "name": "KBC Asset Management NV, pobočka zahraničnej správcovskej spoločnosti",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "53068351",
+   "name": "PARTNERS ASSET MANAGEMENT, správ. spol., a.s.",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "47255277",
+   "name": "Sandberg Capital, správ. spol., a.s.",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "35742968",
+   "name": "Tatra Asset Management, správ. spol., a.s.",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "36770540",
+   "name": "UNIQA investiční společnost, a.s., organizačná zložka Slovensko",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "56682999",
+   "name": "VOSEM Capital, správ. spol., a. s.",
+   "type": "správcovská spoločnosť"
+  },
+  {
+   "ico": "31340890",
+   "name": "365.bank, a. s.",
+   "type": "banka"
+  },
+  {
+   "ico": "36861260",
+   "name": "Citibank Europe plc, pobočka zahraničnej banky",
+   "type": "banka"
+  },
+  {
+   "ico": "36854140",
+   "name": "Československá obchodná banka, a.s.",
+   "type": "banka"
+  },
+  {
+   "ico": "36869376",
+   "name": "Fio banka, a. s., pobočka zahraničnej banky",
+   "type": "banka"
+  },
+  {
+   "ico": "35964693",
+   "name": "J&T BANKA, a. s., pobočka zahraničnej banky",
+   "type": "banka"
+  },
+  {
+   "ico": "47231564",
+   "name": "Komerční banka, a.s., pobočka zahraničnej banky",
+   "type": "banka"
+  },
+  {
+   "ico": "36819638",
+   "name": "mBank S.A., pobočka zahraničnej banky",
+   "type": "banka"
+  },
+  {
+   "ico": "36861146",
+   "name": "Oberbank AG pobočka zahraničnej banky v Slovenskej republike",
+   "type": "banka"
+  },
+  {
+   "ico": "31634419",
+   "name": "Penta Bank, a.s.",
+   "type": "banka"
+  },
+  {
+   "ico": "31575951",
+   "name": "Prima banka Slovensko, a.s.",
+   "type": "banka"
+  },
+  {
+   "ico": "50875621",
+   "name": "Raiffeisen Bank International AG Slovak Branch, pobočka zahraničnej banky",
+   "type": "banka"
+  },
+  {
+   "ico": "00151653",
+   "name": "Slovenská sporiteľňa, a.s.",
+   "type": "banka"
+  },
+  {
+   "ico": "00686930",
+   "name": "Tatra banka, a.s.",
+   "type": "banka"
+  },
+  {
+   "ico": "47251336",
+   "name": "UniCredit Bank Czech Republic and Slovakia, a.s., pobočka zahraničnej banky",
+   "type": "banka"
+  },
+  {
+   "ico": "31320155",
+   "name": "Všeobecná úverová banka, a.s.",
+   "type": "banka"
+  },
+  {
+   "ico": "35901624",
+   "name": "Allianz - Slovenská dôchodková správcovská spoločnosť, a.s.",
+   "type": "dôchodková spoločnosť (II. pilier)"
+  },
+  {
+   "ico": "35904305",
+   "name": "KOOPERATIVA, d.s.s., a.s.",
+   "type": "dôchodková spoločnosť (II. pilier)"
+  },
+  {
+   "ico": "35902981",
+   "name": "NN dôchodková správcovská spoločnosť, a.s.",
+   "type": "dôchodková spoločnosť (II. pilier)"
+  },
+  {
+   "ico": "35903821",
+   "name": "UNIQA d.s.s., a.s.",
+   "type": "dôchodková spoločnosť (II. pilier)"
+  },
+  {
+   "ico": "35903058",
+   "name": "VÚB Generali dôchodková správcovská spoločnosť, a.s.",
+   "type": "dôchodková spoločnosť (II. pilier)"
+  },
+  {
+   "ico": "36291111",
+   "name": "Doplnková dôchodková spoločnosť Tatra banky, a.s.",
+   "type": "doplnková dôchodková spoločnosť (III. pilier)"
+  },
+  {
+   "ico": "35976853",
+   "name": "NN Tatry - Sympatia, d.d.s., a.s.",
+   "type": "doplnková dôchodková spoločnosť (III. pilier)"
+  },
+  {
+   "ico": "36718556",
+   "name": "STABILITA, d.d.s., a.s.",
+   "type": "doplnková dôchodková spoločnosť (III. pilier)"
+  },
+  {
+   "ico": "35977540",
+   "name": "UNIQA d.d.s., a.s.",
+   "type": "doplnková dôchodková spoločnosť (III. pilier)"
+  },
+  {
+   "ico": "00151700",
+   "name": "Allianz - Slovenská poisťovňa, a.s.",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "50617168",
+   "name": "Atradius Crédito y Caución S.A. de Seguros y Reaseguros, pobočka poisťovne z iného členské štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "36534978",
+   "name": "BNP Paribas Cardif Poisťovňa, a.s.",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "57776474",
+   "name": "CIG Pannonia Life Insurance Plc., pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "50013602",
+   "name": "Colonnade Insurance S.A., pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "36833991",
+   "name": "Compagnie francaise d' assurance pour le commerce extérieur, pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "31325416",
+   "name": "ČSOB Poisťovňa, a.s.",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "47233818",
+   "name": "Euler Hermes SA, pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "54228573",
+   "name": "Generali Poisťovňa, pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "36857475",
+   "name": "HDI Versicherung AG pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "31595545",
+   "name": "KOMUNÁLNA poisťovňa, a.s. Vienna Insurance Group",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "00585441",
+   "name": "KOOPERATIVA poisťovňa, a.s. Vienna Insurance Group",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "47257105",
+   "name": "MetLife Europe d.a.c., pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "47257091",
+   "name": "MetLife Europe Insurance d.a.c., pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "57043400",
+   "name": "MSIG EUROPE SE, pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "35691999",
+   "name": "NN Životná poisťovňa, a.s.",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "36857220",
+   "name": "Osterreichische Hagelversicherung-Versicherungsverein auf Gegenseitigkeit, pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "53831691",
+   "name": "PARTNERS poisťovňa, a.s.",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "50659669",
+   "name": "PREMIUM Poisťovňa, pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "52491587",
+   "name": "STARR EUROPE INSURANCE LIMITED, pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "31322051",
+   "name": "Union poisťovňa, a. s.",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "53812948",
+   "name": "UNIQA pojišťovna, a.s., pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "31383408",
+   "name": "Wüstenrot poisťovňa, a.s.",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "52241289",
+   "name": "YOUPLUS Životná poisťovňa, pobočka poisťovne z iného členského štátu",
+   "type": "poisťovňa"
+  },
+  {
+   "ico": "47956925",
+   "name": "Fintegence, s.r.o.",
+   "type": "kryptoaktíva"
+  },
+  {
+   "ico": "54500923",
+   "name": "FINTECH SK s. r. o.",
+   "type": "kryptoaktíva"
+  },
+  {
+   "ico": "55912974",
+   "name": "Firefish Europe s.r.o.",
+   "type": "kryptoaktíva"
+  },
+  {
+   "ico": "55651232",
+   "name": "FUMBI, s. r. o.",
+   "type": "kryptoaktíva"
+  },
+  {
+   "ico": "56856229",
+   "name": "Madison Six j. s. a.",
+   "type": "kryptoaktíva"
+  },
+  {
+   "ico": "54724732",
+   "name": "Okazio s.r.o.",
+   "type": "kryptoaktíva"
+  },
+  {
+   "ico": "54222851",
+   "name": "Across Wealth Creators s. r. o.",
+   "type": "hromadné financovanie"
+  },
+  {
+   "ico": "52234380",
+   "name": "Ci investment, s. r. o.",
+   "type": "hromadné financovanie"
+  },
+  {
+   "ico": "54827370",
+   "name": "Crowdberry Investment Platform j. s. a.",
+   "type": "hromadné financovanie"
+  },
+  {
+   "ico": "54742421",
+   "name": "Crowdmeup s. r. o.",
+   "type": "hromadné financovanie"
+  },
+  {
+   "ico": "56081383",
+   "name": "FINVESTOR s. r. o.",
+   "type": "hromadné financovanie"
+  },
+  {
+   "ico": "54674999",
+   "name": "Sunvest digital a. s.",
+   "type": "hromadné financovanie"
+  },
+  {
+   "ico": "55394108",
+   "name": "Tremint s. r. o.",
+   "type": "hromadné financovanie"
+  }
+ ]
+}

@@ -1,6 +1,6 @@
 # 63 – Návrh: poskytovateľ investície zo zoznamu NBS
 
-> Stav: **schválené zakladateľom** (2026-10-26: 1 áno, rozsah ešte možno zúžiť; k firme pridať odkaz; 2 nepovinné; 3 raz za kvartál; 4 len zobraziť; 5 výťah je `docs/64`). **Upravené podľa podmienok NBS:** uvedenie zdroja a doslovný výber. Kód sa nemení. Nadväzuje na D-328. Zakladateľ už rozhodol: len firmy, ktoré investičné produkty ponúkajú priamo (nie agenti a sprostredkovatelia); slovenské firmy aj pobočky zahraničných firiem na Slovensku; poisťovne áno; firmy s voľným cezhraničným pôsobením nie, namiesto nich „iný poskytovateľ“ s vlastným názvom. Upozornenie „poskytovateľ nie je v NBS“ je v backlogu (N-23). D-153: bez zmeny výpočtu.
+> Stav: **schválené a implementované** (2026-10-26, D-330; schválenie: 1 áno, rozsah ešte možno zúžiť; k firme pridať odkaz; 2 nepovinné; 3 raz za kvartál; 4 len zobraziť; 5 výťah je `docs/64`). **Upravené podľa podmienok NBS:** uvedenie zdroja a doslovný výber. Kód sa nemení. Nadväzuje na D-328. Zakladateľ už rozhodol: len firmy, ktoré investičné produkty ponúkajú priamo (nie agenti a sprostredkovatelia); slovenské firmy aj pobočky zahraničných firiem na Slovensku; poisťovne áno; firmy s voľným cezhraničným pôsobením nie, namiesto nich „iný poskytovateľ“ s vlastným názvom. Upozornenie „poskytovateľ nie je v NBS“ je v backlogu (N-23). D-153: bez zmeny výpočtu.
 
 ## 1. Zdroj údajov (overené 2026-10-26)
 

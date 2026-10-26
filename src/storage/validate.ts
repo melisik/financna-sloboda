@@ -143,10 +143,20 @@ export function validateAsset(a: unknown, today: string, label = "aktívum"): st
   return errors;
 }
 
+function validateProviderRef(v: unknown, label: string): string[] {
+  if (typeof v !== "object" || v === null || Array.isArray(v)) return [`${label}: poskytovateľ musí byť objekt`];
+  const o = v as Record<string, unknown>;
+  const errors = unknownKeys(o, ["ico", "name"], `${label}: poskytovateľ`);
+  if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 120) errors.push(`${label}: poskytovateľ musí mať názov 1 až 120 znakov`);
+  if (o.ico !== undefined && (typeof o.ico !== "string" || !/^[0-9]{6,8}$/.test(o.ico))) errors.push(`${label}: IČO poskytovateľa má 6 až 8 číslic`);
+  return errors;
+}
+
 export function validatePosition(p: unknown, today: string, label = "položka"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "kind", "quantity", "unitPrice", "currency", "fxToEur", "valueDate", "monthlyContributionCents", "taxRegime", "goalId", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "kind", "quantity", "unitPrice", "currency", "fxToEur", "valueDate", "monthlyContributionCents", "taxRegime", "goalId", "provider", "createdAt", "updatedAt"], label);
+  if (o.provider !== undefined) errors.push(...validateProviderRef(o.provider, label));
   if (o.taxRegime !== undefined && !(TAX_REGIMES as readonly unknown[]).includes(o.taxRegime)) errors.push(`${label}: daňový režim musí byť z katalógu`);
   if (o.goalId !== undefined && (typeof o.goalId !== "string" || o.goalId.length === 0)) errors.push(`${label}: cieľ musí byť identifikátor`);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);

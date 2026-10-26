@@ -152,6 +152,12 @@ export type InvestmentKind = (typeof INVESTMENT_KINDS)[number];
 export const TAX_REGIMES = ["nezadane", "zdanene", "oslobodene"] as const;
 export type TaxRegime = (typeof TAX_REGIMES)[number];
 
+/** Poskytovateľ investície: zo zoznamu NBS (s IČO) alebo vlastný názov (D-329, docs/63). */
+export interface ProviderRef {
+  ico?: string; // 6 až 8 číslic, len pri výbere zo zoznamu NBS
+  name: string; // 1 až 120 znakov
+}
+
 export interface Position {
   id: string;
   name: string; // max 80 znakov, napr. ticker alebo názov fondu
@@ -164,6 +170,7 @@ export interface Position {
   monthlyContributionCents?: number; // mesačný vklad, len pri treťom pilieri; len na zobrazenie (D-102, D-105)
   taxRegime?: TaxRegime; // daňový režim (FR-24); bez hodnoty = nezadané
   goalId?: string; // cieľ, do ktorého položka patrí (D-105); bez hodnoty = bez cieľa
+  provider?: ProviderRef; // u koho je investícia (D-329); nepovinné
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
