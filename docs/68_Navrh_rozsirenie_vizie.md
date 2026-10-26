@@ -1,6 +1,6 @@
 # 68 – Návrh: rozšírenie vízie – modulárna appka pre domácnosť
 
-> Stav: **otvorené rozhodnutie** (2026-10-26). Podnet zakladateľa: „Rozdelme to na takú appku, aby si tam každý vybral to svoje." Zapísané pred bránami G1 a G5 (právne posúdenie, rozhovory s používateľmi). Neimplementuje sa; slúži na ujasnenie smeru pred ďalším vývojom.
+> Stav: **čiastočne rozhodnuté** (2026-10-26, D-337). Podnet zakladateľa: „Rozdelme to na takú appku, aby si tam každý vybral to svoje." Otázky 1, 2 a 4 rozhodnuté; otázka 3 (názov) ostáva otvorená. Neimplementuje sa; slúži na ujasnenie smeru pred ďalším vývojom a pred bránami G1 a G5.
 
 ## 1. Čo sa zmenilo v myslení
 
@@ -61,9 +61,14 @@ Export/import je konzistentný s DNA projektu a neohrozuje súkromie. Server je 
 - **Názov:** „Finančná sloboda" nefunguje ako názov appky, ktorá rieši aj recepty. Zmena názvu je rozhodnutie s dosahom na doménu, komunikáciu a prípadnú registráciu.
 - **Právne:** nefinančné moduly znižujú riziko dojmu poradenstva, ale pridávajú iné otázky (ochrana receptov, zdieľanie osobných dát medzi zariadeniami).
 
-## 7. Otázky na rozhodnutie
+## 7. Rozhodnutia (D-337)
 
-1. **Smer:** (A) ostať pri finančnej nezávislosti ako hlavnom prísľube, ostatné sú podporné; alebo (B) modulárna appka, kde si každý vyberie?
-2. **Zdieľanie receptov:** (a) export/import súborom (bez servera); (b) server/synchronizácia (väčšia zmena); (c) neskôr po pilote?
-3. **Názov:** ponechať „Finančná sloboda" (pracovný názov) alebo hľadať nový pred G1?
-4. **Pilotné testovanie:** testerov testovacej skupiny (pozvánky pripravené) testovať na dnešnom rozsahu, alebo počkať na rozhodnutie o vízii?
+1. **Smer:** Verzia A je „vlajková loď" – finančná nezávislosť je hlavný prísľub. K nej pribudnú ďalšie moduly, ktoré dávajú zmysel (sklad, recepty, …); každý používateľ využíva len časť. **Kľúčová podmienka: prehľadnosť.** Appka nesmie byť neprehľadná tým, že má veľa modulov.
+2. **Zdieľanie:** Zatiaľ export/import súborom (bez servera, konzistentné s D-009). Server/synchronizácia príde neskôr ako samostatné rozhodnutie.
+3. **Názov:** „Finančná sloboda" (pracovný názov) nefunguje ako názov modulárnej appky. **Otvorené – treba premyslieť pred G1.**
+4. **Pilot:** Čaká na vyriešenie otázky názvu a smeru; pozvánky nie sú zatiaľ odoslané.
+
+## 8. Ďalší krok
+
+- Navrhnúť kandidátov na nový názov appky (samostatný doc alebo brainstorming).
+- Po rozhodnutí o názve: aktualizovať `docs/00` (vízia) a spustiť pilot.
