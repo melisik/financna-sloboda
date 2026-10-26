@@ -143,7 +143,7 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
                 {g.goal && prog && (prog.reached ? <span style={{ fontWeight: 400 }}> · cieľ dosiahnutý</span> : <span style={{ fontWeight: 400 }}> · {prog.percent} % z {eur(g.goal.targetCents)}</span>)}
               </p>
             )}
-            {g.overflowOutCents ? <p style={{ ...hintStyle, margin: "0 0 4px" }}>Cieľ je naplnený; ďalších {eur(g.overflowOutCents)} z priradených položiek ide {goals.find((x) => x.receivesRest) ? `do cieľa „${goals.find((x) => x.receivesRest)!.name}“` : "do „Bez cieľa“"}.</p> : null}
+            {g.overflowOutCents ? <p style={{ ...hintStyle, margin: "0 0 4px" }}>Cieľ je naplnený; ďalších {eur(g.overflowOutCents)} z priradených položiek ide {goals.find((x) => x.receivesRest) ? `do cieľa „${goals.find((x) => x.receivesRest)!.name}“` : "do „Bez cieľa“, lebo žiadny cieľ zatiaľ neprijíma nepriradené (pri cieli, napr. Dôchodok, ťukni na Upraviť cieľ a zaškrtni „Sem patrí všetko, čo nepatrí do iného cieľa“)"}.</p> : null}
             {g.overflowInCents ? <p style={{ ...hintStyle, margin: "0 0 4px" }}>Z toho {eur(g.overflowInCents)} z preplnených cieľov.</p> : null}
             {g.goal && g.positions.length === 0 && <p style={{ color: "var(--muted)" }}>Zatiaľ žiadna položka v tomto cieli.</p>}
             {g.parts.map(({ position: p, percent, cents }) => (
