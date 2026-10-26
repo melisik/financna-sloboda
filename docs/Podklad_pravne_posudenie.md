@@ -52,7 +52,10 @@ Aktualizované 2026-10-26 (D-325): oddiely 1 až 3, 6 a 7 podľa zmien D-301 až
 11. **Prílohy a adresy:** fotky dokladov a adresa chovu psa sú osobné údaje (aj tretích strán, napr. predajcu alebo nájomcu na zmluve). Sú v zariadení a v zálohe.
 12. **Postrehy testerov:** pripomienky idú cez Google formulár zakladateľa (D-280); appka do neho nič nevkladá, ale tester môže priložiť snímku obrazovky so svojimi údajmi.
 
+13. **Zoznam firiem z registra NBS (D-329):** appka bude obsahovať výber záznamov z verejného registra NBS (IČO, názov, typ) s uvedením zdroja; podmienky NBS zakazujú pozmeniť súbor (`docs/64`).
+
 ## 5. Otázky pre právnika
+0. Pozri `docs/64`, oddiel 4: je výber záznamov z registra NBS v súlade s podmienkou nepozmeňovania súboru?
 1. Je appka pri lokálnom ukladaní prevádzkovateľom osobných údajov podľa GDPR, alebo len nástrojom používateľa? Ak áno, aké povinnosti vznikajú pri verejnej stránke, aj keď dáta nikam neodchádzajú?
 2. Aké dokumenty treba pred spustením: zásady ochrany súkromia, podmienky použitia, poučenie o odhadoch a zodpovednosti, pokyny pre zálohy?
 3. Je potrebné posúdiť finančné poradenstvo podľa slovenského práva (napr. zákon o finančných službách)? Kde je hranica pri výpočtoch K a odporúčaniach?
