@@ -139,3 +139,45 @@ describe("cieľ, do ktorého patrí nepriradený zvyšok (D-335)", () => {
     expect(two.ok).toBe(false);
   });
 });
+
+// D-336: preplnený cieľ. Zakladateľ: cieľ 80 000 €, priradených 1 000 akcií po 249 € (249 000 €): cieľ je preplnený,
+// suma navyše sa automaticky presunie do cieľa zvyšku (Dôchodok).
+describe("preplnený cieľ presunie sumu navyše do cieľa zvyšku (D-336)", () => {
+  const restGoal = (id: string, target: number): InvestmentGoal => ({ ...goal(id, target), receivesRest: true });
+  const shares1000 = pos("akcie", 249_000, { goalShares: [{ goalId: "dom", percent: 100 }] });
+  it("cieľ je najviac na cieľovej sume; zvyšok ide do Dôchodku", () => {
+    const groups = groupByGoal([shares1000], [goal("dom", 80_000), restGoal("dochodok", 500_000)]);
+    expect(groups.map((g) => [g.goal?.id, g.totalCents])).toEqual([["dom", 8_000_000], ["dochodok", 16_900_000]]);
+    expect(groups[0].overflowOutCents).toBe(16_900_000);
+    expect(groups[1].overflowInCents).toBe(16_900_000);
+  });
+  it("súčet cieľov je stále celá hodnota investícií", () => {
+    const groups = groupByGoal([shares1000, pos("b", 1_000)], [goal("dom", 80_000), restGoal("dochodok", 500_000)]);
+    expect(groups.reduce((s, g) => s + g.totalCents, 0)).toBe(24_900_000 + 100_000);
+  });
+  it("bez cieľa zvyšku ide suma navyše do „bez cieľa“", () => {
+    const groups = groupByGoal([shares1000], [goal("dom", 80_000)]);
+    expect(groups.map((g) => [g.goal?.id ?? null, g.totalCents])).toEqual([["dom", 8_000_000], [null, 16_900_000]]);
+    expect(groups[1].overflowInCents).toBe(16_900_000);
+  });
+  it("cieľ presne naplnený alebo pod cieľom sa nemení; cieľ zvyšku sa neobmedzuje", () => {
+    const groups = groupByGoal([pos("a", 1_000, { goalShares: [{ goalId: "dom", percent: 100 }] })], [goal("dom", 1_000), restGoal("dochodok", 10)]);
+    expect(groups.map((g) => g.totalCents)).toEqual([100_000, 0]);
+    const big = groupByGoal([pos("a", 5_000)], [restGoal("dochodok", 10)]);
+    expect(big[0].totalCents).toBe(500_000);
+    expect(big[0].overflowInCents ?? 0).toBe(0);
+  });
+  it("viac preplnených cieľov: všetko navyše ide do cieľa zvyšku", () => {
+    const groups = groupByGoal([pos("a", 3_000, { goalShares: [{ goalId: "g1", percent: 50 }, { goalId: "g2", percent: 50 }] })], [goal("g1", 1_000), goal("g2", 1_000), restGoal("r", 1)]);
+    expect(groups.map((g) => g.totalCents)).toEqual([100_000, 100_000, 100_000]);
+  });
+  it("INVARIANT: s obmedzením cieľov a presunom súčet cieľov je vždy celá hodnota investícií", () => {
+    fc.assert(fc.property(fc.array(fc.record({ v: fc.integer({ min: 0, max: 5_000_000 }), p1: fc.integer({ min: 0, max: 60 }), p2: fc.integer({ min: 0, max: 40 }) }), { maxLength: 8 }), fc.boolean(), (items, withRest) => {
+      const positions = items.map((it, i) => pos(`p${i}`, it.v / 100, { goalShares: [...(it.p1 ? [{ goalId: "g1", percent: it.p1 }] : []), ...(it.p2 ? [{ goalId: "g2", percent: it.p2 }] : [])] }));
+      const total = positions.reduce((s, p) => s + positionValueCents(p), 0);
+      const groups = groupByGoal(positions, [goal("g1", 500), goal("g2", 300), ...(withRest ? [restGoal("r", 1)] : [])]);
+      expect(groups.reduce((s, g) => s + g.totalCents, 0)).toBe(total);
+      for (const g of groups) if (g.goal && !g.goal.receivesRest) expect(g.totalCents).toBeLessThanOrEqual(g.goal.targetCents);
+    }), { numRuns: 200 });
+  });
+});

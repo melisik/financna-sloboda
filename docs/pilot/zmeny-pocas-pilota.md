@@ -93,6 +93,7 @@ Výpočet cieľa tieto zmeny nemenia. Niektoré však menia, čo a ako používa
 | 2026-10-24 | D-289 | Prehľad: zbalený blok Vývoj v čase; skloňovanie „22 mesiacov“ (len text). |
 | 2026-10-24 | D-290 | Mesačný výdavok: zoznam opakovaných výdavkov a dátumu cieľa; doplnená testovacia záloha (viac transakcií). |
 | 2026-10-25 | D-293 | Usporiadanie obrazoviek: Nastavenia v skupinách (Moduly, Sprievodca a PIN zbalené), Rozpočet ako prehľad s „Upraviť limity“, Pravidelné výdavky s jedným tlačidlom, filter histórie zbalený a 10 záznamov, Ročný prehľad a Dane s menej nulami. Výpočty sa nemenia. |
+| 2026-10-26 | D-336 | Investície: preplnený cieľ presunie sumu nad cieľ do cieľa zvyšku (Dôchodok). Bez zmeny výpočtu. |
 | 2026-10-26 | D-335 | Investície: cieľ, do ktorého patrí všetko nepriradené (napr. Dôchodok). Bez zmeny výpočtu. |
 | 2026-10-26 | D-334 | Investície: jedna položka môže byť vo viacerých cieľoch (podiely v %), záloha v16. Bez zmeny výpočtu. |
 | 2026-10-26 | D-333 | Investície: odkaz do registra NBS je tlačidlo; pri vlastnom poskytovateľovi vyhľadanie podľa názvu. Bez zmeny výpočtu. |

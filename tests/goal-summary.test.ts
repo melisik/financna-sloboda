@@ -11,7 +11,7 @@ describe("goalSummaries (D-331)", () => {
     const r = goalSummaries([pos("a", 400, "g1"), pos("b", 200, "g1"), pos("c", 900, "g2"), pos("d", 50)], [goal("g1", "Dôchodok", 2000), goal("g2", "Auto", 800)]);
     expect(r).toEqual([
       { id: "g1", name: "Dôchodok", totalCents: 60000, targetCents: 200000, percent: 30, reached: false, count: 2 },
-      { id: "g2", name: "Auto", totalCents: 90000, targetCents: 80000, percent: 100, reached: true, count: 1 },
+      { id: "g2", name: "Auto", totalCents: 80000, targetCents: 80000, percent: 100, reached: true, count: 1, overflowOutCents: 10000 }, // 900 € nad cieľ 800 € sa presunie inam (D-336)
     ]);
   });
   it("prázdny cieľ má 0 % a 0 položiek; bez cieľov prázdny zoznam", () => {

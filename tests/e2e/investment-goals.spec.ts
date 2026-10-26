@@ -90,6 +90,31 @@ test.describe("ciele investícií (D-331)", () => {
     await expect(page.getByText(/Dôchodok: 800,00 € z 1\s000,00 € · 80 %/)).toBeVisible();
   });
 
+  test("preplnený cieľ: suma nad cieľ ide do Dôchodku (D-336)", async ({ page }) => {
+    await openApp(page);
+    await goTo(page, "investicie");
+    await addPosition(page, "ETF syntetický", "10", "50");
+    await addPosition(page, "Fond syntetický", "5", "100");
+    await page.getByRole("button", { name: "Pridať cieľ" }).click();
+    await page.getByLabel("Názov cieľa").fill("Dôchodok");
+    await page.getByLabel("Cieľová suma (€)").fill("5000");
+    await page.getByRole("checkbox", { name: "Sem patrí všetko, čo nepatrí do iného cieľa" }).check();
+    await page.getByRole("button", { name: "Uložiť cieľ" }).click();
+    await page.getByRole("button", { name: "Pridať cieľ" }).click();
+    await page.getByLabel("Názov cieľa").fill("Dom");
+    await page.getByLabel("Cieľová suma (€)").fill("300");
+    await page.getByRole("checkbox", { name: /ETF syntetický/ }).check();
+    await page.getByRole("button", { name: "Uložiť cieľ" }).click();
+    // ETF má 500 €, cieľ Dom len 300 €: 200 € navyše sa presunie do Dôchodku (500 € z Fondu + 200 €).
+    await expect(page.getByText(/Dom: 300,00 € · cieľ dosiahnutý/)).toBeVisible();
+    await expect(page.getByText(/Dôchodok: 700,00 € · 14 % z 5\s000,00 €/)).toBeVisible();
+    await expect(page.getByText(/Cieľ je naplnený; ďalších 200,00 € z priradených položiek ide do cieľa „Dôchodok“/)).toBeVisible();
+    await expect(page.getByText("Z toho 200,00 € z preplnených cieľov.")).toBeVisible();
+    await goTo(page, "prehlad");
+    await expect(page.getByText(/Dom: 300,00 € z 300,00 € · cieľ dosiahnutý/)).toBeVisible();
+    await expect(page.getByText(/Dôchodok: 700,00 € z 5\s000,00 € · 14 %/)).toBeVisible();
+  });
+
   test("súčet podielov nad 100 % sa odmietne s vysvetlením", async ({ page }) => {
     await openApp(page);
     await goTo(page, "investicie");

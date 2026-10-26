@@ -39,6 +39,10 @@ export interface GoalGroup {
   positions: Position[];
   /** Časti položiek v skupine: podiel v % a hodnota (D-334). */
   parts: { position: Position; percent: number; cents: number }[];
+  /** Suma, ktorá cieľ prevyšuje a presunula sa inam (D-336). */
+  overflowOutCents?: number;
+  /** Suma presunutá sem z preplnených cieľov (D-336): cieľ zvyšku alebo „bez cieľa“. */
+  overflowInCents?: number;
   totalCents: number;
 }
 
@@ -73,6 +77,7 @@ export function groupByGoal(positions: Position[], goals: InvestmentGoal[]): Goa
       percent: 100 - assigned.reduce((sum, s) => sum + s.percent, 0),
     };
   };
+  let overflowTotal = 0;
   const groups: GoalGroup[] = goals.map((goal) => {
     const parts = positions.flatMap((position) => {
       const s = positionShares(position).find((x) => x.goalId === goal.id);
@@ -81,14 +86,24 @@ export function groupByGoal(positions: Position[], goals: InvestmentGoal[]): Goa
       if (!s && r.cents <= 0) return [];
       return [{ position, percent: (s?.percent ?? 0) + r.percent, cents: (s ? shareCents(position, s.percent) : 0) + r.cents }];
     });
-    return { goal, positions: parts.map((x) => x.position), parts, totalCents: parts.reduce((sum, x) => sum + x.cents, 0) };
+    const allocated = parts.reduce((sum, x) => sum + x.cents, 0);
+    // Cieľ sa neplní nad cieľovú sumu (D-336): suma navyše sa presunie do cieľa zvyšku (alebo do „bez cieľa“).
+    const over = goal.id !== restGoal?.id && allocated > goal.targetCents ? allocated - goal.targetCents : 0;
+    overflowTotal += over;
+    const scaled = over > 0 ? parts.map((x) => ({ ...x, cents: Math.floor((x.cents * goal.targetCents) / allocated) })) : parts;
+    return { goal, positions: parts.map((x) => x.position), parts: scaled, totalCents: allocated - over, ...(over > 0 ? { overflowOutCents: over } : {}) };
   });
-  if (restGoal) return groups;
+  if (restGoal) {
+    const g = groups.find((x) => x.goal?.id === restGoal.id)!;
+    if (overflowTotal > 0) { g.totalCents += overflowTotal; g.overflowInCents = overflowTotal; }
+    return groups;
+  }
   const rest = positions.flatMap((position) => {
     const r = restOf(position);
     return r.cents > 0 ? [{ position, percent: r.percent, cents: r.cents }] : [];
   });
-  if (rest.length > 0) groups.push({ goal: null, positions: rest.map((x) => x.position), parts: rest, totalCents: rest.reduce((sum, x) => sum + x.cents, 0) });
+  const restTotal = rest.reduce((sum, x) => sum + x.cents, 0) + overflowTotal;
+  if (rest.length > 0 || overflowTotal > 0) groups.push({ goal: null, positions: rest.map((x) => x.position), parts: rest, totalCents: restTotal, ...(overflowTotal > 0 ? { overflowInCents: overflowTotal } : {}) });
   return groups;
 }
 
@@ -99,14 +114,14 @@ export function goalProgress(totalCents: number, targetCents: number): { percent
   return { percent, reached };
 }
 
-export interface GoalSummary { id: string; name: string; totalCents: number; targetCents: number; percent: number; reached: boolean; count: number }
+export interface GoalSummary { id: string; name: string; totalCents: number; targetCents: number; percent: number; reached: boolean; count: number; overflowOutCents?: number; overflowInCents?: number }
 
 /** Pokrok každého cieľa investícií pre Prehľad (D-331); len zobrazenie, výpočet dátumu cieľa sa nemení (D-258). */
 export function goalSummaries(positions: Position[], goals: InvestmentGoal[]): GoalSummary[] {
   return groupByGoal(positions, goals).flatMap((g) => {
     if (!g.goal) return [];
     const { percent, reached } = goalProgress(g.totalCents, g.goal.targetCents);
-    return [{ id: g.goal.id, name: g.goal.name, totalCents: g.totalCents, targetCents: g.goal.targetCents, percent, reached, count: g.positions.length }];
+    return [{ id: g.goal.id, name: g.goal.name, totalCents: g.totalCents, targetCents: g.goal.targetCents, percent, reached, count: g.positions.length, ...(g.overflowOutCents ? { overflowOutCents: g.overflowOutCents } : {}), ...(g.overflowInCents ? { overflowInCents: g.overflowInCents } : {}) }];
   });
 }
 

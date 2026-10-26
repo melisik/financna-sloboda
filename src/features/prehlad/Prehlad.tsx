@@ -116,7 +116,9 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
           {goalSummaries(data.investments, data.goals).map((g) => (
             <p key={g.id} style={{ margin: "2px 0" }}>
               {g.name}: {eur(g.totalCents)} z {eur(g.targetCents)} · {g.reached ? "cieľ dosiahnutý" : `${g.percent} %`}
-              {g.count === 0 && <span style={hintStyle}> (zatiaľ bez položiek)</span>}
+              {g.count === 0 && !g.overflowInCents && <span style={hintStyle}> (zatiaľ bez položiek)</span>}
+              {g.overflowOutCents ? <span style={hintStyle}> (nad cieľ {eur(g.overflowOutCents)} ide inam)</span> : null}
+              {g.overflowInCents ? <span style={hintStyle}> (z toho {eur(g.overflowInCents)} z preplnených cieľov)</span> : null}
             </p>
           ))}
           <p style={{ ...hintStyle, margin: "2px 0" }}>Len zobrazenie; dátum cieľa to nemení. <NextStep to="investicie">Investície</NextStep></p>
