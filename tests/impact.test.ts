@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { formatImpact, impactMonths, UNREACHABLE_IMPACT_TEXT } from "../src/domain/impact";
+import { formatImpact, UNREACHABLE_IMPACT_TEXT } from "../src/domain/impact";
+import { impactWithRentals } from "../src/domain/rentalGoal";
+
+// Dopad cez funkciu, ktorú používa appka (impactWithRentals); bez prenájmov. Delta v mesiacoch, inak null (D-326).
+const liveImpact = (before: { inv: number; cash: number }, after: { inv: number; cash: number }, mInv: number, mCash: number, r: number, t: number): number | null => {
+  const i = impactWithRentals(before, after, mInv, mCash, r, t, []);
+  return i.kind === "delta" ? i.months : null;
+};
 
 const eur = (x: number) => x * 100;
 
-describe("impactMonths (FR-04, D-004)", () => {
+describe("predbežný dopad (FR-04, D-004)", () => {
   // GC-04: K_L = 100 000, K_pred = 105 000, m = 500, r = 4 % → dopad 5,99 → +6 mesiacov
   it("GC-04: K_pred = 105 000 € dá dopad približne +6 mesiacov", () => {
-    const d = impactMonths(eur(100_000), eur(105_000), eur(500), 0.04, eur(600_000));
+    const d = liveImpact({ inv: eur(100_000), cash: 0 }, { inv: eur(105_000), cash: 0 }, eur(500), 0, 0.04, eur(600_000));
     expect(d).not.toBeNull();
     expect(d!).toBeCloseTo(5.99, 1);
     expect(formatImpact(d!)).toBe("predbežne +6 mesiacov");
@@ -14,7 +21,7 @@ describe("impactMonths (FR-04, D-004)", () => {
 
   // N1: 100 € sporené do hotovosti (K 100 000 → 100 100) → cca 0,12 mesiaca → v dňoch
   it("N1: 100 € dá dopad v dňoch, nie „bez zmeny“", () => {
-    const d = impactMonths(eur(100_000), eur(100_100), eur(500), 0.04, eur(600_000));
+    const d = liveImpact({ inv: eur(100_000), cash: 0 }, { inv: eur(100_100), cash: 0 }, eur(500), 0, 0.04, eur(600_000));
     expect(d!).toBeCloseTo(0.121, 2);
     expect(formatImpact(d!)).toBe("predbežne +4 dni");
   });

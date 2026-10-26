@@ -38,7 +38,7 @@ export interface Transaction {
   type: TransactionType;
   amountCents: number; // kladné celé centy
   source?: Source; // povinné pri výdavku
-  belowThreshold?: boolean; // D-030
+  belowThreshold?: boolean; // D-030; appka ho od D-120 nezapisuje ani nečíta, ostáva kvôli starším zálohám (D-326)
   category?: BudgetCategory; // len pri výdavku; bez hodnoty = nezaradené (D-106)
   note?: string; // max 200 znakov
   receiptId?: string; // číslo dokladu z QR kódu, len pri výdavku (D-126)
@@ -65,7 +65,7 @@ export interface Settings {
   savingInvCents?: number; // m_inv, prepísané používateľom; bez hodnoty sa použije odvodená (D-031)
   savingCashCents?: number; // m_cash, rovnako
   feesRate?: number; // poplatky p. a., napr. 0.005; bez hodnoty = 0 (D-064)
-  lastReviewDate?: string; // D_L
+  lastReviewDate?: string; // D_L; appka ho nezapisuje (D_L je z vyhodnotení), ostáva kvôli starším zálohám (D-326)
   checkedAt?: string; // kedy sa nastavenia naposledy uložili (ISO); pripomienka ročnej kontroly (N-13, D-151)
 }
 
@@ -104,7 +104,7 @@ export interface Property {
   name?: string; // max 80 znakov, len na orientáciu
   mode: PropertyMode;
   valueCents: number; // odhad hodnoty, nie trhová cena (FR-21, D-080)
-  valueDate: string; // dátum odhadu, YYYY-MM-DD (D-089)
+  valueDate: string; // dátum odhadu, YYYY-MM-DD; odhad je ručný, po roku pripomienka (D-326, ruší automatiku D-089)
   mortgageBalanceCents: number; // zostatok hypotéky; 0 ak nie je
   balanceDate?: string; // dátum, ku ktorému platí zostatok, YYYY-MM-DD; od neho sa splácanie počíta automaticky (D-137)
   monthlyRentCents?: number; // mesačný nájom (FR-23), len pri režime prenájom

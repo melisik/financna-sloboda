@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { AppData, Transaction } from "../../storage/types";
 import type { Ctx } from "../../domain/context";
 import { scenarioDateText } from "../../domain/scenario";
-import { backupOverdue, monthEndApproaching, reviewOverdue, settingsCheckOverdue } from "../../domain/reminders";
+import { backupOverdue, monthEndApproaching, reviewOverdue, settingsCheckOverdue, staleEstimates } from "../../domain/reminders";
 import { StockWarning } from "../../ui/StockWarning";
 import { monthSummary } from "../../domain/monthSummary";
 import { monthlyIncomeCents } from "../../domain/income";
@@ -134,6 +134,11 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       {data.settings !== null && settingsCheckOverdue(data.settings.checkedAt, today) && (
         <p style={calloutStyle("warn")}>
           Nastavenia sa ešte neoverili alebo sú staršie ako rok. Skontroluj výnos, rezervu a mieru výberu v sekcii <a href="#nastavenia">Nastavenia</a>.
+        </p>
+      )}
+      {staleEstimates(data.properties, today).length > 0 && (
+        <p style={calloutStyle("warn")}>
+          Odhad hodnoty je starší ako rok: {staleEstimates(data.properties, today).join(", ")}. Aktualizuj ho v sekcii <a href="#majetok">Majetok</a>; appka ho sama nemení.
         </p>
       )}
       {(data.snapshots.length > 0 || data.transactions.length > 0 || data.settings !== null) && backupOverdue(lastExport, today) && (

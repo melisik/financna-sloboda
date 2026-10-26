@@ -39,3 +39,11 @@ export function settingsCheckOverdue(checkedAtIso: string | undefined, todayIso:
   return daysSince(checkedAtIso, todayIso) > days;
 }
 
+
+/**
+ * Nehnuteľnosti, ktorých odhad hodnoty je starší ako rok (D-326). Odhad je ručný; automatická aktualizácia
+ * podľa indexu cien (D-089, D-091) bola zrušená, lebo by vyžadovala volanie siete (D-009).
+ */
+export function staleEstimates(properties: { name?: string; valueDate: string }[], todayIso: string, days = 365): string[] {
+  return properties.filter((p) => daysSince(p.valueDate, todayIso) > days).map((p) => p.name?.trim() || "nehnuteľnosť bez názvu");
+}

@@ -1,4 +1,3 @@
-import { monthsToTarget } from "./goal";
 import type { Impact } from "./rentalGoal";
 
 /**
@@ -15,23 +14,6 @@ export const UNREACHABLE_IMPACT_TEXT =
 
 /** Priemerný počet dní v mesiaci (FR-04, N1: 1 mesiac = 30,44 dňa). */
 const DAYS_PER_MONTH = 30.44;
-
-/**
- * Predbežný dopad transakcie (FR-04, N1): n(K_L) − n(K_pred) v mesiacoch, surový rozdiel.
- * Kladné = cieľ bližšie, záporné = ďalej. Null, ak niektorý scenár cieľ nedosiahne.
- */
-export function impactMonths(
-  capitalCents: number,
-  pendingCapitalCents: number,
-  monthlySavingCents: number,
-  annualRate: number,
-  targetCents: number,
-): number | null {
-  const before = monthsToTarget(capitalCents, monthlySavingCents, annualRate, targetCents);
-  const after = monthsToTarget(pendingCapitalCents, monthlySavingCents, annualRate, targetCents);
-  if (before === null || after === null) return null;
-  return before - after;
-}
 
 /**
  * Text výsledku dopadu pre UI (FR-04, FR-02a). Vyčerpanie hotovosti sa pomenuje, nie zamieňa za „cieľ sa nedosiahne“:

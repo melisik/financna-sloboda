@@ -1,6 +1,6 @@
 # 62 – Strom vývoja: kde ostal len výhonok (2026-10-26)
 
-> Stav: **návrh na rozhodnutie**. Kód sa nemení. Zostavil autor kódu prechodom kódu na `main` (`f7be2c3`) a rozhodnutí D-001 až D-325. Doplňuje `docs/60` (čo vidí tester) a `docs/61` (fázy a brány): tu ide o miesta, kde vývoj **začal, ale ďalej nevyrástol**. Metóda: exporty, ktoré nikto v appke nepoužíva; moduly, ktoré nikto neimportuje; polia dát, ktoré appka nezapisuje; verejné súbory bez použitia; rozhodnutia so slovami „neskôr“, „krok 2“, „odložené“, „čaká“. Čo nie je overené v kóde, je označené ako predpoklad.
+> Stav: **rozhodnuté a implementované** (2026-10-26, D-326): 1 áno, 2 áno, 3a, 4 áno. Zostavil autor kódu prechodom kódu na `main` (`f7be2c3`) a rozhodnutí D-001 až D-325. Doplňuje `docs/60` (čo vidí tester) a `docs/61` (fázy a brány): tu ide o miesta, kde vývoj **začal, ale ďalej nevyrástol**. Metóda: exporty, ktoré nikto v appke nepoužíva; moduly, ktoré nikto neimportuje; polia dát, ktoré appka nezapisuje; verejné súbory bez použitia; rozhodnutia so slovami „neskôr“, „krok 2“, „odložené“, „čaká“. Čo nie je overené v kóde, je označené ako predpoklad.
 
 ## 1. Kmeň (hotové a používané)
 

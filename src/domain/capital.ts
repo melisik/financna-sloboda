@@ -98,20 +98,3 @@ export function transferToInvestments(c: Capital, amount: number): MoveResult {
   return { ok: true, capital: { inv: c.inv + amount, cash: c.cash - amount } };
 }
 
-/**
- * Dopad pri dvoch zásobníkoch (FR-04, N1): n(pred) − n(po) v mesiacoch, surový rozdiel.
- * Null, ak niektorý scenár cieľ nedosiahne.
- */
-export function impactMonthsSplit(
-  before: Capital,
-  after: Capital,
-  mInv: number,
-  mCash: number,
-  annualRate: number,
-  targetCents: number,
-): number | null {
-  const nBefore = monthsToTargetSplit(before, mInv, mCash, annualRate, targetCents);
-  const nAfter = monthsToTargetSplit(after, mInv, mCash, annualRate, targetCents);
-  if (nBefore === null || nAfter === null) return null;
-  return nBefore - nAfter;
-}

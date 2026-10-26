@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { INVESTMENTS_EXHAUSTED_TEXT, monthsToTargetSplit, payFromCash, payFromInvestments, transferToInvestments, impactMonthsSplit } from "../src/domain/capital";
+import { INVESTMENTS_EXHAUSTED_TEXT, monthsToTargetSplit, payFromCash, payFromInvestments, transferToInvestments } from "../src/domain/capital";
+import { impactWithRentals } from "../src/domain/rentalGoal";
+// Dopad cez funkciu, ktorú používa appka (impactWithRentals); bez prenájmov. Delta v mesiacoch, inak null (D-326).
+const liveImpact = (before: { inv: number; cash: number }, after: { inv: number; cash: number }, mInv: number, mCash: number, r: number, t: number): number | null => {
+  const i = impactWithRentals(before, after, mInv, mCash, r, t, []);
+  return i.kind === "delta" ? i.months : null;
+};
+
 import { formatImpact } from "../src/domain/impact";
 
 
@@ -22,7 +29,7 @@ describe("monthsToTargetSplit (D-046)", () => {
 
   // GC-21: ako GC-20, ale K_cash = 100 € navyše → dopad ≈ 0,06 mesiaca ≈ 1,7 dňa
   it("GC-21 (D-073): 100 € v hotovosti dá dopad približne 1,7 dňa", () => {
-    const d = impactMonthsSplit(
+    const d = liveImpact(
       { inv: eur(100_000), cash: 0 },
       { inv: eur(100_000), cash: eur(100) },
       0,
@@ -72,7 +79,7 @@ describe("výdavky z kapitálu (D-045)", () => {
     expect(second.ok && second.warning).toBe("exhausted");
     if (!second.ok) return;
     expect(second.capital.inv).toBe(0);
-    const d = impactMonthsSplit({ inv: eur(100_000), cash: 0 }, second.capital, eur(500), 0, 0.04, T600);
+    const d = liveImpact({ inv: eur(100_000), cash: 0 }, second.capital, eur(500), 0, 0.04, T600);
     expect(d!).toBeCloseTo(-154.1, 1);
     expect(formatImpact(d!)).toBe("predbežne −154 mesiacov"); // docs/07 GC-15; skloňovanie podľa D-289
   });

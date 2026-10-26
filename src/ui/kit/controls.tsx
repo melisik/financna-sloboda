@@ -86,7 +86,3 @@ const TONE_BORDER: Record<Tone, string> = { info: "var(--border-strong)", warn: 
 export function calloutStyle(tone: Tone): CSSProperties {
   return { background: TONE_BG[tone], borderLeft: `4px solid ${TONE_BORDER[tone]}`, padding: 12, borderRadius: 6, marginTop: 8, marginBottom: 8, color: "var(--text)" };
 }
-/** Upozornenie ako komponent (nové miesta). Existujúce miesta používajú calloutStyle, aby sa zachovali roly. */
-export function Callout({ tone = "info", role, children }: { tone?: Tone; role?: "alert" | "note" | "status"; children: ReactNode }) {
-  return <div role={role} style={calloutStyle(tone)}>{children}</div>;
-}
