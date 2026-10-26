@@ -24,7 +24,7 @@ test.describe("karta majetku (Fáza 2)", () => {
 
     const card = page.locator("#majetok div", { hasText: "byt – syntetický" }).last();
     await expect(card).toContainText(/Čistá hodnota:\s*150\D?000,00 €/);
-    await expect(card).toContainText("Do K sa počíta ako čistá hodnota.");
+    await expect(card).toContainText("Do kapitálu sa počíta čistá hodnota.");
     await expect(card.locator("dl")).toContainText(/Nájom\D*900/);
     await expect(card.locator("dl")).toContainText(/Splátka hypotéky\D*800/);
     await expect(card.locator("dl")).toContainText(/Mesačné náklady spolu\D*950/);
@@ -34,14 +34,14 @@ test.describe("karta majetku (Fáza 2)", () => {
     // Pretrvanie po obnovení stránky (IndexedDB, schéma v2).
     await page.reload();
     await expect(page.locator("section#majetok")).toBeVisible();
-    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Do K sa počíta ako čistá hodnota.");
+    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Do kapitálu sa počíta čistá hodnota.");
 
     // Zmena režimu na vlastné bývanie: mimo K a v súhrne nad zoznamom.
     await page.getByRole("button", { name: "Upraviť" }).click();
     await page.getByLabel("Režim").selectOption("vlastne_byvanie");
     await page.getByRole("button", { name: "Uložiť nehnuteľnosť" }).click();
-    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Do K sa nepočíta.");
-    await expect(page.locator("#majetok")).toContainText(/Mimo K: vlastné bývanie/);
+    await expect(page.locator("#majetok div", { hasText: "byt – syntetický" }).last()).toContainText("Do kapitálu sa nepočíta.");
+    await expect(page.locator("#majetok")).toContainText(/Mimo kapitálu: vlastné bývanie/);
 
     // Zmazanie s potvrdením.
     await page.getByRole("button", { name: "Zmazať" }).click();
@@ -69,7 +69,7 @@ test.describe("karta majetku (Fáza 2)", () => {
     await page.getByRole("button", { name: "Uložiť", exact: true }).click();
     const car = page.locator("#majetok div", { hasText: "auto – syntetické 2019" }).last();
     await expect(car).toContainText("Odhad: 12 000,00 €");
-    await expect(car).toContainText("Do K sa zatiaľ nepočíta.");
+    await expect(car).toContainText("Do kapitálu sa nepočíta.");
 
     await page.getByRole("button", { name: "Pridať: ocenitelné právo" }).click();
     await page.getByLabel("Názov (napr. značka a rok, alebo podiel)").fill("podiel – syntetický");

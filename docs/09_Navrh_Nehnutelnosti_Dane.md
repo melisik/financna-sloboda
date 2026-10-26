@@ -1,6 +1,9 @@
 # 09 – Návrh na vysokej úrovni: nehnuteľnosti a daňové režimy
 
 **Stav:** pracovný návrh (draft). Voľby vlastníka sú zapísané ako smery; formálne rozhodnutia v `decisions/Decisions.md` ešte nie sú. Nič sa neimplementuje.
+
+**Aktualizácia stavu (2026-10-26, D-323, `docs/60`):** návrh je prekonaný rozhodnutiami a implementáciou: nehnuteľnosť s režimom a hypotékou (D-080 a nasl., D-156), evidencia prenájmu (D-157), riadok 11 (D-158), psy (D-159), tlačivo 17-dp-md (D-161, D-208). Text nižšie je pôvodný návrh; platí `decisions/Decisions.md`.
+
 **Projekt:** Finančná sloboda (repozitár `melisik/financna-sloboda`).
 **Pôvod nápadov:** vlastník projektu, 2026-10-16 (`docs/19_Idea_Backlog.md`, položky 1 a 2).
 **Umiestnenie:** tento dokument patrí do `financna-sloboda/docs/` (presunutý z iného projektu, 2026-10-16). Súvisiace nápady sú v `docs/08_Backlog_Napady.md` (N-01, N-02).

@@ -51,8 +51,8 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
       {(ctx.negative.cash || ctx.negative.inv) && (
         <p style={calloutStyle("error")}>
           Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení.
-          {ctx.shortfall.inv > 0 && <> Prečerpanie investícií: <strong>{eur(ctx.shortfall.inv)}</strong>. Do hodnoty K sa nezapočíta.</>}
-          {ctx.shortfall.cash > 0 && <> Prečerpanie hotovosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do hodnoty K sa nezapočíta.</>}
+          {ctx.shortfall.inv > 0 && <> Prečerpanie investícií: <strong>{eur(ctx.shortfall.inv)}</strong>. Do kapitálu sa nezapočíta.</>}
+          {ctx.shortfall.cash > 0 && <> Prečerpanie hotovosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do kapitálu sa nezapočíta.</>}
         </p>
       )}
       {ctx.latest && ctx.target !== null && progress ? (

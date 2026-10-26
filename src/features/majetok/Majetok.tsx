@@ -50,7 +50,7 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
   return (
     <section>
       <p style={{ color: "var(--muted)" }}>
-        Hodnota je tvoj odhad, nie trhová cena. Do kapitálu K sa počíta len nehnuteľnosť, ktorú prenajímaš; vlastné bývanie sa zobrazí zvlášť.
+        Hodnota je tvoj odhad, nie trhová cena. Do kapitálu sa počíta len nehnuteľnosť, ktorú prenajímaš; vlastné bývanie sa zobrazí zvlášť.
       </p>
       {(properties.length > 0 || assets.length > 0) && (() => {
         // Súhrn: čo sa počíta do K a čo je mimo K (D-093, D-058). Čistá hodnota ako v K.
@@ -61,9 +61,9 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
         const monthly = properties.reduce((sum, p) => sum + monthlyCostsCents(p), 0);
         return (
           <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6, marginBottom: 12 }}>
-            <p style={{ margin: "4px 0" }}>Do K sa počíta: <strong>{eur(inK)}</strong> (prenajímané nehnuteľnosti, čistá hodnota)</p>
+            <p style={{ margin: "4px 0" }}>Do kapitálu sa počíta: <strong>{eur(inK)}</strong> (prenajímané nehnuteľnosti, čistá hodnota)</p>
             <p style={{ margin: "4px 0" }}>
-              Mimo K: vlastné bývanie {eur(outK)}, automobily a práva {eur(assetsTotal)}
+              Mimo kapitálu: vlastné bývanie {eur(outK)}, automobily a práva {eur(assetsTotal)}
               {properties.some((p) => p.mode === "nezadane") ? `, nezadaný režim ${eur(unset)}` : ""}
             </p>
             {monthly > 0 && <p style={{ margin: "4px 0" }}>Mesačné náklady na nehnuteľnosti spolu: <strong>{eur(monthly)}</strong></p>}
@@ -135,7 +135,7 @@ export function PropertySection({ repo, properties, assets, today, onSaved, rend
               {net < 0 && <span> (hypotéka presahuje odhad)</span>}
             </p>
             <p style={{ ...hintStyle, margin: "4px 0" }}>
-              {p.mode === "nezadane" ? "Do K sa zatiaľ nepočíta: zadaj režim." : p.mode === "prenajom" ? "Do K sa počíta ako čistá hodnota." : "Do K sa nepočíta."}
+              {p.mode === "nezadane" ? "Do kapitálu sa nepočíta, kým nezadáš režim." : p.mode === "prenajom" ? "Do kapitálu sa počíta čistá hodnota." : "Do kapitálu sa nepočíta."}
             </p>
             {p.mortgageBalanceCents > 0 && (p.monthlyPaymentCents ?? 0) > 0 && (
               <p style={{ ...hintStyle, margin: "4px 0" }}>
@@ -202,7 +202,7 @@ const ASSET_KIND_LABEL: Record<AssetKind, string> = {
   pravo: "Ocenitelné právo",
 };
 
-/** Automobil a ocenitelné právo (docs/11, bod 10): názov, odhad a dátum; do K sa zatiaľ nepočítajú. */
+/** Automobil a ocenitelné právo (docs/11, bod 10): názov, odhad a dátum; do kapitálu sa nepočítajú (D-323). */
 function AssetSection({ repo, assets, today, onSaved }: { repo: Repository; assets: Asset[]; today: string; onSaved: () => void }) {
   const [editing, setEditing] = useState<Asset | AssetKind | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -222,14 +222,14 @@ function AssetSection({ repo, assets, today, onSaved }: { repo: Repository; asse
   return (
     <div style={{ marginTop: 16 }}>
       <h3 style={{ fontSize: "var(--font-text)" }}>Automobily a ocenitelné práva</h3>
-      <p style={{ color: "var(--muted)" }}>Odhad je tvoj, nie trhová cena. Zatiaľ sa do K nepočítajú (predpoklad).</p>
+      <p style={{ color: "var(--muted)" }}>Odhad je tvoj, nie trhová cena. Slúži len na prehľad majetku; do kapitálu ani do dátumu cieľa sa nepočíta.</p>
       {assets.length === 0 && editing === null && <p>Zatiaľ nie je zapísané žiadne aktívum.</p>}
       {assets.map((a) => (
         <div key={a.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{a.name}</strong> · {ASSET_KIND_LABEL[a.kind]}</p>
           <p style={{ margin: "4px 0" }}>Odhad: {eur(a.valueCents)} (k {dateSk(a.valueDate)})</p>
           {valueIsStale(a.valueDate, today) && <p style={calloutStyle("warn")}>Odhad je starší ako 12 mesiacov. Over ho a zadaj nový.</p>}
-          <p style={{ ...hintStyle, margin: "4px 0" }}>Do K sa zatiaľ nepočíta.</p>
+          <p style={{ ...hintStyle, margin: "4px 0" }}>Do kapitálu sa nepočíta.</p>
           {confirmId === a.id ? (
             <div>
               <p>Naozaj zmazať aktívum „{a.name}“?</p>

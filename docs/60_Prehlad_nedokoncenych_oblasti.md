@@ -1,6 +1,6 @@
 # 60 – Prehľad nedokončených oblastí (2026-10-26)
 
-> Stav: **návrh na rozhodnutie**. Kód sa nemení. Zostavil autor kódu z `docs/`, `decisions/Decisions.md` a kódu na `main` (`a6836a1`, D-322). Nadväzuje na `docs/50` (2026-10-25), ktorý pokryl Sklad a Dane; tu sú všetky oblasti, ktoré používateľ v appke vidí, a dokumenty so zastaraným stavom. Čo nie je v dokumentoch, je označené ako predpoklad.
+> Stav: **rozhodnuté a implementované** (2026-10-26, D-323): 1a, 2a, 3 áno, 4 áno, 5 áno; základné dokumenty 00 až 07 pred G1 a G4. Zostavil autor kódu z `docs/`, `decisions/Decisions.md` a kódu na `main` (`a6836a1`, D-322). Nadväzuje na `docs/50` (2026-10-25), ktorý pokryl Sklad a Dane; tu sú všetky oblasti, ktoré používateľ v appke vidí, a dokumenty so zastaraným stavom. Čo nie je v dokumentoch, je označené ako predpoklad.
 
 ## 1. Ako čítať
 

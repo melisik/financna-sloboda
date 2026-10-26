@@ -32,14 +32,14 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
   // Poradie (D-293, docs/46): súhrn po rokoch, výdavky podľa kategórií, zbalené vyhodnotenia.
   return (
     <div>
-      {!s && <p style={{ color: "var(--muted)" }}>Nastavenia nie sú zadané; zobrazí sa len K. <NextStep to="nastavenia">Nastavenia</NextStep></p>}
+      {!s && <p style={{ color: "var(--muted)" }}>Nastavenia nie sú zadané; zobrazí sa len kapitál. <NextStep to="nastavenia">Nastavenia</NextStep></p>}
       <h3 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>Súhrn po rokoch</h3>
       {years.map((y) => (
         <div key={y.year} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{y.year}</strong></p>
           {y.endK !== null && (
             <p style={{ margin: "4px 0" }}>
-              K na konci roka: {eur(y.endK)}
+              Kapitál na konci roka: {eur(y.endK)}
               {y.deltaK !== null ? ` (zmena za rok ${y.deltaK >= 0 ? "+" : "−"}${eur(Math.abs(y.deltaK))})` : ""}
             </p>
           )}
@@ -69,14 +69,14 @@ export function RocnyPrehladSection({ data, ctx }: { data: AppData; ctx: Ctx }) 
       )}
       <details style={{ marginTop: 16 }}>
         <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Vyhodnotenia ({rows.length}) ▾</summary>
-        <p style={{ color: "var(--muted)" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého K, z dnešných Nastavení a z dnešných hodnôt nehnuteľností v prenájme.</p>
+        <p style={{ color: "var(--muted)" }}>Vyhodnotenia od najstaršieho. Dátum cieľa sa počíta z uloženého kapitálu, z dnešných Nastavení a z dnešných hodnôt nehnuteľností v prenájme.</p>
       {rows.map((r) => (
         <div key={r.date} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{dateSk(r.date)}</strong>{r.auto ? " · automaticky" : ""}</p>
-          <p style={{ margin: "4px 0" }}>K: {eur(r.totalCents)} (investície {eur(r.invCents)}, hotovosť {eur(r.cashCents)})</p>
+          <p style={{ margin: "4px 0" }}>Kapitál: {eur(r.totalCents)} (investície {eur(r.invCents)}, hotovosť {eur(r.cashCents)})</p>
           {r.deltaTotalCents !== null && (
             <p style={{ ...hintStyle, margin: "4px 0" }}>
-              Zmena K: {r.deltaTotalCents >= 0 ? "+" : "−"}{eur(Math.abs(r.deltaTotalCents))}
+              Zmena kapitálu: {r.deltaTotalCents >= 0 ? "+" : "−"}{eur(Math.abs(r.deltaTotalCents))}
             </p>
           )}
           {r.sporenieCents !== null && r.vydavkyCents !== null && r.ostatneCents !== null && (

@@ -19,7 +19,7 @@ test.describe("vyhodnotenie: kontrola a úprava", () => {
     await page.getByLabel("Hodnota investícií (€)").fill("30000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("0");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
-    await expect(page.locator("section#vyhodnotenie div", { hasText: "01.01.2026" }).last()).toContainText("K: 30");
+    await expect(page.locator("section#vyhodnotenie div", { hasText: "01.01.2026" }).last()).toContainText("Kapitál: 30");
 
     // Preklep: 3 000 namiesto 30 000 je zmena o 90 %, uloženie sa najprv potvrdí.
     // Formulár sa po uložení znovu inicializuje, preto sa hodnoty overia a v prípade potreby zopakujú.
@@ -32,11 +32,11 @@ test.describe("vyhodnotenie: kontrola a úprava", () => {
       await expect(inv).toHaveValue("3000");
     }).toPass();
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
-    await expect(page.getByText("Zmena K je viac ako 50 % oproti poslednému vyhodnoteniu.")).toBeVisible();
+    await expect(page.getByText("Zmena kapitálu je viac ako 50 % oproti poslednému vyhodnoteniu.")).toBeVisible();
     await page.getByRole("button", { name: "Upraviť údaje" }).click();
     await inv.fill("31000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
-    await expect(page.getByText("Zmena K je viac ako 50 %")).toHaveCount(0);
+    await expect(page.getByText("Zmena kapitálu je viac ako 50 %")).toHaveCount(0);
     await expect(page.locator("section#vyhodnotenie div", { hasText: "01.02.2026" }).last()).toContainText("investície 31");
 
     const feb = page.locator("section#vyhodnotenie div", { hasText: "01.02.2026" }).last();

@@ -17,7 +17,7 @@ test.describe("záporné sporenie v nastaveniach (nález 1)", () => {
 });
 
 test.describe("prečerpanie investícií v Prehľade (nález 3, D-059, D-167)", () => {
-  test("výdavok nad K_inv ukáže sumu prečerpania a poznámku (D-066)", async ({ page }) => {
+  test("výdavok nad hodnotu investícií ukáže sumu prečerpania a poznámku (D-066)", async ({ page }) => {
     await openApp(page);
     await goTo(page, "nastavenia");
     await page.getByLabel("Ročné výdavky pri nezávislosti (€)").fill("24000");
@@ -30,10 +30,10 @@ test.describe("prečerpanie investícií v Prehľade (nález 3, D-059, D-167)", 
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Zdroj úhrady").selectOption("z_investicii");
     await page.getByLabel("Suma (€)").fill("150");
-    await page.getByLabel("Rozumiem, investície sa vyčerpajú a K_inv bude 0 €.").check();
+    await page.getByLabel("Rozumiem, investície sa vyčerpajú a ich hodnota bude 0 €.").check();
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 
-    await expect(page.locator("section#nova-transakcia")).toContainText("prečerpanie 50,00 € nad K_inv");
+    await expect(page.locator("section#nova-transakcia")).toContainText("prečerpanie 50,00 € nad hodnotu investícií");
     await goTo(page, "prehlad");
     await expect(page.locator("section#prehlad")).toContainText("Prečerpanie investícií: 50,00 €");
   });

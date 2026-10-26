@@ -105,7 +105,7 @@ test.describe("usporiadanie obrazoviek", () => {
     await expect(s).toContainText("Minulý rok nemá zapísané výdavky, porovnanie sa ukáže neskôr.");
     await expect(s).not.toContainText("minulý rok 0,00");
     await expect(s.locator("summary", { hasText: "Vyhodnotenia (2)" })).toBeVisible();
-    await expect(s.getByText("Zmena K:")).toBeHidden();
+    await expect(s.getByText("Zmena kapitálu:")).toBeHidden();
   });
 
   test("Dane: bez investícií s režimom jedna veta namiesto kariet s nulami", async ({ page }) => {

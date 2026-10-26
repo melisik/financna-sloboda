@@ -2,7 +2,7 @@ import type { Repository } from "../storage/repository";
 import type { AppData } from "../storage/types";
 import type { Ctx } from "../domain/context";
 import { investmentsTotalCents } from "../domain/investments";
-import { PHASE2_ENABLED } from "../app/features";
+import { FEED_IMPORT_ENABLED, PHASE2_ENABLED } from "../app/features";
 import { Section, btn } from "./kit/controls";
 import { NextStep } from "./kit/NextStep";
 import { todayIso } from "./kit/format";
@@ -117,7 +117,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "prijmy":
       return (
         <Section id="prijmy" title="Príjmy">
-          <IncomeSection repo={repo} incomes={data.incomes} data={data} today={todayIso()} onSaved={reload} />
+          <IncomeSection repo={repo} incomes={data.incomes} data={data} today={todayIso()} onSaved={reload} feedImport={FEED_IMPORT_ENABLED} />
         </Section>
       );
     case "zavazky":
@@ -141,6 +141,10 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
     case "dane":
       return (
         <Section id="dane" title="Dane">
+          {/* Čo je hotové a čo nie (D-323, docs/60 otázka 4). */}
+          <p style={{ color: "var(--muted)", marginTop: 0 }}>
+            Dane sú zatiaľ evidencia a podklady: daňový režim investícií, psy a vyplnenie tlačiva 17-dp-md k dani z nehnuteľností a za psa. Príjmy a výdavky z prenájmu eviduješ pri nehnuteľnosti v sekcii Majetok. Appka daň nepočíta ani nepodáva priznanie; sadzby a termíny ešte nie sú overené.
+          </p>
           <TaxSection positions={data.investments} />
           <DogSection repo={repo} dogs={data.dogs} today={todayIso()} onSaved={reload} />
           <TaxFormBlock properties={data.properties} dogs={data.dogs} today={todayIso()} />

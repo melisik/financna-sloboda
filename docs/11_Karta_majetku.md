@@ -2,6 +2,9 @@
 
 > Stav: **návrh na diskusiu, bez záväzného rozhodnutia.** Vývoj Fázy 2 môže začať (D-094), kód ide na vetvu `claude/phase2-property-card` a na `main` sa nedostane pred bránou Fázy 2 pre používateľov. Čo je nad rámec tohto návrhu, je predpoklad a označuje sa ako taký. Zmeny sa zapisujú sem; až schválený bod ide do `Decisions.md`.
 
+> **Aktualizácia stavu (2026-10-26, D-323, `docs/60`):** karta majetku je implementovaná a v `main` (D-304), formulár so zbalenými blokmi (D-310). Ostatné aktíva (automobil, práva) sa do kapitálu nepočítajú (D-323). Platí `decisions/Decisions.md`.
+
+
 ## 1. Účel
 
 Karta majetku eviduje nehnuteľnosť a jej čistú hodnotu (D-080), aby ju bolo vidno oddelene od ostatného kapitálu. **V prvej verzii karta nemení dátum cieľa.** Napojenie na výpočet je až v FR-02a a bude samostatný krok.

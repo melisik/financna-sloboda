@@ -281,7 +281,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     }
     const existing = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
     const excess = type === "vydavok" && source === "z_investicii" && c.needsConfirm ? cents(a) - base.capital.inv : 0;
-    const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad K_inv` : ""].filter(Boolean).join("; ");
+    const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad hodnotu investícií` : ""].filter(Boolean).join("; ");
     const receipt = receiptId.trim();
     if (type === "vydavok" && receipt !== "" && !isReceiptId(receipt)) return setErr("Číslo dokladu má 20 až 40 znakov: písmená, číslice a pomlčky.");
     const receiptItems = byItems ? allItems : undefined;
@@ -480,7 +480,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       )}
       {preview && !preview.blocked && preview.needsConfirm && (
         <label style={{ display: "block", margin: "8px 0" }}>
-          <input ref={exhaustedRef} type="checkbox" checked={confirmExhausted} onChange={(e) => setConfirmExhausted(e.target.checked)} /> Rozumiem, investície sa vyčerpajú a K_inv bude 0 €.
+          <input ref={exhaustedRef} type="checkbox" checked={confirmExhausted} onChange={(e) => setConfirmExhausted(e.target.checked)} /> Rozumiem, investície sa vyčerpajú a ich hodnota bude 0 €.
         </label>
       )}
       {inEdit && date <= (ctx.latest?.date ?? "") && (

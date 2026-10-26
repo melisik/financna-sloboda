@@ -2,6 +2,9 @@
 
 > Stav: **čiastočne implementované (D-154).** Zobrazenie budúcich dôchodkov a dávok zo zadaných údajov v sekcii Príjmy (výhľad). Výpočty, dátum výpisu a overené pravidlá ostávajú mimo. Všetky pravidlá, čísla a lehoty v tomto dokumente sú **predpoklad, kým sa neoverí** v primárnom zdroji (Sociálna poisťovňa, ÚPSVaR, zákon).
 
+> **Aktualizácia stavu (2026-10-26, D-323, `docs/60`):** otázka 1 v oddiele 7 je rozhodnutá: výhľad len zobrazuje (D-154), dátum cieľa nemení. Otázky 2 až 4 ostávajú otvorené. Načítanie súboru integračnej služby je pre používateľov skryté, kým služba neexistuje (D-323).
+
+
 ## 1. Účel
 
 Ukázať, z akých príjmov sa bude žiť v budúcnosti: starobný dôchodok, invalidný dôchodok, sociálne dávky. Používateľ vidí, aký príjem má od kedy, bez toho, aby sa mu zdanlivo odhadovalo niečo, čo nevie overiť.

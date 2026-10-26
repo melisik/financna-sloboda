@@ -2,6 +2,9 @@
 
 > Stav: **rozhodnuté: možnosť A (lokálny súbor), D-112.** Aplikácia číta súbor, nevolá sieť. Integračná služba ešte neexistuje; formát v1 je v sekcii 8. Všetky údaje o službách, dávkach a dôchodkoch sú predpoklad, kým ich neoverí zdroj.
 
+> **Aktualizácia stavu (2026-10-26, D-323, `docs/60`):** otázka 1 v oddiele 6 je rozhodnutá (A, D-112). Čítanie súboru v1 je v kóde (`src/storage/feed.ts`), ale používateľ ho nevidí, kým služba neexistuje (D-323). Otázky 2 až 4 ostávajú otvorené.
+
+
 ## 1. Smer
 
 Aplikácia Finančná sloboda **nevolá externé služby**. Volania zabezpečí samostatná **integračná služba**, ktorá s nimi komunikuje a dodá údaje aplikácii. Aplikácia zostáva bez sieťových volaní smerom von, takže sieťový test (07 §7) a CSP ostávajú platné.

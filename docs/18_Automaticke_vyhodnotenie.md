@@ -2,6 +2,9 @@
 
 > Stav: **rozhodnuté (D-116), implementované na vetve `claude/phase2-property-card`: možnosť A (odhad výnosu), ak nie sú položky investícií.** Otvorené: dvierka pre externé zdroje (sekcia 5).
 
+> **Aktualizácia stavu (2026-10-26, D-323, `docs/60`):** otázka 1 v oddiele 4 je rozhodnutá (A, D-116); kód je v `main` (D-304). Otázka 2 a dvierka v oddiele 5 ostávajú otvorené.
+
+
 ## 1. Čo sa mení
 
 - Pri otvorení aplikácie sa vytvorí vyhodnotenie za posledný ukončený mesiac (napr. v novembri za október). Používateľ nič nezadáva.

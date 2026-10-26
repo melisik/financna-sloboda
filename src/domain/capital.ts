@@ -75,7 +75,7 @@ export function payFromCash(c: Capital, amount: number): MoveResult {
 }
 
 /** Hlásenie pri vyčerpaní investícií (GC-15, D-224). Zobrazuje ho Transakcie pred potvrdením výdavku. */
-export const INVESTMENTS_EXHAUSTED_TEXT = "Investície nestačia. Po uložení bude K_inv 0 €. Ak výdavok platíš z príjmu, zvoľ zdroj „z príjmu“.";
+export const INVESTMENTS_EXHAUSTED_TEXT = "Investície nestačia. Po uložení bude hodnota investícií 0 €. Ak výdavok platíš z príjmu, zvoľ zdroj „z príjmu“.";
 
 /**
  * Výdavok z investícií (D-045): K_inv klesne, K_cash sa nemení.

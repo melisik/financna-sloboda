@@ -112,7 +112,7 @@ export function SnapshotSection({ repo, latest, capital, derivedInvCents, snapsh
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       {bigChange && (
         <div style={{ border: "1px solid var(--border)", padding: 12, borderRadius: 6 }}>
-          <p>Zmena K je viac ako 50 % oproti poslednému vyhodnoteniu. Je to správne?</p>
+          <p>Zmena kapitálu je viac ako 50 % oproti poslednému vyhodnoteniu. Je to správne?</p>
           <button onClick={() => write(undefined)} style={btn}>Áno, uložiť</button>{" "}
           <button onClick={() => setBigChange(false)} style={btn}>Upraviť údaje</button>
         </div>
@@ -131,7 +131,7 @@ export function SnapshotSection({ repo, latest, capital, derivedInvCents, snapsh
       {[...snapshots].sort((a, b) => b.date.localeCompare(a.date)).map((s) => (
         <div key={s.id} style={{ ...card, marginBottom: 8 }}>
           <p style={{ margin: 0 }}><strong>{dateSk(s.date)}</strong>{s.auto ? " · automaticky" : ""}</p>
-          <p style={{ margin: "4px 0" }}>K: {eur(s.investmentsCents + s.cashCents)} (investície {eur(s.investmentsCents)}, hotovosť {eur(s.cashCents)})</p>
+          <p style={{ margin: "4px 0" }}>Kapitál: {eur(s.investmentsCents + s.cashCents)} (investície {eur(s.investmentsCents)}, hotovosť {eur(s.cashCents)})</p>
           {s.auto ? (
             <p style={{ ...hintStyle, margin: "4px 0" }}>Automatické vyhodnotenie sa vytvorí znova z ručných údajov.</p>
           ) : deleteId === s.id ? (

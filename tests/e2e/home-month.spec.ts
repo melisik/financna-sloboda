@@ -25,7 +25,7 @@ test.describe("Prehľad: tento mesiac", () => {
     await page.getByLabel("Hodnota investícií (€)").fill("300000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("1000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
-    await expect(page.locator("section#vyhodnotenie div", { hasText: "01.01.2026" }).last()).toContainText("K: 30");
+    await expect(page.locator("section#vyhodnotenie div", { hasText: "01.01.2026" }).last()).toContainText("Kapitál: 30");
 
     const add = async (amount: string, category?: string) => {
       await goTo(page, "nova-transakcia");

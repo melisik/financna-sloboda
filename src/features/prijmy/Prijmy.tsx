@@ -69,7 +69,7 @@ function OutlookBlock({ incomes, today }: { incomes: RegularIncome[]; today: str
   );
 }
 
-export function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: Repository; incomes: RegularIncome[]; data: AppData; today: string; onSaved: () => void }) {
+export function IncomeSection({ repo, incomes, data, today, onSaved, feedImport = false }: { repo: Repository; incomes: RegularIncome[]; data: AppData; today: string; onSaved: () => void; feedImport?: boolean }) {
   const [editing, setEditing] = useState<RegularIncome | "new" | null>(null);
   const [pendingFeed, setPendingFeed] = useState<ParsedFeed | null>(null);
   const [feedErr, setFeedErr] = useState<string | null>(null);
@@ -122,7 +122,7 @@ export function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: R
       <p style={{ color: "var(--muted)" }}>
         Tu len vidíš, koľko pravidelne prichádza. Sporenie sa mení až podľa zostatku na konci mesiaca, pri vyhodnotení. Nájom z nehnuteľnosti eviduj v <a href="#majetok">Majetku</a>, aby sa nerátal dvakrát.
       </p>
-      <div style={{ border: "1px dashed var(--border-dashed)", padding: 12, borderRadius: 6, marginBottom: 12 }}>
+      {feedImport && <div style={{ border: "1px dashed var(--border-dashed)", padding: 12, borderRadius: 6, marginBottom: 12 }}>
         <label style={{ display: "block" }}>
           <span style={{ display: "block", fontSize: "var(--font-small)" }}>Načítať údaje zo súboru integračnej služby</span>
           <input type="file" accept="application/json,.json" aria-label="Súbor od integračnej služby" onChange={onFile} style={{ marginTop: 6 }} />
@@ -138,7 +138,7 @@ export function IncomeSection({ repo, incomes, data, today, onSaved }: { repo: R
             <button onClick={() => setPendingFeed(null)} style={btn}>Zrušiť</button>
           </div>
         )}
-      </div>
+      </div>}
       {incomes.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny pravidelný príjem.</p>}
       <OutlookBlock incomes={incomes} today={today} />
       <IncomeBalance income={monthlyIncomeCents(incomes, today)} data={data} today={today} />

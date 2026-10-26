@@ -2,6 +2,9 @@
 
 > Stav: **rozhodnuté (D-101): možnosť A, suma odvodená zo súčtu položiek.** Externé volania sú odložené do Fázy 3. Pôvodný návrh nižšie je zachovaný. Zdroj cien a kurzov je otvorený konflikt s D-009 a FR-16. Čo je nad rámec dokumentov, je predpoklad.
 
+> **Aktualizácia stavu (2026-10-26, D-323, `docs/60`):** otázky 1 a 2 v oddiele 5 sú rozhodnuté (D-101); ciele v investíciách D-258. Otázky 3 až 5 (typy, frekvencia cien, import) ostávajú otvorené; daňový režim je len evidencia (D-104).
+
+
 ## 1. Účel
 
 Sekcia Investície má ukázať, z čoho sa skladá K_inv (investičná časť kapitálu), v jednotlivých položkách: akcie, ETF, fondy a iné investície. Cieľ je mať rozpis, ktorý sa dá aktualizovať, a nie len jedno číslo vo Vyhodnotení.

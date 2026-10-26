@@ -283,7 +283,7 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
           </select>
         </label>
         <label style={{ display: "block", marginBottom: 8 }}>
-          Daňový režim (zatiaľ bez výpočtu, FR-24)
+          Daňový režim (len evidencia, nepočíta sa)
           <select aria-label="Daňový režim investície" value={taxRegime} onChange={(e) => setTaxRegime(e.target.value as TaxRegime)} style={{ display: "block", minHeight: 44, width: "100%", marginTop: 4 }}>
             {TAX_REGIMES.map((r) => <option key={r} value={r}>{TAX_CATALOG[r].label}</option>)}
           </select>

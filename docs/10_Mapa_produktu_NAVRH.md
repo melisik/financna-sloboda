@@ -2,6 +2,9 @@
 
 > Stav: **návrh na diskusiu**. Obsah nie je rozhodnutie ani záväzný plán. Každá položka je nápad alebo predpoklad, kým sa nezapíše do `08_Backlog_Napady.md` a potom do `Decisions.md`. Rozsah MVP je daný `04_Functional_Requirements.md`; tu zachytávame, kam by produkt mohol smerovať.
 
+> **Aktualizácia stavu (2026-10-26, D-323, `docs/60`):** mapa nie je aktualizovaná od 2026-10-16. Aktuálny stav oblastí je v `docs/60` a `docs/13`; mapa ostáva ako pôvodný náčrt smeru.
+
+
 ## 1. Mapa (ideálny stav)
 
 ```mermaid
