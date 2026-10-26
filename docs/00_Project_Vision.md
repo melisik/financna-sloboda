@@ -1,17 +1,23 @@
 # 00 – Vízia projektu
 
-> Stav: koncept, verzia 0.12 (2026-10-14).
+> Stav: verzia 0.13 (2026-10-26).
 
-> **Aktualizácia stavu (2026-10-26, D-325):** vízia platí. Od verzie 0.12 rozhodnutia rozšírili rozsah o Fázu 2 v kóde (majetok, záväzky, investície, dane ako evidencia, príjmy, sklad; D-094, D-248) a uzavreli monetizáciu (zatiaľ zadarmo, D-297) a účty (bez účtov, D-148). Podrobný stav je v `docs/61`.
+> **Zmeny od 0.12 (2026-10-14):** rozšírenie vízie na modulárnu appku (D-337); pracovný názov Compaven (D-338); Fáza 2 v kóde (majetok, záväzky, investície, dane ako evidencia, príjmy, sklad; D-094, D-248); monetizácia zatiaľ zadarmo (D-297); bez účtov (D-148). Podrobný stav je v `docs/61`.
 
 ## Pracovný názov
-Finančná sloboda (pracovný, zmení sa)
+**Compaven** (D-338; portmanteau Com(pass) + (ha)ven). Finálny názov vrátane overenia domén sa rozhodne neskôr (pred G1).
 
-## Definícia cieľa
+## Vízia (D-337)
+
+**Modulárna appka pre osobný a rodinný život**, kde si každý používateľ zapne len to, čo potrebuje. Vlajková loď je finančná nezávislosť; ostatné moduly (sklad, nákupný zoznam, recepty…) sú voliteľné doplnky. Kľúčová podmienka: prehľadnosť – appka nesmie byť neprehľadná tým, že má veľa modulov.
+
+Zdieľanie medzi zariadeniami: zatiaľ export/import súborom (bez servera, konzistentné s D-009). Server/synchronizácia príde neskôr ako samostatné rozhodnutie.
+
+## Definícia hlavného cieľa (vlajková loď)
 Finančná sloboda = **nezávislosť od zamestnania** [user]. Produkt má ukázať cestu, ako sa k nej dopracovať.
 
 ## Základný koncept [user]
-Jeden spoločný „balík“ troch oblastí:
+Jeden spoločný „balík” troch oblastí:
 1. sporenie,
 2. investovanie,
 3. cielená (vedomá) spotreba.
@@ -72,8 +78,25 @@ Rozhodnutie = **transakcia** (sporenie, investícia alebo výdavok). Plánovanie
 ## Investície [user]
 Používateľ už investíciu má; produkt s ňou počíta a uvažuje s globálnym výnosom r (D-032). Produkt nevyberá ani nenavrhuje investície.
 
+## Moduly (D-337)
+
+| Modul | Stav | Poznámka |
+|---|---|---|
+| Finančná nezávislosť | implementované | vlajková loď |
+| Transakcie a rozpočet | implementované | |
+| Majetok a záväzky | implementované | |
+| Investície | implementované | |
+| Dane | čiastočne | evidencia a tlačivo; výpočet čaká na G1 |
+| Sklad a zásoby | implementované | prvý nefinančný modul |
+| Nákupný zoznam | čiastočne | základy v Sklade; zdieľanie po pilote |
+| Recepty a jedálniček | nie | vyžaduje zdieľanie |
+| Príjmy | čiastočne | zobrazenie; integračná služba neexistuje |
+| Poistenie | nie | backlog |
+| Podnikanie / SZČO | nie | backlog |
+
 ## Mimo rozsahu
-- Východisková hodnota konkrétnych investičných produktov [user].
+- Výber konkrétnych investičných produktov [user].
+- Server a synchronizácia (zatiaľ; D-009, D-337).
 - Ostatné zatiaľ neurčené (otvorené).
 
 ## Otvorené otázky
