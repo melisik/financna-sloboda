@@ -46,7 +46,7 @@ Každá úloha trvá 2 až 5 minút. Nemusíte robiť všetky; aj jedna poctivo 
 | 9 | Týždenný súhrn mailom | Prehľad → Týždenný súhrn → Poslať mailom | Otvorí sa mailová aplikácia s textom súhrnu. Odoslať ho nemusíte. |
 | 10 | Menu na telefóne | Horné menu | Prepínajte skupiny a sekcie. Riadok sekcií sa dá posúvať do strany. |
 | 11 | Tmavý režim | Nastavenie telefónu | Je všetko čitateľné? |
-| 12 | Investície: poskytovateľ | Majetok a zásoby → Investície | Pridajte položku a v poli Poskytovateľ začnite písať „Finax“ alebo „Tatra“: ponúkne sa zoznam firiem z registra Národnej banky Slovenska. Pri firme zo zoznamu skúste odkaz Overiť v registri NBS. Napíšte aj vlastný názov (napr. Trading 212). Je jasné, že zoznam nie je odporúčanie? |
+| 12 | Investície: poskytovateľ | Majetok a zásoby → Investície | Pridajte položku a v poli Poskytovateľ začnite písať „Finax“ alebo „Tatra“: ponúkne sa zoznam firiem z registra Národnej banky Slovenska. Pri firme zo zoznamu skúste odkaz Overiť v registri NBS. Napíšte aj vlastný názov (napr. Trading 212). Je jasné, že zoznam nie je odporúčanie? Vytvorte aj cieľ (napr. „Dôchodok“, 2 000 €) a zaškrtnite, ktoré položky doň patria: vidíte pokrok v Investíciách aj na Prehľade? |
 
 ## 5. Ako nahlásiť pripomienku
 

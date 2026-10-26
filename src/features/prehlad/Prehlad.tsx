@@ -18,7 +18,7 @@ import { goalDateShift, goalProgress } from "../../domain/progress";
 import { progressLine, shiftLine } from "./progressText";
 import { VyvojBlock } from "./Vyvoj";
 import { recommendedSettings } from "../../domain/recommendations";
-import { positionsChangedSince } from "../../domain/investments";
+import { goalSummaries, positionsChangedSince } from "../../domain/investments";
 import { propertyChangedSince } from "../../domain/property";
 import { dateSk, eur, monthYear, pctText, todayIso } from "../../ui/kit/format";
 import { btn, btnPrimary } from "../../ui/kit/controls";
@@ -28,7 +28,7 @@ import { hintStyle } from "../../ui/kit/controls";
 
 /** Prehľad (domovská obrazovka): dátum cieľa a pokrok, hlavná akcia, pripomienky, mesačný prehľad a týždenný súhrn. Feature „prehlad“ (docs/23, D-283). */
 
-export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: AppData; ctx: Ctx; lastExport: string | null; incomeVisible: boolean }) {
+export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsVisible = false }: { data: AppData; ctx: Ctx; lastExport: string | null; incomeVisible: boolean; investmentsVisible?: boolean }) {
   const today = todayIso();
   const pending =
     ctx.latest && ctx.target !== null && ctx.settings
@@ -110,6 +110,18 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible }: { data: Ap
           Pridať transakciu
         </a>
       </p>
+      {investmentsVisible && goalSummaries(data.investments, data.goals).length > 0 && (
+        <div style={{ margin: "0 0 12px" }}>
+          <p style={{ margin: "0 0 4px", fontWeight: 600 }}>Ciele investícií</p>
+          {goalSummaries(data.investments, data.goals).map((g) => (
+            <p key={g.id} style={{ margin: "2px 0" }}>
+              {g.name}: {eur(g.totalCents)} z {eur(g.targetCents)} · {g.reached ? "cieľ dosiahnutý" : `${g.percent} %`}
+              {g.count === 0 && <span style={hintStyle}> (zatiaľ bez položiek)</span>}
+            </p>
+          ))}
+          <p style={{ ...hintStyle, margin: "2px 0" }}>Len zobrazenie; dátum cieľa to nemení. <NextStep to="investicie">Investície</NextStep></p>
+        </div>
+      )}
       {ctx.latest && positionsChangedSince(data.investments, ctx.latest.createdAt) && (
         <p style={calloutStyle("warn")}>
           Investície sa zmenili od posledného vyhodnotenia. Dátum cieľa sa prepočíta až pri novom vyhodnotení.

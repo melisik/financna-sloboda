@@ -57,3 +57,32 @@ export function goalProgress(totalCents: number, targetCents: number): { percent
   const percent = reached ? 100 : Math.max(0, Math.floor((totalCents / targetCents) * 100));
   return { percent, reached };
 }
+
+export interface GoalSummary { id: string; name: string; totalCents: number; targetCents: number; percent: number; reached: boolean; count: number }
+
+/** Pokrok každého cieľa investícií pre Prehľad (D-331); len zobrazenie, výpočet dátumu cieľa sa nemení (D-258). */
+export function goalSummaries(positions: Position[], goals: InvestmentGoal[]): GoalSummary[] {
+  return groupByGoal(positions, goals).flatMap((g) => {
+    if (!g.goal) return [];
+    const { percent, reached } = goalProgress(g.totalCents, g.goal.targetCents);
+    return [{ id: g.goal.id, name: g.goal.name, totalCents: g.totalCents, targetCents: g.goal.targetCents, percent, reached, count: g.positions.length }];
+  });
+}
+
+/**
+ * Položky, ktorým sa zmení priradenie k cieľu, keď cieľ obsahuje presne `memberIds` (D-331): pridané dostanú goalId
+ * (aj z iného cieľa), odobrané ho stratia. Nezmenené sa nevracajú.
+ */
+export function assignToGoal(positions: Position[], goalId: string, memberIds: string[], nowIso: string): Position[] {
+  const members = new Set(memberIds);
+  const out: Position[] = [];
+  for (const p of positions) {
+    const inGoal = p.goalId === goalId;
+    if (members.has(p.id) && !inGoal) out.push({ ...p, goalId, updatedAt: nowIso });
+    else if (!members.has(p.id) && inGoal) {
+      const { goalId: _removed, ...rest } = p;
+      out.push({ ...rest, updatedAt: nowIso });
+    }
+  }
+  return out;
+}

@@ -60,6 +60,9 @@ Zakladateľ odložil tieto otvorené otázky do backlogu. Návrhy ostávajú v d
   - zdroj k lehote 15 dní (zakladateľ ju uviedol zo skúsenosti);
   - či chodí jeden výmer za nehnuteľnosti aj psa spolu, alebo osobitne;
   - overenie termínov T1 až T5 zo zdroja (stránka obce, slovensko.sk, Finančná správa). Bez overeného zdroja sa termín v appke neukáže (D-104).
+- **N-24 Vývoj cieľa investícií v čase** (D-331): graf alebo história pokroku cieľa, odvodená z hodnôt položiek pri vyhodnoteniach.
+- **N-25 Termín cieľa investícií a odhad mesačnej sumy** (D-331): voliteľný dátum, do ktorého chce používateľ cieľ dosiahnuť, a odhad, koľko mesačne treba odkladať pri zadanom výnose (odhad, nie odporúčanie, D-028; potrebuje právne posúdenie G1).
+- **N-26 Aktualizácia hodnôt investícií z externých aplikácií** (zakladateľ 2026-10-26): ceny akcií, ETF a fondov z externých zdrojov, keď sa budú volať externé aplikácie. Mení D-009 a FR-16 (appka dnes nič nevolá), patrí do Fázy 3 (`docs/12` možnosť C, `docs/18` oddiel 5, `docs/15` integračná služba). Do tej doby sa ceny zadávajú ručne.
 - **N-23 Upozornenie, že poskytovateľ investície nie je v registri NBS** (D-328). Ochrana pred podvodmi; tvrdenie o tretej strane, potrebuje aktuálne údaje a právne posúdenie (G1).
 - **N-21 Rodinná verzia** (D-114, `docs/16`; zakladateľ 2026-10-26: po pilote, D-326). Rozhodnutá možnosť A (dve osoby v domácnosti), implementácia čaká na oprávnenia (E1) a zaradenie do fázy; bez účtov (D-148).
 - **N-22 Samostatné npm balíky** (`docs/23` krok 5, D-198; po pilote, D-326).

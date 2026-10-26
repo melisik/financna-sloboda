@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Repository } from "../../storage/repository";
 import { BALANCE_INVESTMENT_KINDS, INVESTMENT_KINDS, TAX_REGIMES, type InvestmentGoal, type InvestmentKind, type Position, type TaxRegime } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
-import { goalProgress, groupByGoal, investmentsByKindCents, investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents, staleValuationNames } from "../../domain/investments";
+import { assignToGoal, goalProgress, groupByGoal, investmentsByKindCents, investmentsTotalCents, monthlyContributionsTotalCents, positionValueCents, staleValuationNames } from "../../domain/investments";
 import { TAX_CATALOG } from "../../domain/tax";
 import providerList from "../../data/nbsProviders.json";
 import type { Provider } from "../../domain/nbsProviders";
@@ -93,13 +93,15 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
       )}
       <h4 style={{ fontSize: "var(--font-text)", marginBottom: 4 }}>Ciele</h4>
       <p style={{ ...hintStyle, marginTop: 0 }}>
-        Položky môžeš zoskupiť do cieľa. Ciele sú len zobrazenie a nemenia výpočet cieľa nezávislosti.
+        Položky môžeš zoskupiť do cieľa a sledovať, koľko z cieľovej sumy už máš (percento je aj na Prehľade). Ciele sú len zobrazenie a nemenia výpočet cieľa nezávislosti.
       </p>
       {goals.map((g) =>
         goalForm !== null && goalForm !== "new" && goalForm.id === g.id ? (
           <GoalForm
             key={g.id}
             repo={repo}
+            positions={positions}
+            goals={goals}
             initial={g}
             onDone={() => { setGoalForm(null); onSaved(); }}
             onCancel={() => setGoalForm(null)}
@@ -125,7 +127,7 @@ export function InvestmentSection({ repo, positions, goals, today, onSaved }: { 
         ),
       )}
       {goalForm === "new" && (
-        <GoalForm repo={repo} onDone={() => { setGoalForm(null); onSaved(); }} onCancel={() => setGoalForm(null)} />
+        <GoalForm repo={repo} positions={positions} goals={goals} onDone={() => { setGoalForm(null); onSaved(); }} onCancel={() => setGoalForm(null)} />
       )}
       {goalForm === null && (
         <button onClick={() => setGoalForm("new")} style={btn}>Pridať cieľ</button>
@@ -331,8 +333,10 @@ function InvestmentForm({ repo, initial, goals, today, onDone, onCancel }: { rep
 }
 
 /** Cieľ investícií (D-105): nový alebo úprava názvu a cieľovej sumy. Cieľ nemení výpočet cieľa nezávislosti. */
-function GoalForm({ repo, initial = null, onDone, onCancel }: { repo: Repository; initial?: InvestmentGoal | null; onDone: () => void; onCancel: () => void }) {
+function GoalForm({ repo, positions, goals, initial = null, onDone, onCancel }: { repo: Repository; positions: Position[]; goals: InvestmentGoal[]; initial?: InvestmentGoal | null; onDone: () => void; onCancel: () => void }) {
   const [name, setName] = useState(initial?.name ?? "");
+  // Položky, ktoré do cieľa patria: výber hneď pri tvorbe cieľa, nie až v zbalenom bloku položky (D-331).
+  const [members, setMembers] = useState<string[]>(initial ? positions.filter((p) => p.goalId === initial.id).map((p) => p.id) : []);
   const [target, setTarget] = useState<NumIn>(initial ? initial.targetCents / 100 : "");
   const [err, setErr] = useState<string | null>(null);
 
@@ -348,6 +352,7 @@ function GoalForm({ repo, initial = null, onDone, onCancel }: { repo: Repository
       : { id: uid(), name: trimmed, targetCents: cents(sum), createdAt: now, updatedAt: now };
     try {
       await repo.saveGoal(goal);
+      for (const p of assignToGoal(positions, goal.id, members, now)) await repo.savePosition(p);
       onDone();
     } catch {
       setErr(STORAGE_ERROR);
@@ -359,6 +364,22 @@ function GoalForm({ repo, initial = null, onDone, onCancel }: { repo: Repository
       <h4 style={{ fontSize: "var(--font-text)", marginTop: 0 }}>{initial ? "Upraviť cieľ" : "Nový cieľ"}</h4>
       <Field label="Názov cieľa" value={name} type="text" onChange={setName} maxLength={80} />
       <Field label="Cieľová suma (€)" value={target} onChange={setTarget} />
+      {positions.length > 0 ? (
+        <fieldset style={{ border: "none", padding: 0, margin: "8px 0" }}>
+          <legend>Ktoré položky patria do cieľa?</legend>
+          {positions.map((p) => {
+            const other = p.goalId !== undefined && p.goalId !== initial?.id ? goals.find((g) => g.id === p.goalId) : undefined;
+            return (
+              <label key={p.id} style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44 }}>
+                <input type="checkbox" checked={members.includes(p.id)} onChange={(e) => setMembers(e.target.checked ? [...members, p.id] : members.filter((id) => id !== p.id))} />
+                <span>{p.name} · {eur(positionValueCents(p))}{other ? <span style={hintStyle}> (teraz v cieli „{other.name}“, presunie sa)</span> : null}</span>
+              </label>
+            );
+          })}
+        </fieldset>
+      ) : (
+        <p style={hintStyle}>Najprv pridaj položku investície; potom ju do cieľa priradíš tu alebo pri položke.</p>
+      )}
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>Uložiť cieľ</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>

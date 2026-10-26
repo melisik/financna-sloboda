@@ -60,7 +60,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
         <Section id="prehlad" title="Prehľad">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "flex-start" }}>
             <div style={{ flex: "1 1 320px", minWidth: 0 }}>
-              <HomeSection data={data} ctx={ctx} lastExport={lastExport} incomeVisible={visible.has("prijmy")} />
+              <HomeSection data={data} ctx={ctx} lastExport={lastExport} incomeVisible={visible.has("prijmy")} investmentsVisible={visible.has("investicie")} />
               <NavodBlock />
             </div>
             {PHASE2_ENABLED && wide && (
