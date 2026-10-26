@@ -14,7 +14,7 @@
    - `nbs.sk` (ak sa údaje sťahujú aj z hlavného webu NBS)
 7. Políčko **Allow package managers** (pri Custom: zahrnúť predvolený zoznam správcov balíkov) **nechaj zaškrtnuté**, inak prestane fungovať `npm`.
 8. **Ulož** (Save).
-9. Začni **novú session** v tomto prostredí. Nastavenie siete platí od štartu session; bežiaca session ho nemusí prevziať (predpoklad).
+9. Spravidla netreba nič ďalšie: 2026-10-26 sa povolenie prejavilo aj v bežiacej session. Ak by doména stále nešla, začni novú session (claude.ai/code → New session, rovnaké prostredie a repozitár).
 10. V novej session napíš Claudovi, že doména je povolená; overí ju (`curl` na adresu).
 
 ## Poznámky
