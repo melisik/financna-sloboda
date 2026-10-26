@@ -1,6 +1,6 @@
 # 63 – Návrh: poskytovateľ investície zo zoznamu NBS
 
-> Stav: **návrh na schválenie** (2026-10-26). Kód sa nemení. Nadväzuje na D-328. Zakladateľ už rozhodol: len firmy, ktoré investičné produkty ponúkajú priamo (nie agenti a sprostredkovatelia); slovenské firmy aj pobočky zahraničných firiem na Slovensku; poisťovne áno; firmy s voľným cezhraničným pôsobením nie, namiesto nich „iný poskytovateľ“ s vlastným názvom. Upozornenie „poskytovateľ nie je v NBS“ je v backlogu (N-23). D-153: bez zmeny výpočtu.
+> Stav: **schválené zakladateľom** (2026-10-26: 1 áno, rozsah ešte možno zúžiť; k firme pridať odkaz; 2 nepovinné; 3 raz za kvartál; 4 len zobraziť; 5 výťah je `docs/64`). **Upravené podľa podmienok NBS:** uvedenie zdroja a doslovný výber. Kód sa nemení. Nadväzuje na D-328. Zakladateľ už rozhodol: len firmy, ktoré investičné produkty ponúkajú priamo (nie agenti a sprostredkovatelia); slovenské firmy aj pobočky zahraničných firiem na Slovensku; poisťovne áno; firmy s voľným cezhraničným pôsobením nie, namiesto nich „iný poskytovateľ“ s vlastným názvom. Upozornenie „poskytovateľ nie je v NBS“ je v backlogu (N-23). D-153: bez zmeny výpočtu.
 
 ## 1. Zdroj údajov (overené 2026-10-26)
 
@@ -38,7 +38,8 @@ Spolu asi 90 až 105 firiem (presný počet po filtri bánk). Z každej sa preve
 
 - Vo formulári investície nové nepovinné pole **Poskytovateľ** (v hlavnej časti, nie v zbalenom bloku – je to bežný údaj).
 - Výber s vyhľadávaním podľa názvu (rovnaký prvok `datalist` ako návrhy položiek, D-318), zoskupený podľa typu; posledná voľba **Iný poskytovateľ** otvorí textové pole na vlastný názov (Trading 212, Interactive Brokers a pod.).
-- Pod výberom malým písmom: „Zoznam firiem s povolením NBS, stav k 25. 10. 2026. Nie je to odporúčanie.“
+- Pod výberom malým písmom: „Zdroj: register subjektov finančného trhu NBS, stav k 25. 10. 2026. Výber firiem, nie odporúčanie ani záruka úplnosti.“ s odkazom na `subjekty.nbs.sk` (uvedenie zdroja je podmienka NBS, `docs/64`).
+- Pri vybranej firme odkaz „Overiť v registri NBS“ na `https://subjekty.nbs.sk/sk/search?q=<IČO>` (nové okno; funkčnosť overiť na iPhone).
 - Na karte položky a pri zoskupení podľa poskytovateľa (otázka 4) sa zobrazí názov poskytovateľa.
 - Uloží sa `provider: { ico?: string; name: string }` (IČO len pri výbere zo zoznamu). Ak firma zo zoznamu neskôr vypadne, uložený názov ostane.
 
@@ -53,7 +54,7 @@ Spolu asi 90 až 105 firiem (presný počet po filtri bánk). Z každej sa preve
 - **Zastaraný zoznam:** firma môže stratiť povolenie; zoznam nesie dátum. Kontrola aktuálnosti je N-23.
 - **Osobné údaje:** agenti (aj fyzické osoby) a adresy sa nepreberajú.
 - **Kognitívna záťaž:** jedno nepovinné pole s vyhľadávaním; bez neho sa položka uloží ako doteraz.
-- **Podmienky použitia údajov NBS:** export je verejný; podmienky na `nbs.sk/sk/disclaimer-sk` treba prečítať pred zverejnením (predpoklad: verejné údaje registra sa smú preberať s uvedením zdroja; overí zakladateľ).
+- **Podmienky použitia údajov NBS** (výťah `docs/64`): ďalšie použitie je povolené bez súhlasu s uvedením NBS ako zdroja; súbor sa nesmie obsahovo ani inak pozmeňovať. Názvy a IČO sa preto preberajú doslovne a náš výber záznamov je otvorená otázka pre právnika (G1).
 
 ## 7. Postup
 
