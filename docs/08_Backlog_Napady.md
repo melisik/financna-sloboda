@@ -60,6 +60,7 @@ Zakladateľ odložil tieto otvorené otázky do backlogu. Návrhy ostávajú v d
   - zdroj k lehote 15 dní (zakladateľ ju uviedol zo skúsenosti);
   - či chodí jeden výmer za nehnuteľnosti aj psa spolu, alebo osobitne;
   - overenie termínov T1 až T5 zo zdroja (stránka obce, slovensko.sk, Finančná správa). Bez overeného zdroja sa termín v appke neukáže (D-104).
+- **N-23 Upozornenie, že poskytovateľ investície nie je v registri NBS** (D-328). Ochrana pred podvodmi; tvrdenie o tretej strane, potrebuje aktuálne údaje a právne posúdenie (G1).
 - **N-21 Rodinná verzia** (D-114, `docs/16`; zakladateľ 2026-10-26: po pilote, D-326). Rozhodnutá možnosť A (dve osoby v domácnosti), implementácia čaká na oprávnenia (E1) a zaradenie do fázy; bez účtov (D-148).
 - **N-22 Samostatné npm balíky** (`docs/23` krok 5, D-198; po pilote, D-326).
 - **N-20 Ochrana výpočtu pri vstupoch mimo rozsahu** (kontrola výpočtov 2026-10-25, D-320; zakladateľ: po pilote). `monthsToTarget` pri výnose −100 % vráti −0 (vyzerá ako dosiahnutý cieľ), `targetDate` pri zápornom alebo NaN vstupe vráti nezmysel; nejednotné null a Infinity pri nedosiahnuteľnom cieli (`goal.ts`, `capital.ts`, `rentalGoal.ts`). Mimo dokumentovaného rozsahu; mení výpočtový modul, preto až po pilote (D-153).
