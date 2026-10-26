@@ -33,6 +33,7 @@ test.describe("poskytovateľ investície (D-329)", () => {
     const link = page.getByRole("link", { name: "Overiť v registri NBS" });
     await expect(link).toHaveAttribute("href", /^https:\/\/subjekty\.nbs\.sk\/sk\/search\?q=\d{6,8}$/);
     await expect(link).toHaveAttribute("target", "_blank");
+    expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44); // dosť veľká plocha na ťuknutie na iPhone
     await page.getByRole("button", { name: "Uložiť položku" }).click();
     await expect(page.locator("#investicie")).toContainText(first!.trim());
     await page.reload();
@@ -40,11 +41,14 @@ test.describe("poskytovateľ investície (D-329)", () => {
     await expect(page.locator("#investicie")).toContainText(first!.trim());
   });
 
-  test("vlastný poskytovateľ sa uloží bez odkazu do registra", async ({ page }) => {
+  test("vlastný poskytovateľ sa uloží a register sa dá prehľadať podľa názvu", async ({ page }) => {
     await openApp(page);
     await goTo(page, "investicie");
     await addPosition(page, "Trading 212");
     await expect(page.getByRole("link", { name: "Overiť v registri NBS" })).toHaveCount(0);
+    const search = page.getByRole("link", { name: "Vyhľadať v registri NBS" });
+    await expect(search).toHaveAttribute("href", "https://subjekty.nbs.sk/sk/search?q=Trading%20212");
+    expect((await search.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await page.getByRole("button", { name: "Uložiť položku" }).click();
     await expect(page.locator("#investicie")).toContainText("Trading 212");
   });

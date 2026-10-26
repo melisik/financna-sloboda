@@ -215,8 +215,10 @@ function ProviderField({ value, onChange }: { value: string; onChange: (v: strin
       </datalist>
       <p style={hintStyle}>
         Vyber zo zoznamu alebo napíš vlastný názov (napr. Trading 212). Zdroj zoznamu: {providerList.source}, stav k {dateSk(providerList.updated)}. Výber firiem, nie odporúčanie ani záruka úplnosti.
-        {hit && <> <a href={`https://subjekty.nbs.sk/sk/search?q=${hit.ico}`} target="_blank" rel="noopener noreferrer">Overiť v registri NBS</a></>}
       </p>
+      {/* Odkaz je tlačidlo s veľkou plochou: malý textový odkaz sa na iPhone ťažko trafil (prehliadka 2026-10-26). Pri vlastnom názve sa hľadá podľa názvu (zahraničné firmy s cezhraničným pôsobením register eviduje tiež). */}
+      {hit && <a href={`https://subjekty.nbs.sk/sk/search?q=${hit.ico}`} target="_blank" rel="noopener noreferrer" style={{ ...btn, display: "inline-flex", alignItems: "center", textDecoration: "none", color: "inherit" }}>Overiť v registri NBS</a>}
+      {!hit && value.trim().length >= 3 && <a href={`https://subjekty.nbs.sk/sk/search?q=${encodeURIComponent(value.trim())}`} target="_blank" rel="noopener noreferrer" style={{ ...btn, display: "inline-flex", alignItems: "center", textDecoration: "none", color: "inherit" }}>Vyhľadať v registri NBS</a>}
     </div>
   );
 }
