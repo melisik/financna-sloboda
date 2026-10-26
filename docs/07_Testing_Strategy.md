@@ -1,6 +1,6 @@
 # 07 – Testovacia stratégia (MVP)
 
-> Stav: v0.9 (2026-10-14). Oddiely 2–4 opisujú skutočné a cieľové pokrytie (R18, S2).
+> Stav: v1.0 (2026-10-26, D-325): oddiel 2 aktualizovaný na skutočný stav (562 jednotkových, 524 E2E testov, axe-core zavedené). Tabuľky cieľového pokrytia a oddiely 3 a ďalej sú z v0.9 (2026-10-14).
 
 ## 1. Priority testovania
 Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu váhu než chyba v ostatných:
@@ -21,11 +21,13 @@ Stratégia sa riadi rizikom. Chyba v jednej z týchto oblastí má väčšiu vá
 4. **Úložisko (Vitest + fake-indexeddb)** – CRUD, migrácie, import/export, atomicita.
 5. **Komponentové (React Testing Library)** – **stav (2026-10-14): nie je zavedené**; formuláre a texty sa zatiaľ overujú len cez Playwright E2E.
 6. **End-to-end (Playwright)** – kľúčové toky z `03_UX` (prvé nastavenie, týždenné zadanie, mesačné vyhodnotenie, záloha), na mobilných viewportoch, aj offline.
-7. **Dostupnosť** – axe-core **stav (2026-10-14): nie je zavedené**; zatiaľ len atribúty aria-label pri poliach a manuálne čítačky (oddiel 9).
+7. **Dostupnosť** – axe-core **zavedené** (`tests/e2e/a11y.spec.ts`); ručný test s čítačkou (VoiceOver) ešte neprebehol, checklist `docs/pilot/checklist-iphone.md` (D-325).
 8. **Súkromie a bezpečnosť** – sieťové testy, npm audit, CSP (oddiel 7).
 9. **Používateľské** – self-test zakladateľa a checklist kognitívnej záťaže (oddiel 10).
 
-**Stav automatizovaných testov (2026-10-14, R18, S2):** tabuľka nižšie je *cieľové* pokrytie. Dnes je automatizované (76 jednotkových testov Vitest a 6 E2E testov Playwright):
+**Stav automatizovaných testov (aktualizované 2026-10-26):** 562 jednotkových testov (Vitest, 97 súborov) a 524 E2E testov (Playwright, 262 × 2 profily: desktop a mobil 390 px). Všetky GC-01 až GC-24 majú test (kontrola výpočtov 2026-10-25); GC sú priamo v testoch, súbor `tests/golden/goal-cases.json` sa nevytvoril. E2E bežia pred verejným nasadením aj pred nasadením náhľadu (D-322). Komponentové testy (React Testing Library) zavedené nie sú; formuláre pokrýva E2E.
+
+*Pôvodný stav (2026-10-14, R18, S2), ponechaný pre históriu:* tabuľka nižšie je *cieľové* pokrytie. Vtedy bolo automatizované (76 jednotkových testov Vitest a 6 E2E testov Playwright):
 - GC: GC-01, GC-02, GC-03, GC-04, GC-05, GC-06, GC-08, GC-11, GC-13, GC-15 až GC-21, GC-23, GC-24 (ID v názvoch testov); GC-16 (`saving.test.ts`);
 - FR: FR-01, FR-02, FR-04, FR-05, FR-09, FR-10, FR-13, FR-14, FR-15, FR-16, FR-17, FR-18, FR-19 (jednotkové alebo E2E podľa tabuľky v `tests/`);
 - úložisko (CRUD, validácia, atomicita importu, duplicitné id): FR-17, FR-18;

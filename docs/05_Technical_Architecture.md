@@ -2,6 +2,8 @@
 
 > Stav: v0.6 (2026-10-14). Rozsah: webová aplikácia, mobile-first, jeden používateľ, lokálne dáta (D-009, D-012). Vychádza z `02`, `03`, `04` a `decisions/Decisions.md`. **[predpoklad]** = návrh Claude, treba potvrdiť.
 
+> **Aktualizácia stavu (2026-10-26, D-325):** základ platí (PWA, IndexedDB, bez servera, CSP `connect-src 'self'`). Zmeny: moduly a balíky `docs/21`, `docs/23` (D-162, D-171, D-174), schéma zálohy v14 a IndexedDB v11 (D-302), voliteľne šifrovaná záloha (D-276), súkromný náhľad na Cloudflare Pages (D-270 až D-273), OCR a skener v zariadení (D-232, D-284). Prepracovanie pred bránou G4.
+
 ## 1. Prehľad
 Statická single-page aplikácia (PWA) bez servera. Všetky dáta a výpočty bežia v prehliadači na zariadení.
 

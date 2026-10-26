@@ -2,6 +2,8 @@
 
 > Stav: v0.6 (2026-10-14). Rozsah: MVP, jeden používateľ, webová aplikácia (mobile-first), lokálne ukladanie (D-009, D-012). Odkazy: D-xxx = `decisions/Decisions.md`, UR-xx = `02_User_Requirements.md`, UX = `03_UX_Principles.md`. Označenie **[predpoklad]** = návrh Claude, treba potvrdiť.
 
+> **Aktualizácia stavu (2026-10-26, D-325):** FR-01 až FR-19 (MVP) sú implementované; FR-20 až FR-28 (Fáza 2) čiastočne: FR-24 daňový režim len ako evidencia, FR-25 daňový scenár nie (D-104), FR-26 nárok na podporu zámerne nie (D-088). Nové funkcie po 2026-10-14 (rozpočet, pravidelné výdavky, sklad, položky nákupu, šifrovaná záloha, scenáre výdavkov) sú opísané v rozhodnutiach a návrhoch `docs/36` až `docs/58`, nie tu. Prepracovanie pred bránami G1 a G4.
+
 ## 1. Pojmy a model dát
 
 | Pojem | Definícia |

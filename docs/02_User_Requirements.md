@@ -2,6 +2,8 @@
 
 > Stav: v0.8 (2026-10-14), rozsah: MVP (fáza 1, jeden používateľ). Zdroj: `00_Project_Vision.md`, `01_Personas.md`, `decisions/Decisions.md`.
 
+> **Aktualizácia stavu (2026-10-26, D-325):** požiadavky MVP (UR) platia; sú implementované (M1 až M7, `docs/06`). Požiadavky Fázy 2 nie sú vedené ako UR, ale v rozhodnutiach a návrhoch `docs/09` až `docs/58`. Prepracovanie na celý rozsah pred bránou G1 (D-323, D-325).
+
 ## Používateľské príbehy (MVP)
 
 | ID | Príbeh | Zdroj |

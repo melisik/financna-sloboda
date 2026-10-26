@@ -2,6 +2,8 @@
 
 > Stav: koncept, verzia 0.12 (2026-10-14).
 
+> **Aktualizácia stavu (2026-10-26, D-325):** vízia platí. Od verzie 0.12 rozhodnutia rozšírili rozsah o Fázu 2 v kóde (majetok, záväzky, investície, dane ako evidencia, príjmy, sklad; D-094, D-248) a uzavreli monetizáciu (zatiaľ zadarmo, D-297) a účty (bez účtov, D-148). Podrobný stav je v `docs/61`.
+
 ## Pracovný názov
 Finančná sloboda (pracovný, zmení sa)
 

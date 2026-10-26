@@ -2,6 +2,8 @@
 
 > Stav: v0.2 (2026-10-14). [user] = povedal zakladateľ, [predpoklad] = doplnil Claude, treba potvrdiť.
 
+> **Aktualizácia stavu (2026-10-26, D-325):** persona 1 platí. Persony Fázy 2 nie sú definované; vzniknú z rozhovorov s testermi (G5, scenár `docs/49`, D-297). Testeri pilota sú zatiaľ tri typy: dôchodca, študent, človek v produktívnom veku (`docs/pilot/pozvanky-testerov.md`; rozdelenie je predpoklad pre tón pozvánky).
+
 ## Persona 1 – Zakladateľ (prvý používateľ, fáza 1)
 - **Cieľ:** nezávislosť od zamestnania [user].
 - **Frekvencia používania:** týždenne [user].

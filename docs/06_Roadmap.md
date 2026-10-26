@@ -1,6 +1,6 @@
 # 06 – Roadmapa
 
-> Stav: v0.3 (2026-10-14). Veľkosti milníkov sú relatívne (S / M / L), nie dátumy. Kapacita: hodiny denne (potvrdené zakladateľom); presný odhad trvania doplníme po M1 podľa skutočného tempa. **[predpoklad]** = návrh Claude.
+> Stav: v0.4 (2026-10-26, D-325): aktualizovaný prehľad fáz (oddiel 2) podľa rozhodnutí do D-324; ostatné oddiely sú z v0.3 (2026-10-14) a platia, kde ich rozhodnutia nemenia. Podrobný stav rozpracovanosti je v `docs/61`. Veľkosti milníkov sú relatívne (S / M / L), nie dátumy. Kapacita: hodiny denne (potvrdené zakladateľom); presný odhad trvania doplníme po M1 podľa skutočného tempa. **[predpoklad]** = návrh Claude.
 
 ## 1. Princípy plánovania
 - **Poradie fáz:** najprv hodnota pre zakladateľa, potom EÚ, potom mobil a integrácie (D-005, zadanie).
@@ -13,10 +13,10 @@
 
 | Fáza | Cieľ | Stav | Brána na vstup |
 |---|---|---|---|
-| 0 – Discovery a dokumentácia | vízia, požiadavky, architektúra, testy | takmer hotová; revízia prebieha | externá revízia dokumentov |
-| 1 – MVP (osobné použitie) | webová PWA pre zakladateľa | prebieha; M1 potvrdená (D-225); kód M2–M4 je v `main` ako výnimka z D-022 (D-072) | rozhodnutia z oddielu 9 |
-| 1b – Pilot | 3 mesiace reálneho používania | plán | dokončené M1–M7 |
-| 2 – EÚ webový produkt | viac používateľov, účty, GDPR, jazyky | plán; vývoj môže začať po MVP (D-094) | pred spustením pre používateľov: právne posúdenie, monetizácia, účty a šifrovanie, bezpečnostný audit |
+| 0 – Discovery a dokumentácia | vízia, požiadavky, architektúra, testy | **hotová**; externé revízie prebiehajú priebežne (`review/`) | externá revízia dokumentov |
+| 1 – MVP (osobné použitie) | webová PWA pre zakladateľa | **takmer hotová**: M1 až M7 v `main`, verejná verzia na GitHub Pages; chýbajú ručné overenia M2 (7 dní neaktivity na iPhone) a M6 (VoiceOver), `docs/pilot/checklist-iphone.md` | rozhodnutia z oddielu 9 |
+| 1b – Pilot | 3 mesiace reálneho používania | **začatý 2026-10-19 až 23** (D-153, D-292), zatiaľ bez zápisov; prioritou je rozbehnúť ho (D-325) | dokončené M1–M7 |
+| 2 – EÚ webový produkt | viac používateľov, účty, GDPR, jazyky | **vývoj prebieha** (D-094): majetok, záväzky, investície, dane (evidencia), príjmy, sklad sú v `main`, viditeľné len v súkromnom náhľade (D-248, D-270); G2 a G3 splnené (D-297), G1, G4, G5 otvorené | pred spustením pre používateľov: právne posúdenie, monetizácia, účty a šifrovanie, bezpečnostný audit |
 | 3 – Mobil a integrácie | natívna appka, banka a investičné appky | plán | licencie a zmluvy, bezpečnostný audit |
 
 ## 3. Fáza 0 – Discovery (takmer hotová)

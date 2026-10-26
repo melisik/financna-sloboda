@@ -2,6 +2,8 @@
 
 > Stav: v0.3 (2026-10-14), rozsah: MVP (jeden používateľ, telefón, týždenné použitie). [user] = zadanie zakladateľa, [predpoklad] = doplnil Claude, treba potvrdiť. Odkazy: D-xxx v `decisions/Decisions.md`, UR-xx v `02_User_Requirements.md`.
 
+> **Aktualizácia stavu (2026-10-26, D-325):** princípy platia a uplatňujú sa (predvídateľnosť, málo polí, rozbaľovanie menej častých častí: D-293, D-310, D-311, D-313). Vizuálny štýl `docs/39` (D-278). Prepracovanie pred bránou G1.
+
 ## Základné princípy
 
 ### 1. Nízka kognitívna záťaž
