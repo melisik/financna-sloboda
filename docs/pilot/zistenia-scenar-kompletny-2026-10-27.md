@@ -145,7 +145,95 @@ Filter histórie nebol testovateľný, lebo záloha obsahuje len transakcie jedn
 
 ---
 
+---
+
+## Sekcie 3–6 – nové nálezy (2026-10-27, druhá časť)
+
+### 3. Veľký výdavok
+
+**Funguje:** Sekcia je vizuálne odlíšená od Novej transakcie. Nič sa neukladá do histórie (overené). Tlačidlá pre rôzne zdroje fungujú.
+
+#### V-01: „Predbežne −37" bez jednotky
+
+Výsledok pri zdroji „z investícií" ukázal „predbežne −37" bez vysvetlenia, že ide o mesiace. V kombinácii s nejasným dátumom cieľa („Viac ako 50 rokov") toto nie je interpretovateľné. Pripojiť „mesiacov / dní" aj tu – `formatImpactOutcome` vracia správny text, overiť, či sa zobrazuje celý.
+
+#### V-02: „Z príjmu – bez zmeny" pri horizonte > 50 rokov
+
+Keď je cieľ viac ako 50 rokov ďaleko a zdroj je „z príjmu", dopad sa ukázal ako „bez zmeny" aj keď dátum cieľa ostáva. Treba vysvetliť, že výdavok z príjmu neovplyvňuje kapitál – nie je to chyba, ale mätie.
+
+#### V-03: 50 000 000 € posunulo cieľ len o 7 rokov – overiť
+
+Zadanie sumy výrazne väčšej ako celý kapitál (50 000 000 €) ukázalo posun cieľa len o ~7 rokov. Výsledok sa zdal neintuitívny (očakávané: investície nestačia). Overiť, či výpočet v `monthlyExpenseScenario` (alebo `scenarVydavku`) správne pracuje s vyčerpanými investíciami pri takomto vstupe. Zobraziť zrozumiteľné varovanie namiesto číselného posunu.
+
+#### V-04: Formulácia vety o poplatku a dani
+
+„Odhad je pred daňou, po poplatkoch, ak ich zadáš, a nie je finančným poradenstvom." – treba skontrolovať, či formulácia je zrozumiteľná pre bežného používateľa; zakladateľ označil potrebu preformulovania.
+
+---
+
+### 4. Mesačný výdavok
+
+**Funguje:** Účel sekcie je jasný. Výpočet zníženia sporenia a posunu cieľa sa zobrazí. Chybové hlásenie pri výdavku > sporenie funguje.
+
+#### M-01: Skloňovanie „mesiac" – overiť
+
+Zakladateľ hlási „Mesiac nie je dobre vysklonovany" v step 4-2. Funkcia `plural` v `impact.ts` implementuje správne pravidlá (1 / 2–4 / ostatné, vrátane 21+). Overiť, pri ktorej konkrétnej hodnote deltaMonths sa zobrazí nesprávny tvar – reprodukovať s hodnotou z testovacej zálohy.
+
+#### M-02: Opakované výdavky – prázdna sekcia
+
+Sekcia opakovaných výdavkov pod výsledkom bola prázdna, lebo záloha neobsahuje opakované výdavky tohto druhu. Pridať prázdny stav s textom, aby používateľ rozumel, prečo je sekcia prázdna.
+
+#### M-03: Rôzne typy testovacích záložiek – požiadavka zakladateľa
+
+Zakladateľ identifikoval potrebu viacerých záložiek pre rôzne scenáre: s investíciami, bez, s viacerými opakovanými výdavkami, s vysokými záväzkami. Pripraviť sadu záložiek podľa štruktúry projektu.
+
+---
+
+### 5. Vyhodnotenie
+
+**Funguje:** Uloženie vyhodnotenia aktualizuje dátum cieľa v Prehľade. Chyba pri budúcom dátume funguje.
+
+#### Y-01: Nie je zrejmé, kedy robiť vyhodnotenie
+
+Step 5-1: Vidieť len, že „vyhodnotenie sa ukladá automaticky raz mesačne". Chýba kontext: je to raz za mesiac? kvartálne? po každej väčšej zmene? Pridať krátku inštrukciu, napr. „Odporúčame raz mesačne, vždy k tomu istému dňu."
+
+#### Y-02: Nie je jasné, čo zahrnúť do „investícií" a „hotovosti"
+
+Step 5-2: Zakladateľ nevedel, čo patrí do každej kategórie. Príklady (investičné účty, ETF, dôchodkové sporenie → investície; bežný a sporiaci účet, fyzická hotovosť → hotovosť) by pomohli.
+
+#### Y-03: Blok Vývoj v Prehľade nie je objaviteľný z Vyhodnotenia
+
+Step 5-4: Po druhom vyhodnotení zakladateľ nevedel, kde hľadať nový bod v grafe. Pridať odkaz alebo poznámku v Hodnotení: „Po uložení sa nový bod zobrazí v Prehľade → Vývoj."
+
+---
+
+### 6. Ročný prehľad – nedostupná sekcia
+
+#### R-01: Ročný prehľad nie je objaviteľný ako modul
+
+`rocny-prehlad` je voliteľný modul (nie je v `CORE_SECTION_IDS`). Zakladateľ v Sprievodcovi vybral len Majetok a zásoby – Ročný prehľad nezapol, preto sekcia nebola viditeľná. V zozname modulov (krok 6 Sprievodcu a Nastavenia → Moduly) nie je výrazne prezentovaný.
+
+**Možné riešenia:**
+- Presunúť `rocny-prehlad` do `CORE_SECTION_IDS` (vždy viditeľný), alebo
+- V Sprievodcovi zvýrazniť „Ročný prehľad" ako odporúčaný modul, alebo
+- V Prehľade pridať odkaz „Pozri aj Ročný prehľad" keď je vypnutý.
+
+Sekciu neoverili žiadne kroky scenára – všetky kroky 6-1 až 6-4 ostávajú neotestované.
+
+---
+
+### 7. Navigácia – chýbajúce kontextové prechody
+
+V scenári boli navrhované prechody cez navigačné skupiny, ktoré nie sú v appke explicitne vyznačené:
+- „cez Peniaze" → sekcia Transakcie
+- „cez Plán a výsledky" → sekcia Vyhodnotenie
+
+Používateľ, ktorý nepozná štruktúru navigácie, nemusí nájsť správnu skupinu. Zvážiť: breadcrumb alebo nápovedu pri prvej návšteve skupiny.
+
+---
+
 ## Sekcie scenára – zostatok
 
-Otestované: 0 (Sprievodca), 1 (Prehľad), 2a (Rýchly výdavok), 2b (Nákup po položkách), 2c (Doklad QR), 2d (Filter histórie – čiastočne).  
-Neotestované: 2e (Editácia), 2f (História), 3 (Veľký výdavok), 4 (Sklad), 5 (Záloha), 6 (Dane), 7 (Majetok), 8 (Investície), 9 (Nastavenia), 10 (Sprievodca – 2. priechod), 11 (Offline), 12 (PIN).
+Otestované: 0 (Sprievodca), 1 (Prehľad), 2a–2d (Transakcie + Filter), 3 (Veľký výdavok), 4 (Mesačný výdavok), 5 (Vyhodnotenie).  
+Čiastočne: 6 (Ročný prehľad – nedostupný, modul nebol zapnutý).  
+Neotestované: 2e (Editácia), 2f (História), 7 (Sklad), 8 (Záloha), 9 (Dane), 10 (Majetok), 11 (Investície), 12 (Nastavenia), 13 (Sprievodca – 2. priechod), 14 (Offline), 15 (PIN).

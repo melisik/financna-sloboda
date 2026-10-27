@@ -46,3 +46,20 @@ Každý zmätok jednou vetou, bez reálnych súm a osobných údajov. Riadky do 
 | 2026-10-27 | Transakcie | Po otvorení QR skenera sa zobrazilo príliš veľa správ naraz. | otvorené |
 | 2026-10-27 | Transakcie | Chýbala potvrdzovacie hlásenie o skopírovaní čísla dokladu do schránky. | otvorené |
 | 2026-10-27 | Filter histórie | Filter histórie je nedokončený – v zálohe sú len výdavky jedného druhu, takže filtrovanie podľa typu nešlo overiť. | nedokončené – viď zistenia-2026-10-27 |
+| 2026-10-27 | Prehľad | Pruh „Skúšobná verzia" bol viditeľný, ale v teste sa objavil až neskôr, keď sa používateľ posunul nadol. | otvorené – poradie v scenári |
+| 2026-10-27 | Prehľad | Pojem „nad prah" v Návode bol nezrozumiteľný. | otvorené |
+| 2026-10-27 | Prehľad | Inštrukcia „posuň dolu pod obsah" v scenári bola nezrozumiteľná – nebolo jasné, čo presúvať. | opravené v scenári |
+| 2026-10-27 | Transakcie | Celkový súčet nákupu po položkách sa nedal meniť ručne, len cez + a −; toto nebolo zrejmé pred pridaním položiek. | zámer (D-313); treba overiť, či je to zrozumiteľné |
+| 2026-10-27 | Transakcie | Nie je zrejmé, že blok QR sa zatvára tým istým tlačidlom, ktorým sa otvára. | otvorené |
+| 2026-10-27 | Veľký výdavok | „Predbežne −37" pri výsledku nebolo zrozumiteľné – chýba jednotka (mesiace? roky?). | otvorené |
+| 2026-10-27 | Veľký výdavok | Pri horizonte „Viac ako 50 rokov" bol dopad z príjmu zobrazený ako „bez zmeny" – zdalo sa to nelogické. | otvorené – vysvetliť |
+| 2026-10-27 | Veľký výdavok | Zadanie 50 000 000 € posunulo cieľ len o 7 rokov – výsledok pôsobil neočakávane. | overiť výpočet |
+| 2026-10-27 | Veľký výdavok | Veta „pred daňou, po poplatkoch, ak ich zadáš" potrebuje preformulovanie. | otvorené |
+| 2026-10-27 | Mesačný výdavok | Skloňovanie slova „mesiac" vo výsledku bolo nesprávne v niektorom prípade. | overiť v kóde |
+| 2026-10-27 | Mesačný výdavok | Sekcia opakovaných výdavkov pod výsledkom bola prázdna – záloha neobsahuje opakované výdavky v tomto type. | treba doplniť zálohu |
+| 2026-10-27 | Vyhodnotenie | Nie je zrejmé, kedy robiť vyhodnotenie – každý mesiac, kvartálne? Vidieť len automatické uloženie raz mesačne. | otvorené |
+| 2026-10-27 | Vyhodnotenie | Nebolo jasné, čo patrí do „investícií" a čo do „hotovosti" pri zadávaní vyhodnotenia. | otvorené |
+| 2026-10-27 | Vyhodnotenie | Blok Vývoj v Prehľade nebol objaviteľný z Vyhodnotenia – používateľ nevedel, kde ho hľadať. | otvorené |
+| 2026-10-27 | Ročný prehľad | Sekciu Ročný prehľad nebolo možné nájsť – je to voliteľný modul, ktorý nebol zapnutý v Sprievodcovi; v zozname modulov nie je výrazne ponúkaný. | otvorené – objaviteľnosť |
+| 2026-10-27 | Navigácia | Prechod do sekcie Transakcie nebol zrejmý – chýba odkaz z kontextového textu na „Peniaze". | otvorené |
+| 2026-10-27 | Navigácia | Prechod do sekcie Vyhodnotenie nebol zrejmý – chýba odkaz na skupinu „Plán a výsledky". | otvorené |
