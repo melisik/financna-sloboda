@@ -89,7 +89,7 @@ test.describe("usporiadanie obrazoviek", () => {
     await s.getByRole("button", { name: "Zobraziť staršie" }).click();
     await expect(rows).toHaveCount(20);
     await s.getByRole("button", { name: "Zobraziť staršie" }).click();
-    await expect(rows).toHaveCount(23);
+    await expect(rows).toHaveCount(22);
     await expect(s.getByRole("button", { name: "Zobraziť staršie" })).toHaveCount(0);
     await s.locator("summary", { hasText: "Filter" }).click();
     await s.getByLabel("Filter typu").selectOption("sporenie");
@@ -104,8 +104,8 @@ test.describe("usporiadanie obrazoviek", () => {
     expect(h3.slice(0, 2)).toEqual(["Súhrn po rokoch", "Výdavky podľa kategórií"]);
     await expect(s).toContainText("Minulý rok nemá zapísané výdavky, porovnanie sa ukáže neskôr.");
     await expect(s).not.toContainText("minulý rok 0,00");
-    await expect(s.locator("summary", { hasText: "Vyhodnotenia (2)" })).toBeVisible();
-    await expect(s.getByText("Zmena kapitálu:")).toBeHidden();
+    await expect(s.locator("summary", { hasText: "Vyhodnotenia (4)" })).toBeVisible();
+    await expect(s.getByText("Zmena kapitálu:").first()).toBeHidden();
   });
 
   test("Dane: bez investícií s režimom jedna veta namiesto kariet s nulami", async ({ page }) => {
@@ -138,7 +138,7 @@ test.describe("usporiadanie obrazoviek", () => {
     await withBackup(page);
     await goTo(page, "nova-transakcia");
     const s = page.locator("section#nova-transakcia");
-    await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
+    await expect(s.getByText(/Súčet všetkých transakcií \(22\):/)).toBeVisible();
     await s.locator("summary", { hasText: "Filter" }).click();
     await s.getByLabel("Filter typu").selectOption("sporenie");
     await expect(s.getByText(/Súčet transakcií vo filtri \(4\):/)).toBeVisible();
@@ -172,20 +172,20 @@ test.describe("usporiadanie obrazoviek", () => {
     await expect(page.locator("section#pravidelne-vydavky")).toContainText("Nezapisuj ich aj ako transakciu.");
     await goTo(page, "nova-transakcia");
     const s = page.locator("section#nova-transakcia");
-    await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
+    await expect(s.getByText(/Súčet všetkých transakcií \(22\):/)).toBeVisible();
     await s.getByLabel("Suma (€)").fill("650");
     await s.getByLabel("Kategória").selectOption("bývanie");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(s.getByText("Toto vyzerá ako pravidelný výdavok „Nájom“, ktorý sa už ráta automaticky každý mesiac.")).toBeVisible();
-    await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
+    await expect(s.getByText(/Súčet všetkých transakcií \(22\):/)).toBeVisible();
     await s.getByRole("button", { name: "Neukladať" }).click();
     await expect(s.getByText(/ktorý sa už ráta automaticky/)).toHaveCount(0);
-    await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
+    await expect(s.getByText(/Súčet všetkých transakcií \(22\):/)).toBeVisible();
     await s.getByLabel("Suma (€)").fill("650");
     await s.getByLabel("Kategória").selectOption("bývanie");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
     await s.getByRole("button", { name: "Uložiť aj tak" }).click();
-    await expect(s.getByText(/Súčet všetkých transakcií \(24\):/)).toBeVisible();
+    await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
   });
 });
 

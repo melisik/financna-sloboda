@@ -18,7 +18,7 @@ test.describe("testovateľnosť: návod a testovacia záloha", () => {
     await goTo(page, "zaloha");
     const file = path.resolve("public/testovacia-zaloha.json");
     await page.getByLabel("Súbor zálohy").setInputFiles(file);
-    await expect(page.getByText(/Záloha z .* obsahuje: transakcií 23, vyhodnotení 2, /)).toBeVisible(); // D-290: doplnená história
+    await expect(page.getByText(/Záloha z .* obsahuje: transakcií 22, vyhodnotení 4, /)).toBeVisible();
     await page.getByRole("button", { name: "Nahradiť dáta zálohou" }).click();
     await expect(page.getByText("Dáta boli nahradené zálohou.")).toBeVisible();
     await goTo(page, "prehlad");

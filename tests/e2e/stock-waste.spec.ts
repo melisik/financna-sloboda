@@ -50,7 +50,9 @@ test.describe("sklad a výdavky", () => {
     await s.getByLabel("Jednotka").selectOption("l");
     await s.getByLabel("Cena za jednotku (€, nepovinné)").fill("1.10");
     await s.getByRole("button", { name: "Uložiť položku" }).click();
-    await s.getByRole("button", { name: "Vyhodiť" }).click();
+    // Cielene kliknúť na Vyhodiť pri Syntetickom mlieku (nie pozičný selektor)
+    const syntetickeStrong = s.locator("strong", { hasText: "Syntetické mlieko" });
+    await syntetickeStrong.locator("..").locator("..").getByRole("button", { name: "Vyhodiť" }).click();
     await s.getByLabel("Vyhodiť množstvo").fill("1");
     await s.getByRole("button", { name: "Potvrdiť vyhodenie" }).click();
     await expect(s).toContainText("1 l · 1,10 € za l");

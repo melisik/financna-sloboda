@@ -1,6 +1,6 @@
 {
   "app": "financna-sloboda",
-  "schemaVersion": 6,
+  "schemaVersion": 16,
   "exportedAt": "2026-10-27T08:00:00.000Z",
   "settings": {
     "expensesCents": 2400000,
@@ -351,7 +351,10 @@
         "name": "Finax, o.c.p., a. s."
       },
       "goalShares": [
-        { "goalId": "demo-goal-1", "percent": 70 }
+        {
+          "goalId": "demo-goal-1",
+          "percent": 70
+        }
       ],
       "createdAt": "2026-01-01T10:00:00.000Z",
       "updatedAt": "2026-10-01T10:00:00.000Z"
@@ -368,7 +371,10 @@
       "monthlyContributionCents": 5000,
       "taxRegime": "nezadane",
       "goalShares": [
-        { "goalId": "demo-goal-2", "percent": 100 }
+        {
+          "goalId": "demo-goal-2",
+          "percent": 100
+        }
       ],
       "createdAt": "2022-01-01T10:00:00.000Z",
       "updatedAt": "2026-10-01T10:00:00.000Z"
@@ -495,7 +501,7 @@
     {
       "id": "demo-stock-1",
       "name": "Mlieko",
-      "barcode": "8585004002872",
+      "barcode": "8585004002875",
       "quantity": 2,
       "unit": "l",
       "minQuantity": 1,
@@ -517,7 +523,7 @@
       "name": "Olivový olej",
       "quantity": 1,
       "unit": "ks",
-      "minQuantity": 1,
+      "minQuantity": 0,
       "createdAt": "2026-10-05T10:00:00.000Z",
       "updatedAt": "2026-10-05T10:00:00.000Z"
     }

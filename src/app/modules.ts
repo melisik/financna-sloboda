@@ -11,6 +11,7 @@ export const CORE_SECTION_IDS = [
   "scenar-vydavku",
   "mesacny-vydavok",
   "vyhodnotenie",
+  "rocny-prehlad",
   "rozpocet",
   "pravidelne-vydavky",
   "nastavenia",
@@ -31,7 +32,6 @@ export const OPTIONAL_MODULES: readonly OptionalModule[] = [
   { id: "prijmy", label: "Príjmy", sections: ["prijmy"] },
   { id: "dane", label: "Dane (investície, psy, tlačivo 17-dp-md)", sections: ["dane"] },
   { id: "sklad", label: "Sklad a recepty", sections: ["sklad"] },
-  { id: "rocny-prehlad", label: "Ročný prehľad", sections: ["rocny-prehlad"] },
 ];
 
 /**

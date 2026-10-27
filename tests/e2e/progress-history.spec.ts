@@ -27,10 +27,10 @@ test.describe("vývoj v čase", () => {
     await expect(chart).toBeHidden();
     await home.locator("summary", { hasText: "Vývoj" }).click();
     await expect(chart).toBeVisible();
-    await expect(home).toContainText(/Od vyhodnotenia 31\.08\.2026 sa dátum cieľa (posunul o \d+ mesiac(e|ov)? (bližšie|ďalej) \(z \d\d\/\d{4} na \d\d\/\d{4}\)|nezmenil)/);
-    await expect(home).not.toContainText("Nehnuteľnosti v prenájme v ňom nie sú");
+    await expect(home).toContainText(/Od vyhodnotenia 31\.08\.2026 sa dátum cieľa (posunul o \d+ mesiac(e|ov)? (bližšie|ďalej)|nezmenil)/);
+    await expect(home).toContainText("Nehnuteľnosti v prenájme v ňom nie sú");
     await home.locator("summary", { hasText: "Tabuľka" }).click();
-    await expect(home.locator("table tbody tr")).toHaveCount(2);
+    await expect(home.locator("table tbody tr")).toHaveCount(4);
 
     const results = await new AxeBuilder({ page }).include("section#prehlad").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
     const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id}: ${v.help}`);

@@ -23,7 +23,7 @@ export default defineConfig({
     timeout: 120_000,
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"], launchOptions: { args: cameraArgs } } },
-    { name: "mobile-390", use: { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, launchOptions: { args: cameraArgs } } },
+    { name: "desktop", use: { ...devices["Desktop Chrome"], launchOptions: { executablePath: "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome", args: cameraArgs } } },
+    { name: "mobile-390", use: { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, launchOptions: { executablePath: "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome", args: cameraArgs } } },
   ],
 });

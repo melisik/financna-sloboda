@@ -69,8 +69,8 @@ export function ScenarVydavkuSection({ ctx }: { ctx: Ctx }) {
       {outcome && outcome.ok && (
         <div style={card}>
           {outcome.exhausted && <p role="note">{INVESTMENTS_EXHAUSTED_TEXT}</p>}
-          <p style={{ margin: "4px 0" }}>Predbežný dopad: <strong>{formatImpactOutcome(outcome.impact)}</strong></p>
-          {outcome.monthsBefore !== null && outcome.monthsAfter !== null && (
+          {!outcome.exhausted && <p style={{ margin: "4px 0" }}>Predbežný dopad: <strong>{formatImpactOutcome(outcome.impact)}</strong></p>}
+          {outcome.monthsBefore !== null && outcome.monthsAfter !== null && !outcome.exhausted && (
             <>
               <p style={{ margin: "4px 0" }}>
                 Dátum cieľa bez výdavku: <strong>{goalDateText(goalDisplay(outcome.monthsBefore, today, today), savingZero, monthYear)}</strong>

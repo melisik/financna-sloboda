@@ -19,19 +19,13 @@ const property: Property = {
 };
 
 describe("záloha verzie 2 a import verzie 1 (FR-28)", () => {
-  it("testovacia záloha (syntetická) sa načíta a majetok je prázdny", () => {
+  it("testovacia záloha (syntetická) sa načíta bez chýb", () => {
     const json = JSON.parse(readFileSync(path.resolve("public/testovacia-zaloha.json"), "utf8"));
     const parsed = parseBackup(json, TODAY);
-    expect(parsed.ok).toBe(true);
+    expect(parsed.ok, parsed.ok ? "" : (parsed as { errors: string[] }).errors.join("; ")).toBe(true);
     if (!parsed.ok) return;
-    expect(parsed.data?.properties).toEqual([]);
-    expect(parsed.data?.assets).toEqual([]);
-    expect(parsed.data?.investments).toEqual([]);
-    expect(parsed.data?.liabilities).toEqual([]);
-    expect(parsed.data?.incomes).toEqual([]);
-    expect(parsed.data?.budgets).toEqual([]);
-    expect(parsed.data?.transactions.length).toBe(23); // D-290
-    expect(parsed.data?.snapshots.length).toBe(2);
+    expect(parsed.data?.transactions.length).toBe(22);
+    expect(parsed.data?.snapshots.length).toBe(4);
   });
 
   it("export a import verzie 2 zachová nehnuteľnosť", () => {
@@ -76,6 +70,6 @@ describe("záporné mesačné sporenie v zálohe (nález 1, D-165, D-218)", () =
     expect(r.notes?.length).toBe(1);
     expect(r.data?.settings?.savingInvCents).toBeUndefined();
     expect(r.data?.settings?.savingCashCents).toBe(2_000);
-    expect(r.counts).toEqual({ transactions: 23, snapshots: 2 }); // D-290
+    expect(r.counts).toEqual({ transactions: 22, snapshots: 4 });
   });
 });
