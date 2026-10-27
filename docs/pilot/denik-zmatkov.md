@@ -23,3 +23,26 @@ Každý zmätok jednou vetou, bez reálnych súm a osobných údajov. Riadky do 
 | 2026-10-26 | Investície | Odkaz „Overiť v registri NBS“ sa na iPhone otvoril až po dlhšom pridržaní; pri Trading 212 odkaz nebol. | opravené D-333 |
 | 2026-10-26 | Investície | Jednu investíciu sa dá priradiť len k jednému cieľu, ale treba ju rozdeliť na viac cieľov. | opravené D-334 |
 | 2026-10-26 | Investície | Cieľ 80 000 € mal priradených 249 000 € (1 000 akcií po 249 €) a ukázal sa preplnený; suma navyše mala ísť do Dôchodku. | opravené D-336 |
+| 2026-10-27 | Sprievodca | Úvodný krok "Vitaj" nevyzeral ako začiatok sprievodcu – nebolo jasné, že ide o prvé nastavenie appky. | otvorené |
+| 2026-10-27 | Sprievodca | Nebolo vidno, kde sa zadajú ročné výdavky – nastavenie prebieha až na ďalšej obrazovke po kliknutí Pokračovať. | otvorené |
+| 2026-10-27 | Sprievodca | Text „neoverený predpoklad" mätie – bežný používateľ nerozumie, čo to znamená. | otvorené |
+| 2026-10-27 | Sprievodca | „Koľko máš dnes" – chýba vysvetlenie čoho (nasporeného, investovaného, celkovo). | otvorené |
+| 2026-10-27 | Sprievodca | Modul "Sklad" lepšie opisuje zásoby; "tlačivo 17-dp-md" nič nehovorí namiesto „Nehnuteľnosť". | otvorené |
+| 2026-10-27 | Sprievodca | Výsledok odporúčal „zvýš mesačné sporenie" hoci sporenie ešte nebolo nastavené. | otvorené |
+| 2026-10-27 | Sprievodca | Po dokončení sprievodcu chýba súhrn nastavených hodnôt; suma 648 648,65 € nebola vysvetlená ani zaokrúhlená. | otvorené |
+| 2026-10-27 | Prehľad | „Viac ako 50 rokov" pri horizonte cieľa nebolo zrozumiteľné. | otvorené |
+| 2026-10-27 | Prehľad | Nebolo zrejmé, že „Podrobnosti" je klikateľný odkaz a zobrazí ďalší obsah. | otvorené |
+| 2026-10-27 | Prehľad | Graf Vývoj sa nezobrazil – testovacia záloha má len 1 vyhodnotenie, minimum sú 2. | otvorené – treba obohatiť zálohu |
+| 2026-10-27 | Prehľad | E-mail: adresa príjemcu týždenného súhrnu nebola predvyplnená. | otvorené |
+| 2026-10-27 | Transakcie | Rozdiel „z príjmu" a „z hotovosti" ako zdroja úhrady nebol intuitívne jasný. | otvorené |
+| 2026-10-27 | Transakcie | Text „Predbežný dopad" zostal rozbalený aj po uložení a blokoval pohľad na nový formulár. | otvorené |
+| 2026-10-27 | Transakcie | Chybová hláška pri nevyplnenom poli sa zobrazila dvakrát – raz čiernou a raz červenou farbou. | otvorené |
+| 2026-10-27 | Transakcie | **BUG:** Zadanie 650 € v kategórii „bývanie" nevyvolalo upozornenie na pravidelný výdavok Nájom (v zálohe je Nájom 650 €, bývanie, aktívny). | otvorené – overiť |
+| 2026-10-27 | Transakcie | Suma zo „rýchleho výdavku" ostala viditeľná aj po prepnutí do režimu „nákup po položkách". | otvorené |
+| 2026-10-27 | Transakcie | Rozbaľovací zoznam návrhov sa zobrazil, ale bol prázdny. | otvorené – záloha bez histórie? |
+| 2026-10-27 | Transakcie | Tlačidlo „Odstrániť" pri položke nákupu sa zdalo nadbytočné; zadanie zľavy nebolo intuitívne. | otvorené |
+| 2026-10-27 | Transakcie | Prepnutie z režimu položiek na rýchly výdavok prebehlo bez varovania, aj keď boli zadané položky. | otvorené |
+| 2026-10-27 | Transakcie | Blok „Overiť doklad (QR)" nebol viditeľný v rýchlom režime – zobrazuje sa len pri nákupe po položkách. | zámer; treba overiť použiteľnosť |
+| 2026-10-27 | Transakcie | Po otvorení QR skenera sa zobrazilo príliš veľa správ naraz. | otvorené |
+| 2026-10-27 | Transakcie | Chýbala potvrdzovacie hlásenie o skopírovaní čísla dokladu do schránky. | otvorené |
+| 2026-10-27 | Filter histórie | Filter histórie je nedokončený – v zálohe sú len výdavky jedného druhu, takže filtrovanie podľa typu nešlo overiť. | nedokončené – viď zistenia-2026-10-27 |
