@@ -1,15 +1,45 @@
 {
   "app": "financna-sloboda",
   "schemaVersion": 6,
-  "exportedAt": "2026-10-21T08:00:00.000Z",
+  "exportedAt": "2026-10-27T08:00:00.000Z",
   "settings": {
     "expensesCents": 2400000,
     "withdrawalRate": 0.04,
     "realReturn": 0.035,
     "reserveCents": 600000,
     "thresholdCents": 10000,
-    "lastReviewDate": "2026-09-30"
+    "lastReviewDate": "2026-10-01"
   },
+  "snapshots": [
+    {
+      "id": "demo-eval-1",
+      "date": "2026-02-28",
+      "investmentsCents": 25800000,
+      "cashCents": 580000,
+      "createdAt": "2026-02-28T10:00:00.000Z"
+    },
+    {
+      "id": "demo-eval-2",
+      "date": "2026-05-31",
+      "investmentsCents": 27100000,
+      "cashCents": 650000,
+      "createdAt": "2026-05-31T10:00:00.000Z"
+    },
+    {
+      "id": "demo-eval-3",
+      "date": "2026-08-31",
+      "investmentsCents": 28000000,
+      "cashCents": 800000,
+      "createdAt": "2026-08-31T10:00:00.000Z"
+    },
+    {
+      "id": "demo-eval-4",
+      "date": "2026-10-01",
+      "investmentsCents": 29500000,
+      "cashCents": 900000,
+      "createdAt": "2026-10-01T10:00:00.000Z"
+    }
+  ],
   "transactions": [
     {
       "id": "demo-h01",
@@ -77,113 +107,102 @@
       "id": "demo-h07",
       "date": "2026-08-05",
       "type": "vydavok",
-      "amountCents": 1200,
-      "source": "z_prijmu",
-      "category": "doprava",
-      "note": "MHD mesačný lístok",
+      "amountCents": 5800,
+      "source": "z_hotovosti",
+      "category": "jedlo",
+      "note": "Týždenný nákup",
       "createdAt": "2026-08-05T10:00:00.000Z",
       "updatedAt": "2026-08-05T10:00:00.000Z"
     },
     {
       "id": "demo-h08",
-      "date": "2026-08-09",
+      "date": "2026-08-10",
       "type": "vydavok",
-      "amountCents": 6130,
+      "amountCents": 65000,
       "source": "z_hotovosti",
-      "category": "jedlo",
-      "note": "Nákup v supermarkete",
-      "createdAt": "2026-08-09T10:00:00.000Z",
-      "updatedAt": "2026-08-09T10:00:00.000Z"
+      "category": "bývanie",
+      "note": "Nájom",
+      "createdAt": "2026-08-10T10:00:00.000Z",
+      "updatedAt": "2026-08-10T10:00:00.000Z"
     },
     {
       "id": "demo-h09",
-      "date": "2026-08-21",
+      "date": "2026-08-15",
       "type": "vydavok",
-      "amountCents": 2400,
-      "source": "z_prijmu",
-      "category": "zábava",
-      "note": "Koncert",
-      "createdAt": "2026-08-21T10:00:00.000Z",
-      "updatedAt": "2026-08-21T10:00:00.000Z"
-    },
-    {
-      "id": "demo-s1",
-      "date": "2026-09-02",
-      "type": "sporenie",
-      "amountCents": 50000,
-      "note": "Mesačné sporenie",
-      "createdAt": "2026-09-02T10:00:00.000Z",
-      "updatedAt": "2026-09-02T10:00:00.000Z"
+      "amountCents": 12000,
+      "source": "z_hotovosti",
+      "category": "predplatné a služby",
+      "note": "Internet a telefón",
+      "createdAt": "2026-08-15T10:00:00.000Z",
+      "updatedAt": "2026-08-15T10:00:00.000Z"
     },
     {
       "id": "demo-h10",
-      "date": "2026-09-05",
-      "type": "vydavok",
-      "amountCents": 1200,
-      "source": "z_prijmu",
-      "category": "doprava",
-      "note": "MHD mesačný lístok",
-      "createdAt": "2026-09-05T10:00:00.000Z",
-      "updatedAt": "2026-09-05T10:00:00.000Z"
-    },
-    {
-      "id": "demo-e0",
-      "date": "2026-09-12",
-      "type": "vydavok",
-      "amountCents": 3000,
-      "source": "z_hotovosti",
-      "category": "jedlo",
-      "note": "Nákup v supermarkete",
-      "createdAt": "2026-09-12T10:00:00.000Z",
-      "updatedAt": "2026-09-12T10:00:00.000Z"
-    },
-    {
-      "id": "demo-h11",
-      "date": "2026-09-19",
-      "type": "vydavok",
-      "amountCents": 3500,
-      "source": "z_prijmu",
-      "category": "oblečenie",
-      "note": "Tričko",
-      "createdAt": "2026-09-19T10:00:00.000Z",
-      "updatedAt": "2026-09-19T10:00:00.000Z"
-    },
-    {
-      "id": "demo-s2",
-      "date": "2026-10-02",
+      "date": "2026-09-01",
       "type": "sporenie",
       "amountCents": 50000,
       "note": "Mesačné sporenie",
-      "createdAt": "2026-10-02T10:00:00.000Z",
-      "updatedAt": "2026-10-02T10:00:00.000Z"
+      "createdAt": "2026-09-01T10:00:00.000Z",
+      "updatedAt": "2026-09-01T10:00:00.000Z"
     },
     {
-      "id": "demo-e1",
-      "date": "2026-10-03",
+      "id": "demo-h11",
+      "date": "2026-09-03",
       "type": "vydavok",
-      "amountCents": 4500,
+      "amountCents": 4900,
       "source": "z_hotovosti",
       "category": "jedlo",
       "note": "Nákup v supermarkete",
-      "createdAt": "2026-10-03T10:00:00.000Z",
-      "updatedAt": "2026-10-03T10:00:00.000Z"
+      "createdAt": "2026-09-03T10:00:00.000Z",
+      "updatedAt": "2026-09-03T10:00:00.000Z"
     },
     {
-      "id": "demo-e2",
+      "id": "demo-h12",
+      "date": "2026-09-10",
+      "type": "vydavok",
+      "amountCents": 65000,
+      "source": "z_hotovosti",
+      "category": "bývanie",
+      "note": "Nájom",
+      "createdAt": "2026-09-10T10:00:00.000Z",
+      "updatedAt": "2026-09-10T10:00:00.000Z"
+    },
+    {
+      "id": "demo-h13",
+      "date": "2026-09-15",
+      "type": "vydavok",
+      "amountCents": 28000,
+      "source": "z_investicii",
+      "category": "dom a energie",
+      "note": "Výmena kotla",
+      "createdAt": "2026-09-15T10:00:00.000Z",
+      "updatedAt": "2026-09-15T10:00:00.000Z"
+    },
+    {
+      "id": "demo-h14",
+      "date": "2026-09-20",
+      "type": "vydavok",
+      "amountCents": 8900,
+      "source": "z_prijmu",
+      "category": "zdravie",
+      "note": "Stomatológ",
+      "createdAt": "2026-09-20T10:00:00.000Z",
+      "updatedAt": "2026-09-20T10:00:00.000Z"
+    },
+    {
+      "id": "demo-h15",
+      "date": "2026-10-01",
+      "type": "sporenie",
+      "amountCents": 50000,
+      "note": "Mesačné sporenie",
+      "createdAt": "2026-10-01T10:00:00.000Z",
+      "updatedAt": "2026-10-01T10:00:00.000Z"
+    },
+    {
+      "id": "demo-h16",
       "date": "2026-10-05",
       "type": "vydavok",
-      "amountCents": 1200,
-      "source": "z_prijmu",
-      "category": "doprava",
-      "note": "MHD mesačný lístok",
-      "createdAt": "2026-10-05T10:00:00.000Z",
-      "updatedAt": "2026-10-05T10:00:00.000Z"
-    },
-    {
-      "id": "demo-e3",
-      "date": "2026-10-07",
-      "type": "vydavok",
-      "amountCents": 3000,
+      "amountCents": 2000,
       "source": "z_prijmu",
       "category": "zábava",
       "note": "Kino",
@@ -191,7 +210,7 @@
       "updatedAt": "2026-10-07T10:00:00.000Z"
     },
     {
-      "id": "demo-e4",
+      "id": "demo-h17",
       "date": "2026-10-08",
       "type": "vydavok",
       "amountCents": 8500,
@@ -202,7 +221,7 @@
       "updatedAt": "2026-10-08T10:00:00.000Z"
     },
     {
-      "id": "demo-e5",
+      "id": "demo-h18",
       "date": "2026-10-10",
       "type": "vydavok",
       "amountCents": 2290,
@@ -213,7 +232,7 @@
       "updatedAt": "2026-10-10T10:00:00.000Z"
     },
     {
-      "id": "demo-e6",
+      "id": "demo-h19",
       "date": "2026-10-12",
       "type": "vydavok",
       "amountCents": 1500,
@@ -224,7 +243,7 @@
       "updatedAt": "2026-10-12T10:00:00.000Z"
     },
     {
-      "id": "demo-e7",
+      "id": "demo-h20",
       "date": "2026-10-14",
       "type": "vydavok",
       "amountCents": 6500,
@@ -235,7 +254,7 @@
       "updatedAt": "2026-10-14T10:00:00.000Z"
     },
     {
-      "id": "demo-e8",
+      "id": "demo-h21",
       "date": "2026-10-15",
       "type": "vydavok",
       "amountCents": 1220,
@@ -273,7 +292,7 @@
       ]
     },
     {
-      "id": "demo-e9",
+      "id": "demo-h22",
       "date": "2026-10-16",
       "type": "vydavok",
       "amountCents": 4000,
@@ -284,27 +303,132 @@
       "updatedAt": "2026-10-16T10:00:00.000Z"
     }
   ],
-  "snapshots": [
+  "properties": [
     {
-      "id": "demo-eval-1",
-      "date": "2026-08-31",
-      "investmentsCents": 28000000,
-      "cashCents": 800000,
-      "createdAt": "2026-08-31T10:00:00.000Z"
-    },
-    {
-      "id": "demo-eval-2",
-      "date": "2026-09-30",
-      "investmentsCents": 29500000,
-      "cashCents": 900000,
-      "createdAt": "2026-09-30T10:00:00.000Z"
+      "id": "demo-prop-1",
+      "name": "Prenajatý byt – Bratislava",
+      "mode": "prenajom",
+      "valueCents": 18000000,
+      "valueDate": "2026-01-01",
+      "mortgageBalanceCents": 8500000,
+      "balanceDate": "2026-01-01",
+      "monthlyRentCents": 75000,
+      "monthlyPaymentCents": 45000,
+      "mortgageRate": 0.038,
+      "monthlyOtherCostsCents": 5000,
+      "acquisitionDate": "2018-04-01",
+      "acquisitionCostCents": 12000000,
+      "rentalStartDate": "2019-01-01",
+      "taxObjectKind": "byt",
+      "createdAt": "2026-01-01T10:00:00.000Z",
+      "updatedAt": "2026-10-01T10:00:00.000Z"
     }
   ],
-  "properties": [],
-  "assets": [],
-  "investments": [],
-  "liabilities": [],
-  "incomes": [],
+  "assets": [
+    {
+      "id": "demo-asset-1",
+      "kind": "automobil",
+      "name": "Škoda Octavia (2020)",
+      "valueCents": 1200000,
+      "valueDate": "2026-10-01",
+      "createdAt": "2026-01-01T10:00:00.000Z",
+      "updatedAt": "2026-10-01T10:00:00.000Z"
+    }
+  ],
+  "investments": [
+    {
+      "id": "demo-inv-1",
+      "name": "Vyvážené portfólio ETF",
+      "kind": "etf",
+      "quantity": 200,
+      "unitPrice": 118.5,
+      "currency": "EUR",
+      "fxToEur": 1,
+      "valueDate": "2026-10-01",
+      "taxRegime": "nezadane",
+      "provider": {
+        "ico": "51306727",
+        "name": "Finax, o.c.p., a. s."
+      },
+      "goalShares": [
+        { "goalId": "demo-goal-1", "percent": 70 }
+      ],
+      "createdAt": "2026-01-01T10:00:00.000Z",
+      "updatedAt": "2026-10-01T10:00:00.000Z"
+    },
+    {
+      "id": "demo-inv-2",
+      "name": "Doplnkové dôchodkové sporenie",
+      "kind": "treti_pilier",
+      "quantity": 1,
+      "unitPrice": 950000,
+      "currency": "EUR",
+      "fxToEur": 1,
+      "valueDate": "2026-10-01",
+      "monthlyContributionCents": 5000,
+      "taxRegime": "nezadane",
+      "goalShares": [
+        { "goalId": "demo-goal-2", "percent": 100 }
+      ],
+      "createdAt": "2022-01-01T10:00:00.000Z",
+      "updatedAt": "2026-10-01T10:00:00.000Z"
+    }
+  ],
+  "goals": [
+    {
+      "id": "demo-goal-1",
+      "name": "Finančná sloboda",
+      "targetCents": 60000000,
+      "receivesRest": true,
+      "createdAt": "2026-01-01T10:00:00.000Z",
+      "updatedAt": "2026-01-01T10:00:00.000Z"
+    },
+    {
+      "id": "demo-goal-2",
+      "name": "Dôchodok (III. pilier)",
+      "targetCents": 15000000,
+      "createdAt": "2026-01-01T10:00:00.000Z",
+      "updatedAt": "2026-01-01T10:00:00.000Z"
+    }
+  ],
+  "liabilities": [
+    {
+      "id": "demo-liab-1",
+      "name": "Auto – leasing",
+      "kind": "leasing",
+      "balanceCents": 950000,
+      "rate": 0.049,
+      "monthlyPaymentCents": 22000,
+      "endDate": "2027-12-31",
+      "balanceDate": "2026-10-01",
+      "createdAt": "2023-01-01T10:00:00.000Z",
+      "updatedAt": "2026-10-01T10:00:00.000Z"
+    }
+  ],
+  "incomes": [
+    {
+      "id": "demo-income-1",
+      "name": "Mzda",
+      "kind": "mzda",
+      "frequency": "mesacne",
+      "amountCents": 180000,
+      "dayOfMonth": 15,
+      "startDate": "2020-01-01",
+      "createdAt": "2026-01-01T10:00:00.000Z",
+      "updatedAt": "2026-01-01T10:00:00.000Z"
+    },
+    {
+      "id": "demo-income-2",
+      "name": "Starobný dôchodok (plánovaný)",
+      "kind": "starobny_dochodok",
+      "frequency": "mesacne",
+      "amountCents": 70000,
+      "dayOfMonth": 1,
+      "startDate": "2055-01-01",
+      "createdAt": "2026-01-01T10:00:00.000Z",
+      "updatedAt": "2026-01-01T10:00:00.000Z"
+    }
+  ],
   "recurringExpenses": [
     {
       "id": "demo-r1",
@@ -345,9 +469,62 @@
       "startDate": "2026-02-01",
       "createdAt": "2026-02-01T10:00:00.000Z",
       "updatedAt": "2026-02-01T10:00:00.000Z"
+    },
+    {
+      "id": "demo-r5",
+      "name": "Poistenie auta",
+      "category": "doprava",
+      "frequency": "rocne",
+      "amountCents": 28000,
+      "startDate": "2026-01-01",
+      "createdAt": "2026-01-01T10:00:00.000Z",
+      "updatedAt": "2026-01-01T10:00:00.000Z"
+    },
+    {
+      "id": "demo-r6",
+      "name": "Fitnescentrum",
+      "category": "zdravie",
+      "frequency": "mesacne",
+      "amountCents": 3500,
+      "startDate": "2026-04-01",
+      "createdAt": "2026-04-01T10:00:00.000Z",
+      "updatedAt": "2026-04-01T10:00:00.000Z"
     }
   ],
-  "stockItems": [],
+  "stockItems": [
+    {
+      "id": "demo-stock-1",
+      "name": "Mlieko",
+      "barcode": "8585004002872",
+      "quantity": 2,
+      "unit": "l",
+      "minQuantity": 1,
+      "createdAt": "2026-10-01T10:00:00.000Z",
+      "updatedAt": "2026-10-27T08:00:00.000Z"
+    },
+    {
+      "id": "demo-stock-2",
+      "name": "Cestoviny",
+      "barcode": "8001040019481",
+      "quantity": 3,
+      "unit": "ks",
+      "minQuantity": 2,
+      "createdAt": "2026-10-01T10:00:00.000Z",
+      "updatedAt": "2026-10-15T10:00:00.000Z"
+    },
+    {
+      "id": "demo-stock-3",
+      "name": "Olivový olej",
+      "quantity": 1,
+      "unit": "ks",
+      "minQuantity": 1,
+      "createdAt": "2026-10-05T10:00:00.000Z",
+      "updatedAt": "2026-10-05T10:00:00.000Z"
+    }
+  ],
   "recipes": [],
-  "budgets": []
+  "budgets": [],
+  "dogs": [],
+  "wasteRecords": [],
+  "shoppingItems": []
 }
