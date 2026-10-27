@@ -32,6 +32,7 @@ jobs:
           VITE_PHASE2: "1"
           # D-280: v náhľade sa pripomienky posielajú len formulárom (GitHub je verejný).
           VITE_PREVIEW: "1"
+          VITE_DEMO: "1"
       # D-322 (audit A-01, docs/54 A-3): E2E testy aj pred nasadením náhľadu, rovnako ako vo verejnom nasadení;
       # chyba rozloženia sa tak ukáže už v náhľade. Testy používajú vlastnú zostavu dist-test, dist sa nemení.
       - run: npx playwright install --with-deps chromium
