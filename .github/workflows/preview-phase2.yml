@@ -3,7 +3,18 @@ name: Súkromný náhľad Fázy 2
 on:
   push:
     branches: [claude/phase2-property-card]
-  workflow_dispatch:
+   workflow_dispatch:
+    inputs:
+      source_ref:
+        description: 'Vetva aplikácie, ktorú chceš nasadiť'
+        required: true
+        type: string
+        default: 'claude/stoic-cerf-5wdo7q'
+      demo_mode:
+        description: 'Zapnúť demo režim'
+        required: true
+        type: boolean
+        default: true
 
 # D-270, D-271: náhľad ide len na súkromnú adresu za heslom (Pages Functions). Verejné Pages zostávajú z main s VITE_PHASE2 "0" (D-056, D-248).
 # Job sa spustí až po nastavení premennej PHASE2_PREVIEW a hesla PREVIEW_PASSWORD v Cloudflare; inak sa nič nenasadí.
@@ -20,6 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: actions/setup-node@v5
         with:
           node-version: 22
@@ -27,11 +40,12 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: node scripts/make-test-backup.mjs
+      # D-280: v náhľade sa pripomienky posielajú len formulárom (GitHub je verejný).
       - run: npm run build
         env:
-          VITE_PHASE2: "1"
-          # D-280: v náhľade sa pripomienky posielajú len formulárom (GitHub je verejný).
+          VITE_PHASE2: "1"       
           VITE_PREVIEW: "1"
+          VITE_DEMO: ${{ inputs.demo_mode == true && '1' || '0' }}
       # D-322 (audit A-01, docs/54 A-3): E2E testy aj pred nasadením náhľadu, rovnako ako vo verejnom nasadení;
       # chyba rozloženia sa tak ukáže už v náhľade. Testy používajú vlastnú zostavu dist-test, dist sa nemení.
       - run: npx playwright install --with-deps chromium
