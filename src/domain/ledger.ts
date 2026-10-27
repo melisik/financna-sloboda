@@ -30,7 +30,7 @@ export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transa
   let cash = snapshot.cashCents;
   const after = transactions
     .filter((t) => isAfterEvaluation(t, snapshot))
-    .sort((a, b) => (a.date === b.date ? a.createdAt.localeCompare(b.createdAt) : a.date.localeCompare(b.date)));
+    .sort((a, b) => (a.date === b.date ? a.createdAt.localeCompare(b.createdAt) : new Date(a.date).getTime() - new Date(b.date).getTime()));
   for (const t of after) {
     const a = t.amountCents;
     switch (t.type) {
