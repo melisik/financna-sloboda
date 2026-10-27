@@ -92,6 +92,7 @@ describe("scenarioDateText: dátum cieľa pre mieru výnosu (FR-02, FR-03, D-019
       realReturn: 0.035,
       rentals: [{ valueCents: 0, mortgageBalanceCents: 0, mortgageRate: 0, paymentCents: 0, netRentCents: -eur(500) }],
       longHorizon: false,
+      taxAdjustedReturn: 0.035,
     };
     expect(scenarioDateText(ctx, 0.035, TODAY, fmt)).toBe("Hotovosť by sa vyčerpala v mesiaci 21; dátum sa nezobrazuje.");
   });

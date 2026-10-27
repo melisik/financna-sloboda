@@ -29,7 +29,7 @@ interface TaxLine {
   afterTaxCents: null; // zatiaľ vždy null: vzorec vyžaduje overené pravidlá (D-104)
 }
 
-/** Hodnota investícií rozdelená podľa daňového režimu. Položky bez režimu sú „nezadané“. */
+/** Hodnota investícií rozdelená podľa daňového režimu. Položky bez režimu sú „nezadané”. */
 export function taxScenario(positions: Position[]): TaxLine[] {
   return TAX_REGIMES.map((regime) => ({
     regime,
@@ -39,4 +39,34 @@ export function taxScenario(positions: Position[]): TaxLine[] {
       .reduce((sum, p) => sum + positionValueCents(p), 0),
     afterTaxCents: null,
   }));
+}
+
+// --- Danovy engine (D-339) ---
+// Sadzby su predpoklad; overenie G1. Vypocet je informativny, nie danove poradenstvo.
+
+export type AssetClass = "stocks_etf" | "crypto" | "real_estate" | "cash";
+
+export interface TaxContext {
+  grossReturnRate: number;
+  assetClass: AssetClass;
+  holdingPeriodYears: number;
+}
+
+export interface TaxPolicy {
+  id: string;
+  name: string;
+  calculateNetReturn(ctx: TaxContext): number;
+}
+
+export const slovakTaxPolicy: TaxPolicy = {
+  id: "sk",
+  name: "Slovensko",
+  calculateNetReturn(ctx) {
+    if (ctx.assetClass === "stocks_etf" && ctx.holdingPeriodYears >= 1) return ctx.grossReturnRate;
+    return ctx.grossReturnRate * (1 - 0.19);
+  },
+};
+
+export function taxAdjustedReturn(grossReturn: number, assetClass: AssetClass, holdingPeriodYears: number): number {
+  return slovakTaxPolicy.calculateNetReturn({ grossReturnRate: grossReturn, assetClass, holdingPeriodYears });
 }

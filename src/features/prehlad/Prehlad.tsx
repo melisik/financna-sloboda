@@ -25,6 +25,7 @@ import { btn, btnPrimary } from "../../ui/kit/controls";
 import { saveTextFile } from "../../ui/kit/files";
 import { calloutStyle } from "../../ui/kit/controls";
 import { hintStyle } from "../../ui/kit/controls";
+import { Milestones } from "./Milestones";
 
 /** Prehľad (domovská obrazovka): dátum cieľa a pokrok, hlavná akcia, pripomienky, mesačný prehľad a týždenný súhrn. Feature „prehlad“ (docs/23, D-283). */
 
@@ -63,6 +64,11 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
             <div style={{ width: `${progress.percent}%`, height: "100%", background: "var(--primary-bg)" }} />
           </div>
           {shift && <p style={{ margin: "4px 0" }}>{shiftLine(shift)}</p>}
+          <Milestones
+            capitalCents={ctx.evaluated.inv + ctx.evaluated.cash}
+            targetCents={ctx.target}
+            annualExpensesCents={data.settings?.expensesCents ?? 0}
+          />
           <p style={hintStyle}>Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
           <p style={hintStyle}>
             Posledné vyhodnotenie: <strong>{dateSk(ctx.latest.date)}</strong>. Dátum sa zmení až po ďalšom vyhodnotení.

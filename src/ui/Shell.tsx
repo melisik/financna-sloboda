@@ -4,7 +4,7 @@ import { NextStep } from "./kit/NextStep";
 import { btn } from "./kit/controls";
 import { TRIAL_DETAILS, TRIAL_SUMMARY, deviceStore, readTrialCollapsed, saveTrialCollapsed } from "./trialNotice";
 import { FeedbackBlock } from "../features/spatna-vazba/SpatnaVazba";
-import { PREVIEW_BUILD } from "../app/features";
+import { DEMO_ENABLED, PREVIEW_BUILD } from "../app/features";
 import { isIosOtherBrowser } from "../app/ios";
 
 /** Rám stránky: nadpis, skúšobné upozornenie (zbaliteľné, D-281), horný panel a spätná väzba. iOS brána (D-053, D-168) je tu, lebo ju používa rám. */
@@ -57,7 +57,12 @@ export function Shell({ children, nav }: { children: React.ReactNode; nav?: Sect
   return (
     <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "0 auto", padding: "16px", lineHeight: 1.5 }}>
       <h1 style={{ fontSize: "var(--font-title)" }}>Compaven</h1>
-      <TrialNotice section={nav} />
+      {DEMO_ENABLED && (
+        <p role="note" style={{ background: "var(--warn-bg)", padding: "8px 12px", borderRadius: 6, fontSize: "var(--font-small)", marginBottom: 8 }}>
+          <strong>Demo rezim</strong> - zobrazuju sa ukazkove data. Zmeny sa neukladaju.
+        </p>
+      )}
+      {!DEMO_ENABLED && <TrialNotice section={nav} />}
       {typeof navigator !== "undefined" && isIosOtherBrowser(navigator.userAgent) && !isStandalone() && (
         <p role="note" style={{ background: "var(--ok-bg)", padding: 10, borderRadius: 6, fontSize: "var(--font-small)" }}>
           Na plochu appku pridáš v Safari: otvor túto adresu v Safari, potom Zdieľať → Pridať na plochu. Tu ju môžeš používať aj bez toho.

@@ -3,6 +3,8 @@ import { openRepository } from "../storage/indexeddb";
 import type { Repository } from "../storage/repository";
 import type { AppData } from "../storage/types";
 import { makeCtx } from "../domain/context";
+import { DEMO_ENABLED } from "../app/features";
+import { createDemoRepository } from "../storage/demoRepository";
 import { LockScreen } from "../features/zamok/Lock";
 import { FirstSetup } from "./Sprievodca";
 import { ModulesProvider, useModules } from "./Moduly";
@@ -59,7 +61,8 @@ function AppContent() {
 
   useEffect(() => {
     let alive = true;
-    openRepository()
+    const openRepo = DEMO_ENABLED ? Promise.resolve(createDemoRepository()) : openRepository();
+    openRepo
       .then(async (r) => {
         const d = await r.getData();
         if (!alive) return;

@@ -12,3 +12,6 @@ export const PREVIEW_BUILD: boolean = import.meta.env.VITE_PREVIEW === "1";
  * ani vo verejnej zostave, ani v náhľade (D-323, docs/60 otázka 2). Ostáva vo vývoji a v E2E zostave, aby kód ostal overený.
  */
 export const FEED_IMPORT_ENABLED: boolean = PHASE2_ENABLED && !PREVIEW_BUILD;
+
+/** Demo rezim (D-343): in-memory data, ziadne zapisovanie do IndexedDB. Zapina sa pomocou VITE_DEMO=1. */
+export const DEMO_ENABLED: boolean = import.meta.env.VITE_DEMO === "1";

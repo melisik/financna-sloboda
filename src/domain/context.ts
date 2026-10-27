@@ -5,6 +5,7 @@ import { monthlySaving } from "./saving";
 import { LONG_HORIZON_MONTHS, netRealReturn, RETURN_ASSUMPTIONS } from "./assumptions";
 import { goalMonths, rentalsFor, type Rental } from "./rentalGoal";
 import { capitalWithFlags, reserveBalance } from "./ledger";
+import { taxAdjustedReturn } from "./tax";
 
 /** Kontext prehľadu: stav kapitálu, cieľ a nastavenia z dát (FR-02, FR-04, D-121). Čistý výpočet, bez UI. */
 export interface Ctx {
@@ -24,6 +25,8 @@ export interface Ctx {
   realReturn: number;
   rentals: Rental[];
   longHorizon: boolean;
+  /** Orientacny cisty vysledok po SK dani (D-339, informacny). Jadro realReturn pre vypocet ciela sa nemeni (D-153). */
+  taxAdjustedReturn: number;
 }
 
 export function makeCtx(data: AppData): Ctx {
@@ -53,6 +56,7 @@ export function makeCtx(data: AppData): Ctx {
     realReturn,
     rentals,
     longHorizon: g?.kind === "months" && g.months > LONG_HORIZON_MONTHS,
+    taxAdjustedReturn: taxAdjustedReturn(realReturn, "stocks_etf", 2),
   };
 }
 

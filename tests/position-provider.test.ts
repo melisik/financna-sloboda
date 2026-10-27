@@ -7,7 +7,7 @@ const base = { id: "p1", name: "Syntetický ETF", kind: "etf", quantity: 2, unit
 
 describe("poskytovateľ pri položke investície (D-329)", () => {
   it("schéma zálohy je 15 a staršie sa čítajú", () => {
-    expect(SCHEMA_VERSION).toBe(16);
+    expect(SCHEMA_VERSION).toBe(17);
     expect(READABLE_SCHEMA_VERSIONS).toContain(14);
     expect(READABLE_SCHEMA_VERSIONS).toContain(15);
   });

@@ -45,6 +45,9 @@ export interface Transaction {
   receiptItems?: ReceiptItem[]; // položky nákupu, len pri výdavku (D-129, D-313)
   createdAt: string; // ISO
   updatedAt: string; // ISO
+  currency?: string; // ISO 4217, napr. "USD"; bez hodnoty = EUR (D-340)
+  exchangeRateToBase?: number; // jednotky cudzej meny za 1 EUR (napr. 1.05 pre USD); pozaduje currency
+  originalAmountCents?: number; // suma v povodnej mene v centoch; pozaduje currency
 }
 
 export interface Snapshot {
@@ -67,6 +70,9 @@ export interface Settings {
   feesRate?: number; // poplatky p. a., napr. 0.005; bez hodnoty = 0 (D-064)
   lastReviewDate?: string; // D_L; appka ho nezapisuje (D_L je z vyhodnotení), ostáva kvôli starším zálohám (D-326)
   checkedAt?: string; // kedy sa nastavenia naposledy uložili (ISO); pripomienka ročnej kontroly (N-13, D-151)
+  baseCurrency?: string; // predvolena mena; bez hodnoty = EUR (D-340)
+  savedExchangeRates?: Record<string, number>; // ISO 4217 -> jednotky za 1 EUR
+  ratesUpdatedAt?: string; // kedy boli kurzy naposledy aktualizovane (ISO)
 }
 
 /** Režim nehnuteľnosti (FR-20, D-093). „nezadane“ je predvolené a do K sa nepočíta. */
