@@ -3,7 +3,7 @@ name: Súkromný náhľad Fázy 2
 on:
   push:
     branches: [claude/phase2-property-card]
-   workflow_dispatch:
+  workflow_dispatch:
     inputs:
       source_ref:
         description: 'Vetva aplikácie, ktorú chceš nasadiť'
@@ -15,7 +15,7 @@ on:
         required: true
         type: boolean
         default: true
-
+        
 # D-270, D-271: náhľad ide len na súkromnú adresu za heslom (Pages Functions). Verejné Pages zostávajú z main s VITE_PHASE2 "0" (D-056, D-248).
 # Job sa spustí až po nastavení premennej PHASE2_PREVIEW a hesla PREVIEW_PASSWORD v Cloudflare; inak sa nič nenasadí.
 concurrency:
