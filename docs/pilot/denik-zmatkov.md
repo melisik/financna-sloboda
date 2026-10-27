@@ -63,3 +63,19 @@ Každý zmätok jednou vetou, bez reálnych súm a osobných údajov. Riadky do 
 | 2026-10-27 | Ročný prehľad | Sekciu Ročný prehľad nebolo možné nájsť – je to voliteľný modul, ktorý nebol zapnutý v Sprievodcovi; v zozname modulov nie je výrazne ponúkaný. | otvorené – objaviteľnosť |
 | 2026-10-27 | Navigácia | Prechod do sekcie Transakcie nebol zrejmý – chýba odkaz z kontextového textu na „Peniaze". | otvorené |
 | 2026-10-27 | Navigácia | Prechod do sekcie Vyhodnotenie nebol zrejmý – chýba odkaz na skupinu „Plán a výsledky". | otvorené |
+| 2026-10-27 | Ročný prehľad | Tabuľka so stĺpcami príjmy/výdavky/sporenie nebola nájdená; namiesto nej sú bloky Kapitál a Výdavky podľa kategórie. | overiť zámer |
+| 2026-10-27 | Ročný prehľad | Nebolo zrejmé, ako prepnúť rok späť. | otvorené |
+| 2026-10-27 | Majetok | „Do kapitálu sa nepočíta, kým nezadáš režim" – veta treba preformulovať; „K" ako skratka pre kapitál nie je zrejmé. | otvorené |
+| 2026-10-27 | Majetok | Nekonzistentná terminológia: „príjem z nájmu" na jednom mieste a „výdavok na prenájom" na inom. | otvorené |
+| 2026-10-27 | Majetok | Režim „Predaj" nebol nájdený. | overiť, či existuje |
+| 2026-10-27 | Majetok | Sekcia majetku s hypotékou je neprehľadná – príliš veľa polí bez zrejmého usporiadania. | otvorené |
+| 2026-10-27 | Majetok | Odhad ceny auta sa nezarátava spolu s hodnotou nehnuteľností. | zámer? overiť |
+| 2026-10-27 | Záväzky | Formulár záväzku automaticky pýta úrok a splátku – pre osobný dlh (kamarát, požičané peniaze) toto nesedí; vhodnejší by bol len zostatok a dátum splatenia. | otvorené |
+| 2026-10-27 | Záväzky | Vplyv záväzku na Prehľad nebol jasný; záloha nemá záväzky, takže sa nedalo otestovať. | treba zálohu so záväzkami |
+| 2026-10-27 | Investície | Nie je zrejmé, čo zadávať – či portfólio, alebo jednotlivé akcie; sekcia pôsobí mätúco (položka „Cieľ" vs investícia). | otvorené |
+| 2026-10-27 | Investície | Autocomplete poskytovateľa funguje, ale zdroj (zoznam NBS) nie je zrejmý; indikátor zdroja je neprehľadný. | otvorené |
+| 2026-10-27 | Investície | Text „len evidencia, nepočíta sa" pri daňovom režime je nejasný a treba ho zmeniť alebo odstrániť. | otvorené |
+| 2026-10-27 | Investície | Cieľ Dôchodok s 50 % podielom nebol viditeľný v Prehľade po priradení. | overiť |
+| 2026-10-27 | Investície | „Sem patrí všetko, čo nepatrí do iného cieľa" – text je OK, ale chýba kontext; nie je jasné, čo sa stane, keď žiadny cieľ toto nemá zaškrtnuté. | otvorené |
+| 2026-10-27 | Príjmy | Po zadaní budúceho príjmu nebolo jasné, v akom zozname ho hľadať. | otvorené |
+| 2026-10-27 | Pravidelné výdavky | Zoznam bol prázdny – nie je vidieť, ktorá záloha je načítaná; treba indikátor aktívnej zálohy. | otvorené |
