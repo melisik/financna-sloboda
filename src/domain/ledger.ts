@@ -53,6 +53,10 @@ export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transa
       case "vyber_rezervy":
         cash += a;
         break;
+      default:
+        // Ak pribudne nový typ transakcie, TypeScript tu vyhodí chybu pri kompilácii
+        const _exhaustiveCheck: never = t;
+        throw new Error(`Neznámy typ transakcie: ${_exhaustiveCheck}`);
     }
   }
   return {
