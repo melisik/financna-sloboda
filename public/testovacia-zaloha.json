@@ -322,6 +322,22 @@
       "taxObjectKind": "byt",
       "createdAt": "2026-01-01T10:00:00.000Z",
       "updatedAt": "2026-10-01T10:00:00.000Z"
+    },
+    {
+      "id": "demo-prop-2",
+      "name": "Byt Bratislava",
+      "mode": "vlastne_byvanie",
+      "valueCents": 22000000,
+      "valueDate": "2026-01-01",
+      "mortgageBalanceCents": 14000000,
+      "balanceDate": "2026-01-01",
+      "monthlyPaymentCents": 58000,
+      "mortgageRate": 0.042,
+      "monthlyOtherCostsCents": 3000,
+      "acquisitionDate": "2020-06-15",
+      "acquisitionCostCents": 17000000,
+      "createdAt": "2026-01-01T10:00:00.000Z",
+      "updatedAt": "2026-10-01T10:00:00.000Z"
     }
   ],
   "assets": [

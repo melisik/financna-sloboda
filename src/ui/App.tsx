@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { openRepository } from "../storage/indexeddb";
+import { openDemoRepository } from "../storage/demo";
 import type { Repository } from "../storage/repository";
 import type { AppData } from "../storage/types";
+import { DEMO_ENABLED } from "../app/features";
 import { makeCtx } from "../domain/context";
 import { LockScreen } from "../features/zamok/Lock";
 import { FirstSetup } from "./Sprievodca";
@@ -59,7 +61,7 @@ function AppContent() {
 
   useEffect(() => {
     let alive = true;
-    openRepository()
+    (DEMO_ENABLED ? openDemoRepository() : openRepository())
       .then(async (r) => {
         const d = await r.getData();
         if (!alive) return;
