@@ -2,12 +2,12 @@ import { expect, test } from "@playwright/test";
 import { goTo, openApp, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 test.describe("PWA a offline režim (M5)", () => {
-  test("service worker sa zaregistruje a aplikácia funguje offline po prvom načítaní", async ({ page, context }) => {
-    const origin = new URL(page.url() || "http://localhost:4173").origin;
+  test("service worker sa zaregistruje a aplikácia funguje offline po prvom načítaní", async ({ page, context, baseURL }) => {
+    const origin = new URL(baseURL ?? "http://localhost:4173").origin; // pôvod vlastnej aplikácie z konfigurácie, port nie je pevný
     const foreign: string[] = [];
     page.on("request", (req) => {
       const u = new URL(req.url());
-      if (u.origin !== "http://localhost:4173") foreign.push(req.url());
+      if (u.origin !== origin) foreign.push(req.url());
     });
 
     await openApp(page);
