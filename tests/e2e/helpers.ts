@@ -71,3 +71,20 @@ export async function openFormFolds(page: Page) {
   const closed = page.locator("section#zavazky details:not([open]) > summary, section#investicie details:not([open]) > summary").filter({ hasText: "▾" });
   while ((await closed.count()) > 0) await closed.first().click();
 }
+
+/** Popis poľa sumy vo formulári Transakcií: „Suma (€)“ v starších špecifikáciách, „Suma (EUR)“ po D-340. */
+export const TX_AMOUNT = /^Suma \((€|EUR)\)/;
+
+/** Otvorí zbalený formulár Transakcií (tlačidlo „+ Pridať transakciu“, D-340), ak je zatvorený. Po uložení sa formulár znova zbalí. */
+export async function openTransactionForm(page: Page) {
+  const section = page.locator("section#nova-transakcia");
+  const open = section.getByRole("button", { name: "+ Pridať transakciu" });
+  if (await open.isVisible().catch(() => false)) await open.click();
+  await expect(section.getByLabel(TX_AMOUNT)).toBeVisible();
+}
+
+/** Prepne na Transakcie a otvorí formulár na zápis. */
+export async function goToTransactionForm(page: Page) {
+  await goTo(page, "nova-transakcia");
+  await openTransactionForm(page);
+}

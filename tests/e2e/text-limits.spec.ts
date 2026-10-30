@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, goToTransactionForm } from "./helpers";
 
 // Audit A-04: textové polia majú rovnaký limit dĺžky ako validácia zálohy. Syntetické hodnoty.
 test.describe("limity dĺžky textových polí (A-04)", () => {
   test("poznámka transakcie sa zastaví na 200 znakoch", async ({ page }) => {
     await openApp(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await expect(page.getByLabel("Poznámka (voliteľná)")).toHaveAttribute("maxlength", "200");
     await page.getByLabel("Poznámka (voliteľná)").fill("a".repeat(250));
     expect((await page.getByLabel("Poznámka (voliteľná)").inputValue()).length).toBe(200);

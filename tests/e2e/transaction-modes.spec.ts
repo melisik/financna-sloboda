@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { goTo, openApp, openDetails, TEST_NOW } from "./helpers";
+import { goTo, openApp, openDetails, TEST_NOW, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Formulár transakcie: rýchly výdavok a nákup po položkách (D-313, docs/57). Syntetické dáta.
 async function ready(page: Page) {
@@ -10,7 +10,7 @@ async function ready(page: Page) {
   await page.getByLabel("Súbor zálohy").setInputFiles(path.resolve("public/testovacia-zaloha.json"));
   await page.getByRole("button", { name: "Nahradiť dáta zálohou" }).click();
   await expect(page.getByText("Dáta boli nahradené zálohou.")).toBeVisible();
-  await goTo(page, "nova-transakcia");
+  await goToTransactionForm(page);
   return page.locator("section#nova-transakcia");
 }
 
@@ -25,7 +25,7 @@ test.describe("formulár transakcie (D-313)", () => {
   test("pri nákupe po položkách sa suma nezadáva; zľava je záporná položka", async ({ page }) => {
     const t = await ready(page);
     await t.getByRole("button", { name: "Nákup po položkách" }).click();
-    await expect(t.getByLabel("Suma (€)")).toHaveCount(0);
+    await expect(t.getByLabel(TX_AMOUNT)).toHaveCount(0);
     await addItem(t, "Syntetický chlieb", "2", "1.20");
     await addItem(t, "zľava", "1", "-0.40");
     await expect(t.getByText("Spolu: 2,00 €")).toBeVisible();
@@ -45,7 +45,7 @@ test.describe("formulár transakcie (D-313)", () => {
 
   test("rýchly výdavok má potvrdenie a najnovší záznam dňa je v histórii prvý", async ({ page }) => {
     const t = await ready(page);
-    await t.getByLabel("Suma (€)").fill("7.77");
+    await t.getByLabel(TX_AMOUNT).fill("7.77");
     await t.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(t.getByText("Zapísané: výdavok 7,77 €.")).toBeVisible();
     await t.getByRole("button", { name: "Zobraziť v histórii" }).click();
@@ -70,7 +70,7 @@ test.describe("formulár transakcie (D-313)", () => {
     await goTo(page, "nastavenia");
     await openDetails(page, "section#nastavenia", "Moduly");
     await page.getByRole("region", { name: "Moduly" }).getByLabel("Sklad a recepty", { exact: true }).uncheck();
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await t.getByRole("button", { name: "Nákup po položkách" }).click();
     await addItem(t, "Syntetický jogurt", "1", "0.50");
     await t.getByRole("button", { name: "Uložiť transakciu" }).click();
@@ -109,7 +109,7 @@ test.describe("formulár transakcie (D-313)", () => {
     await expect(t.getByRole("button", { name: "Odstrániť položku Syntetický chlieb" })).toBeVisible();
     await t.getByRole("button", { name: "Rýchly výdavok" }).click();
     await t.getByRole("button", { name: "Zahodiť položky" }).click();
-    await expect(t.getByLabel("Suma (€)")).toHaveValue("1.2");
+    await expect(t.getByLabel(TX_AMOUNT)).toHaveValue("1.2");
   });
 
   test("S-3: vyplnená, nepridaná položka sa pri uložení pridá", async ({ page }) => {

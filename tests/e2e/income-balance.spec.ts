@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Príjmy: rozdiel príjmu a minutého tento mesiac, upozornenie bez príjmu a názov pri mazaní. Syntetické hodnoty.
 test.describe("príjmy: rozdiel a upozornenie", () => {
@@ -11,8 +11,8 @@ test.describe("príjmy: rozdiel a upozornenie", () => {
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("1000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
-    await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("40");
+    await goToTransactionForm(page);
+    await page.getByLabel(TX_AMOUNT).fill("40");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 

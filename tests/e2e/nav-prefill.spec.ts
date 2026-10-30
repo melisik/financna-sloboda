@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, navTo, openApp } from "./helpers";
+import { goTo, navTo, openApp, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // D-095: navigácia medzi sekciami; D-096 (N-04): vyhodnotenie sa predvyplní z aktuálneho kapitálu.
 test.describe("navigácia a predvyplnenie vyhodnotenia (D-191)", () => {
@@ -26,10 +26,10 @@ test.describe("navigácia a predvyplnenie vyhodnotenia (D-191)", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
     // Sporenie 250 € po D_L
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByLabel("Dátum", { exact: true }).fill("2026-10-05");
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
-    await page.getByLabel("Suma (€)").fill("250");
+    await page.getByLabel(TX_AMOUNT).fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp, openBudgetLimits } from "./helpers";
+import { goTo, openApp, openBudgetLimits, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // D-106: limit kategórie a výdavok zaradený do kategórie. Syntetické hodnoty.
 test.describe("rozpočet kategórií (D-106)", () => {
@@ -21,8 +21,8 @@ test.describe("rozpočet kategórií (D-106)", () => {
     await expect(page.getByLabel("jedlo: limit (€)")).toHaveValue("300");
     await page.getByRole("button", { name: "Zrušiť" }).click();
 
-    await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("120");
+    await goToTransactionForm(page);
+    await page.getByLabel(TX_AMOUNT).fill("120");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("výdavok · 120,00 €").first()).toBeVisible();

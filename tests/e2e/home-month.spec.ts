@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp, openBudgetLimits } from "./helpers";
+import { goTo, openApp, openBudgetLimits, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Prehľad: plnenie mesačného plánu a rozpis výdavkov na nevyhnutné a nie nevyhnutné (D-131). Syntetické hodnoty.
 test.describe("Prehľad: tento mesiac", () => {
@@ -28,8 +28,8 @@ test.describe("Prehľad: tento mesiac", () => {
     await expect(page.locator("section#vyhodnotenie div", { hasText: "01.01.2026" }).last()).toContainText("Kapitál: 30");
 
     const add = async (amount: string, category?: string) => {
-      await goTo(page, "nova-transakcia");
-      await page.getByLabel("Suma (€)").fill(amount);
+      await goToTransactionForm(page);
+      await page.getByLabel(TX_AMOUNT).fill(amount);
       if (category) await page.getByLabel("Kategória").selectOption(category);
       await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     };

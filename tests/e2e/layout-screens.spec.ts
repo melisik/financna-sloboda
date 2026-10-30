@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { goTo, openApp, TEST_NOW } from "./helpers";
+import { goTo, openApp, TEST_NOW, TX_AMOUNT, goToTransactionForm, openTransactionForm } from "./helpers";
 
 // Prehľadnejšie usporiadanie obrazoviek (D-293, docs/46: priority 1 a 2). Testovacia záloha, syntetické dáta.
 async function withBackup(page: Page) {
@@ -81,7 +81,7 @@ test.describe("usporiadanie obrazoviek", () => {
 
   test("Transakcie: filter zbalený; 10 posledných záznamov a Zobraziť staršie", async ({ page }) => {
     await withBackup(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const s = page.locator("section#nova-transakcia");
     await expect(s.getByLabel("Filter typu")).toBeHidden();
     const rows = s.locator("li", { has: page.getByRole("button", { name: "Upraviť" }) });
@@ -136,7 +136,7 @@ test.describe("usporiadanie obrazoviek", () => {
 
   test("Transakcie: súčet uvádza počet; zbalený filter sa dá zbaliť aj pri zapnutom filtri (revízia N-6, N-7)", async ({ page }) => {
     await withBackup(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const s = page.locator("section#nova-transakcia");
     await expect(s.getByText(/Súčet všetkých transakcií \(22\):/)).toBeVisible();
     await s.locator("summary", { hasText: "Filter" }).click();
@@ -170,10 +170,10 @@ test.describe("usporiadanie obrazoviek", () => {
     await withBackup(page);
     await goTo(page, "pravidelne-vydavky");
     await expect(page.locator("section#pravidelne-vydavky")).toContainText("Nezapisuj ich aj ako transakciu.");
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const s = page.locator("section#nova-transakcia");
     await expect(s.getByText(/Súčet všetkých transakcií \(22\):/)).toBeVisible();
-    await s.getByLabel("Suma (€)").fill("650");
+    await s.getByLabel(TX_AMOUNT).fill("650");
     await s.getByLabel("Kategória").selectOption("bývanie");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(s.getByText("Toto vyzerá ako pravidelný výdavok „Nájom“, ktorý sa už ráta automaticky každý mesiac.")).toBeVisible();
@@ -181,7 +181,8 @@ test.describe("usporiadanie obrazoviek", () => {
     await s.getByRole("button", { name: "Neukladať" }).click();
     await expect(s.getByText(/ktorý sa už ráta automaticky/)).toHaveCount(0);
     await expect(s.getByText(/Súčet všetkých transakcií \(22\):/)).toBeVisible();
-    await s.getByLabel("Suma (€)").fill("650");
+    await openTransactionForm(page);
+    await s.getByLabel(TX_AMOUNT).fill("650");
     await s.getByLabel("Kategória").selectOption("bývanie");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
     await s.getByRole("button", { name: "Uložiť aj tak" }).click();

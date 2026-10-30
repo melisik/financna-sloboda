@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp, openBudgetLimits } from "./helpers";
+import { goTo, openApp, openBudgetLimits, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Rozpočet: potvrdenie uloženia, súhrn plánu, prekročenie limitu a vysvetlenie prázdneho stavu. Syntetické hodnoty.
 test.describe("rozpočet: použiteľnosť", () => {
@@ -30,15 +30,15 @@ test.describe("rozpočet: použiteľnosť", () => {
     await expect(page.getByText(/z plánu 150,00\s€/)).toBeVisible(); // D-293: súhrn „Minuté … z plánu …“
     await expect(page.getByText("Plán ešte nie je nastavený.")).toHaveCount(0);
 
-    await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("20");
+    await goToTransactionForm(page);
+    await page.getByLabel(TX_AMOUNT).fill("20");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await goTo(page, "rozpocet");
     await expect(page.getByText(/Prekročené/)).toHaveCount(0);
 
-    await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("120");
+    await goToTransactionForm(page);
+    await page.getByLabel(TX_AMOUNT).fill("120");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await goTo(page, "rozpocet");

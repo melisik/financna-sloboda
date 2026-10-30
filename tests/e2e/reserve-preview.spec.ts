@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Náhľad vkladu do rezervy (A-16, D-060): text o znížení kapitálu pre cieľ a odmietnutie nad hotovosť. Syntetické hodnoty.
 test.describe("vklad do rezervy: náhľad", () => {
@@ -19,12 +19,12 @@ test.describe("vklad do rezervy: náhľad", () => {
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("1000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByLabel("Typ transakcie").selectOption("rezerva");
-    await page.getByLabel("Suma (€)").fill("100");
+    await page.getByLabel(TX_AMOUNT).fill("100");
     await expect(page.getByText("Vklad do rezervy zníži kapitál pre cieľ o 100,00 €; peniaze zostávajú v rezerve.")).toBeVisible();
 
-    await page.getByLabel("Suma (€)").fill("2000");
+    await page.getByLabel(TX_AMOUNT).fill("2000");
     await expect(page.getByText("Hotovosť nestačí na vklad do rezervy.")).toBeVisible();
   });
 });

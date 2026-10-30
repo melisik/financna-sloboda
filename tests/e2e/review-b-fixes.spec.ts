@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { goTo, openApp, TEST_NOW } from "./helpers";
+import { goTo, openApp, TEST_NOW, TX_AMOUNT, goToTransactionForm, openTransactionForm } from "./helpers";
 
 // Opravy po externej revízii 2026-10-25 (b), D-300. Syntetické dáta.
 async function withBackup(page: Page) {
@@ -15,15 +15,18 @@ async function withBackup(page: Page) {
 test.describe("opravy po revízii 2026-10-25 (b)", () => {
   test("S-1: po uložení aj po Zrušiť úpravu je formulár späť na výdavok z príjmu", async ({ page }) => {
     await withBackup(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const s = page.locator("section#nova-transakcia");
-    await s.getByLabel("Suma (€)").fill("20");
+    await s.getByLabel(TX_AMOUNT).fill("20");
     await s.getByLabel("Zdroj úhrady").selectOption("z_hotovosti");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
+    await expect(s.getByRole("button", { name: "Upraviť" }).first()).toBeVisible();
+    await openTransactionForm(page);
     await expect(s.getByLabel("Zdroj úhrady")).toHaveValue("z_prijmu");
     await s.getByRole("button", { name: "Upraviť" }).first().click();
     await s.getByLabel("Zdroj úhrady").selectOption("z_investicii");
     await s.getByRole("button", { name: "Zrušiť úpravu" }).click();
+    await openTransactionForm(page);
     await expect(s.getByLabel("Typ transakcie")).toHaveValue("vydavok");
     await expect(s.getByLabel("Zdroj úhrady")).toHaveValue("z_prijmu");
   });
@@ -31,7 +34,7 @@ test.describe("opravy po revízii 2026-10-25 (b)", () => {
   // S-2 nahradené D-313: suma pri nákupe po položkách je súčet položiek, nesúlad nemôže nastať.
   test("S-2/D-313: nákup bez položiek sa neuloží", async ({ page }) => {
     await withBackup(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const s = page.locator("section#nova-transakcia");
     await s.getByRole("button", { name: "Nákup po položkách" }).click();
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
@@ -79,9 +82,9 @@ test.describe("opravy po revízii 2026-10-25 (b)", () => {
 
   test("N-1: pri chýbajúcom potvrdení vyčerpania investícií sa políčko zameria", async ({ page }) => {
     await withBackup(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const s = page.locator("section#nova-transakcia");
-    await s.getByLabel("Suma (€)").fill("1000000");
+    await s.getByLabel(TX_AMOUNT).fill("1000000");
     await s.getByLabel("Zdroj úhrady").selectOption("z_investicii");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(s.getByRole("checkbox", { name: /Rozumiem, investície sa vyčerpajú/ })).toBeFocused();

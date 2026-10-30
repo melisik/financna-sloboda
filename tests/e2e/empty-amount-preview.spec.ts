@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Prázdny formulár transakcie nemá ukazovať „bez zmeny“, ale výzvu zadať sumu. Syntetické hodnoty.
 test.describe("predbežný dopad pri prázdnej sume", () => {
@@ -15,12 +15,12 @@ test.describe("predbežný dopad pri prázdnej sume", () => {
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("0");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await expect(page.getByText("Zadaj sumu, aby sa ukázal predbežný dopad.")).toBeVisible();
     await expect(page.getByText("bez zmeny")).toHaveCount(0);
 
     await page.getByLabel("Zdroj úhrady").selectOption("z_investicii");
-    await page.getByLabel("Suma (€)").fill("150");
+    await page.getByLabel(TX_AMOUNT).fill("150");
     await expect(page.getByText("Zadaj sumu, aby sa ukázal predbežný dopad.")).toHaveCount(0);
     await expect(page.getByText("Predbežný dopad:")).toBeVisible();
   });

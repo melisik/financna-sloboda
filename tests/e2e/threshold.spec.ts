@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TX_AMOUNT, goToTransactionForm, openTransactionForm } from "./helpers";
 
 // D-120 + D-048: výdavok nad prahom sa označí aj bez uložených Nastavení (predvolený prah 100 €). Predvolený zdroj je „z príjmu“ (D-014, D-288).
 test("výdavok 600 € je označený „nad prahom“, výdavok 10 € nie (D-012)", async ({ page }) => {
@@ -8,11 +8,12 @@ test("výdavok 600 € je označený „nad prahom“, výdavok 10 € nie (D-01
   await page.getByLabel("Hodnota investícií (€)").fill("100000");
   await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
   await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
-  await goTo(page, "nova-transakcia");
-  await page.getByLabel("Suma (€)").fill("10");
+  await goToTransactionForm(page);
+  await page.getByLabel(TX_AMOUNT).fill("10");
   await page.getByRole("button", { name: "Uložiť transakciu" }).click();
   await expect(page.getByText("výdavok · 10,00 € (z príjmu)").first()).toBeVisible();
-  await page.getByLabel("Suma (€)").fill("600");
+  await openTransactionForm(page);
+  await page.getByLabel(TX_AMOUNT).fill("600");
   await page.getByRole("button", { name: "Uložiť transakciu" }).click();
   await expect(page.getByText("výdavok · 600,00 € (z príjmu) · nad prahom").first()).toBeVisible();
   await expect(page.getByText("výdavok · 10,00 € (z príjmu) · nad prahom")).toHaveCount(0);

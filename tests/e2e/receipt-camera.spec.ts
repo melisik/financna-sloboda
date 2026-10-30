@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, goToTransactionForm } from "./helpers";
 
 // Živé skenovanie QR kódu z kamery (D-126). Falošná kamera prehrá syntetické video s QR kódom.
 test.use({
@@ -16,7 +16,7 @@ test.use({
 test.describe("živé skenovanie kamerou", () => {
   test("kamera rozpozná QR kód a priradí doklad bez zobrazenia čísla", async ({ page }) => {
     await openApp(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     // Doklad je zbalený, kým ho používateľ neotvorí (D-286).
     await page.getByRole("button", { name: "Nákup po položkách" }).click();
     await page.locator("section#nova-transakcia summary", { hasText: "Doklad" }).click();
@@ -30,11 +30,11 @@ test.describe("živé skenovanie kamerou", () => {
 
   test("zrušenie zatvorí náhľad kamery", async ({ page }) => {
     await openApp(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByRole("button", { name: "Nákup po položkách" }).click();
     await page.locator("section#nova-transakcia summary", { hasText: "Doklad" }).click();
     await page.getByRole("button", { name: "Skenovať QR kód kamerou" }).click();
-    await page.getByRole("button", { name: "Zrušiť" }).click();
+    await page.getByRole("button", { name: "Zrušiť", exact: true }).click();
     await expect(page.getByLabel("Živý náhľad kamery")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Skenovať QR kód kamerou" })).toBeVisible();
   });

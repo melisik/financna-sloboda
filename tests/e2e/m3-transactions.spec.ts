@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { goTo, openApp, openDetails } from "./helpers";
+import { goTo, openApp, openDetails, TX_AMOUNT, goToTransactionForm, openTransactionForm } from "./helpers";
 
 // M3 (roadmapa): zadanie transakcie do 20 s a do 5 dotykov [predpoklad]; komponentové správanie formulárov.
 // Testy bežia nad skutočným UI (projekt nemá jsdom ani testing-library).
@@ -21,7 +21,7 @@ async function setupGoalAndEvaluation(page: Page) {
   await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
   await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
   await expect(page.getByText("Posledné vyhodnotenie:").first()).toBeVisible();
-  await goTo(page, "nova-transakcia");
+  await goToTransactionForm(page);
 }
 
 test.describe("M3 – zadanie transakcií", () => {
@@ -29,7 +29,7 @@ test.describe("M3 – zadanie transakcií", () => {
     await setupGoalAndEvaluation(page);
     const start = Date.now();
     let taps = 0;
-    await page.getByLabel("Suma (€)").fill("150");
+    await page.getByLabel(TX_AMOUNT).fill("150");
     taps += 1;
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     taps += 1;
@@ -41,11 +41,12 @@ test.describe("M3 – zadanie transakcií", () => {
 
   test("výdavok nad prahom sa označí „nad prahom“; výdavok pod prahom sa uloží bez značky (D-120)", async ({ page }) => {
     await setupGoalAndEvaluation(page);
-    await page.getByLabel("Suma (€)").fill("50");
+    await page.getByLabel(TX_AMOUNT).fill("50");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("výdavok · 50,00 € (z príjmu)").first()).toBeVisible();
     await expect(page.getByText("pod prahom")).toHaveCount(0);
-    await page.getByLabel("Suma (€)").fill("150");
+    await openTransactionForm(page);
+    await page.getByLabel(TX_AMOUNT).fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("výdavok · 150,00 € (z príjmu) · nad prahom").first()).toBeVisible();
   });
@@ -59,12 +60,13 @@ test.describe("M3 – zadanie transakcií", () => {
 
   test("filter typu zobrazí len vybraný typ", async ({ page }) => {
     await setupGoalAndEvaluation(page);
-    await page.getByLabel("Suma (€)").fill("150");
+    await page.getByLabel(TX_AMOUNT).fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     // Počkaj, kým sa prvá transakcia uloží; inak jej dokončenie vymaže sumu druhej.
     await expect(page.getByText("výdavok · 150,00 €").first()).toBeVisible();
+    await openTransactionForm(page);
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
-    await page.getByLabel("Suma (€)").fill("250");
+    await page.getByLabel(TX_AMOUNT).fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €").first()).toBeVisible();
     await openDetails(page, "section#nova-transakcia", "Filter"); // D-293: filter je zbalený

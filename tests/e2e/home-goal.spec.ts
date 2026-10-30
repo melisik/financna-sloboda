@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { goTo, openApp, TEST_NOW } from "./helpers";
+import { goTo, openApp, TEST_NOW, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Prehľad: dátum cieľa, pokrok a hlavná akcia na prvej obrazovke telefónu (D-283, docs/43 A1). Testovacia záloha, syntetické dáta.
 test.describe("Prehľad: cieľ na prvej obrazovke", () => {
@@ -49,9 +49,9 @@ test.describe("Prehľad: cieľ na prvej obrazovke", () => {
     const dateBefore = await date.innerText();
     const progressBefore = await progress.innerText();
 
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByLabel("Zdroj úhrady").selectOption("z_hotovosti");
-    await page.getByLabel("Suma (€)").fill("19000");
+    await page.getByLabel(TX_AMOUNT).fill("19000");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.locator("section#nova-transakcia")).toContainText("19 000,00");
 

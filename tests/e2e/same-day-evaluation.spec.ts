@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Pravidlo D-121: výdavok zadaný po vyhodnotení v ten istý deň sa odpočíta z investícií. Syntetické hodnoty.
 test.describe("transakcia v deň vyhodnotenia (D-121)", () => {
@@ -22,9 +22,9 @@ test.describe("transakcia v deň vyhodnotenia (D-121)", () => {
     await expect(page.locator("section#prehlad", { hasText: "Posledné vyhodnotenie" })).toBeVisible();
 
     // Výdavok 150 € z investícií po vyhodnotení.
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByLabel("Zdroj úhrady").selectOption("z_investicii");
-    await page.getByLabel("Suma (€)").fill("150");
+    await page.getByLabel(TX_AMOUNT).fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("výdavok · 150,00 €")).toBeVisible();
 

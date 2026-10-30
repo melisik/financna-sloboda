@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 test.describe("záloha v UI (FR-17, FR-18)", () => {
   test("export stiahne súbor; neplatný import nič nezmení; platný import čaká na potvrdenie", async ({ page }) => {
@@ -8,9 +8,9 @@ test.describe("záloha v UI (FR-17, FR-18)", () => {
     await page.getByLabel("Hodnota investícií (€)").fill("100000");
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
-    await page.getByLabel("Suma (€)").fill("250");
+    await page.getByLabel(TX_AMOUNT).fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 
@@ -26,7 +26,7 @@ test.describe("záloha v UI (FR-17, FR-18)", () => {
     // Neplatný JSON: chyba a dáta ostanú.
     await page.getByLabel("Súbor zálohy").setInputFiles({ name: "zlo.json", mimeType: "application/json", buffer: Buffer.from("nie je to json") });
     await expect(page.getByText("Súbor nie je platný JSON. Nič sa nezmenilo.")).toBeVisible();
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 
     // Platná záloha: náhľad, bez potvrdenia sa nič nezmení.

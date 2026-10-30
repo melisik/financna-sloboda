@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, goToTransactionForm, openTransactionForm } from "./helpers";
 
 // Položky nákupu (D-129, D-313) a návrhy z predchádzajúcich nákupov (docs/58, D-318). Syntetické názvy.
 test.describe("položky nákupu", () => {
@@ -19,7 +19,7 @@ test.describe("položky nákupu", () => {
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("1000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByRole("button", { name: "Nákup po položkách" }).click();
     const t = page.locator("section#nova-transakcia");
     for (const [name, qty, price] of [["Testovací výrobok A", "1", "3.5"], ["Výrobok C", "2", "5.75"]]) {
@@ -38,6 +38,7 @@ test.describe("položky nákupu", () => {
     await expect(page.getByText("Spolu: 15,00 €")).toBeVisible();
 
     await page.getByRole("button", { name: "Zrušiť úpravu" }).click();
+    await openTransactionForm(page);
     // Návrh: rovnaký názov doplní poslednú cenu za kus (docs/58, D).
     await t.getByRole("button", { name: "Nákup po položkách" }).click();
     await expect(t.locator("datalist#navrhy-poloziek option[value='Výrobok C']")).toHaveCount(1);

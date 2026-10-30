@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp, openDetails } from "./helpers";
+import { goTo, openApp, openDetails, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Ročný prehľad: rozpis zmeny K na sporenie, výdavky a zvyšok a súhrn po rokoch. Syntetické hodnoty.
 test.describe("ročný prehľad: rozpis a súhrn", () => {
@@ -11,9 +11,9 @@ test.describe("ročný prehľad: rozpis a súhrn", () => {
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("0");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
-    await page.getByLabel("Suma (€)").fill("10");
+    await page.getByLabel(TX_AMOUNT).fill("10");
     await page.getByLabel("Dátum", { exact: true }).fill("2026-02-10");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 
@@ -37,14 +37,14 @@ test.describe("ročný prehľad: rozpis a súhrn", () => {
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("1000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
-    await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("30");
+    await goToTransactionForm(page);
+    await page.getByLabel(TX_AMOUNT).fill("30");
     await page.getByLabel("Dátum", { exact: true }).fill("2025-02-10");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 
-    await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("60");
+    await goToTransactionForm(page);
+    await page.getByLabel(TX_AMOUNT).fill("60");
     await page.getByLabel("Dátum", { exact: true }).fill("2026-02-10");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();

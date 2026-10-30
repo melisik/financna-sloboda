@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, localIsoDay, openApp } from "./helpers";
+import { goTo, localIsoDay, openApp, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Zabudnutý výdavok s dátumom pred vyhodnotením sa odpočíta z Kapitálu (D-123). Syntetické hodnoty.
 test.describe("zabudnutý výdavok (D-123)", () => {
@@ -17,10 +17,10 @@ test.describe("zabudnutý výdavok (D-123)", () => {
 
     // Výdavok z investícií za včerajší deň, zadaný až teraz.
     const yesterday = localIsoDay(-1);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByLabel("Dátum", { exact: true }).fill(yesterday);
     await page.getByLabel("Zdroj úhrady").selectOption("z_investicii");
-    await page.getByLabel("Suma (€)").fill("150");
+    await page.getByLabel(TX_AMOUNT).fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("výdavok · 150,00 €")).toBeVisible();
 

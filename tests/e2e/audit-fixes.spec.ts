@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp, openFormFolds } from "./helpers";
+import { goTo, openApp, openFormFolds, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // Opravy po audite 2026-10-22 (docs/22). Syntetické hodnoty.
 const CHROME_IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0.6723.90 Mobile/15E148 Safari/604.1";
@@ -27,9 +27,9 @@ test.describe("prečerpanie investícií v Prehľade (nález 3, D-059, D-167)", 
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("0");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByLabel("Zdroj úhrady").selectOption("z_investicii");
-    await page.getByLabel("Suma (€)").fill("150");
+    await page.getByLabel(TX_AMOUNT).fill("150");
     await page.getByLabel("Rozumiem, investície sa vyčerpajú a ich hodnota bude 0 €.").check();
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 

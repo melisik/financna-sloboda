@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { goTo, openApp, TEST_NOW } from "./helpers";
+import { goTo, openApp, TEST_NOW, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 // B-01: upozornenie na pravidelný výdavok (D-299, docs/53). Syntetické dáta z testovacia-zaloha.json.
 async function withBackup(page: Page) {
@@ -15,10 +15,10 @@ async function withBackup(page: Page) {
 test.describe("upozornenie na dvojitý zápis pravidelného výdavku (B-01, D-299)", () => {
   test("výdavok 650 € v kategórii bývanie vyvolá upozornenie na Nájom", async ({ page }) => {
     await withBackup(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const s = page.locator("section#nova-transakcia");
 
-    await s.getByLabel("Suma (€)").fill("650");
+    await s.getByLabel(TX_AMOUNT).fill("650");
     await s.getByLabel("Kategória").selectOption("bývanie");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
 
@@ -27,10 +27,10 @@ test.describe("upozornenie na dvojitý zápis pravidelného výdavku (B-01, D-29
 
   test("suma mimo tolerancie (651,01 €) upozornenie nevyvolá", async ({ page }) => {
     await withBackup(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const s = page.locator("section#nova-transakcia");
 
-    await s.getByLabel("Suma (€)").fill("651.01");
+    await s.getByLabel(TX_AMOUNT).fill("651.01");
     await s.getByLabel("Kategória").selectOption("bývanie");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
 
@@ -39,10 +39,10 @@ test.describe("upozornenie na dvojitý zápis pravidelného výdavku (B-01, D-29
 
   test("iná kategória (jedlo) upozornenie nevyvolá", async ({ page }) => {
     await withBackup(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const s = page.locator("section#nova-transakcia");
 
-    await s.getByLabel("Suma (€)").fill("650");
+    await s.getByLabel(TX_AMOUNT).fill("650");
     await s.getByLabel("Kategória").selectOption("jedlo");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
 
@@ -51,10 +51,10 @@ test.describe("upozornenie na dvojitý zápis pravidelného výdavku (B-01, D-29
 
   test("Uložiť aj tak uloží transakciu napriek zhode", async ({ page }) => {
     await withBackup(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const s = page.locator("section#nova-transakcia");
 
-    await s.getByLabel("Suma (€)").fill("650");
+    await s.getByLabel(TX_AMOUNT).fill("650");
     await s.getByLabel("Kategória").selectOption("bývanie");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText(/Toto vyzer. ako pravideln. v.davok/)).toBeVisible();

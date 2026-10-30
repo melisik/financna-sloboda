@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp, openDetails } from "./helpers";
+import { goTo, openApp, openDetails, TX_AMOUNT, goToTransactionForm, openTransactionForm } from "./helpers";
 
 // História transakcií: filter kategórie, súčty podľa kategórie a potvrdenie zmazania. Syntetické hodnoty.
 test.describe("história transakcií", () => {
@@ -19,14 +19,15 @@ test.describe("história transakcií", () => {
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("1000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
-    await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("45");
+    await goToTransactionForm(page);
+    await page.getByLabel(TX_AMOUNT).fill("45");
     await page.getByLabel("Kategória").selectOption("jedlo");
     const rows = page.locator("section#nova-transakcia li", { hasText: "Výdavok" });
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(rows).toHaveCount(1);
 
-    await page.getByLabel("Suma (€)").fill("3");
+    await openTransactionForm(page);
+    await page.getByLabel(TX_AMOUNT).fill("3");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(rows).toHaveCount(2);
     await expect(page.getByText("Výdavky podľa kategórie: jedlo 45,00 € · nezaradené 3,00 €")).toBeVisible();

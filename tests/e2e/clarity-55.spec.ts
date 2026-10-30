@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { goTo, openApp, TEST_NOW } from "./helpers";
+import { goTo, openApp, TEST_NOW, goToTransactionForm } from "./helpers";
 
 // Zrozumiteľnosť po prehliadke zakladateľa (D-308, docs/55). Syntetické dáta.
 async function withBackup(page: Page) {
@@ -15,7 +15,7 @@ async function withBackup(page: Page) {
 test.describe("zrozumiteľnosť (docs/55)", () => {
   test("ručne pridaná položka dokladu sa uloží a dá sa pridať do skladu", async ({ page }) => {
     await withBackup(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const t = page.locator("section#nova-transakcia");
     await t.getByRole("button", { name: "Nákup po položkách" }).click();
     await t.getByLabel("Položka", { exact: true }).fill("Syntetický jogurt");

@@ -30,7 +30,7 @@ const isCents = (v: unknown) => typeof v === "number" && Number.isInteger(v) && 
 export function validateTransaction(t: unknown, today: string, label = "transakcia"): string[] {
   if (typeof t !== "object" || t === null || Array.isArray(t)) return [`${label}: musí byť objekt`];
   const o = t as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "date", "type", "amountCents", "source", "belowThreshold", "note", "category", "receiptId", "receiptItems", "createdAt", "updatedAt", "calendarObligationId"], label);
+  const errors = unknownKeys(o, ["id", "date", "type", "amountCents", "source", "belowThreshold", "note", "category", "receiptId", "receiptItems", "createdAt", "updatedAt", "currency", "exchangeRateToBase", "originalAmountCents", "calendarObligationId"], label);
   if (o.calendarObligationId !== undefined && (typeof o.calendarObligationId !== "string" || o.calendarObligationId.length === 0)) errors.push(`${label}: calendarObligationId musí byť text`);
   if (o.receiptId !== undefined && (o.type !== "vydavok" || !isReceiptId(o.receiptId))) errors.push(`${label}: číslo dokladu patrí len k výdavku a má 20 až 40 znakov`);
   if (o.receiptItems !== undefined) {
@@ -48,6 +48,27 @@ export function validateTransaction(t: unknown, today: string, label = "transakc
   if (!TRANSACTION_TYPES.includes(o.type as never)) errors.push(`${label}: neznámy typ`);
   if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) {
     errors.push(`${label}: suma musí byť kladné celé číslo v centoch`);
+  }
+  if (o.currency !== undefined && (typeof o.currency !== "string" || !/^[A-Z]{3}$/.test(o.currency))) {
+    errors.push(`${label}: currency must be a three-letter uppercase code`);
+  }
+  if (o.exchangeRateToBase !== undefined) {
+    if (o.currency === undefined) errors.push(`${label}: exchangeRateToBase requires currency`);
+    if (typeof o.exchangeRateToBase !== "number" || !Number.isFinite(o.exchangeRateToBase) || o.exchangeRateToBase <= 0) {
+      errors.push(`${label}: exchangeRateToBase must be a finite positive number`);
+    }
+  }
+  if (o.originalAmountCents !== undefined) {
+    if (o.currency === undefined) errors.push(`${label}: originalAmountCents requires currency`);
+    if (!isCents(o.originalAmountCents)) errors.push(`${label}: originalAmountCents must be a non-negative integer`);
+  }
+    if (typeof o.currency === "string" && o.currency !== "EUR") {
+    if (o.exchangeRateToBase === undefined) {
+      errors.push(`${label}: exchangeRateToBase is required for foreign currency`);
+    }
+    if (o.originalAmountCents === undefined) {
+      errors.push(`${label}: originalAmountCents is required for foreign currency`);
+    }
   }
   if (o.type === "vydavok" && !SOURCES.includes(o.source as never)) errors.push(`${label}: výdavok vyžaduje zdroj úhrady`);
   if (o.source !== undefined && !SOURCES.includes(o.source as never)) errors.push(`${label}: neznámy zdroj úhrady`);
@@ -393,7 +414,7 @@ export function validateBudget(b: unknown, label = "rozpočet"): string[] {
 export function validateSettings(s: unknown, today: string): string[] {
   if (typeof s !== "object" || s === null || Array.isArray(s)) return ["nastavenia: musia byť objekt"];
   const o = s as Record<string, unknown>;
-  const errors = unknownKeys(o, ["expensesCents", "withdrawalRate", "realReturn", "reserveCents", "thresholdCents", "savingInvCents", "savingCashCents", "feesRate", "lastReviewDate", "checkedAt"], "nastavenia");
+  const errors = unknownKeys(o, ["expensesCents", "withdrawalRate", "realReturn", "reserveCents", "thresholdCents", "savingInvCents", "savingCashCents", "feesRate", "lastReviewDate", "checkedAt", "baseCurrency", "savedExchangeRates", "ratesUpdatedAt"], "nastavenia");
   if (o.checkedAt !== undefined && typeof o.checkedAt !== "string") errors.push("nastavenia: dátum kontroly musí byť text");
   if (typeof o.expensesCents !== "number" || !Number.isInteger(o.expensesCents) || o.expensesCents <= 0) errors.push("nastavenia: výdavky musia byť kladné celé číslo v centoch");
   if (typeof o.withdrawalRate !== "number" || !(o.withdrawalRate > 0 && o.withdrawalRate <= 1)) errors.push("nastavenia: miera výberu musí byť v (0, 1]");
@@ -406,6 +427,33 @@ export function validateSettings(s: unknown, today: string): string[] {
   }
   if (o.feesRate !== undefined && !(typeof o.feesRate === "number" && o.feesRate >= 0 && o.feesRate < 1)) errors.push("nastavenia: poplatky musia byť v [0, 1) alebo chýbať (D-064)");
   if (o.lastReviewDate !== undefined) errors.push(...checkDate(o.lastReviewDate, today, "nastavenia: D_L"));
+  if (o.baseCurrency !== undefined && (typeof o.baseCurrency !== "string" || !/^[A-Z]{3}$/.test(o.baseCurrency as string))) {
+  errors.push("nastavenia: baseCurrency musí byť trojpísmenový kód veľkými písmenami");
+} else if (o.baseCurrency !== undefined && o.baseCurrency !== "EUR") {
+  errors.push("nastavenia: baseCurrency musí byť EUR");
+}
+  if (o.savedExchangeRates !== undefined) {
+    if (typeof o.savedExchangeRates !== "object" || o.savedExchangeRates === null || Array.isArray(o.savedExchangeRates)) {
+      errors.push("nastavenia: savedExchangeRates musí byť objekt");
+    } else {
+            for (const [key, value] of Object.entries(o.savedExchangeRates as Record<string, unknown>)) {
+        if (!/^[A-Z]{3}$/.test(key)) {
+          errors.push(`nastavenia: savedExchangeRates: neplatný kód meny „${key}“`);
+        }
+
+        if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+          errors.push(`nastavenia: savedExchangeRates: kurz pre „${key}“ musí byť konečné kladné číslo`);
+        }
+
+        if (key === "EUR" && typeof value === "number" && value !== 1) {
+          errors.push("nastavenia: savedExchangeRates: kurz EUR musí byť 1");
+        }
+      }
+    }
+  }
+  if (o.ratesUpdatedAt !== undefined && typeof o.ratesUpdatedAt !== "string") {
+    errors.push("nastavenia: ratesUpdatedAt musí byť text");
+  }
   return errors;
 }
 

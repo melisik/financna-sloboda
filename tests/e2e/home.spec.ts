@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TX_AMOUNT, goToTransactionForm } from "./helpers";
 
 test.describe("domovská obrazovka a úprava (M4, FR-09, FR-14)", () => {
   test("úprava, zmazanie s vrátením späť a prehľad (D-054)", async ({ page }) => {
@@ -12,15 +12,15 @@ test.describe("domovská obrazovka a úprava (M4, FR-09, FR-14)", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
     await expect(page.getByText("Posledné vyhodnotenie:").first()).toBeVisible();
 
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
-    await page.getByLabel("Suma (€)").fill("250");
+    await page.getByLabel(TX_AMOUNT).fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 
     // Úprava: suma 250 → 300.
     await page.getByRole("button", { name: "Upraviť" }).click();
-    await page.getByLabel("Suma (€)").fill("300");
+    await page.getByLabel(TX_AMOUNT).fill("300");
     await page.getByRole("button", { name: "Uložiť zmeny" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 300,00 €")).toBeVisible();
 

@@ -126,3 +126,62 @@ describe("validateAppData: celá záloha (FR-18)", () => {
     expect(r.ok === false && r.errors).toContain("záloha: neznáme pole „foo“");
   });
 });
+
+describe("validateSettings: menové polia (D-340)", () => {
+  it("záloha bez menových polí je stále platná (spätná kompatibilita)", () => {
+    expect(validateSettings(settings, TODAY)).toEqual([]);
+  });
+
+  it("baseCurrency je volitelné; ak je, musí byť trojpísmenový kód veľkými písmenami", () => {
+    expect(validateSettings({ ...settings, baseCurrency: "EUR" }, TODAY)).toEqual([]);
+    expect(validateSettings({ ...settings, baseCurrency: "USD" }, TODAY)).toContain("nastavenia: baseCurrency musí byť EUR");
+    expect(validateSettings({ ...settings, baseCurrency: "eu" }, TODAY)).toEqual(["nastavenia: baseCurrency musí byť trojpísmenový kód veľkými písmenami"]);
+    expect(validateSettings({ ...settings, baseCurrency: "eur" }, TODAY)).toEqual(["nastavenia: baseCurrency musí byť trojpísmenový kód veľkými písmenami"]);
+    expect(validateSettings({ ...settings, baseCurrency: "EURO" }, TODAY)).toEqual(["nastavenia: baseCurrency musí byť trojpísmenový kód veľkými písmenami"]);
+    expect(validateSettings({ ...settings, baseCurrency: 123 }, TODAY)).toEqual(["nastavenia: baseCurrency musí byť trojpísmenový kód veľkými písmenami"]);
+  });
+
+  it("savedExchangeRates je volitelné; ak je, musí byť objekt s platnými kurzami", () => {
+    expect(validateSettings({ ...settings, savedExchangeRates: { USD: 1.08, GBP: 0.85 } }, TODAY)).toEqual([]);
+    expect(validateSettings({ ...settings, savedExchangeRates: {} }, TODAY)).toEqual([]);
+    expect(validateSettings({ ...settings, savedExchangeRates: [] }, TODAY)).toEqual(["nastavenia: savedExchangeRates musí byť objekt"]);
+    expect(validateSettings({ ...settings, savedExchangeRates: null }, TODAY)).toEqual(["nastavenia: savedExchangeRates musí byť objekt"]);
+    expect(validateSettings({ ...settings, savedExchangeRates: { usd: 1.08 } }, TODAY)).toEqual(["nastavenia: savedExchangeRates: neplatný kód meny „usd“"]);
+    expect(validateSettings({ ...settings, savedExchangeRates: { USD: 0 } }, TODAY)).toEqual(["nastavenia: savedExchangeRates: kurz pre „USD“ musí byť konečné kladné číslo"]);
+    expect(validateSettings({ ...settings, savedExchangeRates: { USD: -1 } }, TODAY)).toEqual(["nastavenia: savedExchangeRates: kurz pre „USD“ musí byť konečné kladné číslo"]);
+    expect(validateSettings({ ...settings, savedExchangeRates: { USD: Infinity } }, TODAY)).toEqual(["nastavenia: savedExchangeRates: kurz pre „USD“ musí byť konečné kladné číslo"]);
+    expect(validateSettings({ ...settings, savedExchangeRates: { USD: "1.08" } }, TODAY)).toEqual(["nastavenia: savedExchangeRates: kurz pre „USD“ musí byť konečné kladné číslo"]);
+  });
+
+  it("ratesUpdatedAt je volitelné; ak je, musí byť text", () => {
+    expect(validateSettings({ ...settings, ratesUpdatedAt: "2026-10-29T10:00:00Z" }, TODAY)).toEqual([]);
+    expect(validateSettings({ ...settings, ratesUpdatedAt: 123 }, TODAY)).toEqual(["nastavenia: ratesUpdatedAt musí byť text"]);
+    expect(validateSettings({ ...settings, ratesUpdatedAt: null }, TODAY)).toEqual(["nastavenia: ratesUpdatedAt musí byť text"]);
+  });
+
+  it("všetky tri menové polia dohromady sú platné", () => {
+    expect(validateSettings({
+      ...settings,
+      baseCurrency: "EUR",
+      savedExchangeRates: { USD: 1.08, CZK: 25.5 },
+      ratesUpdatedAt: "2026-10-29T10:00:00Z",
+    }, TODAY)).toEqual([]);
+  });
+  it("povoľuje iba EUR ako základnú menu", () => {
+    expect(validateSettings({ ...settings, baseCurrency: "EUR" }, TODAY)).toEqual([]);
+    expect(validateSettings({ ...settings, baseCurrency: "USD" }, TODAY))
+      .toContain("nastavenia: baseCurrency musí byť EUR");
+  });
+
+  it("vyžaduje kurz EUR rovný 1, ak je EUR uvedené v uložených kurzoch", () => {
+    expect(validateSettings({
+      ...settings,
+      savedExchangeRates: { EUR: 1, USD: 1.08 },
+    }, TODAY)).toEqual([]);
+
+    expect(validateSettings({
+      ...settings,
+      savedExchangeRates: { EUR: 0.9 },
+    }, TODAY)).toContain("nastavenia: savedExchangeRates: kurz EUR musí byť 1");
+  });
+});

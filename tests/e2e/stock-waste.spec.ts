@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { goTo, openApp, TEST_NOW } from "./helpers";
+import { goTo, openApp, TEST_NOW, goToTransactionForm } from "./helpers";
 
 // Sklad prepojený s výdavkami (D-301, docs/51 etapa 1). Syntetické názvy a sumy.
 
@@ -16,7 +16,7 @@ async function ready(page: import("@playwright/test").Page) {
 test.describe("sklad a výdavky", () => {
   test("položky dokladu sa dajú pridať do skladu s cenou; predvolene nie sú vybrané", async ({ page }) => {
     await ready(page);
-    await goTo(page, "nova-transakcia");
+    await goToTransactionForm(page);
     const t = page.locator("section#nova-transakcia");
     await t.getByRole("button", { name: "Nákup po položkách" }).click();
     for (const [name, qty, price] of [["Syntetický jogurt", "4", "0.59"], ["Syntetický šampón", "1", "3.5"]]) {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Repository } from "../../storage/repository";
+import { convertToBase } from "../../domain/currency";
 import type { AppData, Attachment, BudgetCategory, ReceiptItem, RecurringExpense, Transaction, TransactionType, Source } from "../../storage/types";
 import { matchingRecurring } from "../../domain/recurring";
 import { BUDGET_CATEGORIES, SOURCES } from "../../storage/types";
@@ -37,6 +38,16 @@ const canUseCamera = (): boolean => typeof navigator !== "undefined" && typeof n
 export function TransactionSection({ repo, data, ctx, onChanged, renderAttachments, renderStockTransfer, stockModuleOff }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void; renderAttachments: (transactionId: string) => ReactNode; renderStockTransfer?: (t: Transaction) => ReactNode; stockModuleOff?: boolean }) {
   const [type, setType] = useState<TransactionType>("vydavok");
   const [amount, setAmount] = useState<NumIn>("");
+  const [currency, setCurrency] = useState("EUR");
+  const [exchangeRate, setExchangeRate] = useState<NumIn>(1);
+  // Režim výdavku (rýchly/položky) musí byť známy skôr než check()/preview nižšie, ktoré ho pri každom
+  // vykreslení čítajú synchrónne; inak nastane TDZ chyba „Cannot access 'mode' before initialization“ (D-340).
+  const [mode, setMode] = useState<"rychly" | "polozky">("rychly");
+  const byItems = type === "vydavok" && mode === "polozky";
+  /** Prepočet zadanej sumy do základnej meny (EUR); položkový režim a EUR vstup vracajú sumu bez zmeny.
+   *  Jediné miesto prepočtu – používa ho náhľad dopadu, zobrazenie prepočítanej sumy aj uloženie (D-340). */
+  const toBaseAmount = (value: number, rate: number): number =>
+    byItems || currency === "EUR" ? value : convertToBase(cents(value), rate) / 100;
   const [date, setDate] = useState(todayIso());
   // Predvolený zdroj výdavku je „z príjmu“ (D-014, D-288).
   const [source, setSource] = useState<Source>("z_prijmu");
@@ -62,6 +73,8 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   useEffect(() => setShown(10), [fType, fFrom, fTo, fCategory]);
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
   const [confirmExhausted, setConfirmExhausted] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
   const exhaustedRef = useRef<HTMLInputElement>(null);
   useEffect(() => setConfirmExhausted(false), [type, source, amount]);
   // Upozornenie na dvojitý zápis pravidelného výdavku; „Uložiť aj tak“ ho pre tento formulár potvrdí (D-299, docs/53).
@@ -74,6 +87,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     const h = setTimeout(() => setUndo(null), 8000);
     return () => clearTimeout(h);
   }, [undo]);
+  useEffect(() => { if (addOpen) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [addOpen]);
 
   const needsSource = type === "vydavok" || type === "investicia";
   // Pri úprave sa pôvodná transakcia z výpočtu vyradí (R12).
@@ -85,8 +99,16 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
 
   /** Výsledok náhľadu: nový kapitál, alebo dôvod zamietnutia (D-045, D-052, FR-08). */
   const check = (): { after: Capital | null; message?: string; needsConfirm?: boolean } => {
-    const a = asNum(amount);
+    const originalAmount = asNum(amount);
+    const rate = asNum(exchangeRate);
     const cap = base.capital;
+    if (Number.isNaN(originalAmount) || !(originalAmount > 0)) {
+      return { after: cap };
+    }
+    if (currency !== "EUR" && (Number.isNaN(rate) || !(rate > 0))) {
+      return { after: null, message: "Kurz musí byť kladné číslo." };
+    }
+    const a = toBaseAmount(originalAmount, rate);
     if (Number.isNaN(a) || !(a > 0)) return { after: cap };
     const ca = cents(a);
     if (type === "vydavok") {
@@ -124,7 +146,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     if (c.after === null) return { blocked: true as const, message: c.message };
     const d = impactWithRentals(base.capital, c.after, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target, ctx.rentals);
     return { blocked: false as const, impact: d, note: c.message, needsConfirm: !!c.needsConfirm };
-  }, [type, source, amount, base, ctx]);
+  }, [type, source, amount, base, ctx, currency, exchangeRate, byItems]);
 
   // Návrhy položiek z predchádzajúcich nákupov a zo skladu: názov a posledná cena za kus (docs/58, D).
   const itemSuggestions = useMemo(() => {
@@ -143,7 +165,6 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   };
   // Výdavok sa zapisuje buď rýchlo (jedna suma), alebo po položkách; suma sa vtedy vypočíta z položiek
   // a nezadáva sa druhýkrát (D-313, docs/57). Zľava je záporná položka.
-  const [mode, setMode] = useState<"rychly" | "polozky">("rychly");
   const [items, setItems] = useState<ReceiptItem[]>([]);
   const [mName, setMName] = useState("");
   const [mQty, setMQty] = useState<NumIn>(1);
@@ -153,7 +174,6 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const [saved, setSaved] = useState<Transaction | null>(null);
   // Prepnutie na Rýchly výdavok zahodí položky; najprv otázka (revízia 2026-10-25d, S-2, zakladateľ: a).
   const [confirmQuick, setConfirmQuick] = useState(false);
-  const byItems = type === "vydavok" && mode === "polozky";
   const changeQty = (n: number, delta: number) => setItems((all) => all.map((i, k) => {
     if (k !== n) return i;
     const quantity = Math.round((i.quantity + delta) * 1000) / 1000;
@@ -182,10 +202,13 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setMName(""); setMQty(1); setMPrice(""); setErr(null);
   };
   const resetForm = () => {
+    setAddOpen(false);
     setConfirmExhausted(false);
     // Po uložení aj zrušení úpravy späť na predvolené: výdavok z príjmu (D-014, D-288; revízia 2026-10-25b, S-1).
     setType("vydavok");
     setSource("z_prijmu");
+    setCurrency("EUR");
+    setExchangeRate(1);
     setRecurringMatch(null);
     setRecurringConfirmed(false);
     setEditingId(null);
@@ -206,9 +229,16 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   };
 
   const startEdit = (t: Transaction) => {
+    setAddOpen(false);
     setEditingId(t.id);
     setType(t.type);
-    setAmount(t.amountCents / 100);
+    setCurrency(t.currency ?? "EUR");
+    setExchangeRate(t.exchangeRateToBase ?? 1);
+    setAmount(
+    t.currency && t.currency !== "EUR" && t.originalAmountCents !== undefined
+    ? t.originalAmountCents / 100
+    : t.amountCents / 100
+);
     setDate(t.date);
     setSource(t.source ?? "z_prijmu");
     setCategory(t.category ?? "");
@@ -267,8 +297,17 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     if (typeof draft === "string") return setErr(draft);
     const allItems = draft ? [...items, draft] : items;
     if (draft) { setItems(allItems); setMName(""); setMQty(1); setMPrice(""); }
-    const a = byItems ? allItems.reduce((sum, i) => sum + i.amountCents, 0) / 100 : asNum(amount);
     if (byItems && allItems.length === 0) return setErr("Pridaj aspoň jednu položku.");
+    const originalAmount = byItems
+      ? allItems.reduce((sum, i) => sum + i.amountCents, 0) / 100
+      : asNum(amount);
+    if (Number.isNaN(originalAmount) || !(originalAmount > 0)) {
+      return setErr(byItems ? "Súčet položiek musí byť kladný." : "Suma musí byť kladná.");
+    }
+    if (!byItems && currency !== "EUR" && (!Number.isFinite(asNum(exchangeRate)) || asNum(exchangeRate) <= 0)) {
+      return setErr("Kurz musí byť kladné číslo.");
+    }
+    const a = toBaseAmount(originalAmount, asNum(exchangeRate));
     if (Number.isNaN(a) || !(a > 0)) return setErr(byItems ? "Súčet položiek musí byť kladný." : "Suma musí byť kladná.");
     const dateErr = checkDate(date, todayIso(), "dátum");
     if (dateErr.length) return setErr(dateErr[0]);
@@ -295,6 +334,13 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       date,
       type,
       amountCents: cents(a),
+      currency: byItems ? "EUR" : currency,
+      ...(currency !== "EUR" && !byItems
+        ? {
+            originalAmountCents: cents(originalAmount),
+            exchangeRateToBase: asNum(exchangeRate),
+          }
+        : {}),
       ...(needsSource ? { source } : {}),
       ...(type === "vydavok" && category !== "" ? { category } : {}),
       ...(noteText ? { note: noteText.slice(0, 200) } : {}),
@@ -353,11 +399,43 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const docHasContent = cameraOn || qrMsg !== null || receiptId !== "";
   useEffect(() => { if (docHasContent) setDocOpen(true); }, [docHasContent]);
 
+  // Prepočítaná suma v EUR pri cudzej mene (D-340): nezávislá od Predbežného dopadu, platí aj pri zdroji „z príjmu“.
+  const showConversion = !byItems && currency !== "EUR";
+  const amountForConversion = asNum(amount);
+  const rateForConversion = asNum(exchangeRate);
+  const conversionValid = showConversion
+    && Number.isFinite(amountForConversion) && amountForConversion > 0
+    && Number.isFinite(rateForConversion) && rateForConversion > 0;
+
   // Poradie (D-286, docs/43 A3): suma, typ, zdroj, kategória, dátum, poznámka; doklad zbalený; potom upozornenia a prilepený pruh s dopadom a uložením (D-287).
   return (
     <section>
-      {!ctx.latest && <p style={calloutStyle("warn")}>Najprv urob vyhodnotenie, potom môžeš zapisovať transakcie. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
-      {inEdit && <h2 style={{ fontSize: "var(--font-heading)" }}>Úprava transakcie</h2>}
+      {!inEdit && (
+        <p style={{ margin: "0 0 8px" }}>
+          {!addOpen ? (
+            <button type="button" style={btnPrimary} onClick={() => setAddOpen(true)}>
+              + Prida&#x165; transakciu
+            </button>
+          ) : (
+            <button type="button" style={btn} onClick={() => resetForm()}>
+              Zru&#x161;i&#x165; prid&#xe1;vanie
+            </button>
+          )}
+        </p>
+      )}
+      {saved && !inEdit && (
+        <div style={{ ...calloutStyle("ok"), margin: "0 0 8px" }}>
+          <p style={{ margin: 0 }}>Zapísané: {TYPE_LABEL[saved.type]} {eur(saved.amountCents)}. <button type="button" onClick={() => { setSaved(null); document.getElementById("historia-transakcii")?.scrollIntoView({ block: "start" }); }} style={{ ...btn, marginTop: 0, padding: "2px 8px" }}>Zobraziť v histórii</button></p>
+          {renderStockTransfer && (saved.receiptItems?.length ?? 0) > 0 && renderStockTransfer(saved)}
+          {stockModuleOff && (saved.receiptItems?.length ?? 0) > 0 && (
+            <p style={{ ...hintStyle, margin: "4px 0 0" }}>Položky sa dajú pridať do skladu, keď zapneš modul Sklad. <NextStep to="nastavenia">Nastavenia → Moduly</NextStep></p>
+          )}
+        </div>
+      )}
+      {(addOpen || inEdit) && (
+      <div ref={formRef}>
+      {!ctx.latest && <p style={calloutStyle("warn")}>Najprv urob vyhodnotenie, potom m&#xf4;&#x17e;e&#x161; zapisova&#x165; transakcie. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
+      {inEdit && <h2 style={{ fontSize: "var(--font-heading)" }}>&#xda;prava transakcie</h2>}
       {type === "vydavok" && (
         <div role="group" aria-label="Spôsob zápisu" style={{ display: "flex", gap: 8, margin: "4px 0 8px" }}>
           <button type="button" aria-pressed={mode === "rychly"} onClick={() => (mode === "polozky" && items.length > 0 ? setConfirmQuick(true) : setMode("rychly"))} style={mode === "rychly" ? btnPrimary : btn}>Rýchly výdavok</button>
@@ -371,8 +449,43 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           )}
         </div>
       )}
-      {!byItems && <Field label="Suma (€)" value={amount} onChange={setAmount} />}
-      {byItems && (
+      {!byItems && (
+  <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(100px, 1fr)", gap: 8 }}>
+    <Field label={`Suma (${currency})`} value={amount} onChange={setAmount} />
+    <label style={{ display: "block", margin: "8px 0" }}>
+      <span style={{ display: "block", marginBottom: 4 }}>Mena</span>
+      <select
+        value={currency}
+        onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+        style={{ width: "100%", padding: 8 }}
+      >
+        <option value="EUR">EUR</option>
+        <option value="USD">USD</option>
+        <option value="CZK">CZK</option>
+        <option value="GBP">GBP</option>
+        <option value="CHF">CHF</option>
+      </select>
+    </label>
+  </div>
+)}
+
+{!byItems && currency !== "EUR" && (
+  <Field
+    label={`Kurz: počet jednotiek ${currency} za 1 EUR`}
+    value={exchangeRate}
+    onChange={setExchangeRate}
+  />
+)}
+
+{showConversion && (
+  <p style={hintStyle}>
+    {conversionValid
+      ? `Prepočítaná suma: ${eur(cents(toBaseAmount(amountForConversion, rateForConversion)))}`
+      : "Prepočítaná suma: – (zadaj platnú sumu a kladný kurz)"}
+  </p>
+)}
+
+{byItems && (
         <div style={{ margin: "8px 0" }}>
           {items.length > 0 && (
             <ul style={{ listStyle: "none", padding: 0, margin: "4px 0" }}>
@@ -497,16 +610,6 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         )}
         {byItems && <p style={{ margin: "4px 0", fontSize: "var(--font-heading)" }}>Spolu: <strong>{eur(itemsTotal)}</strong></p>}
         {err && <p style={{ color: "var(--danger)", margin: "4px 0" }}>{err}</p>}
-        {saved && !inEdit && (
-          <div style={{ ...calloutStyle("ok"), margin: "4px 0" }}>
-            <p style={{ margin: 0 }}>Zapísané: {TYPE_LABEL[saved.type]} {eur(saved.amountCents)}. <button type="button" onClick={() => { setSaved(null); document.getElementById("historia-transakcii")?.scrollIntoView({ block: "start" }); }} style={{ ...btn, marginTop: 0, padding: "2px 8px" }}>Zobraziť v histórii</button></p>
-            {renderStockTransfer && (saved.receiptItems?.length ?? 0) > 0 && renderStockTransfer(saved)}
-            {/* Bez modulu Sklad sa tlačidlo neukáže (D-162); veta povie prečo (prehliadka 2026-10-25, bod 2.5). */}
-            {stockModuleOff && (saved.receiptItems?.length ?? 0) > 0 && (
-              <p style={{ ...hintStyle, margin: "4px 0 0" }}>Položky sa dajú pridať do skladu, keď zapneš modul Sklad. <NextStep to="nastavenia">Nastavenia → Moduly</NextStep></p>
-            )}
-          </div>
-        )}
         {recurringMatch && (
           <div style={{ ...calloutStyle("warn"), margin: "4px 0" }}>
             <p style={{ margin: 0 }}>Toto vyzerá ako pravidelný výdavok „{recurringMatch.name}“, ktorý sa už ráta automaticky každý mesiac. Uložiť aj tak?</p>
@@ -517,6 +620,8 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         <button onClick={() => void save()} style={btnPrimary}>{inEdit ? "Uložiť zmeny" : "Uložiť transakciu"}</button>
         {inEdit && <button onClick={resetForm} style={{ ...btn, marginLeft: 8 }}>Zrušiť úpravu</button>}
       </div>
+      </div>
+      )}
       {undo && (
         <p style={{ background: "var(--banner)", padding: 8, borderRadius: 6 }}>
           Transakcia bola zmazaná. <button onClick={restore} style={{ ...btn, padding: "2px 8px", marginTop: 0 }}>Vrátiť späť</button>

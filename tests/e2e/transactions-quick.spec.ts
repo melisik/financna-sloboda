@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo, openApp } from "./helpers";
+import { goTo, openApp, TX_AMOUNT } from "./helpers";
 
 // Rýchlejšie zadanie výdavku (D-286, docs/43 A3). Syntetické hodnoty.
 test.describe("zadanie výdavku a história (A3)", () => {
@@ -10,12 +10,14 @@ test.describe("zadanie výdavku a história (A3)", () => {
     await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
     await goTo(page, "nova-transakcia");
+    // Formulár je predvolene zbalený; otvorí sa tlačidlom „+ Pridať transakciu“ (D-340).
+    await page.locator("section#nova-transakcia").getByRole("button", { name: "+ Pridať transakciu" }).click();
   });
 
   test("suma je prvé pole a doklad je zbalený, kým ho neotvorím", async ({ page }) => {
     const form = page.locator("section#nova-transakcia");
     const firstLabel = await form.locator("input, select, textarea").first().evaluate((el) => el.closest("label")?.textContent ?? el.getAttribute("aria-label"));
-    expect(firstLabel).toMatch(/^Suma \(€\)/);
+    expect(firstLabel).toMatch(/^Suma \((€|EUR)\)/);
 
     await expect(form.getByLabel("Fotka QR kódu dokladu")).toBeHidden();
     await expect(form.getByRole("button", { name: "Skenovať QR kód kamerou" })).toHaveCount(0);
@@ -27,7 +29,7 @@ test.describe("zadanie výdavku a história (A3)", () => {
 
   test("v histórii je pri zázname len Upraviť; Prílohy a Zmazať sú v úprave a zmazanie sa dá vrátiť", async ({ page }) => {
     const form = page.locator("section#nova-transakcia");
-    await form.getByLabel("Suma (€)").fill("40");
+    await form.getByLabel(TX_AMOUNT).fill("40");
     await form.getByRole("button", { name: "Uložiť transakciu" }).click();
     const row = form.locator("li", { hasText: "výdavok · 40,00 €" });
     await expect(row).toBeVisible();
@@ -54,10 +56,12 @@ test.describe("zadanie výdavku a história (A3)", () => {
     await page.getByRole("button", { name: "Uložiť nastavenia" }).click();
     await goTo(page, "nova-transakcia");
     const form = page.locator("section#nova-transakcia");
+    // Návrat na sekciu znovu vykreslí formulár zbalený; treba ho znova otvoriť (D-340).
+    await form.getByRole("button", { name: "+ Pridať transakciu" }).click();
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       await page.evaluate(() => window.scrollTo(0, 0));
-      await form.getByLabel("Suma (€)").fill("12");
+      await form.getByLabel(TX_AMOUNT).fill("12");
       await expect(form.getByRole("button", { name: "Uložiť transakciu" })).toBeInViewport();
       await expect(form.getByText("Predbežný dopad:")).toBeInViewport();
     }

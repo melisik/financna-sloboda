@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { goTo } from "./helpers";
+import { goTo, goToTransactionForm } from "./helpers";
 
 // Preskočenie onboardingu nerozbije appku: predvolené hodnoty a odkazy na chýbajúce kroky.
 test("po preskočení sprievodcu appka funguje a ukáže, čo ešte chýba", async ({ page }) => {
@@ -8,7 +8,7 @@ test("po preskočení sprievodcu appka funguje a ukáže, čo ešte chýba", asy
   await expect(page.locator("section#prehlad")).toBeVisible();
   await expect(page.getByText("Cieľová suma: nezadaná")).toBeVisible();
 
-  await goTo(page, "nova-transakcia");
+  await goToTransactionForm(page);
   await expect(page.getByText("Najprv urob vyhodnotenie")).toBeVisible();
   await page.locator("section#nova-transakcia").getByRole("link", { name: "Vyhodnotenie" }).click();
   await expect(page.locator("section#vyhodnotenie")).toBeVisible();
