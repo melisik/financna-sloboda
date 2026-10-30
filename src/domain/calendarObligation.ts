@@ -1,4 +1,4 @@
-import type { BudgetCategory, CalendarObligation, RecurringExpense } from "./model/entities";
+import type { BudgetCategory, CalendarObligation, RecurringExpense, Source, Transaction } from "./model/entities";
 import { isRecurringActive } from "./recurring";
 
 const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -179,4 +179,108 @@ export function obligationsForMonth(
   const all = [...fromRecurring, ...oneTime];
   const resolved = resolveStatuses(all, today);
   return resolved.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+}
+
+/** Chyba nekonzistentného prepojenia povinnosti a transakcie (D-345); operácia sa nevykoná. */
+export class CalendarLinkError extends Error {}
+
+const isVirtualId = (id: string) => id.startsWith("virtual:");
+
+/** Predvyplnená poznámka transakcie vytvorenej z povinnosti. */
+export function defaultPaymentNote(o: CalendarObligation): string {
+  return o.name;
+}
+
+/** Transakcia (výdavok) vytvorená z povinnosti; väzba na povinnosť je uložená v `calendarObligationId`. */
+export function buildPaymentTransaction(
+  o: CalendarObligation,
+  p: { date: string; amountCents: number; source: Source; note?: string },
+  now: string = new Date().toISOString(),
+): Transaction {
+  const note = (p.note ?? defaultPaymentNote(o)).trim().slice(0, 200);
+  return {
+    id: uid(),
+    date: p.date,
+    type: "vydavok",
+    amountCents: p.amountCents,
+    source: p.source,
+    category: o.category,
+    ...(note ? { note } : {}),
+    calendarObligationId: o.id,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+/** Povinnosť označená ako zaplatená transakciou `t`. Virtuálna povinnosť dostane trvalé id. */
+export function applyPayment(o: CalendarObligation, t: Transaction, paidDate: string, now: string = new Date().toISOString()): CalendarObligation {
+  return { ...o, status: "zaplatene", paidDate, transactionId: t.id, updatedAt: now };
+}
+
+/**
+ * Povinnosť po splatnosti, ak je v čase zápisu STÁLE „čaká“ a termín už uplynul; inak null (nič sa nemení).
+ * Rozhoduje sa nad aktuálnym záznamom v úložisku, nie nad starším snímkom z obrazovky.
+ */
+export function markOverdue(o: CalendarObligation, today: string, now: string = new Date().toISOString()): CalendarObligation | null {
+  if (o.status !== "caka" || o.dueDate >= today || isVirtualId(o.id)) return null;
+  return { ...o, status: "po_splatnosti", updatedAt: now };
+}
+
+/** Povinnosť vrátená do nezaplateného stavu: bez dátumu platby a bez odkazu na transakciu. */
+export function clearPayment(o: CalendarObligation, now: string = new Date().toISOString()): CalendarObligation {
+  const { paidDate: _p, transactionId: _t, ...rest } = o;
+  return { ...rest, status: "caka", updatedAt: now };
+}
+
+/** Text problému, ak odkazy povinnosti a transakcie nesedia; null = prepojenie je konzistentné. */
+export function linkProblem(o: CalendarObligation, t: Transaction | undefined): string | null {
+  if (!o.transactionId) return "Povinnosť nemá prepojenú transakciu.";
+  if (!t) return "Prepojená transakcia sa nenašla. Nič sa nezmenilo.";
+  if (t.id !== o.transactionId || t.calendarObligationId !== o.id) return "Transakcia nie je prepojená s touto povinnosťou. Nič sa nezmenilo.";
+  return null;
+}
+
+/**
+ * Ošetrí odkaz `calendarObligationId` pri ukladaní transakcie (nová, úprava, vrátenie zmazania).
+ * Povinnosť bez transakcie sa znovu prepojí; odkaz na neexistujúcu alebo inú povinnosť sa z transakcie odstráni,
+ * aby nevznikol odkaz, ktorý by zálohu znemožnil obnoviť.
+ */
+export function reconcileTransactionLink(
+  t: Transaction,
+  o: CalendarObligation | undefined,
+  now: string = new Date().toISOString(),
+): { transaction: Transaction; obligation?: CalendarObligation } {
+  if (!t.calendarObligationId) return { transaction: t };
+  if (o && o.id === t.calendarObligationId && o.transactionId === t.id) return { transaction: t };
+  if (o && o.id === t.calendarObligationId && !o.transactionId) {
+    return { transaction: t, obligation: applyPayment(o, t, t.date, now) };
+  }
+  const { calendarObligationId: _c, ...rest } = t;
+  return { transaction: rest };
+}
+
+/** Nezaplatené povinnosti s rovnakou sumou a splatnosťou ako ručne zapisovaná transakcia (len upozornenie). */
+export function similarUnpaidObligations(obligations: CalendarObligation[], amountCents: number, date: string): CalendarObligation[] {
+  return obligations.filter((o) => o.status !== "zaplatene" && !isVirtualId(o.id) && o.amountCents === amountCents && o.dueDate === date);
+}
+
+/** Chyby vzájomných odkazov povinností a transakcií pre validáciu zálohy. */
+export function calendarLinkErrors(obligations: CalendarObligation[], transactions: Transaction[]): string[] {
+  const errors: string[] = [];
+  const txById = new Map(transactions.map((t) => [t.id, t]));
+  const obById = new Map(obligations.map((o) => [o.id, o]));
+  for (const o of obligations) {
+    if (o.transactionId === undefined) continue;
+    if (o.status !== "zaplatene") errors.push(`povinnosť „${o.name}“: odkaz na transakciu má len zaplatená povinnosť`);
+    const t = txById.get(o.transactionId);
+    if (!t) errors.push(`povinnosť „${o.name}“: odkazuje na transakciu, ktorá v zálohe nie je`);
+    else if (t.calendarObligationId !== o.id) errors.push(`povinnosť „${o.name}“: transakcia na ňu neodkazuje späť`);
+  }
+  for (const t of transactions) {
+    if (t.calendarObligationId === undefined) continue;
+    const o = obById.get(t.calendarObligationId);
+    if (!o) errors.push(`transakcia ${t.id}: odkazuje na povinnosť, ktorá v zálohe nie je`);
+    else if (o.transactionId !== t.id) errors.push(`transakcia ${t.id}: povinnosť na ňu neodkazuje späť`);
+  }
+  return errors;
 }

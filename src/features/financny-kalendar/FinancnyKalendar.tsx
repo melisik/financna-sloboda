@@ -1,27 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Repository } from "../../storage/repository";
-import type { AppData, BudgetCategory, CalendarObligation } from "../../storage/types";
-import { BUDGET_CATEGORIES } from "../../storage/types";
+import type { AppData, BudgetCategory, CalendarObligation, Source } from "../../storage/types";
+import { BUDGET_CATEGORIES, SOURCES } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import {
+  CalendarLinkError,
+  applyPayment,
+  buildPaymentTransaction,
+  defaultPaymentNote,
   obligationsForMonth,
   newObligation,
   toMonth,
   findNewlyOverdue,
 } from "../../domain/calendarObligation";
-import { eur, dateSk } from "../../ui/kit/format";
+import { cents, eur, dateSk } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, btn, inp, type NumIn, btnPrimary, btnDanger, card } from "../../ui/kit/controls";
 import { hintStyle, calloutStyle } from "../../ui/kit/controls";
 
-/** Finančný kalendár (D-342): povinnosti podľa mesiaca, splatnosť, zaplatenie. */
+/** Finančný kalendár (D-345): povinnosti podľa mesiaca, splatnosť, zaplatenie. */
 
 const STATUS_LABEL: Record<CalendarObligation["status"], string> = {
-  caka: "čaká",
+  caka: "čaká na úhradu",
   zaplatene: "zaplatené",
   po_splatnosti: "po splatnosti",
 };
+
+const SOURCE_LABEL: Record<Source, string> = { z_prijmu: "z príjmu", z_hotovosti: "z hotovosti", z_investicii: "z investícií" };
 
 const STATUS_COLOR: Record<CalendarObligation["status"], string> = {
   caka: "var(--text)",
@@ -57,6 +63,11 @@ export function FinancnyKalendar({ repo, data, today, onChanged }: {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<CalendarObligation | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [payFor, setPayFor] = useState<{ id: string; date: string; amount: NumIn; source: Source; note: string } | null>(null);
+  const [unpayFor, setUnpayFor] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
 
   // Formulár pre novú/editovanú jednorazovú povinnosť
   const [fName, setFName] = useState("");
@@ -117,29 +128,57 @@ export function FinancnyKalendar({ repo, data, today, onChanged }: {
     }
   };
 
-  const markPaid = async (o: CalendarObligation) => {
-    const isVirtual = o.id.startsWith("virtual:");
-    const now = new Date().toISOString();
-    const real: CalendarObligation = isVirtual
-      ? { ...o, id: uid(), status: "zaplatene", paidDate: today, updatedAt: now, createdAt: now }
-      : { ...o, status: "zaplatene", paidDate: today, updatedAt: now };
+  const failMessage = (e: unknown) => (e instanceof CalendarLinkError ? e.message : STORAGE_ERROR);
+
+  const startPay = (o: CalendarObligation) => {
+    setUnpayFor(null);
+    setErr(null);
+    setInfo(null);
+    setPayFor({ id: o.id, date: today, amount: o.amountCents / 100, source: "z_prijmu", note: defaultPaymentNote(o) });
+  };
+
+  // Transakcia a zaplatená povinnosť sa zapíšu atómovo v úložisku; busyRef bráni opakovanému kliknutiu (D-345).
+  const confirmPay = async (o: CalendarObligation) => {
+    if (!payFor || busyRef.current) return;
+    const amount = asNum(payFor.amount);
+    if (Number.isNaN(amount) || !(amount > 0)) return setErr("Suma musí byť kladná.");
+    const dateErr = checkDate(payFor.date, today, "dátum platby");
+    if (dateErr.length) return setErr(dateErr[0]);
+    busyRef.current = true;
+    setBusy(true);
     try {
-      await repo.saveCalendarObligation(real);
+      const now = new Date().toISOString();
+      const base: CalendarObligation = o.id.startsWith("virtual:") ? { ...o, id: uid(), createdAt: now } : o;
+      const t = buildPaymentTransaction(base, { date: payFor.date, amountCents: cents(amount), source: payFor.source, note: payFor.note }, now);
+      const { created } = await repo.payCalendarObligation(applyPayment(base, t, payFor.date, now), t);
       setErr(null);
+      setPayFor(null);
+      setInfo(created ? "Transakcia bola vytvorená a povinnosť je označená ako zaplatená." : "Povinnosť je už zaplatená. Nová transakcia nevznikla.");
       onChanged();
-    } catch {
-      setErr(STORAGE_ERROR);
+    } catch (e) {
+      setErr(failMessage(e));
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
     }
   };
 
-  const markUnpaid = async (o: CalendarObligation) => {
-    if (o.id.startsWith("virtual:")) return;
+  const confirmUnpay = async (o: CalendarObligation) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusy(true);
     try {
-      await repo.saveCalendarObligation({ ...o, status: "caka", paidDate: undefined, updatedAt: new Date().toISOString() });
+      await repo.unpayCalendarObligation(o.id);
       setErr(null);
+      setUnpayFor(null);
+      setInfo(o.transactionId ? "Zaplatenie bolo zrušené. Súvisiaca transakcia bola odstránená z histórie." : "Zaplatenie bolo zrušené.");
       onChanged();
-    } catch {
-      setErr(STORAGE_ERROR);
+    } catch (e) {
+      setUnpayFor(null);
+      setErr(failMessage(e));
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
     }
   };
 
@@ -159,10 +198,9 @@ export function FinancnyKalendar({ repo, data, today, onChanged }: {
     if (!overdue.length) return;
     void (async () => {
       try {
-        for (const o of overdue) {
-          await repo.saveCalendarObligation({ ...o, status: "po_splatnosti", updatedAt: new Date().toISOString() });
-        }
-        onChanged();
+        // Atomicky nad aktuálnymi záznamami: zaplatená povinnosť sa starým snímkom neprepíše.
+        const changed = await repo.markCalendarObligationsOverdue(overdue.map((o) => o.id), today);
+        if (changed > 0) onChanged();
       } catch {
         setErr(STORAGE_ERROR);
       }
@@ -190,6 +228,7 @@ export function FinancnyKalendar({ repo, data, today, onChanged }: {
         {" · "}zostatok: <strong>{eur(pendingCents)}</strong>
       </p>
 
+      {info && <p role="status" style={{ color: "var(--ok)" }}>{info}</p>}
       {err && !adding && <p role="alert" style={{ color: "var(--warn)" }}>{err}</p>}
 
       {/* Zoznam povinností */}
@@ -213,12 +252,12 @@ export function FinancnyKalendar({ repo, data, today, onChanged }: {
                 <span style={{ fontWeight: 600 }}>{eur(o.amountCents)}</span>
                 <span style={{ color: STATUS_COLOR[o.status], fontSize: "0.85em" }}>{STATUS_LABEL[o.status]}</span>
                 {o.status !== "zaplatene" && (
-                  <button style={btnPrimary} onClick={() => markPaid(o)}>Zaplatené</button>
+                  <button style={btnPrimary} disabled={busy} onClick={() => startPay(o)}>Zaplatené</button>
                 )}
                 {o.status === "zaplatene" && !o.id.startsWith("virtual:") && (
-                  <button style={btn} onClick={() => markUnpaid(o)}>Zrušiť</button>
+                  <button style={btn} disabled={busy} onClick={() => { setPayFor(null); setInfo(null); setErr(null); setUnpayFor(o.id); }}>Zrušiť zaplatenie</button>
                 )}
-                {!o.recurringExpenseId && !o.id.startsWith("virtual:") && (
+                {!o.recurringExpenseId && !o.id.startsWith("virtual:") && o.transactionId === undefined && (
                   <>
                     <button style={btn} onClick={() => openEdit(o)}>Upraviť</button>
                     <button style={btnDanger} onClick={() => removeObligation(o)}>Zmazať</button>
@@ -226,6 +265,40 @@ export function FinancnyKalendar({ repo, data, today, onChanged }: {
                 )}
               </div>
             </div>
+            {o.transactionId !== undefined && (
+              <div style={{ fontSize: "0.85em", color: "var(--muted)", marginTop: 4 }}>
+                Zaplatené {o.paidDate ? dateSk(o.paidDate) : ""} · prepojená s transakciou v sekcii Transakcie
+              </div>
+            )}
+            {payFor?.id === o.id && (
+              <div role="group" aria-label="Potvrdenie vytvorenia transakcie" style={{ ...calloutStyle("warn"), marginTop: 8 }}>
+                <p style={{ margin: 0 }}><strong>Vytvoriť transakciu (výdavok) k povinnosti „{o.name}“?</strong> Až po potvrdení sa povinnosť označí ako zaplatená.</p>
+                <Field label="Suma (€)" value={payFor.amount} onChange={(v) => setPayFor({ ...payFor, amount: v })} />
+                <Field label="Dátum platby" value={payFor.date} type="date" onChange={(v) => setPayFor({ ...payFor, date: String(v) })} />
+                <label style={{ display: "block", marginBottom: 8 }}>
+                  Zdroj úhrady
+                  <select style={{ ...inp, display: "block", width: "100%", marginTop: 2 }} value={payFor.source} onChange={(e) => setPayFor({ ...payFor, source: e.target.value as Source })}>
+                    {SOURCES.map((s) => <option key={s} value={s}>{SOURCE_LABEL[s]}</option>)}
+                  </select>
+                </label>
+                <Field label="Poznámka" value={payFor.note} type="text" onChange={(v) => setPayFor({ ...payFor, note: String(v) })} maxLength={200} />
+                <p style={{ margin: "4px 0", color: "var(--muted)" }}>Kategória: {o.category}</p>
+                <button style={btnPrimary} disabled={busy} onClick={() => confirmPay(o)}>Vytvoriť transakciu a označiť ako zaplatené</button>{" "}
+                <button style={btn} disabled={busy} onClick={() => { setPayFor(null); setErr(null); }}>Zrušiť</button>
+              </div>
+            )}
+            {unpayFor === o.id && (
+              <div role="alertdialog" aria-label="Potvrdenie zrušenia zaplatenia" style={{ ...calloutStyle("error"), marginTop: 8, border: "2px solid var(--danger)" }}>
+                <p style={{ margin: 0 }}><strong>Zrušiť zaplatenie povinnosti „{o.name}“?</strong></p>
+                <p style={{ margin: "4px 0" }}>
+                  {o.transactionId !== undefined
+                    ? "Súvisiaca transakcia sa odstráni z histórie (aj jej prílohy) a povinnosť sa vráti do stavu „Čaká na úhradu“. Odstráni sa len táto jedna transakcia."
+                    : "K tejto platbe nie je evidovaná žiadna transakcia, preto sa nič nemaže. Povinnosť sa len vráti do stavu „Čaká na úhradu“."}
+                </p>
+                <button style={btnDanger} disabled={busy} onClick={() => confirmUnpay(o)}>Áno, zrušiť zaplatenie</button>{" "}
+                <button style={btn} disabled={busy} onClick={() => setUnpayFor(null)}>Ponechať zaplatené</button>
+              </div>
+            )}
           </li>
         ))}
       </ul>

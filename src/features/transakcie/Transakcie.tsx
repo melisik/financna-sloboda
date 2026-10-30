@@ -3,6 +3,7 @@ import type { Repository } from "../../storage/repository";
 import { convertToBase } from "../../domain/currency";
 import type { AppData, Attachment, BudgetCategory, ReceiptItem, RecurringExpense, Transaction, TransactionType, Source } from "../../storage/types";
 import { matchingRecurring } from "../../domain/recurring";
+import { similarUnpaidObligations } from "../../domain/calendarObligation";
 import { BUDGET_CATEGORIES, SOURCES } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import { expenseTotalsByCategory, filterHistory, totalsByType } from "../../domain/history";
@@ -346,6 +347,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       ...(noteText ? { note: noteText.slice(0, 200) } : {}),
       ...(type === "vydavok" && receipt !== "" ? { receiptId: receipt } : {}),
       ...(receiptItems && receiptItems.length > 0 ? { receiptItems } : {}),
+      ...(existing?.calendarObligationId ? { calendarObligationId: existing.calendarObligationId } : {}),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -392,6 +394,15 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const totals = totalsByType(list);
   const categoryTotals = expenseTotalsByCategory(list);
   const inEdit = editingId !== null;
+  // Len upozornenie (D-345): nezaplatená povinnosť z kalendára s rovnakou sumou a dňom splatnosti. Nič neblokuje ani neprepája.
+  // Prepočet len pri platnej sume a kurze: convertToBase pri kurze ≤ 0 vyhadzuje chybu.
+  const warnAmount = asNum(amount);
+  const warnRate = asNum(exchangeRate);
+  const canWarn = type === "vydavok" && !inEdit && !byItems && Number.isFinite(warnAmount) && warnAmount > 0
+    && (currency === "EUR" || (Number.isFinite(warnRate) && warnRate > 0));
+  const similarObligations = canWarn
+    ? similarUnpaidObligations(data.calendarObligations, cents(toBaseAmount(warnAmount, warnRate)), date)
+    : [];
   const filterActive = fType !== "all" || fCategory !== "all" || fFrom !== "" || fTo !== "";
 
   const editingTx = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
@@ -610,6 +621,11 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         )}
         {byItems && <p style={{ margin: "4px 0", fontSize: "var(--font-heading)" }}>Spolu: <strong>{eur(itemsTotal)}</strong></p>}
         {err && <p style={{ color: "var(--danger)", margin: "4px 0" }}>{err}</p>}
+        {similarObligations.length > 0 && (
+          <p role="status" style={{ ...calloutStyle("info"), margin: "4px 0" }}>
+            V kalendári čaká povinnosť „{similarObligations[0].name}“ s rovnakou sumou a dňom splatnosti. Ak je toto jej úhrada, označ ju radšej v sekcii Finančný kalendár, aby sa neevidovala dvakrát. Transakciu môžeš uložiť aj tak.
+          </p>
+        )}
         {recurringMatch && (
           <div style={{ ...calloutStyle("warn"), margin: "4px 0" }}>
             <p style={{ margin: 0 }}>Toto vyzerá ako pravidelný výdavok „{recurringMatch.name}“, ktorý sa už ráta automaticky každý mesiac. Uložiť aj tak?</p>

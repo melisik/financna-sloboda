@@ -1,10 +1,11 @@
 import { openDB, type IDBPDatabase } from "idb";
 import type { Repository } from "./repository";
+import { CalendarLinkError, clearPayment, linkProblem, markOverdue, reconcileTransactionLink } from "../domain/calendarObligation";
 import type { Asset, AppData, Attachment, Budget, CalendarObligation, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RentalEntry, RecurringExpense, RegularIncome, Settings, Snapshot, StockItem, Transaction, WasteRecord, ShoppingItem } from "./types";
 
 // Meno DB zostáva "financna-sloboda" pre kontinuitu existujúcich dát (zmena by zmazala IndexedDB).
 const DB_NAME = "financna-sloboda";
-const DB_VERSION = 12; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28); verzia 5 recepty (D-127); verzia 6 psy (D-159); verzia 7 prílohy (D-160); verzia 8 prílohy k výdavkom z prenájmu (D-221); verzia 9 ciele investícií (D-105); verzia 10 vyhodené potraviny (D-301); verzia 11 nákupný zoznam (D-302); verzia 12 finančný kalendár (D-342)
+const DB_VERSION = 12; // 05 §4: verzia 1; verzia 2 pridáva úložisko majetku (FR-28); verzia 5 recepty (D-127); verzia 6 psy (D-159); verzia 7 prílohy (D-160); verzia 8 prílohy k výdavkom z prenájmu (D-221); verzia 9 ciele investícií (D-105); verzia 10 vyhodené potraviny (D-301); verzia 11 nákupný zoznam (D-302); verzia 12 finančný kalendár (D-345)
 const SETTINGS_KEY = "current";
 
 /** Otvorí databázu s úložiskami z 05 §4. */
@@ -91,13 +92,110 @@ class IdbRepository implements Repository {
     return { settings: (settings as Settings | undefined) ?? null, transactions, snapshots, properties, assets, investments, liabilities, incomes, budgets, recurringExpenses, stockItems, recipes, dogs, goals, wasteRecords, shoppingItems, calendarObligations };
   }
 
+  // Odkaz na povinnosť z kalendára sa ošetrí v tej istej transakcii úložiska (D-345).
   async addTransaction(t: Transaction): Promise<void> {
-    await this.db.put("transactions", t);
+    if (t.calendarObligationId === undefined) {
+      await this.db.put("transactions", t);
+      return;
+    }
+    const tx = this.db.transaction(["transactions", "calendarObligations"], "readwrite");
+    tx.done.catch(() => undefined);
+    try {
+      const obs = tx.objectStore("calendarObligations");
+      const r = reconcileTransactionLink(t, (await obs.get(t.calendarObligationId)) as CalendarObligation | undefined);
+      await tx.objectStore("transactions").put(r.transaction);
+      if (r.obligation) await obs.put(r.obligation);
+      await tx.done;
+    } catch (err) {
+      try { tx.abort(); } catch { /* už ukončená */ }
+      throw err;
+    }
+  }
+
+  async payCalendarObligation(paid: CalendarObligation, t: Transaction): Promise<{ created: boolean }> {
+    const tx = this.db.transaction(["transactions", "calendarObligations"], "readwrite");
+    tx.done.catch(() => undefined);
+    try {
+      const obs = tx.objectStore("calendarObligations");
+      const all = (await obs.getAll()) as CalendarObligation[];
+      const existing = all.find((x) => x.id === paid.id)
+        ?? (paid.recurringExpenseId !== undefined ? all.find((x) => x.recurringExpenseId === paid.recurringExpenseId && x.occurrenceMonth === paid.occurrenceMonth) : undefined);
+      if (existing?.transactionId !== undefined) {
+        await tx.done;
+        return { created: false };
+      }
+      const id = existing?.id ?? paid.id;
+      if (await tx.objectStore("transactions").get(t.id)) throw new CalendarLinkError("Transakcia s týmto id už existuje. Nič sa nezmenilo.");
+      await tx.objectStore("transactions").put({ ...t, calendarObligationId: id });
+      await obs.put({ ...paid, id, createdAt: existing?.createdAt ?? paid.createdAt });
+      await tx.done;
+      return { created: true };
+    } catch (err) {
+      try { tx.abort(); } catch { /* už ukončená */ }
+      throw err;
+    }
+  }
+
+  async unpayCalendarObligation(id: string): Promise<void> {
+    const tx = this.db.transaction(["transactions", "calendarObligations", "attachments"], "readwrite");
+    tx.done.catch(() => undefined);
+    try {
+      const obs = tx.objectStore("calendarObligations");
+      const o = (await obs.get(id)) as CalendarObligation | undefined;
+      if (!o) throw new CalendarLinkError("Povinnosť sa nenašla. Nič sa nezmenilo.");
+      if (o.status !== "zaplatene") {
+        await tx.done;
+        return;
+      }
+      if (o.transactionId !== undefined) {
+        const t = (await tx.objectStore("transactions").get(o.transactionId)) as Transaction | undefined;
+        const problem = linkProblem(o, t);
+        if (problem) throw new CalendarLinkError(problem);
+        let cursor = await tx.objectStore("attachments").index("transactionId").openCursor(o.transactionId);
+        while (cursor) {
+          await cursor.delete();
+          cursor = await cursor.continue();
+        }
+        await tx.objectStore("transactions").delete(o.transactionId);
+      }
+      await obs.put(clearPayment(o));
+      await tx.done;
+    } catch (err) {
+      try { tx.abort(); } catch { /* už ukončená */ }
+      throw err;
+    }
+  }
+
+  async markCalendarObligationsOverdue(ids: string[], today: string): Promise<number> {
+    const tx = this.db.transaction("calendarObligations", "readwrite");
+    tx.done.catch(() => undefined);
+    try {
+      let changed = 0;
+      for (const id of ids) {
+        const current = (await tx.store.get(id)) as CalendarObligation | undefined;
+        const next = current ? markOverdue(current, today) : null;
+        if (next) {
+          await tx.store.put(next);
+          changed++;
+        }
+      }
+      await tx.done;
+      return changed;
+    } catch (err) {
+      try { tx.abort(); } catch { /* už ukončená */ }
+      throw err;
+    }
   }
 
   // Výdavok sa maže spolu s prílohami, aby v úložisku nezostali osirelé súbory (D-160).
+  // Povinnosť z kalendára, ktorá naň odkazovala, sa v tej istej transakcii vráti do stavu „čaká“ (D-345).
   async deleteTransaction(id: string): Promise<void> {
-    const tx = this.db.transaction(["transactions", "attachments"], "readwrite");
+    const tx = this.db.transaction(["transactions", "attachments", "calendarObligations"], "readwrite");
+    const gone = (await tx.objectStore("transactions").get(id)) as Transaction | undefined;
+    if (gone?.calendarObligationId !== undefined) {
+      const o = (await tx.objectStore("calendarObligations").get(gone.calendarObligationId)) as CalendarObligation | undefined;
+      if (o && o.transactionId === id) await tx.objectStore("calendarObligations").put(clearPayment(o));
+    }
     await tx.objectStore("transactions").delete(id);
     let cursor = await tx.objectStore("attachments").index("transactionId").openCursor(id);
     while (cursor) {

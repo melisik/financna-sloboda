@@ -30,6 +30,21 @@ export interface Repository {
   deleteRecurringExpense(id: string): Promise<void>;
   saveCalendarObligation(o: CalendarObligation): Promise<void>;
   deleteCalendarObligation(id: string): Promise<void>;
+  /**
+   * Zaplatenie povinnosti (D-345): transakcia a zaplatená povinnosť sa zapíšu v jednej transakcii úložiska.
+   * Idempotentné: ak povinnosť (alebo jej výskyt) už má transakciu, nič sa nezapíše a vráti sa created=false.
+   */
+  payCalendarObligation(paid: CalendarObligation, t: Transaction): Promise<{ created: boolean }>;
+  /**
+   * Zrušenie zaplatenia: zmaže presne prepojenú transakciu (aj prílohy) a vráti povinnosť do stavu „čaká“.
+   * Pri chýbajúcej alebo nesprávne prepojenej transakcii vyhodí CalendarLinkError a nič nezmení.
+   */
+  unpayCalendarObligation(id: string): Promise<void>;
+  /**
+   * Atómovo nastaví „po splatnosti“ len povinnostiam, ktoré sú v čase zápisu stále „čaká“ a po termíne.
+   * Zaplatené (aj práve zaplatené) povinnosti sa nikdy neprepíšu. Vráti počet zmenených záznamov.
+   */
+  markCalendarObligationsOverdue(ids: string[], today: string): Promise<number>;
   saveStockItem(i: StockItem): Promise<void>;
   deleteStockItem(id: string): Promise<void>;
   /** Zapíše zmenené množstvá skladu v jednej transakcii (uvarenie receptu, D-127). */

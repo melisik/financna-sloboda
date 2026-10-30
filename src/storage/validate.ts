@@ -1,5 +1,6 @@
 import { WARN_DAY_OPTIONS, isValidBarcode } from "../domain/stock";
 import { isReceiptId } from "../domain/receipt";
+import { calendarLinkErrors } from "../domain/calendarObligation";
 import { ASSET_KINDS, ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, OBLIGATION_STATUSES, type AppData, type CalendarObligation, type Dog, type InvestmentGoal, type Recipe, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type WasteRecord, type ShoppingItem, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
@@ -531,6 +532,11 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
   if (o.calendarObligations !== undefined) {
     if (!Array.isArray(o.calendarObligations)) errors.push("záloha: calendarObligations musí byť pole");
     else o.calendarObligations.forEach((c, n) => errors.push(...validateCalendarObligation(c, `povinnosť ${n + 1}`)));
+  }
+  // Vzájomné odkazy povinnosť <-> transakcia (D-345); kontrola len nad tvarovo platnými zoznamami.
+  if (errors.length === 0 && Array.isArray(o.transactions)) {
+    const links = calendarLinkErrors(Array.isArray(o.calendarObligations) ? (o.calendarObligations as CalendarObligation[]) : [], o.transactions as Transaction[]);
+    errors.push(...links.map((e) => `záloha: ${e}`));
   }
   const goalIds = new Set(ids(goalList));
   for (const p of investmentList) {

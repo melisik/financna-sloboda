@@ -5,6 +5,7 @@
 import type { Repository } from "./repository";
 import type { AppData, Asset, Attachment, Budget, CalendarObligation, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, Settings, ShoppingItem, Snapshot, StockItem, Transaction, WasteRecord } from "./types";
 import { DEMO_APP_DATA } from "./demoData";
+import { CalendarLinkError, clearPayment, linkProblem, markOverdue, reconcileTransactionLink } from "../domain/calendarObligation";
 
 function cloneData(d: AppData): AppData {
   return JSON.parse(JSON.stringify(d)) as AppData;
@@ -16,8 +17,16 @@ export function createDemoRepository(): Repository {
   return {
     async getData() { return cloneData(data); },
 
-    async addTransaction(t: Transaction) { data.transactions.push(t); },
-    async deleteTransaction(id: string) { data.transactions = data.transactions.filter((x) => x.id !== id); },
+    async addTransaction(t: Transaction) {
+      const r = reconcileTransactionLink(t, data.calendarObligations.find((x) => x.id === t.calendarObligationId));
+      data.transactions = [...data.transactions.filter((x) => x.id !== t.id), r.transaction];
+      if (r.obligation) data.calendarObligations = data.calendarObligations.map((x) => (x.id === r.obligation!.id ? r.obligation! : x));
+    },
+    async deleteTransaction(id: string) {
+      const gone = data.transactions.find((x) => x.id === id);
+      data.calendarObligations = data.calendarObligations.map((o) => (gone?.calendarObligationId === o.id && o.transactionId === id ? clearPayment(o) : o));
+      data.transactions = data.transactions.filter((x) => x.id !== id);
+    },
 
     async addSnapshot(s: Snapshot) { data.snapshots.push(s); },
     async addManualSnapshot(s: Snapshot) {
@@ -84,6 +93,37 @@ export function createDemoRepository(): Repository {
       if (idx >= 0) data.calendarObligations[idx] = o; else data.calendarObligations.push(o);
     },
     async deleteCalendarObligation(id: string) { data.calendarObligations = data.calendarObligations.filter((x) => x.id !== id); },
+    async payCalendarObligation(paid: CalendarObligation, t: Transaction) {
+      const existing = data.calendarObligations.find((x) => x.id === paid.id)
+        ?? (paid.recurringExpenseId !== undefined ? data.calendarObligations.find((x) => x.recurringExpenseId === paid.recurringExpenseId && x.occurrenceMonth === paid.occurrenceMonth) : undefined);
+      if (existing?.transactionId !== undefined) return { created: false };
+      if (data.transactions.some((x) => x.id === t.id)) throw new CalendarLinkError("Transakcia s týmto id už existuje. Nič sa nezmenilo.");
+      const id = existing?.id ?? paid.id;
+      data.transactions.push({ ...t, calendarObligationId: id });
+      const rec = { ...paid, id, createdAt: existing?.createdAt ?? paid.createdAt };
+      if (existing) data.calendarObligations = data.calendarObligations.map((x) => (x.id === id ? rec : x)); else data.calendarObligations.push(rec);
+      return { created: true };
+    },
+    async markCalendarObligationsOverdue(ids: string[], today: string) {
+      let changed = 0;
+      data.calendarObligations = data.calendarObligations.map((o) => {
+        const next = ids.includes(o.id) ? markOverdue(o, today) : null;
+        if (next) changed++;
+        return next ?? o;
+      });
+      return changed;
+    },
+    async unpayCalendarObligation(id: string) {
+      const o = data.calendarObligations.find((x) => x.id === id);
+      if (!o) throw new CalendarLinkError("Povinnosť sa nenašla. Nič sa nezmenilo.");
+      if (o.status !== "zaplatene") return;
+      if (o.transactionId !== undefined) {
+        const problem = linkProblem(o, data.transactions.find((x) => x.id === o.transactionId));
+        if (problem) throw new CalendarLinkError(problem);
+        data.transactions = data.transactions.filter((x) => x.id !== o.transactionId);
+      }
+      data.calendarObligations = data.calendarObligations.map((x) => (x.id === id ? clearPayment(x) : x));
+    },
 
     async saveStockItem(i: StockItem) {
       const idx = data.stockItems.findIndex((x) => x.id === i.id);
