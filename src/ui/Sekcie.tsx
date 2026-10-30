@@ -112,7 +112,7 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
       return (
         <Section id="rozpocet" title="Rozpočet">
           {budgetFlash && <p style={{ ...calloutStyle("ok"), color: "var(--ok)" }}>{budgetFlash}</p>}
-          <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} recurring={data.recurringExpenses} properties={data.properties} today={todayIso()} onSaved={() => { reload(); setBudgetFlash("Rozpočet je uložený."); }} />
+          <BudgetSection key={data.budgets.map((b) => `${b.category}${b.limitCents}`).join("|")} repo={repo} budgets={data.budgets} transactions={data.transactions} recurring={data.recurringExpenses} obligations={data.calendarObligations} properties={data.properties} today={todayIso()} onSaved={() => { reload(); setBudgetFlash("Rozpočet je uložený."); }} />
         </Section>
       );
     case "prijmy":

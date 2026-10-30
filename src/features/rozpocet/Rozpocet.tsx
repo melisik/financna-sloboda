@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Repository } from "../../storage/repository";
-import { BUDGET_CATEGORIES, type Budget, type Property, type RecurringExpense, type Transaction } from "../../storage/types";
+import { BUDGET_CATEGORIES, type Budget, type CalendarObligation, type Property, type RecurringExpense, type Transaction } from "../../storage/types";
+import { budgetCountedTransactions } from "../../domain/calendarObligation";
 import { budgetStatus, spentInMonthCents } from "../../domain/budget";
 import { monthSummary } from "../../domain/monthSummary";
 import { monthlyRecurringByCategory } from "../../domain/recurring";
@@ -11,7 +12,7 @@ import { Field, asNum, type NumIn, btn, btnPrimary, hintStyle } from "../../ui/k
 
 /** Rozpočet kategórií (D-106): mesačný limit a čo sa za aktuálny mesiac minulo. Prázdny limit = bez rozpočtu. */
 
-export function BudgetSection({ repo, budgets, transactions, recurring, properties, today, onSaved }: { repo: Repository; budgets: Budget[]; transactions: Transaction[]; recurring: RecurringExpense[]; properties: Property[]; today: string; onSaved: () => void }) {
+export function BudgetSection({ repo, budgets, transactions, recurring, obligations = [], properties, today, onSaved }: { repo: Repository; budgets: Budget[]; transactions: Transaction[]; recurring: RecurringExpense[]; obligations?: CalendarObligation[]; properties: Property[]; today: string; onSaved: () => void }) {
   const savedLimits = (): Record<string, NumIn> =>
     Object.fromEntries(BUDGET_CATEGORIES.map((c) => {
       const b = budgets.find((x) => x.category === c);
@@ -22,7 +23,9 @@ export function BudgetSection({ repo, budgets, transactions, recurring, properti
   // Polia na limity sú až po „Upraviť limity“; inak je rozpočet prehľad (D-293, docs/46).
   const [editing, setEditing] = useState(false);
   const unassigned = spentInMonthCents(transactions, null, today);
-  const plan = monthSummary(transactions, budgets, recurring, today, 0, properties);
+  const plan = monthSummary(transactions, budgets, recurring, today, 0, properties, [], obligations);
+  // Platba pravidelnej povinnosti z kalendára sa nerátá druhýkrát: pravidelný výdavok je v kategórii už zahrnutý.
+  const counted = budgetCountedTransactions(transactions, obligations, recurring, today);
 
   const save = async () => {
     try {
@@ -52,7 +55,7 @@ export function BudgetSection({ repo, budgets, transactions, recurring, properti
     const rec = recurringByCat[c] ?? 0;
     // Bývanie zahŕňa splátky hypoték mínus nájom (D-137); mimo bývania sa to neráta.
     const housing = c === "bývanie" ? housingFlowCents(properties) : 0;
-    const spent = spentInMonthCents(transactions, c, today) + rec + housing;
+    const spent = spentInMonthCents(counted, c, today) + rec + housing;
     return { c, b, rec, spent, st: budgetStatus(b, spent) };
   });
   const recText = (rec: number) => (rec > 0 ? ` (z toho pravidelné ${eur(rec)})` : "");

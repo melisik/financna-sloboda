@@ -294,3 +294,25 @@ export function calendarLinkErrors(obligations: CalendarObligation[], transactio
   }
   return errors;
 }
+
+/**
+ * Transakcie, ktoré rozpočet rátá do minutého. Platba povinnosti odvodenej z pravidelného výdavku sa nerátá druhýkrát:
+ * pravidelný výdavok je v mesačnom využití kategórie už zahrnutý (D-124). Transakcia ostáva v histórii a v kapitáli.
+ * Vynechá sa len vtedy, keď pravidelný výdavok existuje a dnes platí; inak by platba nebola započítaná nikde.
+ */
+export function budgetCountedTransactions(
+  transactions: Transaction[],
+  obligations: CalendarObligation[],
+  recurring: RecurringExpense[],
+  today: string,
+): Transaction[] {
+  if (obligations.length === 0) return transactions;
+  const covered = new Set<string>();
+  for (const o of obligations) {
+    if (!o.recurringExpenseId) continue;
+    const e = recurring.find((x) => x.id === o.recurringExpenseId);
+    if (e && isRecurringActive(e, today)) covered.add(o.id);
+  }
+  if (covered.size === 0) return transactions;
+  return transactions.filter((t) => !(t.calendarObligationId !== undefined && covered.has(t.calendarObligationId)));
+}

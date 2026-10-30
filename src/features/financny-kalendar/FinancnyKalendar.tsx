@@ -273,6 +273,11 @@ export function FinancnyKalendar({ repo, data, today, onChanged }: {
             {payFor?.id === o.id && (
               <div role="group" aria-label="Potvrdenie vytvorenia transakcie" style={{ ...calloutStyle("warn"), marginTop: 8 }}>
                 <p style={{ margin: 0 }}><strong>Vytvoriť transakciu (výdavok) k povinnosti „{o.name}“?</strong> Až po potvrdení sa povinnosť označí ako zaplatená.</p>
+                {o.recurringExpenseId && (
+                  <p style={{ margin: "4px 0" }}>
+                    Platba sa zapíše do Transakcií a zníži kapitál. Do rozpočtu sa nezapočíta druhýkrát: pravidelný výdavok je v mesačnom využití kategórie „{o.category}“ už zahrnutý.
+                  </p>
+                )}
                 <Field label="Suma (€)" value={payFor.amount} onChange={(v) => setPayFor({ ...payFor, amount: v })} />
                 <Field label="Dátum platby" value={payFor.date} type="date" onChange={(v) => setPayFor({ ...payFor, date: String(v) })} />
                 <label style={{ display: "block", marginBottom: 8 }}>

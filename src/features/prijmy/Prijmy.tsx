@@ -31,7 +31,7 @@ const INCOME_FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
 /** Pravidelné príjmy (D-102): len zobrazenie. Sporenie m sa mení až podľa zostatku pri vyhodnotení. */
 /** Príjem a minuté tento mesiac: rozdiel ukazuje, kam ide mzda. Nájom je v bývaní (D-137), nie v príjmoch. */
 function IncomeBalance({ income, data, today }: { income: number; data: AppData; today: string }) {
-  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, 0, data.properties, data.liabilities);
+  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, 0, data.properties, data.liabilities, data.calendarObligations);
   const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
   const diff = income - spent;
   return (

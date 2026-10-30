@@ -1,4 +1,5 @@
-import type { Budget, BudgetCategory, Liability, Property, RecurringExpense, Transaction } from "./model/entities";
+import type { Budget, BudgetCategory, CalendarObligation, Liability, Property, RecurringExpense, Transaction } from "./model/entities";
+import { budgetCountedTransactions } from "./calendarObligation";
 import { activeLiabilityPaymentCents } from "./liabilities";
 import { spentInMonthCents } from "./budget";
 import { housingFlowCents } from "./property";
@@ -41,11 +42,14 @@ export function monthSummary(
   thresholdCents: number,
   properties: Property[] = [],
   liabilities: Liability[] = [],
+  obligations: CalendarObligation[] = [],
 ): MonthSummary {
   const recurringByCat = monthlyRecurringByCategory(recurring, today);
+  // Platba pravidelnej povinnosti z kalendára sa do využitia kategórie nerátá druhýkrát (už je v pravidelnom výdavku).
+  const counted = budgetCountedTransactions(transactions, obligations, recurring, today);
   const housing = housingFlowCents(properties);
   const spentIn = (c: BudgetCategory) =>
-    spentInMonthCents(transactions, c, today) + (recurringByCat[c] ?? 0) + (c === "bývanie" ? housing : 0);
+    spentInMonthCents(counted, c, today) + (recurringByCat[c] ?? 0) + (c === "bývanie" ? housing : 0);
 
   const byNecessity: Record<Necessity, number> = { nevyhnutne: 0, nie_nevyhnutne: 0, ostatne: 0 };
   for (const c of Object.keys(NECESSITY) as BudgetCategory[]) byNecessity[NECESSITY[c]] += spentIn(c);

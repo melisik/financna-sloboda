@@ -205,7 +205,7 @@ function WeeklySummaryBlock({ transactions, today, thresholdCents }: { transacti
 }
 
 function MonthSpendingBlock({ data, today, thresholdCents, incomeVisible }: { data: AppData; today: string; thresholdCents: number; incomeVisible: boolean }) {
-  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents, data.properties, data.liabilities);
+  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents, data.properties, data.liabilities, data.calendarObligations);
   const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
   const income = monthlyIncomeCents(data.incomes, today);
   const ending = data.recurringExpenses.filter((e) => endingSoon(e, today));
