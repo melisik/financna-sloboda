@@ -33,6 +33,7 @@ export function buildBackup(data: AppData, exportedAt: string, attachments: Atta
     goals: data.goals,
     wasteRecords: data.wasteRecords,
     shoppingItems: data.shoppingItems,
+    calendarObligations: data.calendarObligations,
     attachments,
     budgets: data.budgets,
   };

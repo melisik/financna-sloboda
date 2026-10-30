@@ -48,6 +48,7 @@ export interface Transaction {
   currency?: string; // ISO 4217, napr. "USD"; bez hodnoty = EUR (D-340)
   exchangeRateToBase?: number; // jednotky cudzej meny za 1 EUR (napr. 1.05 pre USD); pozaduje currency
   originalAmountCents?: number; // suma v povodnej mene v centoch; pozaduje currency
+  calendarObligationId?: string; // prepojenie so splnenou povinnosťou z kalendára (D-342)
 }
 
 export interface Snapshot {
@@ -250,6 +251,7 @@ export interface RecurringExpense {
   amountCents: number; // kladná suma za jeden výskyt (mesiac alebo rok)
   startDate: string; // YYYY-MM-DD
   endDate?: string; // YYYY-MM-DD, bez hodnoty trvá
+  dayOfMonth?: number; // deň splatnosti v mesiaci 1–31; bez hodnoty = neurčený deň (D-342)
   createdAt: string;
   updatedAt: string;
 }
@@ -368,6 +370,28 @@ export interface Dog {
   updatedAt: string;
 }
 
+/** Stav kalendárnej povinnosti (D-342). */
+export const OBLIGATION_STATUSES = ["caka", "zaplatene", "po_splatnosti"] as const;
+export type ObligationStatus = (typeof OBLIGATION_STATUSES)[number];
+
+/** Finančná povinnosť v kalendári (D-342): jednorazová alebo odvodená z pravidelného výdavku. */
+export interface CalendarObligation {
+  id: string;
+  recurringExpenseId?: string;  // ak pochádza z pravidelného výdavku
+  occurrenceMonth?: string;     // YYYY-MM, ktorý výskyt (povinné ak recurringExpenseId)
+  name: string;                 // max 80 znakov
+  category: BudgetCategory;
+  amountCents: number;          // očakávaná suma, kladné celé centy
+  dueDate: string;              // YYYY-MM-DD – termín splatnosti (môže byť v budúcnosti)
+  note?: string;                // max 200 znakov
+  status: ObligationStatus;
+  paidDate?: string;            // YYYY-MM-DD, kedy označené ako zaplatené
+  transactionId?: string;       // prepojenie na transakciu po zaplatení
+  variableSymbol?: string;      // pre budúcu bankovú integráciu; max 10 znakov
+  createdAt: string;            // ISO
+  updatedAt: string;            // ISO
+}
+
 export interface AppData {
   settings: Settings | null;
   transactions: Transaction[];
@@ -385,6 +409,7 @@ export interface AppData {
   goals: InvestmentGoal[];
   wasteRecords: WasteRecord[];
   shoppingItems: ShoppingItem[];
+  calendarObligations: CalendarObligation[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */

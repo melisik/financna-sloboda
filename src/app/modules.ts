@@ -8,6 +8,7 @@
 export const CORE_SECTION_IDS = [
   "prehlad",
   "nova-transakcia",
+  "financny-kalendar",
   "scenar-vydavku",
   "mesacny-vydavok",
   "vyhodnotenie",

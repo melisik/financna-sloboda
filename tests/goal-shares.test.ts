@@ -79,7 +79,7 @@ describe("applyGoalShares (D-334)", () => {
 });
 
 describe("záloha a validácia podielov (D-334)", () => {
-  const empty = { settings: null, transactions: [], snapshots: [], properties: [], assets: [], liabilities: [], incomes: [], budgets: [], recurringExpenses: [], dogs: [], stockItems: [], recipes: [], wasteRecords: [], shoppingItems: [] };
+  const empty = { settings: null, transactions: [], snapshots: [], properties: [], assets: [], liabilities: [], incomes: [], budgets: [], recurringExpenses: [], dogs: [], stockItems: [], recipes: [], wasteRecords: [], shoppingItems: [], calendarObligations: [] };
   it("záloha v15 s goalId sa načíta ako podiel 100 %", () => {
     const old = { app: "financna-sloboda", schemaVersion: 15, exportedAt: "2026-10-26T10:00:00Z", ...empty, investments: [pos("a", 100, { goalId: "g1" })], goals: [goal("g1", 1000)] };
     const r = parseBackup(old, "2026-10-26");
@@ -135,7 +135,7 @@ describe("cieľ, do ktorého patrí nepriradený zvyšok (D-335)", () => {
     const { validateGoal } = await import("../src/storage/validate");
     expect(validateGoal({ ...goal("g1", 10), receivesRest: true })).toEqual([]);
     expect(validateGoal({ ...goal("g1", 10), receivesRest: "ano" }).join()).toMatch(/zvyšku/);
-    const two = parseBackup({ app: "financna-sloboda", schemaVersion: 16, exportedAt: "2026-10-26T10:00:00Z", settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [], recurringExpenses: [], dogs: [], stockItems: [], recipes: [], wasteRecords: [], shoppingItems: [], goals: [rest("a", 10), rest("b", 10)] }, "2026-10-26");
+    const two = parseBackup({ app: "financna-sloboda", schemaVersion: 16, exportedAt: "2026-10-26T10:00:00Z", settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [], recurringExpenses: [], dogs: [], stockItems: [], recipes: [], wasteRecords: [], shoppingItems: [], calendarObligations: [], goals: [rest("a", 10), rest("b", 10)] }, "2026-10-26");
     expect(two.ok).toBe(false);
   });
 });

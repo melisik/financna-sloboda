@@ -7,7 +7,7 @@ const base = { id: "p1", name: "Syntetický ETF", kind: "etf", quantity: 2, unit
 
 describe("poskytovateľ pri položke investície (D-329)", () => {
   it("schéma zálohy je 15 a staršie sa čítajú", () => {
-    expect(SCHEMA_VERSION).toBe(17);
+    expect(SCHEMA_VERSION).toBe(18);
     expect(READABLE_SCHEMA_VERSIONS).toContain(14);
     expect(READABLE_SCHEMA_VERSIONS).toContain(15);
   });
@@ -31,7 +31,7 @@ import { buildBackup, parseBackup } from "../src/storage/backup";
 import type { AppData } from "../src/storage/types";
 describe("záloha zachová poskytovateľa (D-329)", () => {
   it("export a import round trip", () => {
-    const data: AppData = { settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [{ ...base, kind: "etf", provider: { ico: "31340890", name: "365.bank, a. s." } } as never], liabilities: [], incomes: [], budgets: [], recurringExpenses: [], dogs: [], stockItems: [], recipes: [], goals: [], wasteRecords: [], shoppingItems: [] };
+    const data: AppData = { settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [{ ...base, kind: "etf", provider: { ico: "31340890", name: "365.bank, a. s." } } as never], liabilities: [], incomes: [], budgets: [], recurringExpenses: [], dogs: [], stockItems: [], recipes: [], goals: [], wasteRecords: [], shoppingItems: [], calendarObligations: [] };
     const parsed = parseBackup(JSON.parse(JSON.stringify(buildBackup(data, "2026-10-26T10:00:00Z"))), "2026-10-26");
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;

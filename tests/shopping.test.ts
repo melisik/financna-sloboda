@@ -13,7 +13,7 @@ const shop = (o: Partial<ShoppingItem> = {}): ShoppingItem => ({ id: "n1", name:
 const recipe: Recipe = { id: "r1", name: "Palacinky", ingredients: [{ stockItemId: "s1", quantity: 0.5, stockName: "Mlieko" }, { stockItemId: "s2", quantity: 3, stockName: "Vajcia" }], createdAt: TS, updatedAt: TS } as Recipe;
 const empty: AppData = {
   settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [],
-  recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [], shoppingItems: [],
+  recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [], shoppingItems: [], calendarObligations: [],
 };
 
 describe("kedy ponúknuť položku na zoznam", () => {
@@ -60,7 +60,7 @@ describe("úložisko a záloha", () => {
 
   it("záloha v14 obsahuje zoznam; staršia sa načíta s prázdnym", () => {
     const backup = buildBackup({ ...empty, shoppingItems: [shop()] }, TS) as { schemaVersion: number };
-    expect(backup.schemaVersion).toBe(17);
+    expect(backup.schemaVersion).toBe(18);
     expect(parseBackup(JSON.parse(JSON.stringify(backup)), "2026-10-25").data?.shoppingItems).toHaveLength(1);
     const { shoppingItems: _s, ...v13 } = { ...empty, app: "financna-sloboda", schemaVersion: 13, exportedAt: TS };
     expect(parseBackup(v13, "2026-10-25").data?.shoppingItems).toEqual([]);

@@ -3,7 +3,7 @@
  * Načíta DEMO_APP_DATA a drží ho v pamäti; všetky zápisy sú no-op.
  */
 import type { Repository } from "./repository";
-import type { AppData, Asset, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, Settings, ShoppingItem, Snapshot, StockItem, Transaction, WasteRecord } from "./types";
+import type { AppData, Asset, Attachment, Budget, CalendarObligation, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, Settings, ShoppingItem, Snapshot, StockItem, Transaction, WasteRecord } from "./types";
 import { DEMO_APP_DATA } from "./demoData";
 
 function cloneData(d: AppData): AppData {
@@ -78,6 +78,12 @@ export function createDemoRepository(): Repository {
       if (idx >= 0) data.recurringExpenses[idx] = e; else data.recurringExpenses.push(e);
     },
     async deleteRecurringExpense(id: string) { data.recurringExpenses = data.recurringExpenses.filter((x) => x.id !== id); },
+
+    async saveCalendarObligation(o: CalendarObligation) {
+      const idx = data.calendarObligations.findIndex((x) => x.id === o.id);
+      if (idx >= 0) data.calendarObligations[idx] = o; else data.calendarObligations.push(o);
+    },
+    async deleteCalendarObligation(id: string) { data.calendarObligations = data.calendarObligations.filter((x) => x.id !== id); },
 
     async saveStockItem(i: StockItem) {
       const idx = data.stockItems.findIndex((x) => x.id === i.id);

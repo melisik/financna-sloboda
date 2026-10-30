@@ -1,4 +1,4 @@
-import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings, WasteRecord, ShoppingItem } from "./types";
+import type { Asset, AppData, Attachment, Budget, CalendarObligation, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings, WasteRecord, ShoppingItem } from "./types";
 
 /** Rozhranie úložiska (05 §3): aplikácia a doména nevidia, či ide o IndexedDB. */
 export interface Repository {
@@ -28,6 +28,8 @@ export interface Repository {
   deleteBudget(id: string): Promise<void>;
   saveRecurringExpense(e: RecurringExpense): Promise<void>;
   deleteRecurringExpense(id: string): Promise<void>;
+  saveCalendarObligation(o: CalendarObligation): Promise<void>;
+  deleteCalendarObligation(id: string): Promise<void>;
   saveStockItem(i: StockItem): Promise<void>;
   deleteStockItem(id: string): Promise<void>;
   /** Zapíše zmenené množstvá skladu v jednej transakcii (uvarenie receptu, D-127). */

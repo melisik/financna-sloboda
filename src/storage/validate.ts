@@ -1,6 +1,6 @@
 import { WARN_DAY_OPTIONS, isValidBarcode } from "../domain/stock";
 import { isReceiptId } from "../domain/receipt";
-import { ASSET_KINDS, ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, type AppData, type Dog, type InvestmentGoal, type Recipe, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type WasteRecord, type ShoppingItem, type Settings, type Snapshot, type Transaction } from "./types";
+import { ASSET_KINDS, ATTACHMENT_MAX_BYTES, ATTACHMENT_TYPES, BUDGET_CATEGORIES, DOG_KEEPING_PLACES, DOG_PURPOSES, RENTAL_ENTRY_KINDS, INCOME_FREQUENCIES, INCOME_KINDS, INVESTMENT_KINDS, LIABILITY_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES, RECURRING_FREQUENCIES, SOURCES, STOCK_UNITS, TAX_REGIMES, TRANSACTION_TYPES, OBLIGATION_STATUSES, type AppData, type CalendarObligation, type Dog, type InvestmentGoal, type Recipe, type Asset, type Budget, type Liability, type Position, type Property, type RecurringExpense, type RegularIncome, type StockItem, type WasteRecord, type ShoppingItem, type Settings, type Snapshot, type Transaction } from "./types";
 
 export type Check = { ok: true } | { ok: false; errors: string[] };
 
@@ -30,7 +30,8 @@ const isCents = (v: unknown) => typeof v === "number" && Number.isInteger(v) && 
 export function validateTransaction(t: unknown, today: string, label = "transakcia"): string[] {
   if (typeof t !== "object" || t === null || Array.isArray(t)) return [`${label}: musí byť objekt`];
   const o = t as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "date", "type", "amountCents", "source", "belowThreshold", "note", "category", "receiptId", "receiptItems", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "date", "type", "amountCents", "source", "belowThreshold", "note", "category", "receiptId", "receiptItems", "createdAt", "updatedAt", "calendarObligationId"], label);
+  if (o.calendarObligationId !== undefined && (typeof o.calendarObligationId !== "string" || o.calendarObligationId.length === 0)) errors.push(`${label}: calendarObligationId musí byť text`);
   if (o.receiptId !== undefined && (o.type !== "vydavok" || !isReceiptId(o.receiptId))) errors.push(`${label}: číslo dokladu patrí len k výdavku a má 20 až 40 znakov`);
   if (o.receiptItems !== undefined) {
     if (o.type !== "vydavok" || !Array.isArray(o.receiptItems)) errors.push(`${label}: položky dokladu patria len k výdavku`);
@@ -347,7 +348,8 @@ export function validateRecipe(r: unknown, label = "recept"): string[] {
 function validateRecurringExpense(e: unknown, label = "pravidelný výdavok"): string[] {
   if (typeof e !== "object" || e === null || Array.isArray(e)) return [`${label}: musí byť objekt`];
   const o = e as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "category", "frequency", "amountCents", "startDate", "endDate", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "category", "frequency", "amountCents", "startDate", "endDate", "dayOfMonth", "createdAt", "updatedAt"], label);
+  if (o.dayOfMonth !== undefined && !(Number.isInteger(o.dayOfMonth) && (o.dayOfMonth as number) >= 1 && (o.dayOfMonth as number) <= 31)) errors.push(`${label}: deň splatnosti musí byť 1 až 31`);
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
   if (!(BUDGET_CATEGORIES as readonly unknown[]).includes(o.category)) errors.push(`${label}: kategória musí byť z rozpočtu`);
@@ -407,11 +409,33 @@ export function validateSettings(s: unknown, today: string): string[] {
   return errors;
 }
 
+export function validateCalendarObligation(c: unknown, label = "povinnosť"): string[] {
+  if (typeof c !== "object" || c === null || Array.isArray(c)) return [`${label}: musí byť objekt`];
+  const o = c as Record<string, unknown>;
+  const errors = unknownKeys(o, ["id", "recurringExpenseId", "occurrenceMonth", "name", "category", "amountCents", "dueDate", "note", "status", "paidDate", "transactionId", "variableSymbol", "createdAt", "updatedAt"], label);
+  if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
+  if (typeof o.name !== "string" || o.name.trim().length === 0 || o.name.length > 80) errors.push(`${label}: názov je povinný, max 80 znakov`);
+  if (!(BUDGET_CATEGORIES as readonly unknown[]).includes(o.category)) errors.push(`${label}: kategória musí byť z katalógu`);
+  if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť kladné celé číslo v centoch`);
+  // Termín splatnosti môže byť v budúcnosti (napr. budúci mesiac).
+  errors.push(...checkDate(o.dueDate, "9999-12-31", `${label}: termín splatnosti`));
+  if (!(OBLIGATION_STATUSES as readonly unknown[]).includes(o.status)) errors.push(`${label}: stav musí byť caka, zaplatene alebo po_splatnosti`);
+  if (o.note !== undefined && (typeof o.note !== "string" || o.note.length > 200)) errors.push(`${label}: poznámka max 200 znakov`);
+  if (o.paidDate !== undefined) errors.push(...checkDate(o.paidDate, "9999-12-31", `${label}: dátum platby`));
+  if (o.transactionId !== undefined && (typeof o.transactionId !== "string" || o.transactionId.length === 0)) errors.push(`${label}: odkaz na transakciu musí byť text`);
+  if (o.recurringExpenseId !== undefined && (typeof o.recurringExpenseId !== "string" || o.recurringExpenseId.length === 0)) errors.push(`${label}: odkaz na pravidelný výdavok musí byť text`);
+  if (o.recurringExpenseId !== undefined && o.occurrenceMonth === undefined) errors.push(`${label}: mesiac výskytu je povinný pri odkaze na pravidelný výdavok`);
+  if (o.occurrenceMonth !== undefined && (typeof o.occurrenceMonth !== "string" || !/^\d{4}-\d{2}$/.test(o.occurrenceMonth as string))) errors.push(`${label}: mesiac výskytu musí mať tvar RRRR-MM`);
+  if (o.variableSymbol !== undefined && (typeof o.variableSymbol !== "string" || o.variableSymbol.length > 10)) errors.push(`${label}: variabilný symbol max 10 znakov`);
+  if (typeof o.createdAt !== "string" || typeof o.updatedAt !== "string") errors.push(`${label}: chýba čas vytvorenia alebo úpravy`);
+  return errors;
+}
+
 /** Overí celý obsah zálohy. Pri chybe sa nič nezapíše (FR-18). */
 export function validateAppData(d: unknown, today: string): Check & { data?: AppData } {
   if (typeof d !== "object" || d === null || Array.isArray(d)) return { ok: false, errors: ["záloha musí byť objekt"] };
   const o = d as Record<string, unknown>;
-  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs", "goals", "wasteRecords", "shoppingItems"], "záloha");
+  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs", "goals", "wasteRecords", "shoppingItems", "calendarObligations"], "záloha");
   if (o.settings !== null && o.settings !== undefined) errors.push(...validateSettings(o.settings, today));
   if (!Array.isArray(o.transactions)) errors.push("záloha: transactions musí byť pole");
   else o.transactions.forEach((t, i) => errors.push(...validateTransaction(t, today, `transakcia ${i + 1}`)));
@@ -456,6 +480,10 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
   if (!Array.isArray(o.goals)) errors.push("záloha: goals musí byť pole");
   else o.goals.forEach((g, n) => errors.push(...validateGoal(g, `cieľ ${n + 1}`)));
   const goalList = Array.isArray(o.goals) ? (o.goals as unknown[]) : [];
+  if (o.calendarObligations !== undefined) {
+    if (!Array.isArray(o.calendarObligations)) errors.push("záloha: calendarObligations musí byť pole");
+    else o.calendarObligations.forEach((c, n) => errors.push(...validateCalendarObligation(c, `povinnosť ${n + 1}`)));
+  }
   const goalIds = new Set(ids(goalList));
   for (const p of investmentList) {
     const goalId = (p as { goalId?: unknown }).goalId;
@@ -489,6 +517,7 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
       goals: o.goals as InvestmentGoal[],
       wasteRecords: o.wasteRecords as WasteRecord[],
       shoppingItems: o.shoppingItems as ShoppingItem[],
+      calendarObligations: Array.isArray(o.calendarObligations) ? (o.calendarObligations as CalendarObligation[]) : [],
     },
   };
 }

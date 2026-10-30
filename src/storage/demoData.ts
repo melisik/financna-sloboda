@@ -115,4 +115,5 @@ export const DEMO_APP_DATA: AppData = {
   goals: [],
   wasteRecords: [],
   shoppingItems: [],
+  calendarObligations: [],
 };
