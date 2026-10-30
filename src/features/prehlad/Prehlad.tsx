@@ -43,6 +43,14 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
       ? goalDateShift({ previous, latestDate: ctx.latest.date, capital: ctx.evaluated, mInv: ctx.mInv, mCash: ctx.mCash, rate: ctx.realReturn, targetCents: ctx.target, rentals: ctx.rentals })
       : null;
   const threshold = ctx.settings?.thresholdCents ?? recommendedSettings(0).thresholdCents;
+  // Hlavná akcia je hneď pod ukazovateľom pokroku, aby bola na telefóne vidieť bez posúvania (D-283).
+  const addTransaction = (
+    <p style={{ margin: "12px 0 16px" }}>
+      <a href="#nova-transakcia" style={{ ...btnPrimary, marginTop: 0 }}>
+        Pridať transakciu
+      </a>
+    </p>
+  );
   // Poradie (D-283, docs/43 A1): cieľ a pokrok, hlavná akcia, upozornenia, potom mesiac a týždeň.
   return (
     <div>
@@ -64,6 +72,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
             <div style={{ width: `${progress.percent}%`, height: "100%", background: "var(--primary-bg)" }} />
           </div>
           {shift && <p style={{ margin: "4px 0" }}>{shiftLine(shift)}</p>}
+          {addTransaction}
           <Milestones
             capitalCents={ctx.evaluated.inv + ctx.evaluated.cash}
             targetCents={ctx.target}
@@ -109,13 +118,9 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
         <>
           {ctx.target !== null && <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p>}
           {!ctx.latest && <p>Urob prvé vyhodnotenie. Dátum cieľa sa zobrazí po ňom. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
+          {addTransaction}
         </>
       )}
-      <p style={{ margin: "12px 0 16px" }}>
-        <a href="#nova-transakcia" style={{ ...btnPrimary, marginTop: 0 }}>
-          Pridať transakciu
-        </a>
-      </p>
       {investmentsVisible && goalSummaries(data.investments, data.goals).length > 0 && (
         <div style={{ margin: "0 0 12px" }}>
           <p style={{ margin: "0 0 4px", fontWeight: 600 }}>Ciele investícií</p>
