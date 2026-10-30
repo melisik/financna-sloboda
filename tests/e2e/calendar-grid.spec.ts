@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { goTo, localIsoDay, openApp } from "./helpers";
 
@@ -182,3 +183,98 @@ test.describe("Mesačná mriežka kalendára (D-345)", () => {
     await expect(s.getByRole("region", { name: "Detail dňa" }).locator("li", { hasText: "Nájom test" })).toContainText("čaká na úhradu");
   });
 });
+
+/** V prehliadači: skutočný kontrast prvku z vypočítaných farieb vrátane priehľadnosti predkov (opacity sa premieta do farby textu aj pozadia). */
+const MEASURE = (el: Element) => {
+  const ctx = document.createElement("canvas").getContext("2d")!;
+  const rgba = (c: string): [number, number, number, number] => {
+    ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = "#000"; ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1);
+    const d = ctx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255];
+  };
+  const over = (f: number[], b: number[], a: number) => [0, 1, 2].map((i) => f[i] * a + b[i] * (1 - a));
+  // zložené pozadie smerom nahor od prvku `from` (vrátane) po prvé nepriehľadné; základ je biela
+  const backdrop = (from: Element | null) => {
+    const layers: [number, number, number, number][] = [];
+    for (let e = from; e; e = e.parentElement) {
+      const c = rgba(getComputedStyle(e).backgroundColor);
+      if (c[3] > 0) layers.push(c);
+      if (c[3] === 1) break;
+    }
+    let bg = [255, 255, 255]; for (const l of layers.reverse()) bg = over(l, bg, l[3]); return bg;
+  };
+  let bg = backdrop(el);
+  let fg = (() => { const f = rgba(getComputedStyle(el).color); return over(f, bg, f[3]); })();
+  let opacity = 1;
+  for (let e: Element | null = el; e; e = e.parentElement) {
+    const a = Number(getComputedStyle(e).opacity);
+    if (a < 1) { // celý podstrom sa skladá s priehľadnosťou a nad pozadím rodiča
+      const beneath = backdrop(e.parentElement);
+      fg = over(fg, beneath, a); bg = over(bg, beneath, a); opacity *= a;
+    }
+  }
+  const lum = (c: number[]) => { const t = c.map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }); return 0.2126 * t[0] + 0.7152 * t[1] + 0.0722 * t[2]; };
+  const a = lum(fg), b = lum(bg);
+  return { ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05), opacity, fg: fg.map(Math.round).join(","), bg: bg.map(Math.round).join(",") };
+};
+
+// Povinnosti v tlmených bunkách susedného mesiaca musia byť čitateľné (WCAG 1.4.3: 4,5 : 1) vo svetlom aj tmavom režime.
+// Pevný dnešok 4. 9. 2026: dni 1.–6. 9. sú v mriežke augusta 2026 „susedný mesiac“, 4. 9. je dnešok, 2. a 3. 9. sú po termíne, 5. 9. ešte čaká.
+for (const scheme of ["light", "dark"] as const) {
+  test.describe(`Kontrast v bunkách susedného mesiaca (${scheme}, D-345)`, () => {
+    test.use({ colorScheme: scheme });
+
+    test("názov, suma, „+N ďalších“, číslo dňa aj dnešok majú aspoň 4,5 : 1 (vrátane priehľadnosti predkov)", async ({ page }) => {
+      test.skip(!isWide(page), "chipy s názvom a sumou sa zobrazujú od 700 px");
+      test.setTimeout(120_000);
+      await page.clock.setFixedTime(new Date("2026-09-04T10:00:00"));
+      await openApp(page);
+      await goTo(page, "financny-kalendar");
+      const s = cal(page);
+      await addOnDay(page, "2026-09-02", "Po termíne B", "40");
+      await addOnDay(page, "2026-09-02", "Po termíne C", "50");
+      await addOnDay(page, "2026-09-02", "Po termíne E", "60");
+      await addOnDay(page, "2026-09-03", "Zaplatená A", "30");
+      await addOnDay(page, "2026-09-05", "Čaká D", "70");
+      await day(page, "2026-09-03").click();
+      await s.getByRole("region", { name: "Detail dňa" }).locator("li", { hasText: "Zaplatená A" }).getByRole("button", { name: "Zaplatené" }).click();
+      await s.getByRole("group", { name: "Potvrdenie vytvorenia transakcie" }).getByRole("button", { name: "Vytvoriť transakciu a označiť ako zaplatené" }).click();
+      await expect(s.getByRole("region", { name: "Detail dňa" }).locator("li", { hasText: "Zaplatená A" }).getByText("prepojená s transakciou")).toBeVisible();
+
+      await gotoMonth(page, "2026-08");
+      await expect(s.getByRole("gridcell")).toHaveCount(42);
+      await expect(s.locator("strong").filter({ hasText: /\d{4}/ }).first()).toHaveText("August 2026");
+
+      const grid = s.getByRole("grid");
+      const targets: [string, ReturnType<Page["locator"]>][] = [
+        ["chip po splatnosti", grid.locator('button[title*="po splatnosti"]')],
+        ["chip zaplatené", grid.locator('button[title*="zaplatené"]')],
+        ["chip čaká", grid.locator('button[title*="čaká na úhradu"]')],
+        ["+N ďalších", grid.getByText("+1 ďalších")],
+        ["číslo dňa mimo mesiaca (bez povinnosti)", day(page, "2026-07-29")],
+        ["číslo dňa mimo mesiaca (s povinnosťou)", day(page, "2026-09-03")],
+        ["dnešok v susednom mesiaci", day(page, "2026-09-04")],
+      ];
+      const report: string[] = []; const bad: string[] = [];
+      for (const [name, loc] of targets) {
+        const n = await loc.count();
+        if (n === 0) { bad.push(`${name}: nevykreslené`); continue; }
+        for (let i = 0; i < n; i++) {
+          const m = await loc.nth(i).evaluate(MEASURE);
+          report.push(`${name}#${i}: ${m.ratio.toFixed(2)} : 1, priehľadnosť ${m.opacity}`);
+          if (m.ratio < 4.5) bad.push(`${name}#${i}: kontrast ${m.ratio.toFixed(2)} : 1 (fg ${m.fg}, bg ${m.bg})`);
+        }
+      }
+      test.info().annotations.push({ type: "kontrasty", description: report.join(" | ") });
+      expect(bad, `${bad.join("\n")}\n--- namerané:\n${report.join("\n")}`).toEqual([]);
+
+      // Susedný mesiac zostáva odlíšený: iné pozadie bunky a stlmené číslo dňa oproti dňu v mesiaci.
+      const look = (date: string) => day(page, date).evaluate((b) => { const c = b.closest('[role="gridcell"]')!; return { cell: getComputedStyle(c).backgroundColor, num: getComputedStyle(b).color }; });
+      const out = await look("2026-07-29"), inn = await look("2026-08-12");
+      expect(out.cell, "pozadie bunky mimo mesiaca sa nelíši od bunky v mesiaci").not.toBe(inn.cell);
+      expect(out.num, "číslo dňa mimo mesiaca nie je stlmené").not.toBe(inn.num);
+
+      const axe = await new AxeBuilder({ page }).include('[role="grid"]').withRules(["color-contrast"]).analyze();
+      expect(axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
+    });
+  });
+}

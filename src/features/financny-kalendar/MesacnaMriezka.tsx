@@ -73,7 +73,6 @@ export function MesacnaMriezka({ month, weeks, byDate, today, selected, compact,
                     borderTop: "1px solid var(--border-soft)",
                     borderLeft: d.weekday === 0 ? "none" : "1px solid var(--border-soft)",
                     background: d.inMonth ? "var(--surface)" : "var(--surface-2)",
-                    opacity: d.inMonth ? 1 : 0.65,
                     outline: isSel ? "2px solid var(--focus)" : "none",
                     outlineOffset: -2,
                     cursor: "pointer",
@@ -97,7 +96,7 @@ export function MesacnaMriezka({ month, weeks, byDate, today, selected, compact,
                       minWidth: 26, height: 26, padding: "0 4px", borderRadius: 13, border: "none", cursor: "pointer",
                       font: "inherit", fontSize: "0.85em", fontWeight: isToday || isSel ? 700 : 400,
                       background: isToday ? "var(--primary-bg)" : "transparent",
-                      color: isToday ? "var(--primary-text)" : "var(--text)",
+                      color: isToday ? "var(--primary-text)" : d.inMonth ? "var(--text)" : "var(--muted)",
                     }}
                   >
                     {d.day}
