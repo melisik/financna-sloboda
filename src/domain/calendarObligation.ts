@@ -29,6 +29,16 @@ function dueDateInMonth(month: string, dayOfMonth: number | undefined): string {
   return `${month}-${String(day).padStart(2, "0")}`;
 }
 
+/**
+ * Dátum splatnosti pravidelného výdavku v mesiaci. Nastavený deň (`dayOfMonth`) sa nikdy nemení: v kratšom mesiaci
+ * sa len použije posledný deň mesiaca (31. -> 28./29./30.). Bez nastaveného dňa: ročný výdavok má deň zo `startDate`
+ * (mesiac sa už teraz berie zo `startDate`), mesačný koniec mesiaca (staršie záznamy bez `dayOfMonth` sa správajú ako doteraz).
+ */
+export function recurringDueDate(e: RecurringExpense, month: string): string {
+  const day = e.dayOfMonth ?? (e.frequency === "rocne" ? Number(e.startDate.slice(8, 10)) : undefined);
+  return dueDateInMonth(month, day);
+}
+
 /** Ročný výdavok nastáva v mesiaci, keď bol startDate. */
 function annualOccursInMonth(e: RecurringExpense, month: string): boolean {
   return e.startDate.slice(5, 7) === month.slice(5, 7);
@@ -82,7 +92,7 @@ export function generateFromRecurring(
         name: e.name,
         category: e.category as BudgetCategory,
         amountCents: e.amountCents,
-        dueDate: dueDateInMonth(month, e.dayOfMonth),
+        dueDate: recurringDueDate(e, month),
         status: "caka",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

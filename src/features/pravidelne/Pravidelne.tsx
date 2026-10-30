@@ -85,7 +85,7 @@ export function RecurringSection({ repo, items, today, onSaved }: { repo: Reposi
             {e.frequency === "rocne" ? ` (≈ ${eur(monthlyShareCents(e))} mesačne)` : ""}
           </p>
           <p style={{ ...hintStyle, margin: "4px 0" }}>
-            Od {dateSk(e.startDate)}{e.endDate ? `, do ${dateSk(e.endDate)}` : ""}{isRecurringActive(e, today) ? "" : " · dnes neplatí"}
+            Od {dateSk(e.startDate)}{e.endDate ? `, do ${dateSk(e.endDate)}` : ""}{isRecurringActive(e, today) ? "" : " · dnes neplatí"}{e.dayOfMonth !== undefined ? ` · splatnosť ${e.dayOfMonth}. v mesiaci` : ""}
           </p>
           {endingSoon(e, today) && (
             <p style={{ margin: "4px 0", color: "var(--danger)", fontSize: "var(--font-small)" }}>Koniec platnosti o menej ako 30 dní. Ak sa platba obnoví, upravte koniec.</p>
@@ -117,8 +117,9 @@ function RecurringForm({ repo, initial, today, onDone, onCancel, actions }: { re
   const [amount, setAmount] = useState<NumIn>(initial ? initial.amountCents / 100 : "");
   const [startDate, setStartDate] = useState(initial?.startDate ?? today);
   const [endDate, setEndDate] = useState(initial?.endDate ?? "");
+  const [day, setDay] = useState<NumIn>(initial?.dayOfMonth ?? "");
   const dirty = initial !== null && (name !== initial.name || category !== initial.category || frequency !== initial.frequency
-    || Math.round(asNum(amount) * 100) !== initial.amountCents || startDate !== initial.startDate || endDate !== (initial.endDate ?? ""));
+    || Math.round(asNum(amount) * 100) !== initial.amountCents || startDate !== initial.startDate || endDate !== (initial.endDate ?? "") || day !== (initial.dayOfMonth ?? ""));
   const [err, setErr] = useState<string | null>(null);
 
   const save = async () => {
@@ -134,6 +135,8 @@ function RecurringForm({ repo, initial, today, onDone, onCancel, actions }: { re
       if (endErr.length) return setErr(endErr[0]);
       if (endDate.trim() < startDate) return setErr("Koniec nesmie byť pred začiatkom.");
     }
+    const dayNum = asNum(day);
+    if (day !== "" && !(Number.isInteger(dayNum) && dayNum >= 1 && dayNum <= 31)) return setErr("Deň splatnosti musí byť celé číslo od 1 do 31.");
     const now = new Date().toISOString();
     const item: RecurringExpense = {
       id: initial?.id ?? uid(),
@@ -145,6 +148,7 @@ function RecurringForm({ repo, initial, today, onDone, onCancel, actions }: { re
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
       ...(endDate.trim() !== "" ? { endDate: endDate.trim() } : {}),
+      ...(day !== "" ? { dayOfMonth: dayNum } : {}),
     };
     try {
       await repo.saveRecurringExpense(item);
@@ -173,6 +177,7 @@ function RecurringForm({ repo, initial, today, onDone, onCancel, actions }: { re
       <Field label={frequency === "mesacne" ? "Suma mesačne (€)" : "Suma ročne (€)"} value={amount} onChange={setAmount} />
       <Field label="Od" value={startDate} type="date" onChange={setStartDate} />
       <Field label="Do (nepovinné)" value={endDate} type="date" onChange={setEndDate} hint="bez hodnoty trvá" />
+      <Field label="Deň splatnosti v mesiaci (nepovinné)" value={day} onChange={setDay} step={1} inputMode="numeric" hint={frequency === "rocne" ? "bez hodnoty sa použije deň z poľa Od; v kratšom mesiaci posledný deň" : "bez hodnoty koniec mesiaca; v kratšom mesiaci posledný deň"} />
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>Uložiť výdavok</button>{" "}
       <button onClick={onCancel} style={btn}>Zrušiť</button>
