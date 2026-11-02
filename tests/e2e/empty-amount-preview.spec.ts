@@ -20,7 +20,7 @@ test.describe("predbežný dopad pri prázdnej sume", () => {
     await expect(page.getByText("bez zmeny")).toHaveCount(0);
 
     await page.getByLabel("Zdroj úhrady").selectOption("z_investicii");
-    await page.getByLabel("Suma (€)").fill("150");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("150");
     await expect(page.getByText("Zadaj sumu, aby sa ukázal predbežný dopad.")).toHaveCount(0);
     await expect(page.getByText("Predbežný dopad:")).toBeVisible();
   });

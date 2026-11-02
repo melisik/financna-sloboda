@@ -31,14 +31,14 @@ test.describe("rozpočet: použiteľnosť", () => {
     await expect(page.getByText("Plán ešte nie je nastavený.")).toHaveCount(0);
 
     await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("20");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("20");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await goTo(page, "rozpocet");
     await expect(page.getByText(/Prekročené/)).toHaveCount(0);
 
     await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("120");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("120");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await goTo(page, "rozpocet");

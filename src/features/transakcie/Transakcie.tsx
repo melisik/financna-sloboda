@@ -12,6 +12,7 @@ import { impactWithRentals } from "../../domain/rentalGoal";
 import { formatImpactOutcome } from "../../domain/impact";
 import { RECEIPT_CHECK_URL, isReceiptId, receiptIdFromQr } from "../../domain/receipt";
 import { recommendedSettings } from "../../domain/recommendations";
+import { convertToBase, BASE_CURRENCY } from "../../domain/currency";
 import { cents, dateSk, eur, todayIso } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
@@ -35,21 +36,24 @@ const SOURCE_LABEL: Record<Source, string> = { z_prijmu: "z príjmu", z_hotovost
 const canUseCamera = (): boolean => typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getUserMedia === "function";
 
 export function TransactionSection({ repo, data, ctx, onChanged, renderAttachments, renderStockTransfer, stockModuleOff }: { repo: Repository; data: AppData; ctx: Ctx; onChanged: () => void; renderAttachments: (transactionId: string) => ReactNode; renderStockTransfer?: (t: Transaction) => ReactNode; stockModuleOff?: boolean }) {
-  const [type, setType] = useState<TransactionType>("vydavok");
-  const [amount, setAmount] = useState<NumIn>("");
+  const [type, setType] = useState<TransactionType>('vydavok');
+  const [amount, setAmount] = useState<NumIn>('');
   const [date, setDate] = useState(todayIso());
-  // Predvolený zdroj výdavku je „z príjmu“ (D-014, D-288).
-  const [source, setSource] = useState<Source>("z_prijmu");
-  const [category, setCategory] = useState<BudgetCategory | "">("");
-  const [note, setNote] = useState("");
-  const [receiptId, setReceiptId] = useState("");
+  // Predvoleny zdroj vydavku je z prijmu (D-014, D-288).
+  const [source, setSource] = useState<Source>('z_prijmu');
+  const [category, setCategory] = useState<BudgetCategory | ''>('');
+  const [note, setNote] = useState('');
+  const [receiptId, setReceiptId] = useState('');
   const [qrMsg, setQrMsg] = useState<string | null>(null);
   const [cameraOn, setCameraOn] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [undo, setUndo] = useState<Transaction | null>(null);
   const [undoAtt, setUndoAtt] = useState<Attachment[]>([]);
-  // Doklad (QR kód, položky) je zbalený, kým ho používateľ neotvorí alebo v ňom niečo nie je (D-286).
+  // D-340: Multi Currency - currency and exchange rate
+  const [currency, setCurrency] = useState<string>(BASE_CURRENCY);
+  const [exchangeRateToBase, setExchangeRateToBase] = useState<NumIn>('');
+  // Doklad (QR kod, polozky) je zbaleny, kym ho uzivatel neotvorí alebo v nom niecco nie je (D-286).
   const [docOpen, setDocOpen] = useState(false);
   const [fType, setFType] = useState<"all" | TransactionType>("all");
   const [fFrom, setFFrom] = useState("");
@@ -200,6 +204,8 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     setCategory("");
     setAmount("");
     setDate(todayIso());
+    setCurrency(BASE_CURRENCY);
+    setExchangeRateToBase("");
     setErr(null);
     setDocOpen(false);
     setConfirmDeleteId(null);
@@ -208,7 +214,17 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   const startEdit = (t: Transaction) => {
     setEditingId(t.id);
     setType(t.type);
-    setAmount(t.amountCents / 100);
+    // Ak transakcia má originalAmountCents (t.j. je v cudzej mene), zobrazíme pôvodnú sumu a kurz (D-340).
+    // Inak zobrazíme amountCents ako EUR.
+    if (t.originalAmountCents !== undefined && t.currency !== undefined && t.currency !== BASE_CURRENCY) {
+      setAmount(t.originalAmountCents / 100);
+      setCurrency(t.currency);
+      setExchangeRateToBase(t.exchangeRateToBase ?? "");
+    } else {
+      setAmount(t.amountCents / 100);
+      setCurrency(BASE_CURRENCY);
+      setExchangeRateToBase("");
+    }
     setDate(t.date);
     setSource(t.source ?? "z_prijmu");
     setCategory(t.category ?? "");
@@ -270,6 +286,20 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
     const a = byItems ? allItems.reduce((sum, i) => sum + i.amountCents, 0) / 100 : asNum(amount);
     if (byItems && allItems.length === 0) return setErr("Pridaj aspoň jednu položku.");
     if (Number.isNaN(a) || !(a > 0)) return setErr(byItems ? "Súčet položiek musí byť kladný." : "Suma musí byť kladná.");
+
+    // D-340: Multi Currency - validacia a prepocet na zakladnu menu.
+    let amountCentsInBase = cents(a);
+    const isForeignCurrency = currency && currency !== BASE_CURRENCY;
+    if (isForeignCurrency) {
+      const rate = asNum(exchangeRateToBase);
+      if (!Number.isFinite(rate) || rate <= 0) return setErr(`Kurz musi byt kladne cislo. Napriklad: 1,05 pre USD (1,05 USD = 1 EUR).`);
+      try {
+        amountCentsInBase = convertToBase(cents(a), rate);
+      } catch (e) {
+        return setErr(`Chyba pri prepočte: ${e instanceof Error ? e.message : "neznáma chyba"}`);
+      }
+    }
+
     const dateErr = checkDate(date, todayIso(), "dátum");
     if (dateErr.length) return setErr(dateErr[0]);
     const c = check();
@@ -280,26 +310,27 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
       return setErr("Potvrď, že investície sa vyčerpajú.");
     }
     const existing = editingId ? data.transactions.find((x) => x.id === editingId) : undefined;
-    const excess = type === "vydavok" && source === "z_investicii" && c.needsConfirm ? cents(a) - base.capital.inv : 0;
+    const excess = type === "vydavok" && source === "z_investicii" && c.needsConfirm ? amountCentsInBase - base.capital.inv : 0;
     const noteText = [note, excess > 0 ? `prečerpanie ${eur(excess)} nad hodnotu investícií` : ""].filter(Boolean).join("; ");
     const receipt = receiptId.trim();
     if (type === "vydavok" && receipt !== "" && !isReceiptId(receipt)) return setErr("Číslo dokladu má 20 až 40 znakov: písmená, číslice a pomlčky.");
     const receiptItems = byItems ? allItems : undefined;
     // Len pri novom výdavku; pri úprave existujúceho by upozornenie len zdržiavalo.
     if (type === "vydavok" && !existing && !confirmedRecurring) {
-      const match = matchingRecurring(data.recurringExpenses, { date, category: category === "" ? undefined : category, amountCents: cents(a) });
+      const match = matchingRecurring(data.recurringExpenses, { date, category: category === "" ? undefined : category, amountCents: amountCentsInBase });
       if (match) { setErr(null); return setRecurringMatch(match); }
     }
     const t: Transaction = {
       id: existing?.id ?? uid(),
       date,
       type,
-      amountCents: cents(a),
+      amountCents: amountCentsInBase,
       ...(needsSource ? { source } : {}),
       ...(type === "vydavok" && category !== "" ? { category } : {}),
       ...(noteText ? { note: noteText.slice(0, 200) } : {}),
       ...(type === "vydavok" && receipt !== "" ? { receiptId: receipt } : {}),
       ...(receiptItems && receiptItems.length > 0 ? { receiptItems } : {}),
+      ...(isForeignCurrency ? { currency, exchangeRateToBase: asNum(exchangeRateToBase), originalAmountCents: cents(a) } : {}),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -371,7 +402,35 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
           )}
         </div>
       )}
-      {!byItems && <Field label="Suma (€)" value={amount} onChange={setAmount} />}
+      {!byItems && (
+        <div>
+          <Field label={`Suma (${currency})`} value={amount} onChange={setAmount} />
+          {/* D-340: Multi Currency - výber meny a kurz. */}
+          <label style={{ display: "block", margin: "8px 0" }}>
+            <span style={{ display: "block", fontSize: "var(--font-small)" }}>Mena (D-340)</span>
+            <select aria-label="Mena transakcie" value={currency} onChange={(e) => { setCurrency(e.target.value); if (e.target.value === BASE_CURRENCY) setExchangeRateToBase(""); }} style={inp}>
+              <option value="EUR">EUR – Eur</option>
+              <option value="USD">USD – Americký dolár</option>
+              <option value="CZK">CZK – Česká koruna</option>
+              <option value="GBP">GBP – Britská libra</option>
+              <option value="CHF">CHF – Švajčiarsky frank</option>
+              <option value="HUF">HUF – Maďarský forint</option>
+              <option value="PLN">PLN – Poľský zloty</option>
+              <option value="RON">RON – Rumunský lei</option>
+              <option value="RUB">RUB – Ruský rubeľ</option>
+              <option value="TRY">TRY – Turecká lira</option>
+              <option value="UAH">UAH – Ukrajinská hrivňa</option>
+              <option value="CNY">CNY – Čínsky juan</option>
+              <option value="JPY">JPY – Japonský jen</option>
+              <option value="AUD">AUD – Austrálsky dolár</option>
+            </select>
+          </label>
+          {currency !== BASE_CURRENCY && (
+            <Field label={`Kurz (jednotiek ${currency} za 1 EUR)`} value={exchangeRateToBase} onChange={setExchangeRateToBase}
+              hint={`Napríklad: pre USD pri kurze 1 EUR = 1,05 USD, zadaj 1,05`} />
+          )}
+        </div>
+      )}
       {byItems && (
         <div style={{ margin: "8px 0" }}>
           {items.length > 0 && (

@@ -29,7 +29,7 @@ test.describe("prečerpanie investícií v Prehľade (nález 3, D-059, D-167)", 
 
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Zdroj úhrady").selectOption("z_investicii");
-    await page.getByLabel("Suma (€)").fill("150");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("150");
     await page.getByLabel("Rozumiem, investície sa vyčerpajú a ich hodnota bude 0 €.").check();
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 

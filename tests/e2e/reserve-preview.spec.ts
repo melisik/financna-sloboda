@@ -21,10 +21,10 @@ test.describe("vklad do rezervy: náhľad", () => {
 
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Typ transakcie").selectOption("rezerva");
-    await page.getByLabel("Suma (€)").fill("100");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("100");
     await expect(page.getByText("Vklad do rezervy zníži kapitál pre cieľ o 100,00 €; peniaze zostávajú v rezerve.")).toBeVisible();
 
-    await page.getByLabel("Suma (€)").fill("2000");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("2000");
     await expect(page.getByText("Hotovosť nestačí na vklad do rezervy.")).toBeVisible();
   });
 });

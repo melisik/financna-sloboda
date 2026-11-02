@@ -173,7 +173,7 @@ test.describe("usporiadanie obrazoviek", () => {
     await goTo(page, "nova-transakcia");
     const s = page.locator("section#nova-transakcia");
     await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
-    await s.getByLabel("Suma (€)").fill("650");
+    await s.getByLabel(/^Suma \((€|EUR)\)$/).fill("650");
     await s.getByLabel("Kategória").selectOption("bývanie");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(s.getByText("Toto vyzerá ako pravidelný výdavok „Nájom“, ktorý sa už ráta automaticky každý mesiac.")).toBeVisible();
@@ -181,7 +181,7 @@ test.describe("usporiadanie obrazoviek", () => {
     await s.getByRole("button", { name: "Neukladať" }).click();
     await expect(s.getByText(/ktorý sa už ráta automaticky/)).toHaveCount(0);
     await expect(s.getByText(/Súčet všetkých transakcií \(23\):/)).toBeVisible();
-    await s.getByLabel("Suma (€)").fill("650");
+    await s.getByLabel(/^Suma \((€|EUR)\)$/).fill("650");
     await s.getByLabel("Kategória").selectOption("bývanie");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
     await s.getByRole("button", { name: "Uložiť aj tak" }).click();

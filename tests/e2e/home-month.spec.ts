@@ -29,7 +29,7 @@ test.describe("Prehľad: tento mesiac", () => {
 
     const add = async (amount: string, category?: string) => {
       await goTo(page, "nova-transakcia");
-      await page.getByLabel("Suma (€)").fill(amount);
+      await page.getByLabel(/^Suma \((€|EUR)\)$/).fill(amount);
       if (category) await page.getByLabel("Kategória").selectOption(category);
       await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     };

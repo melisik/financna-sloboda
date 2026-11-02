@@ -20,13 +20,13 @@ test.describe("história transakcií", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
     await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("45");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("45");
     await page.getByLabel("Kategória").selectOption("jedlo");
     const rows = page.locator("section#nova-transakcia li", { hasText: "Výdavok" });
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(rows).toHaveCount(1);
 
-    await page.getByLabel("Suma (€)").fill("3");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("3");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(rows).toHaveCount(2);
     await expect(page.getByText("Výdavky podľa kategórie: jedlo 45,00 € · nezaradené 3,00 €")).toBeVisible();

@@ -1,4 +1,4 @@
-import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings, WasteRecord, ShoppingItem } from "./types";
+import type { Asset, AppData, Attachment, Budget, CalendarObligation, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings, WasteRecord, ShoppingItem } from "./types";
 
 /** Rozhranie úložiska (05 §3): aplikácia a doména nevidia, či ide o IndexedDB. */
 export interface Repository {
@@ -40,6 +40,9 @@ export interface Repository {
   saveRecipe(r: Recipe): Promise<void>;
   deleteRecipe(id: string): Promise<void>;
   saveDog(d: Dog): Promise<void>;
+  deleteDog(id: string): Promise<void>;
+  saveCalendarObligation(o: CalendarObligation): Promise<void>;
+  deleteCalendarObligation(id: string): Promise<void>;
   listAttachments(transactionId: string): Promise<Attachment[]>;
   listAllAttachments(): Promise<Attachment[]>;
   saveAttachment(a: Attachment): Promise<void>;

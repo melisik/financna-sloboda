@@ -22,6 +22,7 @@ import { IncomeSection } from "../features/prijmy/Prijmy";
 import { LiabilitySection } from "../features/zavazky/Zavazky";
 import { InvestmentSection } from "../features/investicie/Investicie";
 import { RecurringSection } from "../features/pravidelne/Pravidelne";
+import { CalendarSection } from "../features/financny-kalendar/FinancnyKalendar";
 import { DogSection, TaxFormBlock, TaxSection } from "../features/dane/Dane";
 import { StockSection } from "../features/sklad/Sklad";
 import { ReceiptToStock } from "../features/sklad/ReceiptToStock";
@@ -136,6 +137,12 @@ export function SectionView({ section, repo, data, ctx, reload, lastExport, setL
       return (
         <Section id="pravidelne-vydavky" title="Pravidelné výdavky">
           <RecurringSection repo={repo} items={data.recurringExpenses} today={todayIso()} onSaved={reload} />
+        </Section>
+      );
+    case "financny-kalendar":
+      return (
+        <Section id="financny-kalendar" title="Finančný kalendár">
+          <CalendarSection repo={repo} data={data} today={todayIso()} onSaved={reload} />
         </Section>
       );
     case "dane":

@@ -17,7 +17,7 @@ test.describe("opravy po revízii 2026-10-25 (b)", () => {
     await withBackup(page);
     await goTo(page, "nova-transakcia");
     const s = page.locator("section#nova-transakcia");
-    await s.getByLabel("Suma (€)").fill("20");
+    await s.getByLabel(/^Suma \((€|EUR)\)$/).fill("20");
     await s.getByLabel("Zdroj úhrady").selectOption("z_hotovosti");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(s.getByLabel("Zdroj úhrady")).toHaveValue("z_prijmu");
@@ -81,7 +81,7 @@ test.describe("opravy po revízii 2026-10-25 (b)", () => {
     await withBackup(page);
     await goTo(page, "nova-transakcia");
     const s = page.locator("section#nova-transakcia");
-    await s.getByLabel("Suma (€)").fill("1000000");
+    await s.getByLabel(/^Suma \((€|EUR)\)$/).fill("1000000");
     await s.getByLabel("Zdroj úhrady").selectOption("z_investicii");
     await s.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(s.getByRole("checkbox", { name: /Rozumiem, investície sa vyčerpajú/ })).toBeFocused();

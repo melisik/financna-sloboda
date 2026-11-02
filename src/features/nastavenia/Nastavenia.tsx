@@ -20,6 +20,7 @@ export function SettingsSection({ repo, settings, derived, onSaved }: { repo: Re
     threshold: settings ? settings.thresholdCents / 100 : "" as NumIn,
     savingInv: settings?.savingInvCents !== undefined ? settings.savingInvCents / 100 : "" as NumIn,
     savingCash: settings?.savingCashCents !== undefined ? settings.savingCashCents / 100 : "" as NumIn,
+    baseCurrency: settings?.baseCurrency ?? "EUR",
   });
   const [err, setErr] = useState<string | null>(null);
   const pct = (x: number) => `${(x * 100).toFixed(1).replace(".", ",")} %`;
@@ -54,6 +55,7 @@ export function SettingsSection({ repo, settings, derived, onSaved }: { repo: Re
         thresholdCents: cents(thr),
         ...(v.savingInv === "" ? {} : { savingInvCents: cents(v.savingInv) }),
         ...(v.savingCash === "" ? {} : { savingCashCents: cents(v.savingCash) }),
+        baseCurrency: v.baseCurrency || "EUR",
         checkedAt: new Date().toISOString(),
       });
       onSaved();
@@ -98,6 +100,10 @@ export function SettingsSection({ repo, settings, derived, onSaved }: { repo: Re
         hint={v.expenses === "" ? "3 mesiace výdavkov; doplní sa po zadaní ročných výdavkov" : `východisková hodnota ${eur(rec.reserveCents)} (3 mesiace výdavkov)`} changed={differs(v.reserve, rec.reserveCents / 100)} onReset={() => setV({ ...v, reserve: rec.reserveCents / 100 })} />
       <Field label="Prah výdavkov (€)" value={v.threshold} onChange={(x) => setV({ ...v, threshold: x })}
         hint={`východisková hodnota ${eur(rec.thresholdCents)}`} changed={differs(v.threshold, rec.thresholdCents / 100)} onReset={() => setV({ ...v, threshold: rec.thresholdCents / 100 })} />
+      <h3 style={{ fontSize: "var(--font-text)", marginBottom: 0 }}>Mena (D-340)</h3>
+      <p style={{ color: "var(--muted)", fontSize: "var(--font-small)", marginTop: 0 }}>
+        Základná mena je <strong>{v.baseCurrency}</strong>. Transakcie v iných menách sa prepočítavajú na základnú menu podľa kurzu, ktorý zadáš pri zadávaní transakcie.
+      </p>
       {err && <p style={{ color: "var(--danger)" }}>{err}</p>}
       <button onClick={save} style={btnPrimary}>Uložiť nastavenia</button>
     </section>

@@ -24,7 +24,7 @@ test.describe("PWA a offline režim (M5)", () => {
 
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
-    await page.getByLabel("Suma (€)").fill("250");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 
@@ -37,7 +37,7 @@ test.describe("PWA a offline režim (M5)", () => {
 
     // Offline zápis: nová transakcia sa uloží a zobrazí.
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
-    await page.getByLabel("Suma (€)").fill("100");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("100");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 100,00 €")).toBeVisible();
 

@@ -33,6 +33,7 @@ export function buildBackup(data: AppData, exportedAt: string, attachments: Atta
     goals: data.goals,
     wasteRecords: data.wasteRecords,
     shoppingItems: data.shoppingItems,
+    calendarObligations: (data.calendarObligations ?? []).filter(o => !o.id.startsWith("virtual:")),
     attachments,
     budgets: data.budgets,
   };
@@ -71,7 +72,7 @@ export function parseBackup(json: unknown, today: string): Check & { data?: AppD
       notes.push("Záporné mesačné sporenie sa pri obnove vynechalo; hodnota sa odvodí z transakcií.");
     }
   }
-  const v = validateAppData({ recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [], shoppingItems: [], ...withSettings }, today);
+  const v = validateAppData({ recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [], shoppingItems: [], calendarObligations: [], ...withSettings }, today);
   if (!v.ok) return v;
   // Prílohy (D-160) sa overia voči výdavkom a dekódujú; staršie zálohy ich nemajú.
   const attachments: Attachment[] = [];
