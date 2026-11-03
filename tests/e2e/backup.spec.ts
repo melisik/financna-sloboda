@@ -36,4 +36,47 @@ test.describe("záloha v UI (FR-17, FR-18)", () => {
     await page.getByRole("button", { name: "Zrušiť" }).click();
     await expect(page.getByText("Import nahradí všetky aktuálne dáta")).toHaveCount(0);
   });
+
+  test("na počítači stiahne zálohu aj pri dostupnom Web Share API", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
+      Object.defineProperty(navigator, "share", {
+        configurable: true,
+        value: async () => {
+          Object.defineProperty(window, "__backupShareCalled", { configurable: true, value: true });
+        },
+      });
+    });
+    await openApp(page);
+    await goTo(page, "zaloha");
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      page.getByRole("button", { name: "Uložiť zálohu" }).click(),
+    ]);
+    expect(download.suggestedFilename()).toMatch(/^financna-sloboda-zaloha-\d{4}-\d{2}-\d{2}\.json$/);
+    expect(await page.evaluate(() => Reflect.get(window, "__backupShareCalled"))).toBeUndefined();
+    await expect(page.getByText(/Záloha sa stiahla/)).toBeVisible();
+  });
+
+  test("na iPhone použije systémové zdieľanie zálohy", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "userAgent", {
+        configurable: true,
+        value: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1",
+      });
+      Object.defineProperty(navigator, "standalone", { configurable: true, value: true });
+      Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
+      Object.defineProperty(navigator, "share", {
+        configurable: true,
+        value: async () => {
+          Object.defineProperty(window, "__backupShareCalled", { configurable: true, value: true });
+        },
+      });
+    });
+    await openApp(page);
+    await goTo(page, "zaloha");
+    await page.getByRole("button", { name: "Uložiť zálohu" }).click();
+    await expect(page.getByText(/Záloha je uložená podľa tvojho výberu/)).toBeVisible();
+    expect(await page.evaluate(() => Reflect.get(window, "__backupShareCalled"))).toBe(true);
+  });
 });
