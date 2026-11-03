@@ -3,11 +3,11 @@ import { openDB } from "idb";
 import { describe, expect, it } from "vitest";
 import { openRepository } from "../src/storage/indexeddb";
 
-// Migrácia databázy z verzie 11 na 12: finančné povinnosti (D-342). Syntetické hodnoty.
+// Migrácia databázy z verzie 11 na 12: finančné povinnosti (D-345). Syntetické hodnoty.
 let counter = 0;
 const freshName = () => `calendar-migration-test-${++counter}-${Date.now()}`;
 
-describe("migrácia úložiska na verziu 12 (D-342)", () => {
+describe("migrácia úložiska na verziu 12 (D-345)", () => {
   it("migrácia z v11 na v12 vytvorí obchod calendarObligations bez straty starých dát", async () => {
     const name = freshName();
     // Vytvor staršiu databázu (v11) bez calendarObligations

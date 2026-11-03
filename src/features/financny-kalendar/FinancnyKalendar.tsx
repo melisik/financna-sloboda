@@ -6,7 +6,7 @@ import { eur, dateSk } from "../../ui/kit/format";
 import { btn, card, hintStyle } from "../../ui/kit/controls";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 
-/** Finančný kalendár (D-342): zobrazenie mesačných povinností podľa stavu. */
+/** Finančný kalendár (D-345): zobrazenie mesačných povinností podľa stavu. */
 
 /** Výber a zobrazenie mesiaca. */
 function MonthPicker({ month, onMonthChange }: { month: string; onMonthChange: (m: string) => void }) {

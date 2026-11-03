@@ -48,7 +48,7 @@ export interface Transaction {
   currency?: string; // ISO 4217, napr. "USD"; bez hodnoty = EUR (D-340)
   exchangeRateToBase?: number; // jednotky cudzej meny za 1 EUR (napr. 1.05 pre USD); pozaduje currency
   originalAmountCents?: number; // suma v povodnej mene v centoch; pozaduje currency
-  calendarObligationId?: string; // prepojenie so splnenou povinnosťou z kalendára (D-342)
+  calendarObligationId?: string; // prepojenie so splnenou povinnosťou z kalendára (D-345)
 }
 
 export interface Snapshot {
@@ -251,7 +251,7 @@ export interface RecurringExpense {
   amountCents: number; // kladná suma za jeden výskyt (mesiac alebo rok)
   startDate: string; // YYYY-MM-DD
   endDate?: string; // YYYY-MM-DD, bez hodnoty trvá
-  dayOfMonth?: number; // deň v mesiaci 1–31 na určenie splatnosti; bez hodnoty = posledný deň (D-342)
+  dayOfMonth?: number; // deň v mesiaci 1–31 na určenie splatnosti; bez hodnoty = posledný deň (D-345)
   createdAt: string;
   updatedAt: string;
 }
@@ -370,11 +370,11 @@ export interface Dog {
   updatedAt: string;
 }
 
-/** Stav kalendárnej povinnosti (D-342). */
+/** Stav kalendárnej povinnosti (D-345). */
 export const OBLIGATION_STATUSES = ["caka", "zaplatene", "po_splatnosti"] as const;
 export type ObligationStatus = (typeof OBLIGATION_STATUSES)[number];
 
-/** Finančná povinnosť v kalendári (D-342): jednorazová alebo odvodená z pravidelného výdavku. */
+/** Finančná povinnosť v kalendári (D-345): jednorazová alebo odvodená z pravidelného výdavku. */
 export interface CalendarObligation {
   id: string;
   recurringExpenseId?: string;  // ak pochádza z pravidelného výdavku

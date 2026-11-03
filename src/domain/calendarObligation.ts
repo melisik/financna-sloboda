@@ -180,7 +180,7 @@ export function obligationsForMonth(
   return resolved.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 }
 
-/** Chyba nekonzistentného prepojenia povinnosti a transakcie (D-342); operácia sa nevykoná. */
+/** Chyba nekonzistentného prepojenia povinnosti a transakcie (D-345); operácia sa nevykoná. */
 export class CalendarLinkError extends Error {}
 
 const isVirtualId = (id: string) => id.startsWith("virtual:");
