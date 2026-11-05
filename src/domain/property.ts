@@ -23,7 +23,8 @@ export function splitPayment(p: Property): { interestCents: number; principalCen
 
 /**
  * Počíta sa do K len pri prenájme (D-093: vlastné bývanie sa do K nepočíta).
- * Režim „nezadane“ sa do K nepočíta, kým ho používateľ nevyberie (predpoklad, návrh docs/11 bod 3).
+ * Režim "nezadane" sa do K nepočíta, kým ho používateľ nevyberie (predpoklad, návrh docs/11 bod 3).
+ * Režim "iny_uccel" sa do K nepočíta (C1).
  */
 export function countsInCapital(p: Property): boolean {
   return p.mode === "prenajom";
@@ -36,12 +37,56 @@ export function valueIsStale(valueDate: string, today: string): boolean {
   return valueDate < cutoff;
 }
 
-/** Bývanie v rozpočte (D-137): splátky hypoték mínus nájom z prenajímaných nehnuteľností. */
+/**
+ * Bývanie v rozpočte (D-137): splátky hypoték (len pri vlastnom bývaní, alebo pri prenájme so splátkami).
+ * OPRAVA A1: Splátky hypotéky sú výdavky, nájom je príjem - počítajú sa oddelene.
+ */
 export function housingFlowCents(list: Property[]): number {
   return list.reduce((sum, p) => {
     const payment = p.mortgageBalanceCents > 0 ? p.monthlyPaymentCents ?? 0 : 0;
     const rent = p.mode === "prenajom" ? p.monthlyRentCents ?? 0 : 0;
     return sum + payment - rent;
+  }, 0);
+}
+
+/**
+ * Plánovaný mesačný príjem z prenájmu (pred faktickými záznamami v rentalLedger).
+ * NOVÉ A1: Oddelená funkcia pre príjmy z prenájmu.
+ */
+export function plannedRentalIncomeInMonthCents(list: Property[]): number {
+  return list.reduce((sum, p) => {
+    const rent = p.mode === "prenajom" ? p.monthlyRentCents ?? 0 : 0;
+    return sum + rent;
+  }, 0);
+}
+
+/**
+ * Faktické príjmy z prenájmu za mesiac z ledger záznamov.
+ * NOVÉ A1: Oddelená funkcia pre skutočné príjmy z prenájmu.
+ */
+export function rentalIncomeInMonthCents(list: Property[], today: string): number {
+  const month = today.slice(0, 7);
+  return list.reduce((sum, p) => {
+    if (p.mode !== "prenajom" || !p.rentalLedger) return sum;
+    const income = p.rentalLedger
+      .filter((e) => e.kind === "prijem" && e.date.slice(0, 7) === month)
+      .reduce((s, e) => s + e.amountCents, 0);
+    return sum + income;
+  }, 0);
+}
+
+/**
+ * Faktické výdavky z prenájmu za mesiac z ledger záznamov (údržba, poistenie, ...).
+ * NOVÉ A1: Oddelená funkcia pre výdavky na prenájom z ledger.
+ */
+export function rentalExpensesInMonthCents(list: Property[], today: string): number {
+  const month = today.slice(0, 7);
+  return list.reduce((sum, p) => {
+    if (p.mode !== "prenajom" || !p.rentalLedger) return sum;
+    const expenses = p.rentalLedger
+      .filter((e) => e.kind === "vydavok" && e.date.slice(0, 7) === month)
+      .reduce((s, e) => s + e.amountCents, 0);
+    return sum + expenses;
   }, 0);
 }
 
