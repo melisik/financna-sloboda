@@ -1,7 +1,7 @@
 import type { Budget, BudgetCategory, Liability, Property, RecurringExpense, Transaction } from "./model/entities";
 import { activeLiabilityPaymentCents } from "./liabilities";
 import { spentInMonthCents } from "./budget";
-import { housingFlowCents } from "./property";
+import { housingFlowCents, rentalIncomeInMonthCents, rentalExpensesInMonthCents } from "./property";
 import { monthlyRecurringByCategory } from "./recurring";
 
 /** Zatriedenie výdavku: nevyhnutný, nie nevyhnutný, alebo ostatný (iné). Návrh na potvrdenie (D-131). */
@@ -30,6 +30,9 @@ interface MonthSummary {
   unassignedCents: number; // výdavky bez kategórie
   overThresholdCount: number; // výdavky tohto mesiaca nad prahom
   liabilitiesCents: number; // splátky platných úverov a kariet (sú v nevyhnutných)
+  // NOVÉ A1: Oddelené príjmy a výdavky z prenájmu
+  rentalIncomeCents: number; // faktické príjmy z prenájmu za mesiac
+  rentalExpensesCents: number; // faktické výdavky na prenájom za mesiac (údržba, poistenie, ...)
 }
 
 /** Mesačný prehľad výdavkov pre Prehľad: plnenie plánu a rozpis podľa nevyhnutnosti (D-131). */
@@ -43,7 +46,7 @@ export function monthSummary(
   liabilities: Liability[] = [],
 ): MonthSummary {
   const recurringByCat = monthlyRecurringByCategory(recurring, today);
-  const housing = housingFlowCents(properties);
+  const housing = housingFlowCents(properties); // OPRAVA A1: Len splátky hypotéky, bez nájmu
   const spentIn = (c: BudgetCategory) =>
     spentInMonthCents(transactions, c, today) + (recurringByCat[c] ?? 0) + (c === "bývanie" ? housing : 0);
 
@@ -59,6 +62,10 @@ export function monthSummary(
     (t) => t.type === "vydavok" && t.date.slice(0, 7) === month && t.amountCents >= thresholdCents,
   ).length;
 
+  // NOVÉ A1: Oddelené príjmy a výdavky z prenájmu
+  const rentalIncomeCents = rentalIncomeInMonthCents(properties, today);
+  const rentalExpensesCents = rentalExpensesInMonthCents(properties, today);
+
   return {
     planCents,
     plannedSpentCents,
@@ -67,5 +74,7 @@ export function monthSummary(
     unassignedCents: spentInMonthCents(transactions, null, today),
     liabilitiesCents,
     overThresholdCount,
+    rentalIncomeCents,
+    rentalExpensesCents,
   };
 }
