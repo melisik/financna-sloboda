@@ -45,6 +45,55 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
   // Poradie (D-283, docs/43 A1): cieľ a pokrok, hlavná akcia, upozornenia, potom mesiac a týždeň.
   return (
     <div>
+      <style>{`
+        .green-card {
+          border: 1px solid var(--border-soft);
+          border-radius: 8px;
+          padding: 16px;
+          background: var(--surface);
+          margin-bottom: 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .green-card-grid {
+          display: grid;
+          gap: 8px;
+          font-size: var(--font-small);
+          grid-template-columns: 1fr;
+        }
+        @media (min-width: 600px) {
+          .green-card-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        .green-title {
+          margin: 0 0 8px 0;
+          font-size: var(--font-small);
+          color: var(--primary-bg);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .green-value {
+          margin: 0 0 12px 0;
+          font-size: 1.75em;
+          font-weight: 700;
+          color: var(--primary-bg);
+        }
+        .green-sub-card {
+          padding: 8px;
+          background: var(--surface-2);
+          border-radius: 4px;
+        }
+        .green-sub-label {
+          margin: 0 0 4px 0;
+          color: var(--muted);
+        }
+        .green-sub-value {
+          margin: 0;
+          font-weight: 600;
+          color: var(--primary-bg);
+        }
+      `}</style>
       {ctx.target === null && (
         <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v Nastaveniach; ostatné hodnoty sú predvolené. <NextStep to="nastavenia">Nastavenia</NextStep></p>
       )}
@@ -52,9 +101,30 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
         <p style={calloutStyle("error")}>
           Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení.
           {ctx.shortfall.inv > 0 && <> Prečerpanie investícií: <strong>{eur(ctx.shortfall.inv)}</strong>. Do kapitálu sa nezapočíta.</>}
-          {ctx.shortfall.cash > 0 && <> Prečerpanie hotovosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do kapitálu sa nezapočíta.</>}
+          {ctx.shortfall.cash > 0 && <> Prečerpanie hotavosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do kapitálu sa nezapočíta.</>}
         </p>
       )}
+
+      {/* Finančný kapitál — GREEN karta */}
+      <div className="green-card">
+        <p className="green-title">
+          Finančný kapitál
+        </p>
+        <p className="green-value">
+          {eur(ctx.capital.inv + ctx.capital.cash)}
+        </p>
+        <div className="green-card-grid">
+          <div className="green-sub-card">
+            <p className="green-sub-label">Investície</p>
+            <p className="green-sub-value">{eur(ctx.capital.inv)}</p>
+          </div>
+          <div className="green-sub-card">
+            <p className="green-sub-label">Hotavosť</p>
+            <p className="green-sub-value">{eur(ctx.capital.cash)}</p>
+          </div>
+        </div>
+      </div>
+
       {ctx.latest && ctx.target !== null && progress ? (
         <>
           <p style={{ fontSize: "var(--font-heading)", margin: "8px 0 4px" }}>Dátum cieľa: <strong style={{ fontSize: "1.4em", display: "inline-block" }}>{scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</strong></p>
