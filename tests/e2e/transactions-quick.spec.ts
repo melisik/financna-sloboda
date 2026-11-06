@@ -15,7 +15,7 @@ test.describe("zadanie výdavku a história (A3)", () => {
   test("suma je prvé pole a doklad je zbalený, kým ho neotvorím", async ({ page }) => {
     const form = page.locator("section#nova-transakcia");
     const firstLabel = await form.locator("input, select, textarea").first().evaluate((el) => el.closest("label")?.textContent ?? el.getAttribute("aria-label"));
-    expect(firstLabel).toMatch(/^Suma \(€\)/);
+    expect(firstLabel).toMatch(/^Suma \((€|EUR)\)$/);
 
     await expect(form.getByLabel("Fotka QR kódu dokladu")).toBeHidden();
     await expect(form.getByRole("button", { name: "Skenovať QR kód kamerou" })).toHaveCount(0);
@@ -27,7 +27,7 @@ test.describe("zadanie výdavku a história (A3)", () => {
 
   test("v histórii je pri zázname len Upraviť; Prílohy a Zmazať sú v úprave a zmazanie sa dá vrátiť", async ({ page }) => {
     const form = page.locator("section#nova-transakcia");
-    await form.getByLabel("Suma (€)").fill("40");
+    await form.getByLabel(/^Suma \((€|EUR)\)$/).fill("40");
     await form.getByRole("button", { name: "Uložiť transakciu" }).click();
     const row = form.locator("li", { hasText: "výdavok · 40,00 €" });
     await expect(row).toBeVisible();
@@ -57,7 +57,7 @@ test.describe("zadanie výdavku a história (A3)", () => {
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       await page.evaluate(() => window.scrollTo(0, 0));
-      await form.getByLabel("Suma (€)").fill("12");
+      await form.getByLabel(/^Suma \((€|EUR)\)$/).fill("12");
       await expect(form.getByRole("button", { name: "Uložiť transakciu" })).toBeInViewport();
       await expect(form.getByText("Predbežný dopad:")).toBeInViewport();
     }

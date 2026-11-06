@@ -12,7 +12,7 @@ test.describe("príjmy: rozdiel a upozornenie", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
     await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("40");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("40");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 

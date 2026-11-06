@@ -22,7 +22,7 @@ test.describe("rozpočet kategórií (D-106)", () => {
     await page.getByRole("button", { name: "Zrušiť" }).click();
 
     await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("120");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("120");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("výdavok · 120,00 €").first()).toBeVisible();

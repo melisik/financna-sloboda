@@ -13,6 +13,7 @@ export const CORE_SECTION_IDS = [
   "vyhodnotenie",
   "rozpocet",
   "pravidelne-vydavky",
+  "financny-kalendar",
   "nastavenia",
   "zaloha",
 ] as const;

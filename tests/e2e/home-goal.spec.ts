@@ -51,7 +51,7 @@ test.describe("Prehľad: cieľ na prvej obrazovke", () => {
 
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Zdroj úhrady").selectOption("z_hotovosti");
-    await page.getByLabel("Suma (€)").fill("19000");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("19000");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.locator("section#nova-transakcia")).toContainText("19 000,00");
 

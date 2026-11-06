@@ -13,7 +13,7 @@ test.describe("ročný prehľad: rozpis a súhrn", () => {
 
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
-    await page.getByLabel("Suma (€)").fill("10");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("10");
     await page.getByLabel("Dátum", { exact: true }).fill("2026-02-10");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 
@@ -38,13 +38,13 @@ test.describe("ročný prehľad: rozpis a súhrn", () => {
     await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
 
     await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("30");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("30");
     await page.getByLabel("Dátum", { exact: true }).fill("2025-02-10");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
 
     await goTo(page, "nova-transakcia");
-    await page.getByLabel("Suma (€)").fill("60");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("60");
     await page.getByLabel("Dátum", { exact: true }).fill("2026-02-10");
     await page.getByLabel("Kategória").selectOption("jedlo");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();

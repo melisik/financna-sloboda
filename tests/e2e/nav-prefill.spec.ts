@@ -29,7 +29,7 @@ test.describe("navigácia a predvyplnenie vyhodnotenia (D-191)", () => {
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Dátum", { exact: true }).fill("2026-10-05");
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
-    await page.getByLabel("Suma (€)").fill("250");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 

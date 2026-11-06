@@ -14,13 +14,13 @@ test.describe("domovská obrazovka a úprava (M4, FR-09, FR-14)", () => {
 
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Typ transakcie").selectOption("sporenie");
-    await page.getByLabel("Suma (€)").fill("250");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("250");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 250,00 €")).toBeVisible();
 
     // Úprava: suma 250 → 300.
     await page.getByRole("button", { name: "Upraviť" }).click();
-    await page.getByLabel("Suma (€)").fill("300");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("300");
     await page.getByRole("button", { name: "Uložiť zmeny" }).click();
     await expect(page.getByText("sporenie (do hotovosti) · 300,00 €")).toBeVisible();
 

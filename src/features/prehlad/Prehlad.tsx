@@ -17,6 +17,8 @@ import { returnLine } from "./returnLine";
 import { goalDateShift, goalProgress } from "../../domain/progress";
 import { progressLine, shiftLine } from "./progressText";
 import { VyvojBlock } from "./Vyvoj";
+import { MilestonesBlock } from "./Milestones";
+import { evaluateMilestones } from "../../domain/milestones";
 import { recommendedSettings } from "../../domain/recommendations";
 import { goalSummaries, positionsChangedSince } from "../../domain/investments";
 import { propertyChangedSince } from "../../domain/property";
@@ -110,6 +112,18 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
           Pridať transakciu
         </a>
       </p>
+      {ctx.settings && ctx.latest && ctx.target !== null && (
+        <div style={{ marginTop: 16 }}>
+          <h2 style={{ fontSize: "var(--font-heading)", margin: "8px 0" }}>Míľniky</h2>
+          <MilestonesBlock
+            milestones={evaluateMilestones(
+              ctx.capital.inv + ctx.capital.cash,
+              ctx.target ?? 0,
+              (ctx.settings.expensesCents ?? 0) / 52,
+            )}
+          />
+        </div>
+      )}
       {investmentsVisible && goalSummaries(data.investments, data.goals).length > 0 && (
         <div style={{ margin: "0 0 12px" }}>
           <p style={{ margin: "0 0 4px", fontWeight: 600 }}>Ciele investícií</p>

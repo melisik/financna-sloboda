@@ -19,6 +19,10 @@ import { calloutStyle, hintStyle } from "../../ui/kit/controls";
  */
 export type ExportResult = { result: "shared" | "downloaded" | "cancelled"; exportedAt: string } | { result: "needsTap"; exportedAt: string; file: File } | { result: "invalid"; exportedAt: string; errors: string[] };
 
+export function usesMobileBackupShare(userAgent: string, maxTouchPoints: number): boolean {
+  return /Android|iPhone|iPad|iPod/i.test(userAgent) || (/Macintosh/i.test(userAgent) && maxTouchPoints > 1);
+}
+
 export async function exportBackupFile(data: AppData, attachments: Attachment[], password?: string): Promise<ExportResult> {
   const nowIso = new Date().toISOString();
   const plain = JSON.stringify(buildBackup(data, nowIso, await Promise.all(attachments.map(encodeAttachment))), null, 2);
@@ -41,7 +45,8 @@ export async function exportBackupFile(data: AppData, attachments: Attachment[],
  * (revízia 2026-10-25c, S-3; rovnaký dôvod ako D-307).
  */
 export async function deliverBackupFile(file: File): Promise<"shared" | "downloaded" | "cancelled" | "needsTap"> {
-  if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+  const mobileShare = usesMobileBackupShare(navigator.userAgent, navigator.maxTouchPoints ?? 0);
+  if (mobileShare && typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: file.name });
       return "shared";
@@ -121,7 +126,7 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
     if (r.result === "needsTap") {
       setPending({ file: r.file, exportedAt: r.exportedAt, encrypted: exportPassword !== "" });
       setExportPassword("");
-      return setExportStatus("Záloha je pripravená. Ťukni na Uložiť pripravenú zálohu.");
+      return setExportStatus("Záložný súbor je pripravený, ale zdieľací panel sa neotvoril. Ťukni na tlačidlo Pokračovať v ukladaní zálohy.");
     }
     finishExport(r.result, r.exportedAt, exportPassword !== "");
     setExportPassword("");
@@ -130,7 +135,7 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
   const savePending = async () => {
     if (!pending) return;
     const how = await deliverBackupFile(pending.file);
-    if (how === "needsTap") return setExportStatus("Zdieľanie sa neotvorilo. Skús Uložiť pripravenú zálohu znova.");
+    if (how === "needsTap") return setExportStatus("Zdieľací panel sa zatiaľ neotvoril. Skús tlačidlo Pokračovať v ukladaní zálohy znova.");
     setPending(null);
     finishExport(how, pending.exportedAt, pending.encrypted);
   };
@@ -219,9 +224,15 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
         <input type="password" aria-label="Heslo na šifrovanie zálohy" autoComplete="new-password" maxLength={100} value={exportPassword} onChange={(e) => setExportPassword(e.target.value)} style={inp} />
       </label>
       <p style={hintStyle}>Heslo sa nedá obnoviť. Bez neho sa zašifrovaná záloha neotvorí.</p>
-      <button onClick={exportBackup} style={pending ? btn : btnPrimary}>Uložiť zálohu</button>
-      {pending && <button onClick={savePending} style={{ ...btnPrimary, marginLeft: 8 }}>Uložiť pripravenú zálohu</button>}
-      <p style={hintStyle}>Na iPhone sa otvorí zdieľací list (napr. Uložiť do Súborov), v počítači sa súbor stiahne do priečinka Stiahnuté.</p>
+      {pending ? (
+        <>
+          <button onClick={savePending} style={btnPrimary}>Pokračovať v ukladaní zálohy</button>
+          <p style={hintStyle}>Súbor je už pripravený. Toto tlačidlo znovu otvorí zdieľací panel; nevytvára novú zálohu.</p>
+        </>
+      ) : (
+        <button onClick={exportBackup} style={btnPrimary}>Uložiť zálohu</button>
+      )}
+      <p style={hintStyle}>Na mobile sa otvorí systémové zdieľanie (napríklad Uložiť do Súborov). Na počítači sa záloha priamo stiahne do priečinka Stiahnuté.</p>
       {exportStatus && <p style={{ marginTop: 12 }}>{exportStatus}</p>}
       <h3 style={{ fontSize: "var(--font-text)", marginBottom: 8, marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border)" }}>Obnoviť zo zálohy</h3>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>

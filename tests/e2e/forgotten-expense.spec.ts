@@ -20,7 +20,7 @@ test.describe("zabudnutý výdavok (D-123)", () => {
     await goTo(page, "nova-transakcia");
     await page.getByLabel("Dátum", { exact: true }).fill(yesterday);
     await page.getByLabel("Zdroj úhrady").selectOption("z_investicii");
-    await page.getByLabel("Suma (€)").fill("150");
+    await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("150");
     await page.getByRole("button", { name: "Uložiť transakciu" }).click();
     await expect(page.getByText("výdavok · 150,00 €")).toBeVisible();
 

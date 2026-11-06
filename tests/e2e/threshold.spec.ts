@@ -9,10 +9,10 @@ test("výdavok 600 € je označený „nad prahom“, výdavok 10 € nie (D-01
   await page.getByLabel("Nasporená suma, hotovosť (€)").fill("20000");
   await page.getByRole("button", { name: "Uložiť vyhodnotenie" }).click();
   await goTo(page, "nova-transakcia");
-  await page.getByLabel("Suma (€)").fill("10");
+  await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("10");
   await page.getByRole("button", { name: "Uložiť transakciu" }).click();
   await expect(page.getByText("výdavok · 10,00 € (z príjmu)").first()).toBeVisible();
-  await page.getByLabel("Suma (€)").fill("600");
+  await page.getByLabel(/^Suma \((€|EUR)\)$/).fill("600");
   await page.getByRole("button", { name: "Uložiť transakciu" }).click();
   await expect(page.getByText("výdavok · 600,00 € (z príjmu) · nad prahom").first()).toBeVisible();
   await expect(page.getByText("výdavok · 10,00 € (z príjmu) · nad prahom")).toHaveCount(0);
