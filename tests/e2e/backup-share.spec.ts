@@ -6,6 +6,8 @@ test.describe("export zálohy so zdieľaním", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       (window as unknown as { __shared: string[] }).__shared = [];
+      Object.defineProperty(navigator, "userAgent", { value: "iPhone OS", configurable: true });
+      Object.defineProperty(navigator, "maxTouchPoints", { value: 5, configurable: true });
       Object.defineProperty(navigator, "canShare", { value: () => true, configurable: true });
       Object.defineProperty(navigator, "share", {
         configurable: true,
@@ -20,7 +22,7 @@ test.describe("export zálohy so zdieľaním", () => {
     await openApp(page);
     await goTo(page, "zaloha");
     await page.getByRole("button", { name: "Uložiť zálohu" }).click();
-    await expect(page.getByText("Záloha je uložená podľa tvojho výberu.")).toBeVisible();
+    await expect(page.getByText(/Záloha je uložená podľa tvojho výberu/)).toBeVisible();
     const shared = await page.evaluate(() => (window as unknown as { __shared: string[] }).__shared);
     expect(shared).toHaveLength(1);
     expect(shared[0]).toMatch(/^financna-sloboda-zaloha-\d{4}-\d{2}-\d{2}\.json$/);
@@ -34,6 +36,8 @@ test.describe("export zálohy, keď zdieľanie odmietne oneskorené spustenie", 
       const w = window as unknown as { __shared: { name: string; type: string }[]; __calls: number };
       w.__shared = [];
       w.__calls = 0;
+      Object.defineProperty(navigator, "userAgent", { value: "iPhone OS", configurable: true });
+      Object.defineProperty(navigator, "maxTouchPoints", { value: 5, configurable: true });
       Object.defineProperty(navigator, "canShare", { value: () => true, configurable: true });
       Object.defineProperty(navigator, "share", {
         configurable: true,
@@ -53,8 +57,8 @@ test.describe("export zálohy, keď zdieľanie odmietne oneskorené spustenie", 
     page.on("download", () => { downloaded = true; });
     await page.getByLabel("Heslo na šifrovanie zálohy").fill("syntetickeheslo123");
     await page.getByRole("button", { name: "Uložiť zálohu", exact: true }).click();
-    await expect(page.getByText("Záloha je pripravená.")).toBeVisible();
-    await page.getByRole("button", { name: "Uložiť pripravenú zálohu" }).click();
+    await expect(page.getByText(/Záložný súbor je pripravený/)).toBeVisible();
+    await page.getByRole("button", { name: "Pokračovať v ukladaní zálohy" }).click();
     await expect(page.getByText(/Záloha je zašifrovaná/)).toBeVisible();
     const shared = await page.evaluate(() => (window as unknown as { __shared: { name: string; type: string }[] }).__shared);
     expect(shared).toEqual([{ name: expect.stringMatching(/-sifrovana\.json$/), type: "text/plain" }]);
