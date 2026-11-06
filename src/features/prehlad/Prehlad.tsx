@@ -52,8 +52,40 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
     </p>
   );
   // Poradie (D-283, docs/43 A1): cieľ a pokrok, hlavná akcia, upozornenia, potom mesiac a týždeň.
+
+  // GREEN design – lokálne farby
+  const greenDark = "#1B5E3F";
+  const goldAccent = "#C9A963";
+  const cardBorder = "1px solid #e0e0e0";
+
   return (
     <div>
+      <style>{`
+        .green-card-grid {
+          display: grid;
+          gap: 8px;
+          font-size: var(--font-small);
+          grid-template-columns: 1fr;
+        }
+        @media (min-width: 600px) {
+          .green-card-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        @media (prefers-color-scheme: dark) {
+          .green-card {
+            border-color: #4b4e57;
+            background: var(--surface);
+          }
+          .green-value {
+            color: #9ee0a6;
+          }
+          .green-title {
+            color: ${goldAccent};
+          }
+        }
+      `}</style>
+
       {ctx.target === null && (
         <p>Cieľová suma: <strong>nezadaná</strong>. Zadaj ročné výdavky v Nastaveniach; ostatné hodnoty sú predvolené. <NextStep to="nastavenia">Nastavenia</NextStep></p>
       )}
@@ -64,6 +96,27 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
           {ctx.shortfall.cash > 0 && <> Prečerpanie hotovosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do kapitálu sa nezapočíta.</>}
         </p>
       )}
+
+      {/* Finančný kapitál — GREEN karta */}
+      <div className="green-card" style={{ border: cardBorder, borderRadius: "8px", padding: "16px", background: "#ffffff", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+        <p className="green-title" style={{ margin: "0 0 8px 0", fontSize: "var(--font-small)", color: greenDark, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+          Finančný kapitál
+        </p>
+        <p className="green-value" style={{ margin: "0 0 12px 0", fontSize: "1.75em", fontWeight: 700, color: greenDark }}>
+          {eur(ctx.capital.inv + ctx.capital.cash)}
+        </p>
+        <div className="green-card-grid">
+          <div style={{ padding: "8px", background: "#f5f5f5", borderRadius: "4px" }}>
+            <p style={{ margin: "0 0 4px 0", color: "#666666" }}>Investície</p>
+            <p style={{ margin: 0, fontWeight: 600, color: greenDark }}>{eur(ctx.capital.inv)}</p>
+          </div>
+          <div style={{ padding: "8px", background: "#f5f5f5", borderRadius: "4px" }}>
+            <p style={{ margin: "0 0 4px 0", color: "#666666" }}>Hotavosť</p>
+            <p style={{ margin: 0, fontWeight: 600, color: greenDark }}>{eur(ctx.capital.cash)}</p>
+          </div>
+        </div>
+      </div>
+
       {ctx.latest && ctx.target !== null && progress ? (
         <>
           <p style={{ fontSize: "var(--font-heading)", margin: "8px 0 4px" }}>Dátum cieľa: <strong style={{ fontSize: "1.4em", display: "inline-block" }}>{scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</strong></p>
@@ -219,7 +272,7 @@ function MonthSpendingBlock({ data, today, thresholdCents, incomeVisible }: { da
         </p>
       ) : (
         <p style={{ margin: "4px 0", color: "var(--muted)" }}>
-          Mesačný plán nie je nastavený. Limity nastavíš v <a href="#rozpocet">Rozpočte</a>. 
+          Mesačný plán nie je nastavený. Limity nastavíš v <a href="#rozpocet">Rozpočte</a>.
           Minuté tento mesiac: {eur(spent)}.
         </p>
       )}
