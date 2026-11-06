@@ -53,14 +53,17 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
   );
   // Poradie (D-283, docs/43 A1): cieľ a pokrok, hlavná akcia, upozornenia, potom mesiac a týždeň.
 
-  // GREEN design – lokálne farby
-  const greenDark = "#1B5E3F";
-  const goldAccent = "#C9A963";
-  const cardBorder = "1px solid #e0e0e0";
-
   return (
     <div>
       <style>{`
+        .green-card {
+          border: 1px solid var(--border-soft);
+          border-radius: 8px;
+          padding: 16px;
+          background: var(--surface);
+          margin-bottom: 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
         .green-card-grid {
           display: grid;
           gap: 8px;
@@ -72,17 +75,33 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
             grid-template-columns: repeat(2, 1fr);
           }
         }
-        @media (prefers-color-scheme: dark) {
-          .green-card {
-            border-color: #4b4e57;
-            background: var(--surface);
-          }
-          .green-value {
-            color: #9ee0a6;
-          }
-          .green-title {
-            color: ${goldAccent};
-          }
+        .green-title {
+          margin: 0 0 8px 0;
+          font-size: var(--font-small);
+          color: var(--primary-bg);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .green-value {
+          margin: 0 0 12px 0;
+          font-size: 1.75em;
+          font-weight: 700;
+          color: var(--primary-bg);
+        }
+        .green-sub-card {
+          padding: 8px;
+          background: var(--surface-2);
+          border-radius: 4px;
+        }
+        .green-sub-label {
+          margin: 0 0 4px 0;
+          color: var(--muted);
+        }
+        .green-sub-value {
+          margin: 0;
+          font-weight: 600;
+          color: var(--primary-bg);
         }
       `}</style>
 
@@ -98,21 +117,21 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
       )}
 
       {/* Finančný kapitál — GREEN karta */}
-      <div className="green-card" style={{ border: cardBorder, borderRadius: "8px", padding: "16px", background: "#ffffff", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-        <p className="green-title" style={{ margin: "0 0 8px 0", fontSize: "var(--font-small)", color: greenDark, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+      <div className="green-card">
+        <p className="green-title">
           Finančný kapitál
         </p>
-        <p className="green-value" style={{ margin: "0 0 12px 0", fontSize: "1.75em", fontWeight: 700, color: greenDark }}>
+        <p className="green-value">
           {eur(ctx.capital.inv + ctx.capital.cash)}
         </p>
         <div className="green-card-grid">
-          <div style={{ padding: "8px", background: "#f5f5f5", borderRadius: "4px" }}>
-            <p style={{ margin: "0 0 4px 0", color: "#666666" }}>Investície</p>
-            <p style={{ margin: 0, fontWeight: 600, color: greenDark }}>{eur(ctx.capital.inv)}</p>
+          <div className="green-sub-card">
+            <p className="green-sub-label">Investície</p>
+            <p className="green-sub-value">{eur(ctx.capital.inv)}</p>
           </div>
-          <div style={{ padding: "8px", background: "#f5f5f5", borderRadius: "4px" }}>
-            <p style={{ margin: "0 0 4px 0", color: "#666666" }}>Hotavosť</p>
-            <p style={{ margin: 0, fontWeight: 600, color: greenDark }}>{eur(ctx.capital.cash)}</p>
+          <div className="green-sub-card">
+            <p className="green-sub-label">Hotavosť</p>
+            <p className="green-sub-value">{eur(ctx.capital.cash)}</p>
           </div>
         </div>
       </div>
