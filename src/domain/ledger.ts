@@ -55,7 +55,7 @@ export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transa
         break;
       default:
         // Ak pribudne nový typ transakcie, TypeScript tu vyhodí chybu pri kompilácii
-        const _exhaustiveCheck: never = t;
+        const _exhaustiveCheck: never = t.type;
         throw new Error(`Neznámy typ transakcie: ${_exhaustiveCheck}`);
     }
   }
