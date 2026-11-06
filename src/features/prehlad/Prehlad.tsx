@@ -101,7 +101,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
         <p style={calloutStyle("error")}>
           Pozor: záznamy vedú k zápornému stavu {ctx.negative.cash ? "hotovosti" : "investícií"} a hodnoty sú zarazené na 0. Skontroluj transakcie po poslednom vyhodnotení.
           {ctx.shortfall.inv > 0 && <> Prečerpanie investícií: <strong>{eur(ctx.shortfall.inv)}</strong>. Do kapitálu sa nezapočíta.</>}
-          {ctx.shortfall.cash > 0 && <> Prečerpanie hotavosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do kapitálu sa nezapočíta.</>}
+          {ctx.shortfall.cash > 0 && <> Prečerpanie hotovosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do kapitálu sa nezapočíta.</>}
         </p>
       )}
 
@@ -119,7 +119,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
             <p className="green-sub-value">{eur(ctx.capital.inv)}</p>
           </div>
           <div className="green-sub-card">
-            <p className="green-sub-label">Hotavosť</p>
+            <p className="green-sub-label">Hotovosť</p>
             <p className="green-sub-value">{eur(ctx.capital.cash)}</p>
           </div>
         </div>
