@@ -3,7 +3,7 @@ import { monthlyExpenseScenario } from "../src/domain/monthlyExpense";
 import { goalMonths } from "../src/domain/rentalGoal";
 
 // Mesačný výdavok (N-12b, docs/37): zníženie mesačného sporenia. Syntetické hodnoty v centoch.
-const base = { inv: 10_000_000, cash: 1_000_000 };
+const base = { inv: 10_000_000, cash: 1_000_000, nem: 0 };
 const common = { realReturn: 0.035, targetCents: 60_000_000, rentals: [] };
 
 describe("mesačný výdavok: zníženie sporenia", () => {
@@ -45,7 +45,7 @@ describe("mesačný výdavok: zníženie sporenia", () => {
   });
 
   it("ak cieľ po výdavku nie je dosiahnuteľný, dopad je null", () => {
-    const out = monthlyExpenseScenario({ base: { inv: 0, cash: 0 }, expenseCents: 1_000, mInv: 1_000, mCash: 0, ...common });
+    const out = monthlyExpenseScenario({ base: { inv: 0, cash: 0, nem: 0 }, expenseCents: 1_000, mInv: 1_000, mCash: 0, ...common });
     expect(out.ok).toBe(true);
     if (out.ok) {
       expect(out.after.kind).toBe("unreachable");

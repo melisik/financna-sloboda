@@ -30,9 +30,10 @@ interface MonthSummary {
   unassignedCents: number; // výdavky bez kategórie
   overThresholdCount: number; // výdavky tohto mesiaca nad prahom
   liabilitiesCents: number; // splátky platných úverov a kariet (sú v nevyhnutných)
-  // NOVÉ A1: Oddelené príjmy a výdavky z prenájmu
-  rentalIncomeCents: number; // faktické príjmy z prenájmu za mesiac
-  rentalExpensesCents: number; // faktické výdavky na prenájom za mesiac (údržba, poistenie, ...)
+  spentByCategory: Record<BudgetCategory, number>; // transakcie, pravidelné výdavky a pri bývaní splátky hypoték
+  housingCents: number; // splátky hypoték v mesiaci bez odpočtu nájmu (sú v kategórii bývanie, D-346, D-347)
+  rentalIncomeCents: number; // skutočne prijatý nájom z evidencie prenájmu (D-346)
+  rentalExpensesCents: number; // výdavky z evidencie prenájmu; nie sú v kategóriách ani v byNecessity (D-346)
 }
 
 /** Mesačný prehľad výdavkov pre Prehľad: plnenie plánu a rozpis podľa nevyhnutnosti (D-131). */
@@ -46,25 +47,23 @@ export function monthSummary(
   liabilities: Liability[] = [],
 ): MonthSummary {
   const recurringByCat = monthlyRecurringByCategory(recurring, today);
-  const housing = housingFlowCents(properties); // OPRAVA A1: Len splátky hypotéky, bez nájmu
-  const spentIn = (c: BudgetCategory) =>
-    spentInMonthCents(transactions, c, today) + (recurringByCat[c] ?? 0) + (c === "bývanie" ? housing : 0);
+  const housing = housingFlowCents(properties, today);
+  const spentByCategory = {} as Record<BudgetCategory, number>;
+  for (const c of Object.keys(NECESSITY) as BudgetCategory[]) {
+    spentByCategory[c] = spentInMonthCents(transactions, c, today) + (recurringByCat[c] ?? 0) + (c === "bývanie" ? housing : 0);
+  }
 
   const byNecessity: Record<Necessity, number> = { nevyhnutne: 0, nie_nevyhnutne: 0, ostatne: 0 };
-  for (const c of Object.keys(NECESSITY) as BudgetCategory[]) byNecessity[NECESSITY[c]] += spentIn(c);
+  for (const c of Object.keys(NECESSITY) as BudgetCategory[]) byNecessity[NECESSITY[c]] += spentByCategory[c];
   const liabilitiesCents = activeLiabilityPaymentCents(liabilities, today);
   byNecessity.nevyhnutne += liabilitiesCents;
 
   const planCents = budgets.reduce((sum, b) => sum + b.limitCents, 0);
-  const plannedSpentCents = budgets.reduce((sum, b) => sum + spentIn(b.category), 0);
+  const plannedSpentCents = budgets.reduce((sum, b) => sum + spentByCategory[b.category], 0);
   const month = today.slice(0, 7);
   const overThresholdCount = transactions.filter(
     (t) => t.type === "vydavok" && t.date.slice(0, 7) === month && t.amountCents >= thresholdCents,
   ).length;
-
-  // NOVÉ A1: Oddelené príjmy a výdavky z prenájmu
-  const rentalIncomeCents = rentalIncomeInMonthCents(properties, today);
-  const rentalExpensesCents = rentalExpensesInMonthCents(properties, today);
 
   return {
     planCents,
@@ -74,7 +73,9 @@ export function monthSummary(
     unassignedCents: spentInMonthCents(transactions, null, today),
     liabilitiesCents,
     overThresholdCount,
-    rentalIncomeCents,
-    rentalExpensesCents,
+    spentByCategory,
+    housingCents: housing,
+    rentalIncomeCents: rentalIncomeInMonthCents(properties, today),
+    rentalExpensesCents: rentalExpensesInMonthCents(properties, today),
   };
 }

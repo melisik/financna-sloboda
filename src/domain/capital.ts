@@ -1,10 +1,11 @@
 import type { Snapshot, Transaction } from "./model/entities";
 import { monthlyRate, monthsToTarget } from "./goal";
 
-/** Kapitál rozdelený na dva zásobníky (D-036, D-039, D-041). Sumy v centoch. */
+/** Kapitál rozdelený na tri zásobníky (D-036, D-039, D-041, D-080). Sumy v centoch. */
 export interface Capital {
   inv: number; // K_inv: investície, zhodnocujú sa r
   cash: number; // K_cash: hotovosť, 0 % reálne
+  nem: number; // K_nem: čistá hodnota nehnuteľností (len prenajom), suma (Odhad − Zostatok) za všetky
 }
 
 const MAX_MONTHS = 14_400; // 1 200 rokov, poistka proti nekonečnej slučke
@@ -18,8 +19,13 @@ export function isAfterEvaluation(t: Pick<Transaction, "date" | "createdAt">, sn
   return t.date > snapshot.date || t.createdAt > snapshot.createdAt;
 }
 
-/** Celkový kapitál K_L = K_inv + K_cash. */
-function totalCapital(c: Capital): number {
+/** Tvorba kapitálu s nem = 0 pre testy a výpočty bez nehnuteľností (D-036). */
+export function capital(inv: number, cash: number, nem: number = 0): Capital {
+  return { inv, cash, nem };
+}
+
+/** Investičný kapitál K_FIRE = K_inv + K_cash (bez K_nem); používá sa na výpočet cieľa (D-046, D-268). */
+function investmentCapital(c: Capital): number {
   return c.inv + c.cash;
 }
 
@@ -37,7 +43,7 @@ export function monthsToTargetSplit(
   annualRate: number,
   targetCents: number,
 ): number | null {
-  if (totalCapital(c) >= targetCents) return 0;
+  if (investmentCapital(c) >= targetCents) return 0;
   if (mCash === 0) return monthsToTarget(c.inv, mInv, annualRate, targetCents - c.cash);
 
   const i = monthlyRate(annualRate);
@@ -71,7 +77,7 @@ type MoveResult =
 export function payFromCash(c: Capital, amount: number): MoveResult {
   if (!(amount >= 0)) return { ok: false, reason: "invalid_amount" };
   if (c.cash - amount < 0) return { ok: false, reason: "insufficient_cash", suggestion: "investments" };
-  return { ok: true, capital: { inv: c.inv, cash: c.cash - amount } };
+  return { ok: true, capital: { inv: c.inv, cash: c.cash - amount, nem: c.nem } };
 }
 
 /** Hlásenie pri vyčerpaní investícií (GC-15, D-224). Zobrazuje ho Transakcie pred potvrdením výdavku. */
@@ -84,8 +90,8 @@ export const INVESTMENTS_EXHAUSTED_TEXT = "Investície nestačia. Po uložení b
 export function payFromInvestments(c: Capital, amount: number): MoveResult {
   if (!(amount >= 0)) return { ok: false, reason: "invalid_amount" };
   const after = c.inv - amount;
-  if (after < 0) return { ok: true, capital: { inv: 0, cash: c.cash }, warning: "exhausted" };
-  return { ok: true, capital: { inv: after, cash: c.cash } };
+  if (after < 0) return { ok: true, capital: { inv: 0, cash: c.cash, nem: c.nem }, warning: "exhausted" };
+  return { ok: true, capital: { inv: after, cash: c.cash, nem: c.nem } };
 }
 
 /**
@@ -95,6 +101,6 @@ export function payFromInvestments(c: Capital, amount: number): MoveResult {
 export function transferToInvestments(c: Capital, amount: number): MoveResult {
   if (!(amount >= 0)) return { ok: false, reason: "invalid_amount" };
   if (c.cash - amount < 0) return { ok: false, reason: "insufficient_cash", suggestion: "investments" };
-  return { ok: true, capital: { inv: c.inv + amount, cash: c.cash - amount } };
+  return { ok: true, capital: { inv: c.inv + amount, cash: c.cash - amount, nem: c.nem } };
 }
 

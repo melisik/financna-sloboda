@@ -12,7 +12,7 @@ import type { Property } from "../src/storage/types";
 // Golden cases FR-02a (docs/04, GC-P2-01 až GC-P2-04). Syntetické hodnoty v centoch.
 const T = 60_000_000; // 600 000 €
 const r = 0.035;
-const base = { inv: 10_000_000, cash: 0 }; // K_inv = 100 000 €
+const base = { inv: 10_000_000, cash: 0, nem: 0 }; // K_inv = 100 000 €
 const mainRental: Rental = {
   valueCents: 30_000_000,
   mortgageBalanceCents: 20_000_000,
@@ -30,7 +30,7 @@ describe("FR-02a – golden cases", () => {
   });
 
   it("GC-P2-02: hotovosť sa vyčerpá v mesiaci 26", () => {
-    const res = monthsToTargetWithRentals({ inv: 10_000_000, cash: 1_000_000 }, 0, 0, r, T, [
+    const res = monthsToTargetWithRentals({ inv: 10_000_000, cash: 1_000_000, nem: 0 }, 0, 0, r, T, [
       { ...mainRental, netRentCents: 60_000 },
     ]);
     expect(res).toEqual({ kind: "cash_exhausted", month: 26 });
@@ -58,7 +58,7 @@ describe("FR-02a – golden cases", () => {
     };
     const rentals = rentalsFor([own]);
     expect(rentals).toHaveLength(0);
-    const res = goalMonths({ inv: 10_000_000, cash: 0 }, 50_000, 0, r, T, rentals);
+    const res = goalMonths({ inv: 10_000_000, cash: 0, nem: 0 }, 50_000, 0, r, T, rentals);
     expect(res.kind).toBe("months");
     if (res.kind === "months") expect(res.months).toBeCloseTo(362.1, 1);
   });
@@ -66,14 +66,14 @@ describe("FR-02a – golden cases", () => {
 
 describe("FR-02a – regresia", () => {
   it("bez nehnuteľnosti je výsledok rovnaký ako FR-02 (362,10 mesiaca)", () => {
-    const res = goalMonths({ inv: 10_000_000, cash: 0 }, 50_000, 0, r, T, []);
+    const res = goalMonths({ inv: 10_000_000, cash: 0, nem: 0 }, 50_000, 0, r, T, []);
     expect(res.kind).toBe("months");
     if (res.kind === "months") expect(res.months).toBeCloseTo(362.1, 1);
   });
 
   it("nulová nehnuteľnosť (V = 0, Z0 = 0, N = P = 0) dá takmer rovnaký výsledok ako FR-02", () => {
     const zero: Rental = { valueCents: 0, mortgageBalanceCents: 0, mortgageRate: 0, paymentCents: 0, netRentCents: 0 };
-    const res = monthsToTargetWithRentals({ inv: 10_000_000, cash: 0 }, 50_000, 0, r, T, [zero]);
+    const res = monthsToTargetWithRentals({ inv: 10_000_000, cash: 0, nem: 0 }, 50_000, 0, r, T, [zero]);
     expect(res.kind).toBe("months");
     if (res.kind === "months") expect(res.months).toBeCloseTo(362.1, 1);
   });
@@ -99,15 +99,15 @@ describe("FR-02a – rentalsFor a dopad", () => {
   });
 
   it("dopad je rozdiel dvoch n a bez zmeny pri rovnakom stave", () => {
-    const c = { inv: 10_000_000, cash: 0 };
+    const c = { inv: 10_000_000, cash: 0, nem: 0 };
     expect(impactWithRentals(c, c, 0, 0, r, T, [mainRental])).toEqual({ kind: "delta", months: 0 });
   });
 
   it("transakcia, po ktorej hotovosť klesne pod 0, je cash_exhausted na strane po transakcii", () => {
     // Pred transakciou vystačí hotovosť do mesiaca 51, po transakcii do mesiaca 26 (GC-P2-02 logika).
     const drain: Rental = { ...mainRental, netRentCents: 60_000 };
-    const before = { inv: 10_000_000, cash: 2_000_000 };
-    const after = { inv: 10_000_000, cash: 1_000_000 };
+    const before = { inv: 10_000_000, cash: 2_000_000, nem: 0 };
+    const after = { inv: 10_000_000, cash: 1_000_000, nem: 0 };
     expect(impactWithRentals(before, after, 0, 0, r, T, [drain])).toEqual({ kind: "cash_exhausted", side: "after", month: 26 });
   });
 

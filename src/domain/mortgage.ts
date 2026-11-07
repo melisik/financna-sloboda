@@ -1,4 +1,4 @@
-import type { ExtraPaymentMode, Property } from "./model/entities";
+import type { ExtraPaymentMode, MortgagePayment, Property } from "./model/entities";
 import { fullMonthsBetween } from "./dates";
 
 /** Pridá mesiace k dátumu; deň sa orezá na posledný deň cieľového mesiaca. */
@@ -16,15 +16,24 @@ export function addMonths(iso: string, months: number): string {
  * (splátka mínus úrok z aktuálneho zostatku). Bez dátumu zostatku alebo splátky sa nič nerobí.
  */
 export function amortizeLoan(balanceCents: number, rate: number, paymentCents: number, balanceDate: string | undefined, today: string): { balanceCents: number; balanceDate: string } | null {
+  const r = amortize(balanceCents, rate, paymentCents, balanceDate, today);
+  return r ? { balanceCents: r.balanceCents, balanceDate: r.balanceDate } : null;
+}
+
+/** Spoločný výpočet splácania; zaplatená suma kroku je splátka, najviac zostatok s úrokom (posledná splátka, D-255, D-347). */
+function amortize(balanceCents: number, rate: number, paymentCents: number, balanceDate: string | undefined, today: string): { balanceCents: number; balanceDate: string; lastPayment: MortgagePayment } | null {
   if (!balanceDate || balanceCents <= 0 || !paymentCents) return null;
   const months = fullMonthsBetween(balanceDate, today);
   if (months <= 0) return null;
   let balance = balanceCents;
+  let lastPayment: MortgagePayment | null = null;
   for (let i = 0; i < months && balance > 0; i++) {
     const interest = Math.round((balance * rate) / 12);
-    balance -= paymentCents - interest;
+    const paid = Math.min(paymentCents, balance + interest);
+    balance = balance + interest - paid;
+    lastPayment = { date: addMonths(balanceDate, i + 1), amountCents: paid, balanceAfterCents: balance };
   }
-  return { balanceCents: Math.max(0, balance), balanceDate: addMonths(balanceDate, months) };
+  return lastPayment && { balanceCents: balance, balanceDate: addMonths(balanceDate, months), lastPayment };
 }
 
 /**
@@ -66,11 +75,11 @@ export function applyExtraPayment(p: Pick<Property, "mortgageBalanceCents" | "mo
   return { mortgageBalanceCents: balance, monthlyPaymentCents: newPayment, monthsBefore, monthsAfter: remainingMonths(balance, rate, newPayment) };
 }
 
-/** Automatické splácanie hypotéky (D-137). */
-export function amortizeMortgage(p: Property, today: string): { mortgageBalanceCents: number; balanceDate: string } | null {
+/** Automatické splácanie hypotéky (D-137) so záznamom o poslednej zaplatenej splátke (D-347). */
+export function amortizeMortgage(p: Property, today: string): { mortgageBalanceCents: number; balanceDate: string; lastMortgagePayment: MortgagePayment } | null {
   if (!p.monthlyPaymentCents) return null;
-  const r = amortizeLoan(p.mortgageBalanceCents, p.mortgageRate ?? 0, p.monthlyPaymentCents, p.balanceDate, today);
-  return r ? { mortgageBalanceCents: r.balanceCents, balanceDate: r.balanceDate } : null;
+  const r = amortize(p.mortgageBalanceCents, p.mortgageRate ?? 0, p.monthlyPaymentCents, p.balanceDate, today);
+  return r ? { mortgageBalanceCents: r.balanceCents, balanceDate: r.balanceDate, lastMortgagePayment: r.lastPayment } : null;
 }
 
 /**

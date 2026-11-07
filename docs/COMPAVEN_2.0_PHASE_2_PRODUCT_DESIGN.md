@@ -147,9 +147,12 @@ KRÍŽOVÉ PREPOJENIA:
 │                                                            │
 │  ┌─ HLAVNÉ METRIKY (Riadok 1) ──────────────────────┐   │
 │  │                                                    │   │
-│  │  Kapitál:          K_total                       │   │
-│  │  100 000 €         ████████░░ 100k / 650k       │   │
+│  │  Pokrok k FIRE:    K_FIRE                        │   │
+│  │  90 000 €          ██████░░░░ 90k / 648k        │   │
 │  │                    Cieľ: 648 649 € (do 221 m.)  │   │
+│  │                                                    │   │
+│  │  Celkový majetok:  K_total = 100 000 €          │   │
+│  │  (Vrátane vlastného byvania, ktoré nie je v K_FIRE) │   │
 │  │                                                    │   │
 │  └────────────────────────────────────────────────────┘   │
 │                                                            │
@@ -201,9 +204,13 @@ KRÍŽOVÉ PREPOJENIA:
 │ 📊 FINANČNÝ PREHĽAD    │
 ├─────────────────────────┤
 │                         │
-│ Kapitál: 100 000 €      │
-│ ████████░░ 100k/650k   │
+│ Pokrok k FIRE:          │
+│ 90 000 €                │
+│ ██████░░░░ 90k/648k   │
 │ Cieľ do 221 mesiacov    │
+│                         │
+│ Celkový majetok:        │
+│ 100 000 € (vrátane BV)  │
 │                         │
 │ ─────────────────────── │
 │                         │
@@ -213,14 +220,10 @@ KRÍŽOVÉ PREPOJENIA:
 │                         │
 │ ─────────────────────── │
 │                         │
-│ m: 1 500 € / mesiac     │
+│ m: 1 500 € (info)       │
 │ Trend: ↗ (grafikon)     │
 │                         │
-│ ─────────────────────── │
-│                         │
-│ ⚠️ Vyhodnotenie?       │
 │ [Mesiac. vyhodnotenie] │
-│                         │
 │ [+ Nová transakcia]     │
 │                         │
 └─────────────────────────┘
@@ -389,24 +392,17 @@ KRÍŽOVÉ PREPOJENIA:
 │  │  [Majetok]  [Záväzky]  [Čistá hodnota]        │   │
 │  └────────────────────────────────────────────────┘   │
 │                                                         │
-│  ┌─ MAJETKY (Záložka 1) ──────────────────────────┐   │
+│  ┌─ NEHNUTEĽNOSTI (Záložka 1) ────────────────────┐   │
+│  │ (Investície sú v K_inv, nie tu)                 │   │
 │  │                                                  │   │
-│  │  [+ Nový majetok]                              │   │
+│  │  [+ Nová nehnuteľnosť]                          │   │
 │  │                                                  │   │
 │  │  ┌─ Dom na Námestí                            │   │
 │  │  │ Typ: Nehnuteľnosť                          │   │
 │  │  │ Hodnota: 300 000 €                         │   │
 │  │  │ Poslední odhad: 1.11.2026                 │   │
 │  │  │ Režim: Vlastníctvo                         │   │
-│  │  │ [Upraviť]  [Zmazať]  [Vznik. hoc.]        │   │
-│  │  └────────────────────────────────────────────┘   │
-│  │                                                  │   │
-│  │  ┌─ Portfólium akcií                          │   │
-│  │  │ Typ: Investícia                            │   │
-│  │  │ Hodnota: 60 000 €                          │   │
-│  │  │ Poslední odhad: 30.10.2026                │   │
-│  │  │ Výnos: 3,5% p.a.                          │   │
-│  │  │ [Upraviť]  [Zmazať]  [Transakcie]         │   │
+│  │  │ [Upraviť]  [Zmazať]                        │   │
 │  │  └────────────────────────────────────────────┘   │
 │  │                                                  │   │
 │  └────────────────────────────────────────────────┘   │
@@ -428,13 +424,14 @@ KRÍŽOVÉ PREPOJENIA:
 │                                                         │
 │  ┌─ ČISTÁ HODNOTA (Záložka 3) ────────────────────┐   │
 │  │                                                  │   │
-│  │  K_nem = SUMA(Majetok − Záväzky)               │   │
+│  │  K_nem = SUMA(Nehnuteľnosti − Záväzky)         │   │
+│  │  (IBA nehnuteľnosti, investície sú v K_inv)   │   │
 │  │                                                  │   │
-│  │  Majetok celkom: 360 000 €                     │   │
+│  │  Nehnuteľnosti celkom: 300 000 €               │   │
 │  │  − Záväzky celkom: −200 000 €                 │   │
-│  │  = K_nem: 160 000 €                            │   │
+│  │  = K_nem: 100 000 €                            │   │
 │  │                                                  │   │
-│  │  Príspevok k K_total: 160 000 €               │   │
+│  │  Príspevok k K_total: 100 000 €               │   │
 │  │  (K_nem MIMO K_FIRE — vlastné bývanie)        │   │
 │  │                                                  │   │
 │  │  K_FIRE príspevok (prepoň. nehnuteľnosti):    │   │
@@ -451,26 +448,26 @@ KRÍŽOVÉ PREPOJENIA:
 ┌──────────────────────┐
 │ 🏠 MAJETOK & ZÁVÄZK│
 ├──────────────────────┤
-│ [Majetok] [Záväzky]  │
+│ [Nehnuteľnosti]      │
 │                      │
 │ + Dom (300k €)       │
 │   Vlastníctvo        │
 │   [Upraviť]          │
 │                      │
-│ + Akcie (60k €)      │
-│   Investícia         │
-│   [Upraviť]          │
+│ ─────────────────── │
+│ [Záväzky]            │
+│                      │
+│ + Hypotéka (200k €)  │
+│   2,5% p.a.          │
+│   [Zaznamenať splátku]
 │                      │
 │ ─────────────────── │
 │                      │
-│ Hypotéka: 200k €     │
-│ m: 1 000 €           │
-│ [Zaznamenať splátku] │
+│ K_nem: 100 000 €     │
+│ (300k − 200k)        │
 │                      │
-│ ─────────────────── │
-│                      │
-│ K_nem: 160 000 €     │
-│ (3 majetky − 1 záv.)│
+│ Poznámka: Investície│
+│ sú v K_inv, nie tu  │
 │                      │
 └──────────────────────┘
 ```
@@ -716,8 +713,9 @@ KRÍŽOVÉ PREPOJENIA:
 │  │ (K_inv, K_cash, K_nem, m, r)                  │   │
 │  │                                                  │   │
 │  │ Zmeny na testovanie:                          │   │
+│  │ (Voľný peňažný tok m sa zobrazuje ako info) │   │
 │  │                                                  │   │
-│  │ ☐ Mesačné sporenie (m):                       │   │
+│  │ ☐ Plánovaný mesačný príspevok (c):           │   │
 │  │    Pôvodne: 1 500 €                           │   │
 │  │    Simulácia: [1 500] € → [2 000] €          │   │
 │  │                                                  │   │
@@ -739,13 +737,14 @@ KRÍŽOVÉ PREPOJENIA:
 │                                                         │
 │  ┌─ VÝSLEDKY SIMULÁCIE ────────────────────────────┐   │
 │  │                                                  │   │
-│  │ Scenár: "m = 2 000 € + r = 4,5%"             │   │
+│  │ Scenár: "c = 2 000 € + r = 4,5%"             │   │
+│  │ (Voľný tok m informačne: 2 500 €)              │   │
 │  │                                                  │   │
 │  │ Cieľ dosiahnutý:                              │   │
 │  │ ✓ júní 2036 (−19 mesiacov!)                   │   │
 │  │                                                  │   │
 │  │ Zmena (v porovnaní s pôvodným plánom):        │   │
-│  │ • Mesačné sporenie: +500 € (Δ +33%)          │   │
+│  │ • Plánovaný príspevok: +500 € (Δ +33%)       │   │
 │  │ • Výnos: +1% p.a. (Δ +28%)                   │   │
 │  │ • Výsledok: 19 mesiacov skôr!                 │   │
 │  │                                                  │   │
@@ -780,8 +779,9 @@ KRÍŽOVÉ PREPOJENIA:
 ├──────────────────────┤
 │                      │
 │ Testujem scenáre:    │
+│ (Voľný tok m: info)  │
 │                      │
-│ m: [1 500€] → [2 0] │
+│ c: [1 500€] → [2 0] │
 │ r: [3,5%] → [4,5%]  │
 │ V: [24k€] → [20k€]  │
 │                      │
@@ -793,7 +793,7 @@ KRÍŽOVÉ PREPOJENIA:
 │ Cieľ: jún 2036      │
 │ (−19 mesiacov!)      │
 │                      │
-│ m +500€ (Δ+33%)     │
+│ c +500€ (Δ+33%)     │
 │ r +1% (Δ+28%)       │
 │                      │
 │ [Implementovať]      │
@@ -1137,7 +1137,7 @@ K_inv v čase s výnosom:
 - Výnos sa počíta IBA na investovaný kapitál
 ```
 
-### Mesačné Sporenie (m) a Plánovaný Príspevok (c)
+### Mesačné Sporenie (m), Plánovaný Príspevok (c) a Transakcie
 
 **DÔLEŽITÉ: m ≠ c**
 
@@ -1167,6 +1167,45 @@ Výpočet cieľa:
   K_n = K_0 × (1+i)^n + c × [((1+i)^n − 1) / i]
   
   Kde c je suma, ktorú sa používateľ rozhodol alokať.
+
+---
+
+## 7.1 LOGIKA TRANSAKCIÍ A PRESUNOV
+
+**Presun medzi K_cash a K_inv:**
+```
+Príklad: Presun 5 000 € z hotovosti do investícií
+  K_cash: 30 000 → 25 000 € (−5 000 €)
+  K_inv:  60 000 → 65 000 € (+5 000 €)
+  K_total: 90 000 € (bez zmeny!)
+  
+  DÔLEŽITÉ: Presun NEMÁ vplyv na K_total ani na cieľ.
+  Toto nie je príspevok, iba presun medzi účtami.
+```
+
+**Splátka hypotéky:**
+```
+Príklad: Splátka 1 000 € (úrok 417 + istina 583)
+  K_cash: −1 000 € (výdavok peňazí)
+  K_nem:  +583 € (istina zvyšuje čistú hodnotu)
+  K_total: −417 € (iba úrok je výdavok!)
+  
+  DÔLEŽITÉ: Istina NIE je stratou na K_total, ale presun.
+  Bez dvojitého počítania: splátka znižuje K_cash, istina zvyšuje K_nem.
+```
+
+**Portfolió investícií — Jedno miesto v dátovom modeli:**
+```
+Investície (portfólium akcií, ETF, kryptomeny atď.):
+  ✓ Sú v K_inv (časť finančného kapitálu)
+  ✗ NIE sú súčasne v samostatnom majetku (assets)
+  
+  Nehnuteľnosti (domy, pozemky, rekreačné objekty):
+  ✓ Sú v majetku (assets) ako K_nem
+  ✗ NIE sú v K_inv
+  
+  DÔLEŽITÉ: Každá hodnota má jedno a iba jedno miesto vo výpočte.
+  Bez duplicity.
 ```
 
 ---
@@ -1307,8 +1346,71 @@ Na základe FÁZY 1 sú všetky finančné rozhodnutia (B1–B7) uzavreté. Na z
 
 ---
 
-**FÁZA 2 JE UZAVRETÁ A PRIPRAVENÁ NA SCHVÁLENIE**
+**FÁZA 2 JE UZAVRETÁ A ROZPORY SÚ OPRAVENÉ**
 
 ---
 
-**KONIEC FÁZY 2: PRODUKTOVÝ NÁVRH + PLÁN IMPLEMENTÁCIE**
+## 13. PRVÝ FUNKČNÝ CELOK — KONKRÉTNY ROZSAH
+
+Po odsúhlasení produktového návrhu prechádzame na **budovanie funkčných celkov, nie postupné obrazovky**.
+
+### Prvý Funkčný Celok: MVP Foundation
+Cieľ: Spustiteľná aplikácia s reálnymi údajmi a oveľmi nú logikou.
+
+**Obsah (Milestones A–C z plánu):**
+
+1. **PWA Shell + Navigácia**
+   - Service Worker (offline)
+   - Manifest (app icon, splash screen)
+   - Sidebar (Desktop) + Bottom nav (iPhone)
+   - Routing medzi 7 obrazovkami
+
+2. **IndexedDB Dátový Model**
+   - Tabuľky: transactions, assets, liabilities, evaluations, settings
+   - CRUD operácie
+   - Bez migrácie starých dát (budúcna)
+
+3. **Onboarding + Profil**
+   - Vitajte obrazovka
+   - 3 formuláre: cieľ (V, p), kapitál (K_inv, K_cash, r), vyhodnotenie (D_L, K_L)
+   - Alternatívne: preskočiť na Nastavenia
+
+4. **Základné Transakcie**
+   - Príjmy, výdavky, sporenie, investícia, presun, splátka
+   - Formulár s jasným UI
+   - Bez predbežného dopadu v MVP (iba v simulácii)
+
+5. **Výpočty Finančných Veličín**
+   - K_total = K_inv + K_cash + K_nem
+   - K_FIRE = K_inv + K_cash + K_nem_prenajatý (bez vlastného byvania)
+   - Cieľ: T = V / p
+   - Čas: Iterácia K_n = K_0 × (1+i)^n + c × [((1+i)^n − 1) / i]
+
+6. **Dashboard — Reálne Dáta**
+   - Pokrok k FIRE (z K_FIRE, nie K_total)
+   - Komponenty (K_inv, K_cash, K_nem)
+   - Mesačný pokrok (m ako info)
+   - Jedno upozornenie (vyhodnotenie)
+
+7. **Export + Obnova**
+   - JSON export (všetky dáta)
+   - CSV export (transakcie, vyhodnotenia)
+   - Import (obnova zo súboru)
+
+**Čo sa NEIMPLEMENTUJE v prvom celku:**
+- ✗ História a analýzy (grafikony)
+- ✗ Majetok a záväzky (detailná správa)
+- ✗ Finančné ciele (detailná obrazovka)
+- ✗ Plánovanie a simulácia
+- ✗ Nastavenia (mimo profilu)
+
+**Výsledok prvého funkčného celku:**
+Aplikácia, do ktorej môžem:
+- Zadať svoj finančný profil
+- Zaznamenať transakcie
+- Vidieť pokrok k cieľu
+- Exportovať a obnoviť dáta
+
+---
+
+**KONIEC FÁZY 2: OPRAVY HOTOVÉ + PRVÝ FUNKČNÝ CELOK DEFINOVANÝ**

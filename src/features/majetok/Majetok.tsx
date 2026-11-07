@@ -5,7 +5,7 @@ import type { Asset, AssetKind, ExtraPaymentMode, Property, PropertyMode, Rental
 import { ASSET_KINDS, EXTRA_PAYMENT_MODES, PROPERTY_MODES } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import { applyExtraPayment, paymentBelowInterest, remainingMonths } from "../../domain/mortgage";
-import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale } from "../../domain/property";
+import { monthlyCostsCents, netPropertyValueCents, splitPayment, valueIsStale, withMortgagePaymentRecord } from "../../domain/property";
 import { rentalRow11, rentalTotalsForYear, rentalYears } from "../../domain/rental";
 import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
@@ -368,6 +368,7 @@ function RentalLedger({ repo, property, today, onDone, renderAttachments }: { re
     <div style={{ border: "1px solid var(--border)", borderRadius: 6, padding: 10, margin: "8px 0" }}>
       <p style={{ margin: 0 }}><strong>Príjmy a výdavky z prenájmu</strong></p>
       <p style={{ ...hintStyle, margin: "4px 0" }}>Zapisuj priebežne. Súčty sú len podklad pre daňové priznanie, nie daňový výpočet.</p>
+      <p style={{ ...hintStyle, margin: "4px 0" }}>Prijatý nájom a výdavky zapísané tu sa počítajú do príjmov a výdavkov mesiaca (Prehľad, Príjmy). Nezapisuj ich znova ako transakciu, príjem ani pravidelný výdavok.</p>
       <label style={{ display: "block", margin: "6px 0" }}>
         Rok{" "}
         <select value={year} onChange={(e) => setYear(Number(e.target.value))} style={{ minHeight: 44 }}>
@@ -507,6 +508,7 @@ function ExtraPaymentForm({ repo, property, today, onDone }: { repo: Repository;
     const result = applyExtraPayment(property, amountCents, mode);
     if (!result) return setErr("Splátka sa nedá znížiť, lebo nepokrýva úrok. Zvoľ skrátenie termínu.");
     try {
+      // Záznam o poslednej splátke ostáva; nadväznosť cez balanceBeforeCents overí mortgagePaymentRecordValid (D-347).
       await repo.saveProperty({
         ...property,
         mortgageBalanceCents: result.mortgageBalanceCents,
@@ -683,7 +685,8 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
       ...(floorArea !== "" && !Number.isNaN(asNum(floorArea)) ? { floorAreaSqm: asNum(floorArea) } : {}),
     };
     try {
-      await repo.saveProperty(property);
+      // Formulár skladá nehnuteľnosť z polí; záznam o poslednej splátke prenesie len pri nezmenenej hypotéke (D-347).
+      await repo.saveProperty(withMortgagePaymentRecord(initial, property));
       onDone();
     } catch {
       setErr(STORAGE_ERROR);
@@ -712,10 +715,10 @@ function PropertyForm({ repo, initial, today, onDone, onCancel }: { repo: Reposi
           <Field label="Zostatok platí k (dátum)" value={balanceDate} type="date" max={today} onChange={setBalanceDate} hint="nechaj dnešný dátum, ak si zostatok práve zistil; od tohto dátumu sa každý mesiac automaticky znižuje o istinu" />
         )}
         <Field label="Úroková sadzba hypotéky (% p. a.)" value={rate} step={0.01} onChange={setRate} hint="0, ak hypotéku nemáš" />
-        <Field label="Mesačná splátka hypotéky (€)" value={payment} onChange={setPayment} hint="0, ak hypotéku nemáš" />
+        <Field label="Mesačná splátka hypotéky (€)" value={payment} onChange={setPayment} hint="0, ak hypotéku nemáš; splátka sa každý mesiac počíta do výdavkov na bývanie, nezapisuj ju ako pravidelný výdavok" />
       </FoldBlock>
       <FoldBlock title="Mesačné náklady" summary={costsOn ? eur(cents(asNum(otherCosts))) : "žiadne"} openWhen={!!err} reopenOn={err}>
-        <Field label="Ostatné mesačné náklady (€)" value={otherCosts} onChange={setOtherCosts} hint="údržba, poistenie, poplatky; 0, ak nie sú" />
+        <Field label="Ostatné mesačné náklady (€)" value={otherCosts} onChange={setOtherCosts} hint="údržba, poistenie, poplatky; 0, ak nie sú. Je to odhad, do výdavkov mesiaca sa nepočíta" />
       </FoldBlock>
       <FoldBlock title="Kúpa" summary={buyOn ? "vyplnené" : "nevyplnené"} openWhen={!!err} reopenOn={err}>
         <Field label="Dátum obstarania (nepovinné)" value={acqDate} type="date" max={today} onChange={setAcqDate} hint="evidencia pre dane; nepočíta sa" />

@@ -50,7 +50,7 @@ describe("makeCtx: kontext prehľadu (FR-01, FR-02, FR-04, D-121)", () => {
   it("bez vyhodnotenia je kapitál 0 a cieľ sa počíta len z nastavení (FR-01, GC-01)", () => {
     const ctx = makeCtx(emptyData({ settings }));
     expect(ctx.latest).toBeNull();
-    expect(ctx.capital).toEqual({ inv: 0, cash: 0 });
+    expect(ctx.capital).toEqual({ inv: 0, cash: 0, nem: 0 });
     // T = V / p = 24 000 € / 0,04 = 600 000 €
     expect(ctx.target).toBe(eur(600_000));
     expect(ctx.longHorizon).toBe(false);
@@ -61,7 +61,7 @@ describe("makeCtx: kontext prehľadu (FR-01, FR-02, FR-04, D-121)", () => {
     expect(ctx.settings).toBeNull();
     expect(ctx.target).toBeNull();
     expect(ctx.realReturn).toBe(0.035);
-    expect(ctx.capital).toEqual({ inv: eur(100_000), cash: eur(20_000) });
+    expect(ctx.capital).toEqual({ inv: eur(100_000), cash: eur(20_000), nem: 0 });
   });
 
   it("poplatky sa odpočítajú od reálneho výnosu a výsledok nie je záporný (D-064)", () => {
@@ -112,7 +112,7 @@ describe("makeCtx: kontext prehľadu (FR-01, FR-02, FR-04, D-121)", () => {
       }),
     );
     // 20 000 € + 50 € (ručne zadaná položka po vyhodnotení); 999 € je už vo vyhodnotení.
-    expect(ctx.capital).toEqual({ inv: eur(100_000), cash: eur(20_050) });
+    expect(ctx.capital).toEqual({ inv: eur(100_000), cash: eur(20_050), nem: 0 });
   });
 
   it("rezerva po vyhodnotení zníži K_cash, ale jej stav je v rezerve (D-047, D-058)", () => {
@@ -146,8 +146,8 @@ describe("oficiálny cieľ z kapitálu pri vyhodnotení (D-285)", () => {
 
   it("kapitál pri vyhodnotení je K_L; pracovný kapitál obsahuje transakcie po ňom", () => {
     const ctx = makeCtx(emptyData({ settings: withSaving, snapshots: [snap], transactions: [expense] }));
-    expect(ctx.evaluated).toEqual({ inv: eur(100_000), cash: eur(20_000) });
-    expect(ctx.capital).toEqual({ inv: eur(100_000), cash: eur(1_000) });
+    expect(ctx.evaluated).toEqual({ inv: eur(100_000), cash: eur(20_000), nem: 0 });
+    expect(ctx.capital).toEqual({ inv: eur(100_000), cash: eur(1_000), nem: 0 });
   });
 
   it("výdavok po vyhodnotení nezmení dátum cieľa ani jeho rozsah", () => {
@@ -161,7 +161,7 @@ describe("oficiálny cieľ z kapitálu pri vyhodnotení (D-285)", () => {
   });
 
   it("bez vyhodnotenia je kapitál pri vyhodnotení 0", () => {
-    expect(makeCtx(emptyData({ settings })).evaluated).toEqual({ inv: 0, cash: 0 });
+    expect(makeCtx(emptyData({ settings })).evaluated).toEqual({ inv: 0, cash: 0, nem: 0 });
   });
 });
 

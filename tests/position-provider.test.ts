@@ -6,8 +6,8 @@ import { SCHEMA_VERSION, READABLE_SCHEMA_VERSIONS } from "../src/storage/types";
 const base = { id: "p1", name: "Syntetický ETF", kind: "etf", quantity: 2, unitPrice: 10, currency: "EUR", fxToEur: 1, valueDate: "2026-10-01", createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-10-01T00:00:00Z" };
 
 describe("poskytovateľ pri položke investície (D-329)", () => {
-  it("schéma zálohy je 15 a staršie sa čítajú", () => {
-    expect(SCHEMA_VERSION).toBe(16);
+  it("schéma zálohy je aspoň 15 a staršie sa čítajú", () => {
+    expect(SCHEMA_VERSION).toBe(19); // D-347
     expect(READABLE_SCHEMA_VERSIONS).toContain(14);
     expect(READABLE_SCHEMA_VERSIONS).toContain(15);
   });

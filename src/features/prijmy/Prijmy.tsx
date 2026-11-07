@@ -2,9 +2,9 @@ import { useState } from "react";
 import type { Repository } from "../../storage/repository";
 import { INCOME_FREQUENCIES, INCOME_KINDS, type AppData, type IncomeFrequency, type IncomeKind, type RegularIncome } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
-import { irregularIncomes, isIncomeActive, monthlyIncomeCents } from "../../domain/income";
+import { irregularIncomes, isIncomeActive, validateIncomeDate } from "../../domain/income";
 import { futureOutlook } from "../../domain/outlook";
-import { monthSummary } from "../../domain/monthSummary";
+import { householdMonthBalance } from "../../domain/householdBalance";
 import { FEED_MAX_BYTES, parseFeed, type ParsedFeed } from "../../storage/feed";
 import { cents, dateSk, eur } from "../../ui/kit/format";
 import { uid } from "../../ui/kit/ids";
@@ -29,15 +29,27 @@ const INCOME_FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
 };
 
 /** Pravidelné príjmy (D-102): len zobrazenie. Sporenie m sa mení až podľa zostatku pri vyhodnotení. */
-/** Príjem a minuté tento mesiac: rozdiel ukazuje, kam ide mzda. Nájom je v bývaní (D-137), nie v príjmoch. */
-function IncomeBalance({ income, data, today }: { income: number; data: AppData; today: string }) {
-  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, 0, data.properties, data.liabilities);
-  const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
-  const diff = income - spent;
+/** Príjmy a výdavky tohto mesiaca zo spoločnej bilancie (D-346). Prijatý nájom je samostatný príjem z evidencie prenájmu. */
+function IncomeBalance({ data, today }: { data: AppData; today: string }) {
+  const b = householdMonthBalance(data, today);
+  const income = b.totalIncomeCents;
+  const spent = b.totalExpensesCents;
+  const diff = b.balanceCents;
   return (
     <div style={{ ...card, marginBottom: 12 }}>
       <p style={{ margin: "4px 0" }}>Mesačný príjem: <strong>{eur(income)}</strong> · minuté tento mesiac: <strong>{eur(spent)}</strong></p>
+      {b.rentalIncomeCents > 0 && (
+        <p style={{ ...hintStyle, margin: "4px 0" }}>Z príjmu: pravidelné príjmy {eur(b.regularIncomeCents)}, prijatý nájom {eur(b.rentalIncomeCents)} (evidencia v Majetku).</p>
+      )}
+      {b.rentalExpensesCents > 0 && (
+        <p style={{ ...hintStyle, margin: "4px 0" }}>Z minutého: výdavky na prenájom {eur(b.rentalExpensesCents)} (evidencia v Majetku).</p>
+      )}
       <p style={{ margin: "4px 0" }}>Rozdiel: <strong>{diff >= 0 ? "+" : "−"}{eur(Math.abs(diff))}</strong></p>
+      {(b.plannedRentCents > 0 || b.plannedRentalCostsCents > 0) && (
+        <p style={{ ...hintStyle, margin: "4px 0" }}>
+          Plán z Majetku (len informácia, do príjmov a výdavkov sa nepočíta): nájom {eur(b.plannedRentCents)} mesačne, ostatné náklady {eur(b.plannedRentalCostsCents)} mesačne. Skutočný nájom a výdavky zapisuj v evidencii prenájmu.
+        </p>
+      )}
       {income === 0 && spent > 0 && (
         <p style={{ ...calloutStyle("warn"), margin: "8px 0 0" }}>
           Nie je zadaný žiadny platný pravidelný príjem. Rozdiel nie je správny, kým ho nepridáš.
@@ -141,7 +153,7 @@ export function IncomeSection({ repo, incomes, data, today, onSaved, feedImport 
       </div>}
       {incomes.length === 0 && editing === null && <p>Zatiaľ nie je zapísaný žiadny pravidelný príjem.</p>}
       <OutlookBlock incomes={incomes} today={today} />
-      <IncomeBalance income={monthlyIncomeCents(incomes, today)} data={data} today={today} />
+      <IncomeBalance data={data} today={today} />
       {irregularIncomes(incomes).length > 0 && (
         <p style={{ color: "var(--muted)" }}>Nepravidelné príjmy (do mesačného súčtu sa nerátajú): {eur(irregularIncomes(incomes).reduce((sum, i) => sum + i.amountCents, 0))}</p>
       )}
@@ -216,7 +228,8 @@ function IncomeForm({ repo, initial, today, onDone, onCancel }: { repo: Reposito
     if (endDate.trim() !== "") {
       const endErr = checkDate(endDate.trim(), "9999-12-31", "koniec");
       if (endErr.length) return setErr(endErr[0]);
-      if (endDate.trim() < startDate) return setErr("Koniec nesmie byť pred začiatkom.");
+      const orderErr = validateIncomeDate(startDate, endDate.trim());
+      if (orderErr) return setErr(orderErr);
     }
     const now = new Date().toISOString();
     const income: RegularIncome = {

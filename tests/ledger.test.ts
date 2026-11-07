@@ -16,30 +16,30 @@ const tx = (over: Partial<Transaction>): Transaction => ({
 
 describe("currentCapital (FR-04, FR-05)", () => {
   it("bez vyhodnotenia je kapitál 0", () => {
-    expect(currentCapital(null, [])).toEqual({ inv: 0, cash: 0 });
+    expect(currentCapital(null, [])).toEqual({ inv: 0, cash: 0, nem: 0 });
   });
 
   it("transakcie s dátumom ≤ D_L sa nepridajú znovu", () => {
     const old = tx({ date: "2026-09-15", type: "sporenie", amountCents: eur(999) });
-    expect(currentCapital(snap, [old])).toEqual({ inv: eur(100_000), cash: eur(20_000) });
+    expect(currentCapital(snap, [old])).toEqual({ inv: eur(100_000), cash: eur(20_000), nem: 0 });
   });
 
   it("sporenie zvyšuje K_cash, investícia z príjmu K_inv", () => {
     const r = currentCapital(snap, [tx({ type: "sporenie", amountCents: eur(500) }), tx({ type: "investicia", amountCents: eur(1000) })]);
-    expect(r).toEqual({ inv: eur(101_000), cash: eur(20_500) });
+    expect(r).toEqual({ inv: eur(101_000), cash: eur(20_500), nem: 0 });
   });
 
   it("presun hotovosti do investícií nemení K (D-045)", () => {
     const before = currentCapital(snap, []);
     const after = currentCapital(snap, [tx({ type: "investicia", source: "z_hotovosti", amountCents: eur(5_000) })]);
     expect(before.inv + before.cash).toBe(after.inv + after.cash);
-    expect(after).toEqual({ inv: eur(105_000), cash: eur(15_000) });
+    expect(after).toEqual({ inv: eur(105_000), cash: eur(15_000), nem: 0 });
   });
 
   it("výdavok z hotovosti znižuje K_cash, z investícií K_inv, z príjmu nič", () => {
-    expect(currentCapital(snap, [tx({ type: "vydavok", source: "z_hotovosti", amountCents: eur(10_000) })])).toEqual({ inv: eur(100_000), cash: eur(10_000) });
-    expect(currentCapital(snap, [tx({ type: "vydavok", source: "z_investicii", amountCents: eur(10_000) })])).toEqual({ inv: eur(90_000), cash: eur(20_000) });
-    expect(currentCapital(snap, [tx({ type: "vydavok", source: "z_prijmu", amountCents: eur(10_000) })])).toEqual({ inv: eur(100_000), cash: eur(20_000) });
+    expect(currentCapital(snap, [tx({ type: "vydavok", source: "z_hotovosti", amountCents: eur(10_000) })])).toEqual({ inv: eur(100_000), cash: eur(10_000), nem: 0 });
+    expect(currentCapital(snap, [tx({ type: "vydavok", source: "z_investicii", amountCents: eur(10_000) })])).toEqual({ inv: eur(90_000), cash: eur(20_000), nem: 0 });
+    expect(currentCapital(snap, [tx({ type: "vydavok", source: "z_prijmu", amountCents: eur(10_000) })])).toEqual({ inv: eur(100_000), cash: eur(20_000), nem: 0 });
   });
 
   it("výdavky nad kapitál sa zarazia na 0 (H2)", () => {
@@ -68,9 +68,9 @@ describe("GC-24 (D-058): rezerva v K_pred", () => {
   it("vklad do rezervy znižuje K_cash a výber z rezervy ho zvyšuje; K_inv sa nemení", () => {
     const snap = { id: "s", date: "2026-10-01", investmentsCents: eur(100_000), cashCents: eur(20_000), createdAt: "2026-10-01T00:00:00Z" };
     const dep = currentCapital(snap, [tx({ date: "2026-10-05", type: "rezerva", amountCents: eur(6_000) })]);
-    expect(dep).toEqual({ inv: eur(100_000), cash: eur(14_000) });
+    expect(dep).toEqual({ inv: eur(100_000), cash: eur(14_000), nem: 0 });
     const wd = currentCapital(snap, [tx({ date: "2026-10-05", type: "rezerva", amountCents: eur(6_000) }), tx({ date: "2026-10-06", type: "vyber_rezervy", amountCents: eur(1_000) })]);
-    expect(wd).toEqual({ inv: eur(100_000), cash: eur(15_000) });
+    expect(wd).toEqual({ inv: eur(100_000), cash: eur(15_000), nem: 0 });
   });
 });
 
@@ -83,6 +83,6 @@ describe("reserveBalance – GC-22 (D-047)", () => {
       tx({ type: "vyber_rezervy", amountCents: eur(1_000), date: "2026-10-06" }),
     ];
     expect(reserveBalance(txs)).toBe(eur(5_000));
-    expect(currentCapital(snap, txs)).toEqual({ inv: eur(100_000), cash: eur(15_000) });
+    expect(currentCapital(snap, txs)).toEqual({ inv: eur(100_000), cash: eur(15_000), nem: 0 });
   });
 });

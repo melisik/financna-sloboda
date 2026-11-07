@@ -1,10 +1,11 @@
-import type { AppData, Settings, Snapshot } from "./model/entities";
+import type { AppData, Property, Settings, Snapshot } from "./model/entities";
 import type { Capital } from "./capital";
 import { targetAmountCents } from "./goal";
 import { monthlySaving } from "./saving";
 import { LONG_HORIZON_MONTHS, netRealReturn, RETURN_ASSUMPTIONS } from "./assumptions";
 import { goalMonths, rentalsFor, type Rental } from "./rentalGoal";
 import { capitalWithFlags, reserveBalance } from "./ledger";
+import { netPropertyValueCents } from "./property";
 
 /** Kontext prehľadu: stav kapitálu, cieľ a nastavenia z dát (FR-02, FR-04, D-121). Čistý výpočet, bez UI. */
 export interface Ctx {
@@ -20,6 +21,13 @@ export interface Ctx {
   reserve: number;
   mInv: number;
   mCash: number;
+  m: number; // Celkové mesačné sporenie = mInv + mCash (D-031)
+  c: number; // Plánované mesačné investovanie (prozatím rovné m, budúcnosti užívateľova hodnota)
+  K_inv: number; // Investičný kapitál (identický s capital.inv)
+  K_cash: number; // Likvidný kapitál (identický s capital.cash)
+  K_nem: number; // Čistá hodnota nehnuteľností v prenájme (D-080)
+  K_total: number; // Celkový majetok = K_inv + K_cash + K_nem (D-268)
+  K_FIRE: number; // Investičný kapitál pre cieľ FIRE = K_inv + K_cash (bez K_nem, D-268)
   target: number | null;
   realReturn: number;
   rentals: Rental[];
@@ -29,14 +37,23 @@ export interface Ctx {
 export function makeCtx(data: AppData): Ctx {
   const latest = [...data.snapshots].sort((a, b) => a.date.localeCompare(b.date)).at(-1) ?? null;
   const s = data.settings;
-  const derived = latest ? monthlySaving(data.transactions, latest.date) : { inv: 0, cash: 0 };
+  const derived = latest ? monthlySaving(data.transactions, latest.date) : { inv: 0, cash: 0, nem: 0 };
   const flags = capitalWithFlags(latest, data.transactions);
   const target = s ? targetAmountCents(s.expensesCents, s.withdrawalRate) : null;
   const mInv = s?.savingInvCents ?? derived.inv;
   const mCash = s?.savingCashCents ?? derived.cash;
+  const m = mInv + mCash; // Celkové mesačné sporenie
+  const c = m; // Plánované investovanie (prozatím rovné m)
   const realReturn = netRealReturn(s?.realReturn ?? RETURN_ASSUMPTIONS.realReturn, s?.feesRate ?? 0);
   const rentals = rentalsFor(data.properties);
-  const evaluated: Capital = latest ? { inv: latest.investmentsCents, cash: latest.cashCents } : { inv: 0, cash: 0 };
+
+  // K_nem: čistá hodnota nehnuteľností v prenájme
+  const nem = data.properties
+    .filter((p) => p.mode === "prenajom")
+    .reduce((sum, p) => sum + netPropertyValueCents(p), 0);
+
+  const evaluated: Capital = latest ? { inv: latest.investmentsCents, cash: latest.cashCents, nem } : { inv: 0, cash: 0, nem };
+  const K_FIRE = flags.capital.inv + flags.capital.cash; // K_inv + K_cash
   const g = latest && target !== null ? goalMonths(evaluated, mInv, mCash, realReturn, target, rentals) : null;
   return {
     settings: s,
@@ -49,6 +66,13 @@ export function makeCtx(data: AppData): Ctx {
     reserve: reserveBalance(data.transactions),
     mInv,
     mCash,
+    m,
+    c,
+    K_inv: flags.capital.inv,
+    K_cash: flags.capital.cash,
+    K_nem: flags.capital.nem,
+    K_total: flags.capital.inv + flags.capital.cash + flags.capital.nem,
+    K_FIRE,
     target,
     realReturn,
     rentals,

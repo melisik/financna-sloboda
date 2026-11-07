@@ -80,7 +80,7 @@ export function annualOverview(snapshots: Snapshot[], s: OverviewSettings | null
     let goal: GoalDisplay | null = null;
     let goalIdx: number | null = null;
     if (s) {
-      const g = goalMonths({ inv: snap.investmentsCents, cash: snap.cashCents }, s.mInv, s.mCash, s.realReturn, s.target, rentals);
+      const g = goalMonths({ inv: snap.investmentsCents, cash: snap.cashCents, nem: 0 }, s.mInv, s.mCash, s.realReturn, s.target, rentals);
       const months = g.kind === "months" ? g.months : null;
       goal = goalDisplay(months, snap.date, snap.date);
       if (goal.kind === "date" || goal.kind === "reached") goalIdx = monthIndex(goal.date);

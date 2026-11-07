@@ -6,7 +6,7 @@ import { housingFlowCents, propertyChangedSince } from "../src/domain/property";
 import { monthSummary } from "../src/domain/monthSummary";
 import type { Property } from "../src/storage/types";
 
-// Hypotéka, bývanie v rozpočte a upozornenie na zmenu majetku (D-137). Syntetické hodnoty.
+// Hypotéka, bývanie v rozpočte (D-137, mení D-346) a upozornenie na zmenu majetku. Syntetické hodnoty.
 const base: Property = { id: "p", mode: "vlastne_byvanie", valueCents: 30000000, valueDate: "2026-10-01", mortgageBalanceCents: 100000, mortgageRate: 0.036, monthlyPaymentCents: 50000, balanceDate: "2026-08-01", createdAt: "2026-10-01T10:00:00Z", updatedAt: "2026-10-01T10:00:00Z" };
 
 describe("mesiace a dátumy", () => {
@@ -26,7 +26,11 @@ describe("mesiace a dátumy", () => {
 describe("automatické splácanie hypotéky", () => {
   it("za každý uplynulý mesiac sa zníži zostatok o istinu a dátum zostatku sa posunie", () => {
     // 1000 € s úrokom 3,6 % a splátkou 500 €: mesiac 1 → 503 €, mesiac 2 → 451 €.
-    expect(amortizeMortgage(base, "2026-10-21")).toEqual({ mortgageBalanceCents: 451, balanceDate: "2026-10-01" });
+    expect(amortizeMortgage(base, "2026-10-21")).toEqual({
+      mortgageBalanceCents: 451,
+      balanceDate: "2026-10-01",
+      lastMortgagePayment: { date: "2026-10-01", amountCents: 50000, balanceAfterCents: 451 }, // D-347
+    });
   });
 
   it("bez dátumu zostatku, bez splátky alebo bez uplynulého mesiaca sa nič nemení", () => {
@@ -45,13 +49,13 @@ describe("automatické splácanie hypotéky", () => {
 describe("bývanie v rozpočte a zmena majetku", () => {
   const rental: Property = { ...base, id: "r", mode: "prenajom", monthlyRentCents: 30000, monthlyPaymentCents: 50000 };
 
-  it("bývanie je splátky mínus nájom; bez hypotéky sa splátka nerátа", () => {
-    expect(housingFlowCents([rental])).toBe(20000);
-    expect(housingFlowCents([{ ...rental, mortgageBalanceCents: 0 }])).toBe(-30000);
+  it("bývanie sú len splátky hypotéky; nájom sa neodpočítava, je to samostatný príjem (D-346)", () => {
+    expect(housingFlowCents([rental], "2026-10-21")).toBe(50000);
+    expect(housingFlowCents([{ ...rental, mortgageBalanceCents: 0 }], "2026-10-21")).toBe(0);
   });
 
-  it("mesačný prehľad zahrnie bývanie do nevyhnutných výdavkov", () => {
-    expect(monthSummary([], [], [], "2026-10-21", 0, [rental]).byNecessity.nevyhnutne).toBe(20000);
+  it("mesačný prehľad zahrnie bývanie (len splátky) do nevyhnutných výdavkov", () => {
+    expect(monthSummary([], [], [], "2026-10-21", 0, [rental]).byNecessity.nevyhnutne).toBe(50000);
   });
 
   it("upozornenie na zmenu sa týka len nehnuteľnosti v K (prenájom) zmenenej po vyhodnotení", () => {

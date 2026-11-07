@@ -13,7 +13,7 @@ const rec = (name: string, amount: number, category: RecurringExpense["category"
   id: name, name, category, frequency, amountCents: eur(amount), startDate, ...(endDate ? { endDate } : {}), createdAt: "2026-01-01T10:00:00Z", updatedAt: "2026-01-01T10:00:00Z",
 });
 // r = 0, K = 300 000 €, cieľ 600 000 €, sporenie 1 000 € do investícií → 300 mesiacov; +500 € → 200 mesiacov.
-const goal = { capital: { inv: eur(300_000), cash: 0 }, mInv: eur(1_000), mCash: 0, rate: 0, targetCents: eur(600_000), rentals: [] };
+const goal = { capital: { inv: eur(300_000), cash: 0, nem: 0 }, mInv: eur(1_000), mCash: 0, rate: 0, targetCents: eur(600_000), rentals: [] };
 
 describe("okno priemeru a história", () => {
   it("posledné 3 celé kalendárne mesiace pred dneškom", () => {
@@ -85,7 +85,7 @@ describe("dopad opakovaných výdavkov na dátum cieľa", () => {
   });
 
   it("dosiahnutý cieľ má vlastný dôvod (revízia N-2)", () => {
-    expect(recurringImpact({ ...goal, capital: { inv: eur(600_000), cash: 0 }, transactions: [], recurring: [rec("Nájom", 500, "bývanie")], today: "2026-10-24" })).toEqual({ status: "no_goal", reason: "reached" });
+    expect(recurringImpact({ ...goal, capital: { inv: eur(600_000), cash: 0, nem: 0 }, transactions: [], recurring: [rec("Nájom", 500, "bývanie")], today: "2026-10-24" })).toEqual({ status: "no_goal", reason: "reached" });
   });
 
   it("kategória dôchodok sa nezobrazuje ani ako pravidelný výdavok, ani ako priemer: je to sporenie (D-296, revízia S-2)", () => {

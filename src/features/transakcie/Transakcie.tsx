@@ -106,15 +106,15 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
         const r = transferToInvestments(cap, ca);
         return r.ok ? { after: r.capital } : { after: null, message: "Hotovosti nestačí na presun do investícií." };
       }
-      return { after: { inv: cap.inv + ca, cash: cap.cash } };
+      return { after: { inv: cap.inv + ca, cash: cap.cash, nem: 0 } };
     }
-    if (type === "sporenie") return { after: { inv: cap.inv, cash: cap.cash + ca } };
+    if (type === "sporenie") return { after: { inv: cap.inv, cash: cap.cash + ca, nem: 0 } };
     if (type === "rezerva") {
       if (cap.cash - ca < 0) return { after: null, message: "Hotovosť nestačí na vklad do rezervy." };
-      return { after: { inv: cap.inv, cash: cap.cash - ca }, message: `Vklad do rezervy zníži kapitál pre cieľ o ${eur(ca)}; peniaze zostávajú v rezerve.` };
+      return { after: { inv: cap.inv, cash: cap.cash - ca, nem: 0 }, message: `Vklad do rezervy zníži kapitál pre cieľ o ${eur(ca)}; peniaze zostávajú v rezerve.` };
     }
     if (ca > base.reserve) return { after: null, message: "Výber je väčší než stav rezervy." };
-    return { after: { inv: cap.inv, cash: cap.cash + ca } }; // výber z rezervy
+    return { after: { inv: cap.inv, cash: cap.cash + ca, nem: 0 } }; // výber z rezervy
   };
 
   const preview = useMemo(() => {

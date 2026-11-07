@@ -5,10 +5,19 @@ export function isIncomeActive(i: RegularIncome, today: string): boolean {
   return i.startDate <= today && (i.endDate === undefined || today <= i.endDate);
 }
 
-/** Súčet platných PRAVIDELNÝCH príjmov za mesiac v centoch. Nepravidelné sa nerátajú; sporenie m sa nemení (D-102, D-109). */
+/**
+ * Príjem platí v mesiaci dňa `today`, ak jeho obdobie do mesiaca aspoň čiastočne zasahuje (D-346).
+ * Príjem ukončený 10. novembra patrí do novembra celý; pomerné krátenie sa nerobí.
+ */
+export function isIncomeInMonth(i: RegularIncome, today: string): boolean {
+  const month = today.slice(0, 7);
+  return i.startDate.slice(0, 7) <= month && (i.endDate === undefined || i.endDate.slice(0, 7) >= month);
+}
+
+/** Súčet PRAVIDELNÝCH príjmov platných v mesiaci (D-346) v centoch. Nepravidelné sa nerátajú; sporenie m sa nemení (D-102, D-109). */
 export function monthlyIncomeCents(list: RegularIncome[], today: string): number {
   return list
-    .filter((i) => i.frequency === "mesacne" && isIncomeActive(i, today))
+    .filter((i) => i.frequency === "mesacne" && isIncomeInMonth(i, today))
     .reduce((sum, i) => sum + i.amountCents, 0);
 }
 

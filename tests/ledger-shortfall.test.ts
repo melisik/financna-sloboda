@@ -25,7 +25,7 @@ describe("výdavky nad kapitál: prečerpanie a zdroj úhrady (D-045, D-059, D-1
   it("výdavok z investícií nad K_inv: K_inv je 0, K_cash sa nemení, presah je len v prečerpaní", () => {
     // K_inv 100 000 € − výdavok 300 000 € = −200 000 € → K_inv = 0, presah 200 000 € sa nezapočíta do K.
     const r = capitalWithFlags(snap, [tx({ id: "e1", type: "vydavok", amountCents: eur(300_000), source: "z_investicii" })]);
-    expect(r.capital).toEqual({ inv: 0, cash: eur(50_000) });
+    expect(r.capital).toEqual({ inv: 0, cash: eur(50_000), nem: 0 });
     expect(r.negative).toEqual({ inv: true, cash: false });
     expect(r.shortfall).toEqual({ inv: eur(200_000), cash: 0 });
   });
@@ -50,9 +50,9 @@ describe("výdavky nad kapitál: prečerpanie a zdroj úhrady (D-045, D-059, D-1
   // nález T4 (docs/30): zakladateľ zvolil orez K_inv na 0 s upozornením, K_cash sa nemení (D-257, uzavrie Q2 z D-167).
   // Pri príklade (K_inv 100 000 €, K_cash 50 000 €, výdavok 300 000 € z investícií) zostane K_L 50 000 €.
   it("nález T4: výdavok z investícií nad K_inv zníži K_inv na 0, K_cash sa nezmení a zobrazí sa upozornenie (D-257)", () => {
-    expect(payFromInvestments({ inv: eur(100_000), cash: eur(50_000) }, eur(300_000))).toEqual({
+    expect(payFromInvestments({ inv: eur(100_000), cash: eur(50_000), nem: 0 }, eur(300_000))).toEqual({
       ok: true,
-      capital: { inv: 0, cash: eur(50_000) },
+      capital: { inv: 0, cash: eur(50_000), nem: 0 },
       warning: "exhausted",
     });
   });
@@ -60,7 +60,7 @@ describe("výdavky nad kapitál: prečerpanie a zdroj úhrady (D-045, D-059, D-1
   // nález T6 (docs/30): doména prijme zápornú sumu presunu alebo výdavku a zvýši K. UI to blokuje (Transakcie.tsx:79, 187),
   // takže ide o obranu do hĺbky. Test: payFromCash(K_cash 100 €, suma −50 €) dá K_cash 150 € (src/domain/capital.ts:68-70).
   it("nález T6: záporná suma výdavku ani presunu nesmie zvýšiť K (kladná suma je invariant, docs/05 §4)", () => {
-    const c = { inv: eur(100), cash: eur(100) };
+    const c = { inv: eur(100), cash: eur(100), nem: 0 };
     expect(payFromCash(c, -eur(50))).toEqual({ ok: false, reason: "invalid_amount" });
     expect(payFromInvestments(c, -eur(50))).toEqual({ ok: false, reason: "invalid_amount" });
     expect(transferToInvestments(c, -eur(50))).toEqual({ ok: false, reason: "invalid_amount" });

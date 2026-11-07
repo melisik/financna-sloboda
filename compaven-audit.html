@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Compaven: Produktový Audit</title>
+  <style>
+    :root {
+      --bg: #fafaf8;
+      --surface: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #1B5E3F;
+      --ok: #d1fae5;
+      --warn: #fef3c7;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --border: #334155;
+        --accent: #86efac;
+        --ok: #064e3b;
+        --warn: #78350f;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #334155;
+      --accent: #86efac;
+      --ok: #064e3b;
+      --warn: #78350f;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0 max(16px, env(safe-area-inset-left, 0px)) 0 max(16px, env(safe-area-inset-right, 0px));
+      line-height: 1.6;
+    }
+
+    .header {
+      padding: 2rem 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    .header h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2rem;
+      color: var(--accent);
+    }
+    .header p {
+      margin: 0.25rem 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .section {
+      margin-bottom: 2rem;
+    }
+    .section h2 {
+      font-size: 1.5rem;
+      margin: 1.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent);
+      color: var(--accent);
+    }
+    .section h3 {
+      font-size: 1.1rem;
+      margin: 1rem 0 0.5rem;
+      color: var(--text);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+      background: var(--surface);
+    }
+    table th {
+      background: var(--accent);
+      color: #fff;
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    table tr:hover {
+      background: var(--ok);
+    }
+
+    .status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .status.ok { background: var(--ok); color: var(--text); }
+    .status.warn { background: var(--warn); color: var(--text); }
+    .status.fail { background: #fee2e2; color: var(--text); }
+
+    .callout {
+      background: var(--surface);
+      border-left: 4px solid var(--accent);
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+    }
+    .callout.critical {
+      border-left-color: #ef4444;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      border-radius: 6px;
+    }
+
+    code {
+      background: var(--surface);
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: "Courier New", monospace;
+      font-size: 0.9em;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 3px;
+      font-size: 0.8rem;
+      margin-right: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+<div class="header">
+  <h1>🏢 Compaven: Produktový Audit</h1>
+  <p><strong>Dátum:</strong> 2026-11-06</p>
+  <p><strong>Stav:</strong> PR #15 (M 0.6.5) úspešne zlúčený do main</p>
+  <p><strong>Verifikácia:</strong> origin/main = 943e5ac (Merge PR #15)</p>
+</div>
+
+<div class="section">
+  <h2>✅ 1. Stav projektu</h2>
+  <div class="callout">
+    <strong>Počiatočný stav overený:</strong>
+    <ul>
+      <li><span class="badge">✓</span> PR #15 (M 0.6.5) úspešne zlúčený do main</li>
+      <li><span class="badge">✓</span> GREEN dizajn tokeny zavedené (index.html)</li>
+      <li><span class="badge">✓</span> Textové opravy: „hotovosti" → „hotovosti", „Hotavosť" → „Hotovosť"</li>
+      <li><span class="badge">✓</span> 604 unit testov – všetky PASS</li>
+      <li><span class="badge">✓</span> TypeScript – bez chýb</li>
+      <li><span class="badge">✓</span> Produkčný build – úspešný</li>
+      <li><span class="badge">✓</span> Finančná logika – nezmenená</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <h2>📱 2. Navigačná štruktúra (5 skupín)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Skupina</th>
+        <th>Sekcie</th>
+        <th>Počet</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Prehľad</strong></td>
+        <td>Prehľad</td>
+        <td>1</td>
+      </tr>
+      <tr>
+        <td><strong>Peniaze</strong></td>
+        <td>Transakcie, Scenáre, Príjmy, Rozpočet, Pravidelné výdavky</td>
+        <td>6</td>
+      </tr>
+      <tr>
+        <td><strong>Majetok</strong></td>
+        <td>Nehnuteľnosti, Sklad, Záväzky, Investície, Dane</td>
+        <td>5</td>
+      </tr>
+      <tr>
+        <td><strong>Plán</strong></td>
+        <td>Vyhodnotenie, Ročný prehľad</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td><strong>Nastavenia</strong></td>
+        <td>Nastavenia, Záloha</td>
+        <td>2</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>💾 3. Finančné jadro (src/domain/)</h2>
+  <p>Všetky doménové moduly sú <strong>chránené</strong>. Výpočty nemenné.</p>
+  <h3>Kľúčové moduly</h3>
+  <ul>
+    <li><code>capital.ts</code> – Výpočet kapitálu a kontextu</li>
+    <li><code>householdBalance.ts</code> – <span class="badge">D-346</span> Domácnosť (príjmy + výdavky prenájmu)</li>
+    <li><code>mortgage.ts</code> – <span class="badge">D-347</span> Hypotéka a posledná splátka</li>
+    <li><code>monthSummary.ts</code> – Mesačný súhrn výdavkov</li>
+    <li><code>investments.ts</code> – Investície s cieľmi <span class="badge">D-334-D-336</span></li>
+    <li><code>property.ts</code> – Nehnuteľnosti, čistá hodnota</li>
+    <li><code>recurring.ts</code> – Pravidelné výdavky</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h2>🔒 4. Chránené pravidlá (D-346, D-347)</h2>
+
+  <h3><span class="badge">D-346</span> Oddelené vykazovanie prenájmu</h3>
+  <div class="callout critical">
+    <strong>Kľúčové pravidlá:</strong>
+    <ul>
+      <li>Skutočný nájom = samostatný príjem</li>
+      <li>Výdavky z prenájmu = samostatné výdavky</li>
+      <li>Splátka hypotéky = výdavok v plnej výške</li>
+      <li>Plánovaný nájom sa NEPOČÍTA do skutočných príjmov</li>
+      <li>Každá položka sa zaznamená presne raz (bez duplikácie)</li>
+    </ul>
+    <p><strong>Implementácia:</strong> <code>src/domain/householdBalance.ts</code></p>
+    <p><strong>Testy:</strong> <code>tests/household-balance.test.ts</code></p>
+  </div>
+
+  <h3><span class="badge">D-347</span> Posledná splátka hypotéky</h3>
+  <div class="callout critical">
+    <strong>Kľúčové zmeny:</strong>
+    <ul>
+      <li>Nehnuteľnosť má pole <code>lastMortgagePayment</code> (date, amountCents, balanceAfterCents)</li>
+      <li>Schéma zálohy v19</li>
+      <li>Automatické splácanie zapisuje záznam pri každom kroku</li>
+      <li>Mimoriadne splátky neskupujú do záznamu</li>
+    </ul>
+    <p><strong>Implementácia:</strong> <code>src/domain/mortgage.ts</code></p>
+    <p><strong>Testy:</strong> <code>tests/mortgage-last-payment.test.ts</code></p>
+  </div>
+</div>
+
+<div class="section">
+  <h2>📊 5. Nový Prehľad (Dashboard – Odporúčaný)</h2>
+  <p><strong>Cieľ:</strong> Užívateľ pochopí finančnú situáciu za 5 sekúnd bez scrollu.</p>
+
+  <h3>Úroveň 1 – Kritické údaje (viditeľné naraz)</h3>
+  <div class="card">
+    <strong>FINANČNÝ KAPITÁL: 150 000 €</strong>
+    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+      <li>Investície: 100 000 €</li>
+      <li>Hotovosť: 50 000 €</li>
+    </ul>
+
+    <strong>DÁTUM CIEĽA: November 2030</strong>
+    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+      <li>Pokrok: 65% ▓▓▓░</li>
+      <li>Posledné vyhodnotenie: 2026-11-05</li>
+    </ul>
+  </div>
+
+  <h3>Úroveň 2 – Mesiac</h3>
+  <p>Príjmy, výdavky, rozpočet, zvyšok</p>
+
+  <h3>Úroveň 3 – Majetok</h3>
+  <p>Nehnuteľnosti, záväzky, ostatné aktíva</p>
+
+  <h3>Úroveň 4 – Upozornenia</h3>
+  <p>Záloha, odhady, dvojitý zápis</p>
+</div>
+
+<div class="section">
+  <h2>🎯 6. Používateľské scenáre (7)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Scenár</th>
+        <th>Cesta</th>
+        <th>Existujúce</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1. Príjem</td>
+        <td>Prehľad → Príjmy → +</td>
+        <td><code>Prijmy.tsx</code></td>
+      </tr>
+      <tr>
+        <td>2. Výdavok</td>
+        <td>Prehľad → Transakcie → +</td>
+        <td><code>Transakcie.tsx</code> (D-313)</td>
+      </tr>
+      <tr>
+        <td>3. Investícia</td>
+        <td>Majetok → Investície → +</td>
+        <td><code>Investicie.tsx</code> (D-334)</td>
+      </tr>
+      <tr>
+        <td>4. Nehnuteľnosť</td>
+        <td>Majetok → Nehnuteľnosti → +</td>
+        <td><code>Majetok.tsx</code> (D-310)</td>
+      </tr>
+      <tr>
+        <td>5. Hypotéka</td>
+        <td>Majetok → Nehnuteľnosť → Hypotéka</td>
+        <td><code>mortgage.ts</code> (D-347)</td>
+      </tr>
+      <tr>
+        <td>6. Prehľad</td>
+        <td>Prehľad (nový dashboard)</td>
+        <td><code>householdBalance.ts</code> (D-346)</td>
+      </tr>
+      <tr>
+        <td>7. Scenár</td>
+        <td>Plán → Scenáre</td>
+        <td><code>MesacnyVydavok.tsx</code>, <code>ScenarVydavku.tsx</code></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>🔧 7. Technická stratégia</h2>
+
+  <h3>Oddělenie UI od domény</h3>
+  <div class="grid">
+    <div class="card">
+      <strong>✅ Zachovať</strong>
+      <ul>
+        <li>src/domain/* – nemenné</li>
+        <li>src/storage/* – nemenné</li>
+        <li>UI kit komponenty</li>
+        <li>IndexedDB schéma</li>
+      </ul>
+    </div>
+    <div class="card">
+      <strong>❌ Nahradiť</strong>
+      <ul>
+        <li>Monolity _tsx (300-800 řádků)</li>
+        <li>Priame CSS v komponentoch</li>
+        <li>Mixovanie UI + logiky</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Fázy implementácie (7)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Fáza</th>
+        <th>Trvanie</th>
+        <th>Output</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge">Fáza 1</span> Foundation</td>
+        <td>2-3 týždne</td>
+        <td>Nová navigácia + Prehľad</td>
+      </tr>
+      <tr>
+        <td><span class="badge">Fáza 2</span> Výdavky</td>
+        <td>3-4 týždne</td>
+        <td>Všetko o peniazoch</td>
+      </tr>
+      <tr>
+        <td><span class="badge">Fáza 3</span> Majetok</td>
+        <td>4-5 týždní</td>
+        <td>Všetko o majetku</td>
+      </tr>
+      <tr>
+        <td><span class="badge">Fáza 4</span> Plán</td>
+        <td>2-3 týždne</td>
+        <td>Dátum cieľa, scenáre</td>
+      </tr>
+      <tr>
+        <td><span class="badge">Fáza 5</span> Nastavenia</td>
+        <td>1-2 týždne</td>
+        <td>Nastavenia tab</td>
+      </tr>
+      <tr>
+        <td><span class="badge">Fáza 6</span> Finalizácia</td>
+        <td>1-2 týždne</td>
+        <td>Pilotná verzia</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>⚠️ 8. Riziká</h2>
+
+  <h3>Vysoká priorita</h3>
+  <div class="callout critical">
+    <strong>R1: D-346, D-347 počas pilota</strong> – Nová logika s starými dátami<br/>
+    <strong>R2: iPhone Safari</strong> – Obmedzenia na zdieľanie, performance<br/>
+    <strong>R3: Schéma v19 zlúčenie</strong> – Koordinácia s v17 (mena), v18 (kalendár)
+  </div>
+
+  <h3>Stredná priorita</h3>
+  <div class="callout">
+    <strong>R4: Testerí nemajú novú UX</strong> – Training potrebný<br/>
+    <strong>R5: Sklad bez integrácie</strong> – Ručné položky neefektívne<br/>
+    <strong>R6: Komplexnosť blokov</strong> – UI nemusí byť zrejmá
+  </div>
+</div>
+
+<div class="section">
+  <h2>📋 9. Otvorené otázky</h2>
+  <ul>
+    <li><strong>O1:</strong> Výnimka z D-153 pre D-346 a D-347?</li>
+    <li><strong>O2:</strong> Moduly v Nastaveniach – zmena?</li>
+    <li><strong>O3:</strong> Rodinná verzia (D-114) – kedy?</li>
+    <li><strong>O4:</strong> Integrácia s brokerom – D-009?</li>
+    <li><strong>O5:</strong> Výber textu z eKasy – po pilote?</li>
+    <li><strong>O6:</strong> Vrátenie mimoriadnej splátky (U3)?</li>
+    <li><strong>O7:</strong> Bezpečnosť a právne posúdenie (G1, G4)?</li>
+    <li><strong>O8:</strong> Schéma v17, v18 – zlúčenie?</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h2>✨ 10. Súhrn</h2>
+  <div class="callout">
+    <h3>Stav projektu</h3>
+    <ul>
+      <li><span class="badge">✓</span> <strong>Finančné jadro:</strong> Stabilné, 604 testov, chránené</li>
+      <li><span class="badge">✓</span> <strong>Pilot:</strong> Pripravený, M 0.6.5, D-346+D-347 implementované</li>
+      <li><span class="badge">⚠</span> <strong>UI/UX:</strong> Potreby redizajn, plán pripravený</li>
+      <li><span class="badge">🔒</span> <strong>Doménové rozhodnutia:</strong> Chránené počas redizajnu</li>
+    </ul>
+  </div>
+
+  <h3>Redizajn: Očakávaný prínos</h3>
+  <ul>
+    <li>📱 <strong>UX:</strong> Jednoduchšie prvé použitie (< 5 minút)</li>
+    <li>🧭 <strong>Navigácia:</strong> Jasná štruktúra (4 tab bary)</li>
+    <li>📝 <strong>Formuláre:</strong> Kratšie, sústreďované</li>
+    <li>📊 <strong>Dashboard:</strong> 5-sekundový prehľad</li>
+    <li>🔧 <strong>Modularita:</strong> Lepšie oddelenie funkcií</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h2>✅ Záverečná kontrola</h2>
+  <div class="callout">
+    <p><strong>Audit bez zmien v zdrojovom kóde:</strong></p>
+    <ul>
+      <li>✓ Vetva – nezmenená (recovery-test)</li>
+      <li>✓ HEAD – nezmenená (40d2032)</li>
+      <li>✓ Pracovný strom – čistý</li>
+      <li>✓ Zoznam zmenených súborov – žiadne zmeny</li>
+      <li>✓ origin/main – správne overený (943e5ac)</li>
+    </ul>
+  </div>
+</div>
+
+<footer style="padding: 2rem 0; margin-top: 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.9rem;">
+  <p><strong>Audit ukončený:</strong> 2026-11-06</p>
+  <p><strong>Všetky údaje overené z origin/main</strong></p>
+  <p><strong>Bez zmien vo zdrojovom kóde, dátach, vetvách ani konfigurácii</strong></p>
+  <p style="margin-top: 1rem;">Nasleduje: Čakať na pilot feedback (2-3 týždne), právne posúdenie G1, schválenie zakladateľom</p>
+</footer>
+
+</body>
+</html>

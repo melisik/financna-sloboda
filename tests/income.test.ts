@@ -25,11 +25,13 @@ describe("pravidelné príjmy – platnosť a súčet (D-102)", () => {
     expect(isIncomeActive({ ...mzda, endDate: "2026-10-19" }, TODAY)).toBe(true);
   });
 
-  it("mesačný súčet berie len platné príjmy", () => {
-    const najom: RegularIncome = { ...mzda, id: "p2", name: "príjem syntetický", amountCents: 90_000, endDate: "2026-10-01" };
+  it("mesačný súčet berie len príjmy platné v mesiaci (D-346)", () => {
+    const skonceny: RegularIncome = { ...mzda, id: "p2", name: "príjem syntetický", amountCents: 90_000, endDate: "2026-09-30" };
     const davka: RegularIncome = { ...mzda, id: "p4", kind: "socialna_davka", frequency: "nepravidelne", amountCents: 50_000 };
     const buduci: RegularIncome = { ...mzda, id: "p3", startDate: "2027-01-01", amountCents: 50_000 };
-    expect(monthlyIncomeCents([mzda, najom, buduci, davka], TODAY)).toBe(120_000);
+    expect(monthlyIncomeCents([mzda, skonceny, buduci, davka], TODAY)).toBe(120_000);
+    // Koniec 1. októbra: v októbri platil, preto sa do októbra počíta, hoci dnes (19. 10.) už neplatí.
+    expect(monthlyIncomeCents([{ ...skonceny, endDate: "2026-10-01" }], TODAY)).toBe(90_000);
   });
 });
 

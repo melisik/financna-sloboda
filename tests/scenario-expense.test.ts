@@ -3,18 +3,18 @@ import { bigExpenseScenario } from "../src/domain/expenseScenario";
 import { impactWithRentals } from "../src/domain/rentalGoal";
 
 // Scenár veľkého výdavku (N-12, docs/36). Syntetické hodnoty v centoch.
-const base = { inv: 10_000_000, cash: 1_000_000 }; // K_inv = 100 000 €, K_cash = 10 000 €
+const base = { inv: 10_000_000, cash: 1_000_000, nem: 0 }; // K_inv = 100 000 €, K_cash = 10 000 €
 const common = { mInv: 50_000, mCash: 0, realReturn: 0.035, targetCents: 60_000_000, rentals: [] };
 
 describe("scenár veľkého výdavku: výpočet bez zápisu", () => {
   it("výdavok z hotovosti zníži len hotovosť", () => {
     const out = bigExpenseScenario({ base, amountCents: 500_000, source: "z_hotovosti", ...common });
-    expect(out).toMatchObject({ ok: true, exhausted: false, after: { inv: 10_000_000, cash: 500_000 } });
+    expect(out).toMatchObject({ ok: true, exhausted: false, after: { inv: 10_000_000, cash: 500_000, nem: 0 } });
   });
 
   it("výdavok z investícií zníži len investície", () => {
     const out = bigExpenseScenario({ base, amountCents: 500_000, source: "z_investicii", ...common });
-    expect(out).toMatchObject({ ok: true, exhausted: false, after: { inv: 9_500_000, cash: 1_000_000 } });
+    expect(out).toMatchObject({ ok: true, exhausted: false, after: { inv: 9_500_000, cash: 1_000_000, nem: 0 } });
   });
 
   it("výdavok z príjmu nemení kapitál a dopad je nulový", () => {
@@ -60,11 +60,11 @@ describe("scenár veľkého výdavku: výpočet bez zápisu", () => {
 
   it("výdavok väčší než investície ich vyčerpá a označí to", () => {
     const out = bigExpenseScenario({ base, amountCents: 20_000_000, source: "z_investicii", ...common });
-    expect(out).toMatchObject({ ok: true, exhausted: true, after: { inv: 0, cash: 1_000_000 } });
+    expect(out).toMatchObject({ ok: true, exhausted: true, after: { inv: 0, cash: 1_000_000, nem: 0 } });
   });
 
   it("ak cieľ nie je dosiahnuteľný ani bez výdavku, dátumy sú null", () => {
-    const out = bigExpenseScenario({ base: { inv: 0, cash: 0 }, amountCents: 1, source: "z_investicii", ...common, mInv: 0 });
+    const out = bigExpenseScenario({ base: { inv: 0, cash: 0, nem: 0 }, amountCents: 1, source: "z_investicii", ...common, mInv: 0 });
     if (out.ok) {
       expect(out.monthsBefore).toBeNull();
       expect(out.monthsAfter).toBeNull();

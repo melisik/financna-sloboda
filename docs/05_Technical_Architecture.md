@@ -87,6 +87,13 @@ tests/             jednotkové testy domain/ a storage/
 ```
 Import: validácia schémy (typy, rozsahy, povinné polia, neznáme polia sa odmietnu, limit veľkosti 5 MB; N11) → náhľad → nahradenie dát v jednej transakcii (D-018). Pri chybe sa nič nezmení.
 
+### Verzie schémy zálohy (stav 2026-11-05, D-347)
+- Aktuálna verzia je **v19** (`SCHEMA_VERSION` v `src/storage/types.ts`). Import číta v1 až v16 a v19 (`READABLE_SCHEMA_VERSIONS`); obsah jednotlivých verzií popisuje komentár pri `SCHEMA_VERSION`.
+- **v19** pridáva nepovinné pole nehnuteľnosti `lastMortgagePayment` (`date`, `amountCents`, `balanceAfterCents`): poslednú splátku hypotéky započítanú automatickým splácaním. Zapisuje ho len automatické splácanie; ručná zmena zostatku, dátumu zostatku, splátky alebo sadzby vo formulári ho zmaže (`withMortgagePaymentRecord`). Mimoriadna splátka a jej vrátenie ho nemenia. Záznam sa pri vykázaní použije len v mesiaci svojho dátumu a len ak zo zostatku po splátke vedie k súčasnému zostatku jednoznačná reťaz mimoriadnych splátok cez `balanceBeforeCents` (`mortgagePaymentRecordValid` v `src/domain/property.ts`); inak sa vykáže zmluvná splátka, prípadne zostatok s úrokom (D-255).
+- **v17 a v18 sú rezervované** pre vetvy `claude/stoic-cerf-5wdo7q` a `claude/compaven-d340-d345` (v17 voliteľná mena transakcie a nastavení, D-340; v18 finančný kalendár, D-342 alebo D-345). Táto zostava ich nečíta a odmietne ich hlásením „neznáma verzia schémy“, aby sa ich obsah nevyložil nesprávne.
+- Spätná kompatibilita: zálohy v1 až v16 sa obnovia bez migrácie (pole chýba, vykázanie splátky použije pravidlo bez záznamu). Zostava v16 zálohu v19 odmietne hlásením „záloha pochádza z novšej verzie aplikácie“. IndexedDB sa nemení (úložisko `properties` nemá indexy).
+- **Úloha pri budúcom zlúčení vetiev s v17 a v18:** číslo verzie po zlúčení už neznamená „všetko z nižších verzií“ (záloha v19 z tejto vetvy nemá polia meny ani kalendára). Pred zlúčením treba zladiť všetky polia, zoznamy povolených kľúčov vo validácii (`src/storage/validate.ts`), predvolené prázdne kolekcie pri obnove (`parseBackup`), `READABLE_SCHEMA_VERSIONS` a testy záloh pre každú kombináciu verzií.
+
 ## 5. Výpočty (domain)
 
 Čisté funkcie, bez vedľajších účinkov. Vstupy: hodnoty v centoch a dátumy, výstup: sumy a počet mesiacov.

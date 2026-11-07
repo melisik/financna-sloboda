@@ -10,15 +10,21 @@ export function monthlyShareCents(e: RecurringExpense): number {
   return e.frequency === "mesacne" ? e.amountCents : Math.round(e.amountCents / 12);
 }
 
-/** Súčet platných pravidelných výdavkov za mesiac. Iba zobrazenie; K ani sporenie sa nemenia (D-124). */
-export function monthlyRecurringTotalCents(list: RecurringExpense[], today: string): number {
-  return list.filter((e) => isRecurringActive(e, today)).reduce((sum, e) => sum + monthlyShareCents(e), 0);
+/** Pravidelný výdavok platí v mesiaci dňa `today`, ak jeho obdobie do mesiaca aspoň čiastočne zasahuje (D-346); bez pomerného krátenia. */
+export function isRecurringInMonth(e: RecurringExpense, today: string): boolean {
+  const month = today.slice(0, 7);
+  return e.startDate.slice(0, 7) <= month && (e.endDate === undefined || e.endDate.slice(0, 7) >= month);
 }
 
-/** Súčet platných pravidelných výdavkov za mesiac podľa kategórie z rozpočtu (D-124). */
+/** Súčet pravidelných výdavkov platných v mesiaci (D-346). Iba zobrazenie; K ani sporenie sa nemenia (D-124). */
+export function monthlyRecurringTotalCents(list: RecurringExpense[], today: string): number {
+  return list.filter((e) => isRecurringInMonth(e, today)).reduce((sum, e) => sum + monthlyShareCents(e), 0);
+}
+
+/** Súčet pravidelných výdavkov platných v mesiaci (D-346) podľa kategórie z rozpočtu (D-124). */
 export function monthlyRecurringByCategory(list: RecurringExpense[], today: string): Partial<Record<BudgetCategory, number>> {
   const out: Partial<Record<BudgetCategory, number>> = {};
-  for (const e of list.filter((x) => isRecurringActive(x, today))) {
+  for (const e of list.filter((x) => isRecurringInMonth(x, today))) {
     out[e.category] = (out[e.category] ?? 0) + monthlyShareCents(e);
   }
   return out;
@@ -44,7 +50,7 @@ function dateParts(iso: string): [number, number, number] {
 }
 
 /** Tolerancia zhody sumy výdavku s pravidelným výdavkom (D-299, docs/53). */
-const MATCH_TOLERANCE_CENTS = 100;
+export const MATCH_TOLERANCE_CENTS = 100;
 
 /**
  * Pravidelný výdavok, ktorému sa zhoduje nový výdavok: platí v deň výdavku, rovnaká kategória a suma ±1 €

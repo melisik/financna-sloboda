@@ -96,6 +96,14 @@ interface ExtraPayment {
   balanceBeforeCents?: number; // zostatok pred splátkou; umožní vrátiť poslednú splátku
   monthlyPaymentBeforeCents?: number; // splátka pred splátkou
 }
+
+/** Záznam o poslednej automatickej splátke hypotéky (D-347). */
+export interface MortgagePayment {
+  date: string; // dátum splátky, YYYY-MM-DD
+  amountCents: number; // zaplatená suma v centoch (posledná splátka môže byť menšia ako zmluvná)
+  balanceAfterCents: number; // zostatok po splátke
+}
+
 export type PropertyMode = (typeof PROPERTY_MODES)[number];
 
 /** Nehnuteľnosť v karte majetku (FR-20 až FR-22, návrh docs/11_Karta_majetku.md). */
@@ -112,6 +120,7 @@ export interface Property {
   mortgageRate?: number; // úroková sadzba p. a., napr. 0.036; bez hodnoty = 0 (FR-22)
   monthlyOtherCostsCents?: number; // ostatné mesačné náklady: údržba, poistenie, poplatky
   extraPayments?: ExtraPayment[]; // mimoriadne splátky hypotéky (N-15, D-145)
+  lastMortgagePayment?: MortgagePayment; // záznam o poslednej automatickej splátke (D-347)
   rentalLedger?: RentalEntry[]; // príjmy a výdavky z prenájmu, len pri režime prenájom (D-157)
   acquisitionDate?: string; // dátum obstarania, YYYY-MM-DD (evidencia pre dane, D-156)
   acquisitionCostCents?: number; // obstarávacia cena v centoch (evidencia pre dane, D-156)

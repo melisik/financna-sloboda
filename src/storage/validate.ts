@@ -83,6 +83,17 @@ function validateExtraPayment(x: unknown, today: string, label = "mimoriadna spl
   return errors;
 }
 
+/** Posledná splátka hypotéky zo splácania (D-347): dátum nie v budúcnosti, suma kladná, zostatok po splátke ≥ 0. */
+function validateMortgagePayment(x: unknown, today: string, label: string): string[] {
+  if (typeof x !== "object" || x === null || Array.isArray(x)) return [`${label}: musí byť objekt`];
+  const o = x as Record<string, unknown>;
+  const errors = unknownKeys(o, ["date", "amountCents", "balanceAfterCents"], label);
+  errors.push(...checkDate(o.date, today, `${label}: dátum`));
+  if (typeof o.amountCents !== "number" || !Number.isInteger(o.amountCents) || o.amountCents <= 0) errors.push(`${label}: suma musí byť celé číslo väčšie ako 0`);
+  if (!isCents(o.balanceAfterCents)) errors.push(`${label}: zostatok po splátke musí byť celé číslo ≥ 0`);
+  return errors;
+}
+
 export function validateRentalEntry(x: unknown, today: string, label = "záznam prenájmu"): string[] {
   if (typeof x !== "object" || x === null || Array.isArray(x)) return [`${label}: musí byť objekt`];
   const o = x as Record<string, unknown>;
@@ -98,7 +109,7 @@ export function validateRentalEntry(x: unknown, today: string, label = "záznam 
 export function validateProperty(p: unknown, today: string, label = "nehnuteľnosť"): string[] {
   if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
   const o = p as Record<string, unknown>;
-  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "extraPayments", "rentalLedger", "acquisitionDate", "acquisitionCostCents", "rentalStartDate", "taxObjectKind", "taxMunicipality", "cadastralArea", "parcelNumber", "buildingNumber", "flatNumber", "floorAreaSqm", "createdAt", "updatedAt"], label);
+  const errors = unknownKeys(o, ["id", "name", "mode", "valueCents", "valueDate", "mortgageBalanceCents", "balanceDate", "monthlyRentCents", "monthlyPaymentCents", "monthlyOtherCostsCents", "mortgageRate", "extraPayments", "lastMortgagePayment", "rentalLedger","acquisitionDate", "acquisitionCostCents", "rentalStartDate", "taxObjectKind", "taxMunicipality", "cadastralArea", "parcelNumber", "buildingNumber", "flatNumber", "floorAreaSqm", "createdAt", "updatedAt"], label);
   for (const key of ["taxMunicipality", "cadastralArea", "parcelNumber", "buildingNumber", "flatNumber"] as const) {
     if (o[key] !== undefined && (typeof o[key] !== "string" || (o[key] as string).length > 80)) errors.push(`${label}: ${key} musí byť text max 80 znakov`);
   }
@@ -116,6 +127,7 @@ export function validateProperty(p: unknown, today: string, label = "nehnuteľno
     if (!Array.isArray(o.extraPayments)) errors.push(`${label}: mimoriadne splátky musia byť zoznam`);
     else o.extraPayments.forEach((x, n) => errors.push(...validateExtraPayment(x, today, `${label}: mimoriadna splátka ${n + 1}`)));
   }
+  if (o.lastMortgagePayment !== undefined) errors.push(...validateMortgagePayment(o.lastMortgagePayment, today, `${label}: posledná splátka hypotéky`));
   if (typeof o.id !== "string" || o.id.length === 0) errors.push(`${label}: chýba id`);
   if (o.name !== undefined && (typeof o.name !== "string" || o.name.length > 80)) errors.push(`${label}: názov max 80 znakov`);
   if (!(PROPERTY_MODES as readonly unknown[]).includes(o.mode)) errors.push(`${label}: režim musí byť z katalógu`);

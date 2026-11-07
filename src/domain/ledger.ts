@@ -25,7 +25,7 @@ export { isAfterEvaluation } from "./capital";
 type Shortfall = { inv: number; cash: number };
 
 export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transaction[]): { capital: Capital; negative: { inv: boolean; cash: boolean }; shortfall: Shortfall } {
-  if (!snapshot) return { capital: { inv: 0, cash: 0 }, negative: { inv: false, cash: false }, shortfall: { inv: 0, cash: 0 } };
+  if (!snapshot) return { capital: { inv: 0, cash: 0, nem: 0 }, negative: { inv: false, cash: false }, shortfall: { inv: 0, cash: 0 } };
   let inv = snapshot.investmentsCents;
   let cash = snapshot.cashCents;
   const after = transactions
@@ -60,7 +60,7 @@ export function capitalWithFlags(snapshot: Snapshot | null, transactions: Transa
     }
   }
   return {
-    capital: { inv: Math.max(0, inv), cash: Math.max(0, cash) },
+    capital: { inv: Math.max(0, inv), cash: Math.max(0, cash), nem: 0 },
     negative: { inv: inv < 0, cash: cash < 0 },
     // Suma, ktorá presiahla stav a nie je odpočítaná z K (nález 3, D-045). Zobrazí sa v Prehľade.
     shortfall: { inv: Math.max(0, -inv), cash: Math.max(0, -cash) },

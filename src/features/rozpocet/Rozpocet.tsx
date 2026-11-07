@@ -4,7 +4,6 @@ import { BUDGET_CATEGORIES, type Budget, type Property, type RecurringExpense, t
 import { budgetStatus, spentInMonthCents } from "../../domain/budget";
 import { monthSummary } from "../../domain/monthSummary";
 import { monthlyRecurringByCategory } from "../../domain/recurring";
-import { housingFlowCents } from "../../domain/property";
 import { cents, eur } from "../../ui/kit/format";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { Field, asNum, type NumIn, btn, btnPrimary, hintStyle } from "../../ui/kit/controls";
@@ -48,19 +47,21 @@ export function BudgetSection({ repo, budgets, transactions, recurring, properti
   const recurringByCat = monthlyRecurringByCategory(recurring, today);
   const rows = BUDGET_CATEGORIES.map((c) => {
     const b = budgets.find((x) => x.category === c);
-    // Pravidelné výdavky (D-124) sa rátajú do minutého za mesiac spolu s transakciami v kategórii.
+    // Minuté zo spoločného mesačného súhrnu: transakcie, pravidelné výdavky (D-124), pri bývaní splátky hypoték v plnej výške (D-346).
     const rec = recurringByCat[c] ?? 0;
-    // Bývanie zahŕňa splátky hypoték mínus nájom (D-137); mimo bývania sa to neráta.
-    const housing = c === "bývanie" ? housingFlowCents(properties) : 0;
-    const spent = spentInMonthCents(transactions, c, today) + rec + housing;
-    return { c, b, rec, spent, st: budgetStatus(b, spent) };
+    const housing = c === "bývanie" ? plan.housingCents : 0;
+    const spent = plan.spentByCategory[c];
+    return { c, b, rec, housing, spent, st: budgetStatus(b, spent) };
   });
-  const recText = (rec: number) => (rec > 0 ? ` (z toho pravidelné ${eur(rec)})` : "");
+  const recText = (rec: number, housing: number) => {
+    const parts = [rec > 0 ? `pravidelné ${eur(rec)}` : "", housing > 0 ? `splátky hypoték ${eur(housing)}` : ""].filter(Boolean);
+    return parts.length > 0 ? ` (z toho ${parts.join(", ")})` : "";
+  };
   const used = rows.filter((r) => r.b || r.spent !== 0);
   const other = rows.filter((r) => !r.b && r.spent === 0);
   const line = (r: (typeof rows)[number]) => (
     <p key={r.c} style={{ margin: "6px 0" }}>
-      <strong>{r.c}</strong>: minuté {eur(r.spent)}{recText(r.rec)}
+      <strong>{r.c}</strong>: minuté {eur(r.spent)}{recText(r.rec, r.housing)}
       {r.b && <> · limit {eur(r.b.limitCents)}</>}
       {r.st && !r.st.over && <span style={hintStyle}> · zostáva {eur(r.st.remainingCents)}</span>}
       {r.st?.over && <span style={{ color: "var(--danger)" }}> · prekročené o {eur(r.st.remainingCents)}</span>}
@@ -83,8 +84,8 @@ export function BudgetSection({ repo, budgets, transactions, recurring, properti
         <>
           {rows.map((r) => {
             const hint = r.st && !r.st.over
-              ? `minuté tento mesiac ${eur(r.spent)}${recText(r.rec)}; zostáva ${eur(r.st.remainingCents)}`
-              : `minuté tento mesiac ${eur(r.spent)}${recText(r.rec)}`;
+              ? `minuté tento mesiac ${eur(r.spent)}${recText(r.rec, r.housing)}; zostáva ${eur(r.st.remainingCents)}`
+              : `minuté tento mesiac ${eur(r.spent)}${recText(r.rec, r.housing)}`;
             return (
               <div key={r.c}>
                 <Field label={`${r.c}: limit (€)`} value={limits[r.c] ?? ""} onChange={(v) => setLimits({ ...limits, [r.c]: v })} hint={hint} />
@@ -101,6 +102,9 @@ export function BudgetSection({ repo, budgets, transactions, recurring, properti
           <h3 style={{ fontSize: "var(--font-text)", marginBottom: 0 }}>Tento mesiac</h3>
           {used.length === 0 ? <p>Tento mesiac zatiaľ nie sú výdavky v kategóriách.</p> : used.map(line)}
           <p style={{ ...hintStyle, margin: "6px 0" }}>Výdavky bez kategórie tento mesiac: {eur(unassigned)}</p>
+          {plan.rentalExpensesCents > 0 && (
+            <p style={{ ...hintStyle, margin: "6px 0" }}>Výdavky na prenájom tento mesiac (evidencia v Majetku, mimo kategórií a limitov): {eur(plan.rentalExpensesCents)}</p>
+          )}
           {other.length > 0 && (
             <details style={{ margin: "8px 0" }}>
               <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Ďalšie kategórie ({other.length}) ▾</summary>

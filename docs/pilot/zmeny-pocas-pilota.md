@@ -8,7 +8,7 @@ Pilot začal 2026-10-21. Plán pilota s týmto pravidlom schválil zakladateľ 2
 
 | Dátum | Rozhodnutie | Zmena | Koho sa týka | Výnimka z D-153 |
 |---|---|---|---|---|
-| 2026-10-21 | D-137 | Zostatok hypotéky sa automaticky znižuje o istinu za uplynulé mesiace; bývanie v rozpočte sú splátky mínus nájom. | Fáza 2: cieľ s nehnuteľnosťou v prenájme; rozpočet | pred schválením D-153 |
+| 2026-10-21 | D-137 | Zostatok hypotéky sa automaticky znižuje o istinu za uplynulé mesiace; bývanie v rozpočte sú splátky mínus nájom (od 2026-11-05 zmenené D-346). | Fáza 2: cieľ s nehnuteľnosťou v prenájme; rozpočet | pred schválením D-153 |
 | 2026-10-21 | D-139, D-145, D-150 | Mimoriadna splátka hypotéky (znížiť splátku alebo skrátiť termín) a jej vrátenie. | Fáza 2: nehnuteľnosť s hypotékou | pred schválením D-153 |
 | 2026-10-21 | D-140 | Zostatok úveru sa automaticky znižuje; splátky úverov sú v Prehľade nevyhnutné výdavky. | Rozpočet a blok Tento mesiac, nie dátum cieľa | pred schválením D-153 |
 | 2026-10-22 | D-166 | Cieľ pri nulovom alebo zápornom sporení (r = 0) je nedosiahnuteľný namiesto chybného dátumu. | Okrajový prípad; oprava chyby | v deň schválenia D-153 |
@@ -19,6 +19,8 @@ Pilot začal 2026-10-21. Plán pilota s týmto pravidlom schválil zakladateľ 2
 | 2026-10-23 | D-256 | Horizont nad 50 rokov vo výpočte s nehnuteľnosťou (T2). | Fáza 2, okrajový prípad | D-292 |
 | 2026-10-23 | D-263 | Inflácia 4,2 % pre prevod hypotéky na reálnu sadzbu. | Fáza 2: cieľ s hypotékou | D-292 |
 | 2026-10-24 | D-285 | Oficiálny dátum cieľa, jeho rozsah, upozornenie na dlhý horizont a pokrok sa počítajú z kapitálu pri poslednom vyhodnotení. Predtým sa dátum posúval s každou transakciou po vyhodnotení. | Všetci | D-291 |
+| 2026-11-05 | D-346 (mení D-137) | Bývanie v rozpočte sú splátky hypoték v plnej výške, nájom sa od nich neodpočítava. Prijatý nájom a výdavky z evidencie prenájmu sú samostatné príjmy a výdavky mesiaca (Prehľad, Príjmy, Rozpočet). Pravidelné príjmy a výdavky sa rátajú do mesiaca, do ktorého ich obdobie zasahuje. K ani dátum cieľa sa nemenia. | Blok Tento mesiac, Príjmy a Rozpočet; najmä nehnuteľnosť v prenájme | otvorené (čaká na zakladateľku) |
+| 2026-11-05 | D-347 | Splátka hypotéky v mesiaci sa berie zo záznamu automatického splácania; posledná splátka sa vykáže v mesiaci, v ktorom prebehla (zostatok s úrokom, D-255). Schéma zálohy v19. K ani dátum cieľa sa nemenia. | Blok Tento mesiac, Príjmy a Rozpočet; nehnuteľnosť s hypotékou | otvorené (čaká na zakladateľku) |
 
 **Vplyv na porovnanie:**
 - Dátum cieľa zapísaný pred 2026-10-24 mohol obsahovať transakcie po vyhodnotení (D-285). Dátumy treba porovnávať od rovnakého vyhodnotenia.

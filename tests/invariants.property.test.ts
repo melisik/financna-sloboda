@@ -5,7 +5,7 @@ import { impactWithRentals } from "../src/domain/rentalGoal";
 import { payFromCash, payFromInvestments, transferToInvestments, type Capital } from "../src/domain/capital";
 
 // Dopad cez funkciu, ktorú používa appka (impactWithRentals); bez prenájmov. Delta v mesiacoch, inak null (D-326).
-const liveImpact = (before: { inv: number; cash: number }, after: { inv: number; cash: number }, mInv: number, mCash: number, r: number, t: number): number | null => {
+const liveImpact = (before: Capital, after: Capital, mInv: number, mCash: number, r: number, t: number): number | null => {
   const i = impactWithRentals(before, after, mInv, mCash, r, t, []);
   return i.kind === "delta" ? i.months : null;
 };
@@ -89,7 +89,7 @@ describe("invarianty: predbežný dopad (docs/07, oddiel 4)", () => {
   it("bez transakcií po poslednom vyhodnotení je dopad 0 (a výdavok z príjmu nemení K, teda ani n)", () => {
     fc.assert(
       fc.property(CAPITAL, SAVING, RATE, TARGET, (k, m, r, t) => {
-        const d = liveImpact({ inv: k, cash: 0 }, { inv: k, cash: 0 }, m, 0, r, t);
+        const d = liveImpact({ inv: k, cash: 0, nem: 0 }, { inv: k, cash: 0, nem: 0 }, m, 0, r, t);
         if (monthsToTarget(k, m, r, t) === null) expect(d).toBeNull();
         else expect(d).toBe(0);
       }),
@@ -100,7 +100,7 @@ describe("invarianty: predbežný dopad (docs/07, oddiel 4)", () => {
   it("sporenie alebo investícia nikdy nezhorší dátum (n_pred ≤ n_base)", () => {
     fc.assert(
       fc.property(CAPITAL, fc.nat(1_000_000_000), SAVING, RATE, TARGET, (k, add, m, r, t) => {
-        const d = liveImpact({ inv: k, cash: 0 }, { inv: k + add, cash: 0 }, m, 0, r, t);
+        const d = liveImpact({ inv: k, cash: 0, nem: 0 }, { inv: k + add, cash: 0, nem: 0 }, m, 0, r, t);
         if (d !== null) expect(d).toBeGreaterThanOrEqual(-TOL);
       }),
       { numRuns: 300 },
@@ -111,7 +111,7 @@ describe("invarianty: predbežný dopad (docs/07, oddiel 4)", () => {
     fc.assert(
       fc.property(CAPITAL, fc.nat(1_000_000_000), SAVING, RATE, TARGET, (k, sub, m, r, t) => {
         const pending = k - Math.min(sub, k);
-        const d = liveImpact({ inv: k, cash: 0 }, { inv: pending, cash: 0 }, m, 0, r, t);
+        const d = liveImpact({ inv: k, cash: 0, nem: 0 }, { inv: pending, cash: 0, nem: 0 }, m, 0, r, t);
         if (d !== null) expect(d).toBeLessThanOrEqual(TOL);
       }),
       { numRuns: 300 },
@@ -129,7 +129,7 @@ describe("invarianty: nezápornosť kapitálu a celé centy (docs/07, oddiel 4)"
   it("K_inv a K_cash nikdy nie sú záporné a zostávajú celé čísla pri ľubovoľnej postupnosti výdavkov", () => {
     fc.assert(
       fc.property(CAPITAL, CAPITAL, fc.array(OP, { maxLength: 30 }), (inv, cash, ops) => {
-        let c: Capital = { inv, cash };
+        let c: Capital = { inv, cash, nem: 0 };
         for (const o of ops) {
           const r = o.kind === "cash" ? payFromCash(c, o.amount) : o.kind === "inv" ? payFromInvestments(c, o.amount) : transferToInvestments(c, o.amount);
           if (!r.ok) continue;

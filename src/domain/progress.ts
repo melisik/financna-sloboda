@@ -49,7 +49,7 @@ export function goalDateShift(p: {
   rentals: Rental[];
 }): GoalDateShift | null {
   if (!p.previous) return null;
-  const before = goalMonths({ inv: p.previous.investmentsCents, cash: p.previous.cashCents }, p.mInv, p.mCash, p.rate, p.targetCents, p.rentals);
+  const before = goalMonths({ inv: p.previous.investmentsCents, cash: p.previous.cashCents, nem: 0 }, p.mInv, p.mCash, p.rate, p.targetCents, p.rentals);
   const now = goalMonths(p.capital, p.mInv, p.mCash, p.rate, p.targetCents, p.rentals);
   if (before.kind !== "months" || now.kind !== "months") return null;
   const usable = (n: number) => Number.isFinite(n) && n > 0 && n <= HORIZON_MONTHS;

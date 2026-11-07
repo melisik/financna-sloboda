@@ -57,8 +57,8 @@ test.describe("export zálohy, keď zdieľanie odmietne oneskorené spustenie", 
     page.on("download", () => { downloaded = true; });
     await page.getByLabel("Heslo na šifrovanie zálohy").fill("syntetickeheslo123");
     await page.getByRole("button", { name: "Uložiť zálohu", exact: true }).click();
-    await expect(page.getByText(/Záložný súbor je pripravený/)).toBeVisible();
-    await page.getByRole("button", { name: "Pokračovať v ukladaní zálohy" }).click();
+    await expect(page.getByText("Záloha je pripravená. Ťukni na Uložiť pripravenú zálohu.")).toBeVisible();
+    await page.getByRole("button", { name: "Uložiť pripravenú zálohu" }).click();
     await expect(page.getByText(/Záloha je zašifrovaná/)).toBeVisible();
     const shared = await page.evaluate(() => (window as unknown as { __shared: { name: string; type: string }[] }).__shared);
     expect(shared).toEqual([{ name: expect.stringMatching(/-sifrovana\.json$/), type: "text/plain" }]);

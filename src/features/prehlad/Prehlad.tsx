@@ -4,8 +4,7 @@ import type { Ctx } from "../../domain/context";
 import { scenarioDateText } from "../../domain/scenario";
 import { backupOverdue, monthEndApproaching, reviewOverdue, settingsCheckOverdue, staleEstimates } from "../../domain/reminders";
 import { StockWarning } from "../../ui/StockWarning";
-import { monthSummary } from "../../domain/monthSummary";
-import { monthlyIncomeCents } from "../../domain/income";
+import { householdMonthBalance, possibleDoubleEntries, type DoubleEntryHint } from "../../domain/householdBalance";
 import { endingSoon } from "../../domain/recurring";
 import { weeklySummary } from "../../domain/weekly";
 import { weeklyMailto, weeklySummaryLines } from "./weeklyMail";
@@ -32,7 +31,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
   const today = todayIso();
   const pending =
     ctx.latest && ctx.target !== null && ctx.settings
-      ? impactWithRentals({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target, ctx.rentals)
+      ? impactWithRentals({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents, nem: 0 }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target, ctx.rentals)
       : null;
   // Dátum cieľa, pokrok a posun sú z kapitálu pri poslednom vyhodnotení (D-283, D-285, FR-04).
   const progress = ctx.latest && ctx.target !== null ? goalProgress(ctx.evaluated, ctx.target, ctx.rentals) : null;
@@ -87,9 +86,9 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
             {ctx.settings && (
               <p>Miera výberu: {pctText(ctx.settings.withdrawalRate)} (predpoklad, zdroj neoverený).</p>
             )}
-            <p>Kapitál pri vyhodnotení: investície {eur(ctx.evaluated.inv)}, hotovosť {eur(ctx.evaluated.cash)}. Rezerva: {eur(ctx.reserve)}.</p>
+            <p>Kapitál pri vyhodnotení (FIRE): investície {eur(ctx.K_inv)}, hotovosť {eur(ctx.K_cash)}. Celkový K_total: {eur(ctx.K_total)}, z toho nehnuteľnosti: {eur(ctx.K_nem)}. Mesačné sporenie: {eur(ctx.m)}. Rezerva: {eur(ctx.reserve)}.</p>
             {(ctx.capital.inv !== ctx.evaluated.inv || ctx.capital.cash !== ctx.evaluated.cash) && (
-              <p>Po transakciách od vyhodnotenia (predbežne): investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}.</p>
+              <p>Po transakciách od vyhodnotenia (predbežne): FIRE {eur(ctx.capital.inv + ctx.capital.cash)}, z toho investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}.</p>
             )}
             <p>
               Predbežný dopad posledných transakcií:{" "}
@@ -193,10 +192,17 @@ function WeeklySummaryBlock({ transactions, today, thresholdCents }: { transacti
   );
 }
 
+function doubleEntryText(h: DoubleEntryHint): string {
+  if (h.kind === "hypoteka_pravidelny") return `pravidelný výdavok „${h.name}“ (${eur(h.amountCents)}) má sumu splátky hypotéky`;
+  if (h.kind === "hypoteka_transakcia") return `výdavok v bývaní ${eur(h.amountCents)} z ${dateSk(h.date)} má sumu splátky hypotéky`;
+  return `výdavok ${eur(h.amountCents)} z ${dateSk(h.date)} má sumu výdavku v evidencii prenájmu`;
+}
+
 function MonthSpendingBlock({ data, today, thresholdCents, incomeVisible }: { data: AppData; today: string; thresholdCents: number; incomeVisible: boolean }) {
-  const s = monthSummary(data.transactions, data.budgets, data.recurringExpenses, today, thresholdCents, data.properties, data.liabilities);
-  const spent = s.byNecessity.nevyhnutne + s.byNecessity.nie_nevyhnutne + s.byNecessity.ostatne + s.unassignedCents;
-  const income = monthlyIncomeCents(data.incomes, today);
+  const b = householdMonthBalance(data, today, thresholdCents);
+  const s = b.summary;
+  const spent = b.totalExpensesCents;
+  const doubles = possibleDoubleEntries(data, today);
   const ending = data.recurringExpenses.filter((e) => endingSoon(e, today));
   const over = s.percent !== null && s.percent > 100;
   return (
@@ -213,20 +219,32 @@ function MonthSpendingBlock({ data, today, thresholdCents, incomeVisible }: { da
         </p>
       )}
       {incomeVisible && (
-        <p style={{ margin: "4px 0" }}>
-          Príjem: <strong>{eur(income)}</strong> · rozdiel: <strong>{income - spent >= 0 ? "+" : "−"}{eur(Math.abs(income - spent))}</strong>
-        </p>
+        <>
+          <p style={{ margin: "4px 0" }}>
+            Príjmy: <strong>{eur(b.totalIncomeCents)}</strong> · výdavky: <strong>{eur(spent)}</strong> · rozdiel: <strong>{b.balanceCents >= 0 ? "+" : "−"}{eur(Math.abs(b.balanceCents))}</strong>
+          </p>
+          {b.rentalIncomeCents > 0 && (
+            <p style={{ ...hintStyle, margin: "4px 0" }}>Z príjmov: pravidelné {eur(b.regularIncomeCents)}, prijatý nájom {eur(b.rentalIncomeCents)}.</p>
+          )}
+        </>
       )}
       <details>
         <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Rozpis výdavkov ▾</summary>
         <ul style={{ paddingLeft: 20 }}>
           <li>Nevyhnutné: {eur(s.byNecessity.nevyhnutne)}</li>
+          {b.housingCents > 0 && <li>Splátky hypoték (v bývaní): {eur(b.housingCents)}</li>}
           {s.liabilitiesCents > 0 && <li>Splátky úverov a kariet: {eur(s.liabilitiesCents)}</li>}
           <li>Nie nevyhnutné: {eur(s.byNecessity.nie_nevyhnutne)}{spent > 0 ? ` (${Math.round((100 * s.byNecessity.nie_nevyhnutne) / spent)} % minutého)` : ""}</li>
           <li>Ostatné a nezaradené: {eur(s.byNecessity.ostatne + s.unassignedCents)}</li>
+          {b.rentalExpensesCents > 0 && <li>Výdavky na prenájom (evidencia v Majetku): {eur(b.rentalExpensesCents)}</li>}
           <li>Výdavky nad prahom: {s.overThresholdCount}</li>
         </ul>
       </details>
+      {doubles.length > 0 && (
+        <p style={{ ...calloutStyle("warn"), margin: "8px 0 0", fontSize: "var(--font-small)" }}>
+          Možný dvojitý zápis: {doubles.map(doubleEntryText).join("; ")}. Splátka hypotéky sa do výdavkov počíta z Majetku a výdavky prenájmu z evidencie prenájmu. Ak ide o tú istú platbu, zmaž druhý zápis. Appka nič nemaže sama.
+        </p>
+      )}
       {ending.length > 0 && (
         <p style={{ ...calloutStyle("warn"), margin: "8px 0 0", fontSize: "var(--font-small)" }}>
           Koniec platnosti do 30 dní: {ending.map((e) => e.name).join(", ")}. <a href="#pravidelne-vydavky">Pozrieť</a>
