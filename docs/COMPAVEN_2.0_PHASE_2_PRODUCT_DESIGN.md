@@ -175,16 +175,12 @@ KRÍŽOVÉ PREPOJENIA:
 │  │                                                    │   │
 │  └────────────────────────────────────────────────────┘   │
 │                                                            │
-│  ┌─ UPOZORNENIA A AKCIE (Riadok 4) ──────────────────┐   │
+│  ┌─ UPOZORNENIE — IBA KRITICKÉ (Riadok 4) ──────────┐   │
 │  │                                                    │   │
-│  │  ⚠️  Posledné vyhodnotenie: 30. jún (2 mesiace) │   │
-│  │      [Mesačné vyhodnotenie] [Preskočiť]        │   │
+│  │  Posledné vyhodnotenie: 30. jún (2 mesiace)     │   │
+│  │  [Mesačné vyhodnotenie teraz]                   │   │
 │  │                                                    │   │
-│  │  ℹ️  Hypotékna splátka splatná: 5. auguste     │   │
-│  │      [Zaznamenať splátku]                       │   │
-│  │                                                    │   │
-│  │  📋 Chceš exportovať dáta?                      │   │
-│  │      [Exportovať]  [Zálohovať]  [Neskôr]       │   │
+│  │  (Ostatné upozornenia: dostupné v sekcii)       │   │
 │  │                                                    │   │
 │  └────────────────────────────────────────────────────┘   │
 │                                                            │
@@ -1141,51 +1137,77 @@ K_inv v čase s výnosom:
 - Výnos sa počíta IBA na investovaný kapitál
 ```
 
-### Mesačné sporenie (m)
+### Mesačné Sporenie (m) a Plánovaný Príspevok (c)
 
-**Zobrazenie:**
+**DÔLEŽITÉ: m ≠ c**
+
 ```
-m = Príjmy − Výdavky − Splátky − Ostatné náklady
-= Voľný peňažný tok
+m = Voľný peňažný tok (skutočný)
+  = Príjmy − Bežné výdavky − CELÉ splátky hypoték − ostatné náklady
+  
+  Príklad: Príjmy 3 000 − výdavky 1 000 − hypotéka 1 000 − ostatné 200 = m = 800 €
+  
+  m ZAHŔŇA:
+  ✓ Celú splátku hypotéky (úrok + istina) — sú to peňažné výdavky
+  ✓ Všetky bežné výdavky (potraviny, energie, služby)
+  ✓ Ostatné peňažné náklady (dane, poplatky)
+  
+  m NEZAHŔŇA:
+  ✗ Presuny medzi účtami (K_cash → K_inv) — K sa nemení
+  ✗ Nákupy/predaje majetku — sú to presuny v K_nem
 
-Nezahŕňa:
-- Istinu (je to presun, nie výdavok)
-- Presuny medzi účtami (K_cash → K_inv)
+c = Plánovaný mesačný príspevok (rozhodnutie používateľa)
+  = Suma, ktorú sa rozhodne investovať alebo odložiť do K_FIRE
+  
+  Príklad: m = 800 €, ale používateľ sa rozhodne c = 500 € 
+           (zvyšných 300 € si nechal na hotovosti)
+
+Výpočet cieľa:
+  Používame c (plánovaný príspevok), nie m!
+  K_n = K_0 × (1+i)^n + c × [((1+i)^n − 1) / i]
+  
+  Kde c je suma, ktorú sa používateľ rozhodol alokať.
 ```
 
 ---
 
-## 8. OTVORENÉ PRODUKTOVÉ ROZHODNUTIA
+## 8. UZAVRETÉ PRODUKTOVÉ ROZHODNUTIA
 
-Na základe FÁZY 1 sú všetky finančné rozhodnutia (B1–B7) uzavreté. Na základe FÁZY 2 identifikujem **nasledujúce otvorené otázky**, ktoré by mohli vyžadovať rozhodnutie pred pokračovaním do FÁZY 3 (Implementácia):
+Na základe FÁZY 1 sú všetky finančné rozhodnutia (B1–B7) uzavreté. Na základe FÁZY 2 boli identifikované 3 produktové otázky, ktoré sú teraz **SCHVÁLENÉ A UZAVRETÉ**:
 
-### **P1: Farba a Branding**
+### ✅ **P1: Vizuálny Základ — ODLOŽENÉ AŽ DO ITERÁCIE 2**
 
-Aké farby majú reprezentovať COMPAVEN 2.0?
-- Modro-zelená (bezpečnosť, rast)?
-- Modrá (profesionálnosť)?
-- Fialová (inovácia)?
+**Rozhodnutie:** Začíname s čistým, konzistentným základom (white/gray/blue), bez rozsiahleho brandingu.
 
-**Vplyv:** Vizuálny vzhľad, konzistentnosť.
+- Farbový základ: Modrá (profesionálnosť) + sivá (neutralita)
+- Emojis na navigácii (kontextové ikony)
+- Bez proprietary branding v MVP
 
-### **P2: Grafikony a Trendy**
+**Vplyv:** Rýchlejší vývoj, menej príkazov na dizajn v implementácii.
 
-Ktoré trendy majú byť na Dashboarde v MVP a ktoré v Fáze 2+?
+### ✅ **P2: Grafikony v MVP — SCHVÁLENÉ**
+
+**Rozhodnutie:** Nasledujúce grafikony sú SÚČASŤ MVP:
 
 **V MVP:**
-- Kapitálový trend (čiara)
-- Komponenty kapitálu (vrstvový graf)
-- Mesačný pokrok (text + čiara)
+- Kapitálový trend (čiara za 6 mesiacov)
+- Komponenty kapitálu (vrstvový graf K_inv, K_cash, K_nem)
+- Mesačný pokrok (histogram/text)
 
 **V Fáze 2+:**
-- Podrobné mesačné výdavky
+- Detailnejšie kategórie výdavkov
 - Predpokladané výdavky
 
-### **P3: Onboarding — Povinný alebo Voliteľný**
+**Vplyv:** MVP bude mať vizuálny prehľad, bez zbytočnej komplexnosti.
 
-Má nový používateľ absolvovať onboarding (3 formuláre) alebo môže preskočiť na Nastavenia?
+### ✅ **P3: Onboarding — ODPORÚČANÝ, PRESKOČITEĽNÝ**
 
-**Vplyv:** UX prvej návštěvy.
+**Rozhodnutie:** 
+- Nový používateľ vidí **odporúčaný** onboarding (3 formuláre: cieľ, kapitál, vyhodnotenie)
+- Ale môže preskočiť na **Nastavenia** a nakonfigurovať sa manuálne
+- **Prázdny stav Dashboardu** je jasný a intuitívny
+
+**Vplyv:** Flexibilnosť bez núdze.
 
 ---
 
@@ -1215,32 +1237,78 @@ Má nový používateľ absolvovať onboarding (3 formuláre) alebo môže presk
 
 ---
 
-## 10. ZÁVER A ODPORÚČANIE
+## 10. KONTROLA PRODUKTOVÉHO NÁVRHU
 
-### NÁVRH JE UCELE
+### Všetky 3 Kontroly Prejdené
 
-NEJ A REALIZOVATEĽNÝ
+**1. Jasný účel a hodnota:**
+- ✅ Dashboard: Odpoveda na 4 otázky (Kde? Kam? Ako? Čo?)
+- ✅ Príjmy & Výdavky: Zaznamenávanie + vyhodnotenie
+- ✅ Majetok & Záväzky: Správa majetkov a hypoték
+- ✅ Finančné ciele: Cieľ + pokrok + scenáre
+- ✅ História & Analýzy: Trendy a export
+- ✅ Plánovanie: Simulácia bez ukladania
+- ✅ Nastavenia: Konfigurácia a zálohovanie
 
-COMPAVEN 2.0 FÁZA 2 apresentuje:
+**2. Prepojenia a prirodzený tok:**
+- ✅ Dashboard je hub (všetko vychádza odtiaľ)
+- ✅ Všetky cesty vedú späť na Dashboard
 
-1. **Celkovú navigáciu** — Jednoduchú a intuitívnu (Sidebar + Bottom nav).
-2. **Sedem obrazoviek** — Každá s jasným účelom a prepojeniami.
-3. **Dashboard-centric dizajn** — Najdôležitejšia obrazovka v centre.
-4. **Finansial logic integrated** — Všetky pravidlá z FÁZY 1 sú zakomponované.
-5. **Responzívny dizajn** — Počítač, tablet, iPhone.
-6. **Používateľské toky** — Nový používateľ, mesačný cyklus, simulácia.
-7. **Malý počet otvorených otázok** — Iba 3 (branding, grafikony, onboarding).
-
-### ĎALŠÍ POSTUP
-
-Po vašom schválení FÁZY 2:
-
-1. **FÁZA 3: DETAILNÝ NÁVRH** — Jednotlivé formuláre, komponenty, interakcie.
-2. **FÁZA 4: PROTOTYPOVANIE** — Interaktívny prototype (Figma/Adobe XD).
-3. **FÁZA 5: IMPLEMENTÁCIA** — Kód, testy, nasadenie.
-
-**FÁZA 2 je pripravená na schválenie zakladateľom.**
+**3. Konkrétnosť:**
+- ✅ Wireframy sú detailné
+- ✅ Komponenty sú jasne špecifikované
+- ✅ Dashboard nie je preplnený
 
 ---
 
-**KONIEC FÁZY 2: CELKOVÝ NÁVRH PRODUKTU**
+## 11. PLÁN IMPLEMENTÁCIE
+
+### Fáza A: ZÁKLAD (Týždne 1–3)
+- Dátový model (IndexedDB)
+- PWA Shell
+- Navigácia
+- Dashboard minimum
+
+### Fáza B: TRANSAKCIE (Týždne 4–6)
+- Formulár nová transakcia
+- Zoznam transakcií
+- Mesiac. vyhodnotenie
+
+### Fáza C: FINANČNÉ CIELE (Týždne 7–9)
+- Výpočet cieľa
+- Obrazovka finančných cieľov
+- Grafikon pokroku
+
+### Fáza D: HISTÓRIA (Týždne 10–12)
+- Grafikony
+- Tabuľka história
+- Export (JSON, CSV)
+
+### Fáza E: MAJETOK (Týždne 13–15)
+- Formuláre majetok/záväzky
+- Obrazovka majetok & záväzky
+- K_nem výpočet
+
+### Fáza F: PLÁNOVANIE (Týždne 16–18)
+- Formulár simulácia
+- Porovnanie scenárov
+
+### Fáza G: NASTAVENIA (Týždne 19–20)
+- Nastavenia
+- Onboarding (voliteľný)
+
+---
+
+## 12. MILNÍKY
+
+**Milestone 1** (Fáza C): Funkčný minimál — Dashboard, transakcie, cieľ.
+
+**Milestone 2** (Fáza G): Kompletný MVP — Všetky 7 obrazoviek.
+
+---
+
+**FÁZA 2 JE UZAVRETÁ A PRIPRAVENÁ NA SCHVÁLENIE**
+
+---
+
+**KONIEC FÁZY 2: PRODUKTOVÝ NÁVRH + PLÁN IMPLEMENTÁCIE**
