@@ -6,6 +6,8 @@ import { LONG_HORIZON_MONTHS, netRealReturn, RETURN_ASSUMPTIONS } from "./assump
 import { goalMonths, rentalsFor, type Rental } from "./rentalGoal";
 import { capitalWithFlags, reserveBalance } from "./ledger";
 import { netPropertyValueCents } from "./property";
+import { householdMonthBalance } from "./householdBalance";
+import { monthlyCashFlow } from "./monthlyCashFlow";
 
 /** Kontext prehľadu: stav kapitálu, cieľ a nastavenia z dát (FR-02, FR-04, D-121). Čistý výpočet, bez UI. */
 export interface Ctx {
@@ -21,11 +23,11 @@ export interface Ctx {
   reserve: number;
   mInv: number;
   mCash: number;
-  m: number; // Celkové mesačné sporenie = mInv + mCash (D-031)
-  c: number; // Plánované mesačné investovanie (prozatím rovné m, budúcnosti užívateľova hodnota)
+  m: number; // Voľný mesačný peňažný tok = príjmy - všetky výdavky (D-031, D-040)
+  c: number; // Plánované mesačné investovanie (užívateľova rozhodovacia hodnota, prozatím rovné m)
   K_inv: number; // Investičný kapitál (identický s capital.inv)
   K_cash: number; // Likvidný kapitál (identický s capital.cash)
-  K_nem: number; // Čistá hodnota nehnuteľností v prenájme (D-080)
+  K_nem: number; // Čistá hodnota všetkých nehnuteľností (vlastné + prenajímané) (D-080, D-268)
   K_total: number; // Celkový majetok = K_inv + K_cash + K_nem (D-268)
   K_FIRE: number; // Investičný kapitál pre cieľ FIRE = K_inv + K_cash (bez K_nem, D-268)
   target: number | null;
@@ -42,24 +44,24 @@ export function makeCtx(data: AppData): Ctx {
   const target = s ? targetAmountCents(s.expensesCents, s.withdrawalRate) : null;
   const mInv = s?.savingInvCents ?? derived.inv;
   const mCash = s?.savingCashCents ?? derived.cash;
-  const m = mInv + mCash; // Celkové mesačné sporenie
-  const c = m; // Plánované investovanie (prozatím rovné m)
+  const m = latest ? monthlyCashFlow(data, latest.date) : 0; // Voľný peňažný tok (príjmy - všetky výdavky)
+  const c = m; // Plánované mesačné investovanie (prozatím rovné m)
   const realReturn = netRealReturn(s?.realReturn ?? RETURN_ASSUMPTIONS.realReturn, s?.feesRate ?? 0);
   const rentals = rentalsFor(data.properties);
 
-  // K_nem: čistá hodnota nehnuteľností v prenájme
+  // K_nem: čistá hodnota všetkých nehnuteľností (vlastné + prenajímané) (D-080, D-268)
   const nem = data.properties
-    .filter((p) => p.mode === "prenajom")
     .reduce((sum, p) => sum + netPropertyValueCents(p), 0);
 
   const evaluated: Capital = latest ? { inv: latest.investmentsCents, cash: latest.cashCents, nem } : { inv: 0, cash: 0, nem };
   const K_FIRE = flags.capital.inv + flags.capital.cash; // K_inv + K_cash
   const g = latest && target !== null ? goalMonths(evaluated, mInv, mCash, realReturn, target, rentals) : null;
+  const capital: Capital = { inv: flags.capital.inv, cash: flags.capital.cash, nem };
   return {
     settings: s,
     latest,
     evaluated,
-    capital: flags.capital,
+    capital,
     negative: flags.negative,
     shortfall: flags.shortfall,
     derived,
@@ -68,10 +70,10 @@ export function makeCtx(data: AppData): Ctx {
     mCash,
     m,
     c,
-    K_inv: flags.capital.inv,
-    K_cash: flags.capital.cash,
-    K_nem: flags.capital.nem,
-    K_total: flags.capital.inv + flags.capital.cash + flags.capital.nem,
+    K_inv: capital.inv,
+    K_cash: capital.cash,
+    K_nem: nem,
+    K_total: capital.inv + capital.cash + nem,
     K_FIRE,
     target,
     realReturn,

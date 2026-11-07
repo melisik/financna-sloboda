@@ -31,9 +31,10 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
   const today = todayIso();
   const pending =
     ctx.latest && ctx.target !== null && ctx.settings
-      ? impactWithRentals({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents, nem: 0 }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target, ctx.rentals)
+      ? impactWithRentals({ inv: ctx.latest.investmentsCents, cash: ctx.latest.cashCents, nem: ctx.K_nem }, ctx.capital, ctx.mInv, ctx.mCash, ctx.realReturn, ctx.target, ctx.rentals)
       : null;
   // Dátum cieľa, pokrok a posun sú z kapitálu pri poslednom vyhodnotení (D-283, D-285, FR-04).
+  // ETAPA 1: Nový Dashboard COMPAVEN 2.0 s K_FIRE, K_total, K_nem metrikami
   const progress = ctx.latest && ctx.target !== null ? goalProgress(ctx.evaluated, ctx.target, ctx.rentals) : null;
   const previous = [...data.snapshots].sort((a, b) => a.date.localeCompare(b.date)).at(-2) ?? null;
   const shift =
@@ -54,18 +55,54 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
           {ctx.shortfall.cash > 0 && <> Prečerpanie hotovosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do kapitálu sa nezapočíta.</>}
         </p>
       )}
-      {ctx.latest && ctx.target !== null && progress ? (
+      {ctx.latest && ctx.target !== null ? (
         <>
-          <p style={{ fontSize: "var(--font-heading)", margin: "8px 0 4px" }}>Dátum cieľa: <strong style={{ fontSize: "1.4em", display: "inline-block" }}>{scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</strong></p>
-          <p style={{ margin: "4px 0" }}>{progressLine(progress)}</p>
-          <div aria-hidden="true" style={{ height: 8, borderRadius: 4, background: "var(--border-soft)", overflow: "hidden", margin: "4px 0 8px" }}>
-            <div style={{ width: `${progress.percent}%`, height: "100%", background: "var(--primary-bg)" }} />
+          <div style={{ background: "linear-gradient(135deg, var(--primary-bg) 0%, #1a4d2e 100%)", borderRadius: 16, padding: 24, marginBottom: 24, color: "white" }}>
+            <p style={{ margin: "0 0 8px", fontSize: "var(--font-small)", opacity: 0.9 }}>POKROK K FINANČNEJ SLOBODE</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+              <div>
+                <p style={{ margin: "0 0 8px", fontSize: "var(--font-small)", opacity: 0.9 }}>K_FIRE</p>
+                <p style={{ margin: "0 0 16px", fontSize: "1.8em", fontWeight: "bold" }}>{eur(ctx.K_FIRE)}</p>
+                <div aria-hidden="true" style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.2)", overflow: "hidden", marginBottom: 8 }}>
+                  <div style={{ width: `${progress ? progress.percent : 0}%`, height: "100%", background: "rgba(255,255,255,0.8)" }} />
+                </div>
+                <p style={{ margin: 0, fontSize: "var(--font-small)", opacity: 0.8 }}>{progress ? progress.percent : "−"} % z cieľa</p>
+              </div>
+              <div>
+                <p style={{ margin: "0 0 8px", fontSize: "var(--font-small)", opacity: 0.9 }}>Cieľ:</p>
+                <p style={{ margin: "0 0 8px", fontSize: "1.4em", fontWeight: "bold" }}>{eur(ctx.target)}</p>
+                <p style={{ margin: 0, fontSize: "var(--font-small)", opacity: 0.8 }}>Dátum: {scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</p>
+              </div>
+            </div>
           </div>
-          {shift && <p style={{ margin: "4px 0" }}>{shiftLine(shift)}</p>}
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
+            <div style={{ background: "var(--surface-light)", padding: 16, borderRadius: 12, border: "1px solid var(--border)" }}>
+              <p style={{ margin: "0 0 4px", fontSize: "var(--font-small)", fontWeight: 600, color: "var(--muted)" }}>K_FIRE</p>
+              <p style={{ margin: "0 0 8px", fontSize: "1.4em", fontWeight: "bold" }}>{eur(ctx.K_FIRE)}</p>
+              <p style={{ margin: 0, fontSize: "var(--font-xsmall)", color: "var(--muted)" }}>Investície + hotovosť</p>
+            </div>
+            <div style={{ background: "var(--surface-light)", padding: 16, borderRadius: 12, border: "1px solid var(--border)" }}>
+              <p style={{ margin: "0 0 4px", fontSize: "var(--font-small)", fontWeight: 600, color: "var(--muted)" }}>K_total</p>
+              <p style={{ margin: "0 0 8px", fontSize: "1.4em", fontWeight: "bold" }}>{eur(ctx.K_total)}</p>
+              <p style={{ margin: 0, fontSize: "var(--font-xsmall)", color: "var(--muted)" }}>FIRE + nehnuteľnosti</p>
+            </div>
+            <div style={{ background: "var(--surface-light)", padding: 16, borderRadius: 12, border: "1px solid var(--border)" }}>
+              <p style={{ margin: "0 0 4px", fontSize: "var(--font-small)", fontWeight: 600, color: "var(--muted)" }}>K_nem</p>
+              <p style={{ margin: "0 0 8px", fontSize: "1.4em", fontWeight: "bold" }}>{eur(ctx.K_nem)}</p>
+              <p style={{ margin: 0, fontSize: "var(--font-xsmall)", color: "var(--muted)" }}>Nehnuteľnosti</p>
+            </div>
+            <div style={{ background: "var(--surface-light)", padding: 16, borderRadius: 12, border: "1px solid var(--border)" }}>
+              <p style={{ margin: "0 0 4px", fontSize: "var(--font-small)", fontWeight: 600, color: "var(--muted)" }}>Mesačný tok</p>
+              <p style={{ margin: "0 0 8px", fontSize: "1.4em", fontWeight: "bold" }}>{eur(ctx.m)}</p>
+              <p style={{ margin: 0, fontSize: "var(--font-xsmall)", color: "var(--muted)" }}>m − c = {eur(ctx.m - ctx.c)}</p>
+            </div>
+          </div>
+
+          <div style={{ background: "var(--surface)", padding: 12, borderRadius: 8, marginBottom: 16, fontSize: "var(--font-small)" }}>
+            <p style={{ margin: 0 }}>Posledné vyhodnotenie: <strong>{dateSk(ctx.latest.date)}</strong></p>
+          </div>
           <p style={hintStyle}>Výpočet je pred daňou; poplatky sa odpočítajú od výnosu, ak ich zadáš.</p>
-          <p style={hintStyle}>
-            Posledné vyhodnotenie: <strong>{dateSk(ctx.latest.date)}</strong>. Dátum sa zmení až po ďalšom vyhodnotení.
-          </p>
           {ctx.latest.auto && (
             <p style={hintStyle}>
               Vyhodnotenie vzniklo automaticky z transakcií.
@@ -79,6 +116,33 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
           )}
           <details style={{ marginTop: 8 }}>
             <summary style={{ ...btn, marginTop: 0, listStyle: "none" }}>Podrobnosti ▾</summary>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12, fontSize: "var(--font-small)" }}>
+              <div style={{ background: "var(--surface-light)", padding: 8, borderRadius: 4 }}>
+                <p style={{ margin: "0 0 4px", fontWeight: 600 }}>K_FIRE (kapitál pre finančnú nezávislosť)</p>
+                <p style={{ margin: 0 }}><strong>{eur(ctx.K_FIRE)}</strong></p>
+                <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: "var(--font-xsmall)" }}>Investície + hotovosť</p>
+              </div>
+              <div style={{ background: "var(--surface-light)", padding: 8, borderRadius: 4 }}>
+                <p style={{ margin: "0 0 4px", fontWeight: 600 }}>K_nem (čistá hodnota nehnuteľností)</p>
+                <p style={{ margin: 0 }}><strong>{eur(ctx.K_nem)}</strong></p>
+                <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: "var(--font-xsmall)" }}>Všetky vlastné a prenajímané</p>
+              </div>
+              <div style={{ background: "var(--surface-light)", padding: 8, borderRadius: 4 }}>
+                <p style={{ margin: "0 0 4px", fontWeight: 600 }}>K_total (celkový čistý majetok)</p>
+                <p style={{ margin: 0 }}><strong>{eur(ctx.K_total)}</strong></p>
+                <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: "var(--font-xsmall)" }}>K_FIRE + K_nem</p>
+              </div>
+              <div style={{ background: "var(--surface-light)", padding: 8, borderRadius: 4 }}>
+                <p style={{ margin: "0 0 4px", fontWeight: 600 }}>m (voľný mesačný peňažný tok)</p>
+                <p style={{ margin: 0 }}><strong>{eur(ctx.m)}</strong></p>
+                <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: "var(--font-xsmall)" }}>Príjmy − všetky výdavky</p>
+              </div>
+              <div style={{ background: "var(--surface-light)", padding: 8, borderRadius: 4 }}>
+                <p style={{ margin: "0 0 4px", fontWeight: 600 }}>c (plánovaný príspevok do investícií)</p>
+                <p style={{ margin: 0 }}><strong>{eur(ctx.c)}</strong></p>
+                <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: "var(--font-xsmall)" }}>Mesačne do K_inv</p>
+              </div>
+            </div>
             <p>
               Rozsah dátumu: od {scenarioDateText(ctx, ctx.realReturn + 0.02, today, monthYear)} do {scenarioDateText(ctx, Math.max(0, ctx.realReturn - 0.02), today, monthYear)} (opatrný – základný – optimistický).
             </p>
@@ -86,7 +150,6 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
             {ctx.settings && (
               <p>Miera výberu: {pctText(ctx.settings.withdrawalRate)} (predpoklad, zdroj neoverený).</p>
             )}
-            <p>Kapitál pri vyhodnotení (FIRE): investície {eur(ctx.K_inv)}, hotovosť {eur(ctx.K_cash)}. Celkový K_total: {eur(ctx.K_total)}, z toho nehnuteľnosti: {eur(ctx.K_nem)}. Mesačné sporenie: {eur(ctx.m)}. Rezerva: {eur(ctx.reserve)}.</p>
             {(ctx.capital.inv !== ctx.evaluated.inv || ctx.capital.cash !== ctx.evaluated.cash) && (
               <p>Po transakciách od vyhodnotenia (predbežne): FIRE {eur(ctx.capital.inv + ctx.capital.cash)}, z toho investície {eur(ctx.capital.inv)}, hotovosť {eur(ctx.capital.cash)}.</p>
             )}
@@ -94,7 +157,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
               Predbežný dopad posledných transakcií:{" "}
               <strong>{pending === null ? UNREACHABLE_IMPACT_TEXT : formatImpactOutcome(pending)}</strong>
             </p>
-            <p style={{ color: "var(--muted)" }}>Transakcií: {data.transactions.length}</p>
+            <p style={{ color: "var(--muted)" }}>Transakcií: {data.transactions.length} · Rezerva: {eur(ctx.reserve)}</p>
           </details>
           <VyvojBlock data={data} ctx={ctx} />
         </>
