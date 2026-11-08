@@ -4,7 +4,7 @@
  */
 
 /** Typy transakcie (05 §4, D-006, D-037). */
-export const TRANSACTION_TYPES = ["sporenie", "investicia", "vydavok", "rezerva", "vyber_rezervy"] as const;
+export const TRANSACTION_TYPES = ["sporenie", "investicia", "vydavok", "rezerva", "vyber_rezervy", "prijem"] as const;
 export type TransactionType = (typeof TRANSACTION_TYPES)[number];
 
 /** Zdroj úhrady výdavku a presunu (D-045). */
@@ -197,6 +197,26 @@ export interface InvestmentGoal {
   name: string; // max 80 znakov
   targetCents: number; // cieľová suma v centoch, kladná celá
   receivesRest?: boolean; // sem patrí všetko, čo nie je priradené inému cieľu (D-335); najviac jeden cieľ
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+}
+
+/** Kategória individuálneho finančného cieľa. */
+export const PERSONAL_GOAL_CATEGORIES = ["dovolena", "dom", "auto", "skolenie", "ine"] as const;
+export type PersonalGoalCategory = (typeof PERSONAL_GOAL_CATEGORIES)[number];
+
+/** Individuálny finančný cieľ s konkrétnym cieľom a terminálom. Modul FINANČNÉ CIELE. */
+export interface PersonalGoal {
+  id: string;
+  name: string; // max 120 znakov
+  targetCents: number; // cieľová suma v centoch, kladná celá
+  category: PersonalGoalCategory;
+  priority: number; // poradie (1 = najvyšší), kladné celé číslo
+  targetYear: number; // rok dosiahnutia, 4-miestny
+  targetMonth?: number; // mesiac dosiahnutia (1-12); bez hodnoty = nie je určený
+  flexible?: boolean; // možnosť posunúť termín ak sa nedosiahne (default: false)
+  monthlySavingCents?: number; // mesačný príspevek na tento cieľ; ak je zadaný, počíta sa v mCash
+  note?: string; // poznámka, max 300 znakov
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
@@ -437,6 +457,7 @@ export interface AppData {
   recipes: Recipe[];
   dogs: Dog[];
   goals: InvestmentGoal[];
+  personalGoals?: PersonalGoal[]; // Modul FINANČNÉ CIELE
   wasteRecords: WasteRecord[];
   shoppingItems: ShoppingItem[];
   calendarObligations?: any[];
