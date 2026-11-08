@@ -55,7 +55,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
           {ctx.shortfall.cash > 0 && <> Prečerpanie hotovosti: <strong>{eur(ctx.shortfall.cash)}</strong>. Do kapitálu sa nezapočíta.</>}
         </p>
       )}
-      {ctx.latest && ctx.target !== null ? (
+      {ctx.latest ? (
         <>
           <div style={{ background: "linear-gradient(135deg, var(--primary-bg) 0%, #1a4d2e 100%)", borderRadius: 16, padding: 24, marginBottom: 24, color: "white" }}>
             <p style={{ margin: "0 0 8px", fontSize: "var(--font-small)", opacity: 0.9 }}>POKROK K FINANČNEJ SLOBODE</p>
@@ -63,15 +63,30 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
               <div>
                 <p style={{ margin: "0 0 8px", fontSize: "var(--font-small)", opacity: 0.9 }}>K_FIRE</p>
                 <p style={{ margin: "0 0 16px", fontSize: "1.8em", fontWeight: "bold" }}>{eur(ctx.K_FIRE)}</p>
-                <div aria-hidden="true" style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.2)", overflow: "hidden", marginBottom: 8 }}>
-                  <div style={{ width: `${progress ? progress.percent : 0}%`, height: "100%", background: "rgba(255,255,255,0.8)" }} />
-                </div>
-                <p style={{ margin: 0, fontSize: "var(--font-small)", opacity: 0.8 }}>{progress ? progress.percent : "−"} % z cieľa</p>
+                {ctx.target !== null ? (
+                  <>
+                    <div aria-hidden="true" style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.2)", overflow: "hidden", marginBottom: 8 }}>
+                      <div style={{ width: `${progress ? progress.percent : 0}%`, height: "100%", background: "rgba(255,255,255,0.8)" }} />
+                    </div>
+                    <p style={{ margin: 0, fontSize: "var(--font-small)", opacity: 0.8 }}>{progress ? progress.percent : "−"} % z cieľa</p>
+                  </>
+                ) : (
+                  <p style={{ margin: 0, fontSize: "var(--font-small)", opacity: 0.8 }}>Cieľ nie je nastavený</p>
+                )}
               </div>
               <div>
                 <p style={{ margin: "0 0 8px", fontSize: "var(--font-small)", opacity: 0.9 }}>Cieľ:</p>
-                <p style={{ margin: "0 0 8px", fontSize: "1.4em", fontWeight: "bold" }}>{eur(ctx.target)}</p>
-                <p style={{ margin: 0, fontSize: "var(--font-small)", opacity: 0.8 }}>Dátum: {scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</p>
+                {ctx.target !== null ? (
+                  <>
+                    <p style={{ margin: "0 0 8px", fontSize: "1.4em", fontWeight: "bold" }}>{eur(ctx.target)}</p>
+                    <p style={{ margin: 0, fontSize: "var(--font-small)", opacity: 0.8 }}>Dátum: {scenarioDateText(ctx, ctx.realReturn, today, monthYear)}</p>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ margin: "0 0 8px", fontSize: "1.4em", fontWeight: "bold", opacity: 0.6 }}>−</p>
+                    <p style={{ margin: 0, fontSize: "var(--font-small)", opacity: 0.8 }}>Zadaj výdavky v Nastaveniach</p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -163,8 +178,7 @@ export function HomeSection({ data, ctx, lastExport, incomeVisible, investmentsV
         </>
       ) : (
         <>
-          {ctx.target !== null && <p>Cieľová suma: <strong>{eur(ctx.target)}</strong></p>}
-          {!ctx.latest && <p>Urob prvé vyhodnotenie. Dátum cieľa sa zobrazí po ňom. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>}
+          <p>Urob prvé vyhodnotenie. Dashboard sa zobrazí po ňom. <NextStep to="vyhodnotenie">Vyhodnotenie</NextStep></p>
         </>
       )}
       <p style={{ margin: "12px 0 16px" }}>

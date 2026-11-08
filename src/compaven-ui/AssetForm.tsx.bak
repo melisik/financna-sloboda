@@ -1,0 +1,75 @@
+import { useState } from "react";
+import type { Position } from "../storage/types";
+
+interface InvestmentFormProps {
+  onSave: (position: Position) => void;
+  onCancel: () => void;
+}
+
+export function InvestmentForm({ onSave, onCancel }: InvestmentFormProps) {
+  const [name, setName] = useState("");
+  const [valueCents, setValueCents] = useState(0);
+  const [note, setNote] = useState("");
+
+  const handleSave = () => {
+    if (!name.trim()) {
+      alert("Názov investície je povinný");
+      return;
+    }
+    if (valueCents <= 0) {
+      alert("Hodnota musí byť väčšia ako 0");
+      return;
+    }
+
+    const position: Position = {
+      id: `pos-${Date.now()}`,
+      name: name.trim(),
+      valueCents,
+      valueDate: new Date().toISOString().split("T")[0],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    onSave(position);
+  };
+
+  return (
+    <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
+      <h2>Pridať investíciu</h2>
+
+      <label style={{ display: "block", marginBottom: "12px" }}>
+        <span style={{ fontWeight: "bold" }}>Názov (napr. Akcie, ETF, Podielový fond...)</span>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Popis investície"
+          style={{ display: "block", width: "100%", padding: "8px", marginTop: "4px", boxSizing: "border-box" }}
+        />
+      </label>
+
+      <label style={{ display: "block", marginBottom: "12px" }}>
+        <span style={{ fontWeight: "bold" }}>Aktuálna hodnota (€)</span>
+        <input
+          type="number"
+          value={valueCents / 100}
+          onChange={(e) => setValueCents(Math.max(0, parseFloat(e.target.value) || 0) * 100)}
+          min="0"
+          step="0.01"
+          style={{ display: "block", width: "100%", padding: "8px", marginTop: "4px", boxSizing: "border-box" }}
+        />
+      </label>
+
+      <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+        <button onClick={handleSave} style={{ padding: "8px 16px", cursor: "pointer", background: "#2563EB", color: "white", border: "none", borderRadius: "4px" }}>
+          Uložiť
+        </button>
+        <button onClick={onCancel} style={{ padding: "8px 16px", cursor: "pointer", background: "#6B7280", color: "white", border: "none", borderRadius: "4px" }}>
+          Zrušiť
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export { InvestmentForm as AssetForm };

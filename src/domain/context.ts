@@ -45,7 +45,7 @@ export function makeCtx(data: AppData): Ctx {
   const mInv = s?.savingInvCents ?? derived.inv;
   const mCash = s?.savingCashCents ?? derived.cash;
   const m = latest ? monthlyCashFlow(data, latest.date) : 0; // Voľný peňažný tok (príjmy - všetky výdavky)
-  const c = m; // Plánované mesačné investovanie (prozatím rovné m)
+  const c = s?.savingInvCents ?? 0; // Plánovaný mesačný príspevek do investícií
   const realReturn = netRealReturn(s?.realReturn ?? RETURN_ASSUMPTIONS.realReturn, s?.feesRate ?? 0);
   const rentals = rentalsFor(data.properties);
 

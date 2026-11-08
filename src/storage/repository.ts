@@ -1,4 +1,4 @@
-import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings, WasteRecord, ShoppingItem } from "./types";
+import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings, WasteRecord, ShoppingItem, Person, Household } from "./types";
 
 /** Rozhranie úložiska (05 §3): aplikácia a doména nevidia, či ide o IndexedDB. */
 export interface Repository {
@@ -48,6 +48,10 @@ export interface Repository {
   deleteAttachmentsForRentalEntries(entryIds: string[]): Promise<void>;
   replaceAttachments(list: Attachment[]): Promise<void>;
   deleteDog(id: string): Promise<void>;
+  savePerson(p: Person): Promise<void>;
+  deletePerson(id: string): Promise<void>;
+  saveHousehold(h: Household): Promise<void>;
+  deleteHousehold(id: string): Promise<void>;
   /** Nahradí všetky dáta v jednej transakcii; pri chybe zostanú pôvodné dáta (FR-18, D-018). */
   replaceAll(data: AppData): Promise<void>;
   getMeta(key: string): Promise<string | null>;

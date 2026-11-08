@@ -102,12 +102,13 @@ describe("ETAPA 1: Finančný scenár s nehnuteľnosťami a voľným peňažným
     expect(ctx.K_FIRE).toBe(expectedKfire);
   });
 
-  it("m: voľný peňažný tok = príjmy (5 500) - výdavky (2 300) = 3 200", () => {
+  it("m: voľný peňažný tok = príjmy (5 500 + 900 nájom) - výdavky (2 300) = 4 100", () => {
     const ctx = makeCtx(baseData);
-    // Príjmy: 3000 + 2500 = 5500
+    // Príjmy zo sporení: 3000 + 2500 = 5500
+    // Príjmy z nájmu (prenajom): 900 (D-346, monthlyCashFlow počíta nájom ako príjem)
     // Výdavky: 1500 (potraviny) + 800 (hypotéka) = 2300
-    // m = 5500 - 2300 = 3200
-    const expectedM = eur(3200);
+    // m = (5500 + 900) - 2300 = 4100
+    const expectedM = eur(4100);
     expect(Math.abs(ctx.m - expectedM)).toBeLessThan(eur(10)); // Tolerancia pre zaokrúhľovanie
   });
 

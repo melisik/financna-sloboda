@@ -12,6 +12,7 @@ import { STORAGE_ERROR } from "../../ui/kit/messages";
 const EMPTY_DATA: AppData = {
   settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [],
   incomes: [], budgets: [], recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [], shoppingItems: [],
+  persons: [], households: [],
 };
 
 /** Odomknutie PIN-om. Zabudnutý PIN = vymazanie dát v zariadení po dvojitom potvrdení (D-135). */

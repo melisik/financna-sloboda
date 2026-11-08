@@ -389,6 +389,24 @@ export function validateIncome(i: unknown, label = "príjem"): string[] {
   return errors;
 }
 
+function validatePerson(p: unknown, label = "osoba"): string[] {
+  if (typeof p !== "object" || p === null || Array.isArray(p)) return [`${label}: musí byť objekt`];
+  const o = p as Record<string, unknown>;
+  if (typeof o.id !== "string" || o.id.length === 0) return [`${label}: chýba id`];
+  if (typeof o.name !== "string" || o.name.length === 0) return [`${label}: chýba meno`];
+  if (typeof o.isCurrentUser !== "boolean") return [`${label}: isCurrentUser musí byť áno/nie`];
+  return [];
+}
+
+function validateHousehold(h: unknown, label = "domácnosť"): string[] {
+  if (typeof h !== "object" || h === null || Array.isArray(h)) return [`${label}: musí byť objekt`];
+  const o = h as Record<string, unknown>;
+  if (typeof o.id !== "string" || o.id.length === 0) return [`${label}: chýba id`];
+  if (typeof o.name !== "string" || o.name.length === 0) return [`${label}: chýba meno`];
+  if (!Array.isArray(o.members)) return [`${label}: members musí byť pole`];
+  return [];
+}
+
 export function validateBudget(b: unknown, label = "rozpočet"): string[] {
   if (typeof b !== "object" || b === null || Array.isArray(b)) return [`${label}: musí byť objekt`];
   const o = b as Record<string, unknown>;
@@ -423,7 +441,7 @@ export function validateSettings(s: unknown, today: string): string[] {
 export function validateAppData(d: unknown, today: string): Check & { data?: AppData } {
   if (typeof d !== "object" || d === null || Array.isArray(d)) return { ok: false, errors: ["záloha musí byť objekt"] };
   const o = d as Record<string, unknown>;
-  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs", "goals", "wasteRecords", "shoppingItems"], "záloha");
+  const errors = unknownKeys(o, ["settings", "transactions", "snapshots", "properties", "assets", "investments", "liabilities", "incomes", "budgets", "recurringExpenses", "stockItems", "recipes", "dogs", "goals", "wasteRecords", "shoppingItems", "persons", "households"], "záloha");
   if (o.settings !== null && o.settings !== undefined) errors.push(...validateSettings(o.settings, today));
   if (!Array.isArray(o.transactions)) errors.push("záloha: transactions musí byť pole");
   else o.transactions.forEach((t, i) => errors.push(...validateTransaction(t, today, `transakcia ${i + 1}`)));
@@ -468,6 +486,8 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
   if (!Array.isArray(o.goals)) errors.push("záloha: goals musí byť pole");
   else o.goals.forEach((g, n) => errors.push(...validateGoal(g, `cieľ ${n + 1}`)));
   const goalList = Array.isArray(o.goals) ? (o.goals as unknown[]) : [];
+  if (!Array.isArray(o.persons)) errors.push("záloha: persons musí byť pole");
+  if (!Array.isArray(o.households)) errors.push("záloha: households musí byť pole");
   const goalIds = new Set(ids(goalList));
   for (const p of investmentList) {
     const goalId = (p as { goalId?: unknown }).goalId;
@@ -501,6 +521,9 @@ export function validateAppData(d: unknown, today: string): Check & { data?: App
       goals: o.goals as InvestmentGoal[],
       wasteRecords: o.wasteRecords as WasteRecord[],
       shoppingItems: o.shoppingItems as ShoppingItem[],
+      calendarObligations: (o.calendarObligations ?? []) as any[],
+      persons: (o.persons ?? []) as any[],
+      households: (o.households ?? []) as any[],
     },
   };
 }

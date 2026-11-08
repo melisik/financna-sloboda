@@ -371,6 +371,57 @@ export interface Dog {
   updatedAt: string;
 }
 
+export const PERSON_ROLES = ["owner", "partner", "dependent", "other"] as const;
+export type PersonRole = (typeof PERSON_ROLES)[number];
+
+export interface Person {
+  id: string;
+  name: string;
+  role: PersonRole;
+  isCurrentUser: boolean;
+  birthDate?: string;
+  authId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const SPLIT_KINDS = ["equal", "income_ratio", "custom"] as const;
+export type SplitKind = (typeof SPLIT_KINDS)[number];
+
+export interface PersonShare {
+  personId: string;
+  percent: number;
+}
+
+export interface SplitRule {
+  kind: SplitKind;
+  customShares?: PersonShare[];
+}
+
+export const MEMBER_ROLES = ["admin", "member", "viewer"] as const;
+export type MemberRole = (typeof MEMBER_ROLES)[number];
+
+export interface HouseholdMember {
+  personId: string;
+  memberRole: MemberRole;
+  joinedAt: string;
+  leftAt?: string;
+}
+
+export interface Household {
+  id: string;
+  name: string;
+  members: HouseholdMember[];
+  defaultSplitRule: SplitRule;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OwnerRef {
+  personId: string;
+  percent: number;
+}
+
 export interface AppData {
   settings: Settings | null;
   transactions: Transaction[];
@@ -388,6 +439,9 @@ export interface AppData {
   goals: InvestmentGoal[];
   wasteRecords: WasteRecord[];
   shoppingItems: ShoppingItem[];
+  calendarObligations?: any[];
+  persons?: Person[];
+  households?: Household[];
 }
 
 /** Obal zálohy (05 §4, FR-17). */

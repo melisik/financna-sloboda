@@ -5,7 +5,7 @@ import { monthlyRate, monthsToTarget } from "./goal";
 export interface Capital {
   inv: number; // K_inv: investície, zhodnocujú sa r
   cash: number; // K_cash: hotovosť, 0 % reálne
-  nem: number; // K_nem: čistá hodnota nehnuteľností (len prenajom), suma (Odhad − Zostatok) za všetky
+  nem: number; // K_nem: čistá hodnota všetkých nehnuteľností (vlastné bývanie + prenajom), suma (Odhad − Zostatok)
 }
 
 const MAX_MONTHS = 14_400; // 1 200 rokov, poistka proti nekonečnej slučke
@@ -61,6 +61,17 @@ export function monthsToTargetSplit(
     }
   }
   return Infinity;
+}
+
+/**
+ * K_inv po `months` mesiacoch od počiatočného stavu `inv`, s mesačným príspevkom `mInv`
+ * a reálnym ročným výnosom `annualRate`. Rovnaký vzorec ako interný `invGrown` v monthsToTargetSplit.
+ * savingCashCents do tejto funkcie nevstupuje — K_inv trajektória nezávisí od mCash (D-039).
+ */
+export function projectedInvCents(inv: number, mInv: number, annualRate: number, months: number): number {
+  const i = monthlyRate(annualRate);
+  const g = Math.pow(1 + i, months);
+  return inv * g + (i > 0 ? (mInv * (g - 1)) / i : mInv * months);
 }
 
 /** Výsledok výdavku alebo presunu: nový stav a prípadné upozornenie (D-021, D-045). */
