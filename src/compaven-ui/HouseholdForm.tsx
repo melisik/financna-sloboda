@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { Household, SplitRule, HouseholdMember, Person } from "../storage/types";
+import type { Household, SplitRule, HouseholdMember, Person, OwnerRef } from "../storage/types";
+import { OwnershipEditor } from "./OwnershipEditor";
 
 interface HouseholdFormProps {
   household: Household | null;
@@ -14,6 +15,11 @@ export function HouseholdForm({ household, persons, onSave, onCancel }: Househol
   const [splitKind, setSplitKind] = useState<"equal" | "income_ratio" | "custom">(household?.defaultSplitRule.kind ?? "equal");
   const [members, setMembers] = useState<HouseholdMember[]>(household?.members ?? []);
   const [selectedPersonId, setSelectedPersonId] = useState<string>("");
+  const [ownership, setOwnership] = useState<OwnerRef[]>(
+    members.filter(m => !m.leftAt).length === 1
+      ? [{ personId: members.find(m => !m.leftAt)?.personId ?? "", percent: 100 }]
+      : []
+  );
 
   const handleAddMember = () => {
     if (!selectedPersonId) {
@@ -132,6 +138,15 @@ export function HouseholdForm({ household, persons, onSave, onCancel }: Househol
             Pridať
           </button>
         </div>
+      </div>
+
+      <div style={{ margin: "12px 0", padding: "12px", backgroundColor: "#fffacd", borderRadius: "4px", border: "1px solid #eee8a0" }}>
+        <OwnershipEditor
+          owners={ownership}
+          availablePersons={persons}
+          onSave={setOwnership}
+          title="Vlastníctvo domácnosti (náhľad)"
+        />
       </div>
 
       <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
