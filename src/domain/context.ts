@@ -43,7 +43,11 @@ export function makeCtx(data: AppData): Ctx {
   const flags = capitalWithFlags(latest, data.transactions);
   const target = s ? targetAmountCents(s.expensesCents, s.withdrawalRate) : null;
   const mInv = s?.savingInvCents ?? derived.inv;
-  const mCash = s?.savingCashCents ?? derived.cash;
+
+  // mCash = derived cash + contributions from personal goals
+  const goalContributionsCash = (data.personalGoals ?? [])
+    .reduce((sum, goal) => sum + (goal.monthlySavingCents ?? 0), 0);
+  const mCash = (s?.savingCashCents ?? derived.cash) + goalContributionsCash;
   const m = latest ? monthlyCashFlow(data, latest.date) : 0; // Voľný peňažný tok (príjmy - všetky výdavky)
   const c = s?.savingInvCents ?? 0; // Plánovaný mesačný príspevek do investícií
   const realReturn = netRealReturn(s?.realReturn ?? RETURN_ASSUMPTIONS.realReturn, s?.feesRate ?? 0);
