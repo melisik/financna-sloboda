@@ -10,10 +10,13 @@ import { SnapshotForm } from "./SnapshotForm";
 import { HouseholdForm } from "./HouseholdForm";
 import { MemberList } from "./MemberList";
 import { TransactionForm } from "./TransactionForm";
+import { TransactionList } from "./TransactionList";
 import { BackupForm } from "./BackupForm";
-import { PersonForm } from "./PersonForm";
+import { RocnyPrehladSection } from "../features/rocny-prehlad/RocnyPrehlad";
+import { PropertySection } from "./PropertySection";
+import { TestModeIndicator } from "./TestModeIndicator";
 
-export function CompavenApp() {
+export function CompavenApp({ testMode }: { testMode?: boolean } = {}) {
   const [repo, setRepo] = useState<Repository | null>(null);
   const [data, setData] = useState<AppData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +24,10 @@ export function CompavenApp() {
 
   useEffect(() => {
     let alive = true;
-    openRepository("compaven-2.0")
+    const dbName = testMode ? "compaven-2.0-test" : "compaven-2.0";
+    localStorage.setItem("__COMPAVEN_DB_NAME__", dbName);
+    console.log(`[COMPAVEN] Connected to database: ${dbName}`);
+    openRepository(dbName)
       .then(async (r) => {
         let d = await r.getData();
         if (!alive) return;
@@ -173,8 +179,19 @@ export function CompavenApp() {
     }
   };
 
+  const handlePropertySaved = async () => {
+    const d = await repo?.getData();
+    if (d) {
+      setData(d);
+    }
+  };
+
+  const today = new Date().toISOString().split("T")[0];
+
   return (
-    <CompavenLayout currentPage={currentPage} onPageChange={setCurrentPage}>
+    <>
+      <TestModeIndicator />
+      <CompavenLayout currentPage={currentPage} onPageChange={setCurrentPage}>
       {currentPage === "dashboard" && <Dashboard ctx={ctx!} data={data} onAddSettings={() => setCurrentPage("settings-form")} onAddSnapshot={() => setCurrentPage("snapshot-form")} />}
       {currentPage === "settings-form" && (
         <div>
@@ -184,17 +201,18 @@ export function CompavenApp() {
       )}
       {currentPage === "snapshot-form" && <SnapshotForm onSave={handleSaveSnapshot} onCancel={() => setCurrentPage("dashboard")} />}
       {currentPage === "household" && (
-        <div>
-          <HouseholdForm household={currentHousehold} persons={data.persons ?? []} onSave={handleSaveHousehold} onCancel={() => setCurrentPage("dashboard")} />
-          {currentHousehold && <MemberList household={currentHousehold} persons={data.persons ?? []} />}
-        </div>
+        <HouseholdForm household={currentHousehold} persons={data.persons ?? []} onSave={handleSaveHousehold} onSavePerson={handleSavePerson} onCancel={() => setCurrentPage("dashboard")} />
       )}
-      {currentPage === "persons-form" && <PersonForm persons={data.persons ?? []} onSave={handleSavePerson} onCancel={() => setCurrentPage("dashboard")} />}
       {currentPage === "income" && <TransactionForm onSave={handleAddTransaction} onCancel={() => setCurrentPage("dashboard")} />}
-      {currentPage === "assets" && <div style={{ padding: "20px" }}>Majetok & Záväzky (v príprave)</div>}
+      {currentPage === "transactions" && <TransactionList transactions={data.transactions ?? []} />}
+      {currentPage === "annual-overview" && <RocnyPrehladSection data={data} ctx={ctx!} />}
+      {(currentPage === "assets" || currentPage === "majetok") && repo && (
+        <PropertySection repo={repo} properties={data.properties ?? []} today={today} onSaved={handlePropertySaved} />
+      )}
       {currentPage === "goals" && <div style={{ padding: "20px" }}>Finančné ciele (v príprave)</div>}
       {currentPage === "analytics" && <div style={{ padding: "20px" }}>História & Analýzy (v príprave)</div>}
       {currentPage === "planning" && <div style={{ padding: "20px" }}>Plánovanie (v príprave)</div>}
-    </CompavenLayout>
+      </CompavenLayout>
+    </>
   );
 }

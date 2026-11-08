@@ -13,8 +13,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),           // Finančná sloboda
-        compaven: resolve(__dirname, "src/compaven.html"), // COMPAVEN 2.0
+        main: resolve(__dirname, "index.html"),              // Finančná sloboda
+        compaven: resolve(__dirname, "src/compaven.html"),   // COMPAVEN 2.0 (produkčná aj testovacia cez ?test=true)
       },
       output: {
         // Oba bundles budú v dist/ s rôznymi názvami

@@ -11,10 +11,14 @@ if (import.meta.env.PROD && "serviceWorker" in navigator) {
   });
 }
 
+// Detekcia testovacieho režimu z query parametru
+const urlParams = new URLSearchParams(window.location.search);
+const testMode = urlParams.get("test") === "true";
+
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <CompavenApp />
+      <CompavenApp testMode={testMode} />
     </ErrorBoundary>
   </React.StrictMode>,
 );
