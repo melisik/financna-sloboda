@@ -20,11 +20,12 @@ export function monthlyCashFlow(data: AppData, lastReviewIso: string): number {
     return tMonthIdx >= windowStart && tMonthIdx <= endMonthIdx && t.date <= lastReviewIso;
   });
 
-  // Príjmy: transakcie "sporenie" + mesačný nájom z prenájmu
-  const incomes = relevantTransactions
-    .filter((t) => t.type === "sporenie")
+  // Príjmy z transakcií (type === "prijem")
+  const transactionIncomes = relevantTransactions
+    .filter((t) => t.type === "prijem")
     .reduce((sum, t) => sum + t.amountCents, 0);
 
+  // Nájom: mesačný z nehnuteľností v režime "prenajom"
   let rentalIncome = 0;
   for (const prop of data.properties) {
     if (prop.mode === "prenajom" && prop.monthlyRentCents && prop.monthlyRentCents > 0) {
@@ -32,7 +33,22 @@ export function monthlyCashFlow(data: AppData, lastReviewIso: string): number {
     }
   }
 
-  const totalIncomes = incomes + rentalIncome;
+  // Príjmy z incomes[] — len mesačné (frequency === "mesacne"), aktívne v relevantnom období
+  let regularMonthlyIncome = 0;
+  for (const income of data.incomes ?? []) {
+    if (income.frequency === "mesacne" && income.amountCents > 0) {
+      // Príjem musí byť aktívny v relevantnom období (startDate ≤ posledný deň, bez endDate alebo endDate ≥ prvý deň)
+      const periodStart = new Date(lastReviewIso);
+      periodStart.setMonth(periodStart.getMonth() - 11);
+      const periodEnd = lastReviewIso;
+
+      if (income.startDate <= periodEnd && (!income.endDate || income.endDate >= periodStart.toISOString().split("T")[0])) {
+        regularMonthlyIncome += income.amountCents;
+      }
+    }
+  }
+
+  const totalIncomes = transactionIncomes + rentalIncome + regularMonthlyIncome;
 
   // Výdavky: transakcie "vydavok" (vrátane splátok hypoték)
   const expenses = relevantTransactions
