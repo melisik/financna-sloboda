@@ -4,38 +4,17 @@ import { formatMonths, analyzePersonalGoal, type PersonalGoalAnalysis } from "..
 
 interface PersonalGoalListProps {
   goals: PersonalGoal[];
-  kInv: number;
-  kCash: number;
-  kNem: number;
-  mInv: number;
-  mCash: number;
-  monthlyRate: number;
   onEdit?: (goal: PersonalGoal) => void;
   onDelete?: (goalId: string) => void;
 }
 
 export function PersonalGoalList({
   goals,
-  kInv,
-  kCash,
-  kNem,
-  mInv,
-  mCash,
-  monthlyRate,
   onEdit,
   onDelete,
 }: PersonalGoalListProps) {
   const analyses: PersonalGoalAnalysis[] = goals.map((goal) =>
-    analyzePersonalGoal(
-      goal,
-      goal.targetCents,
-      kInv,
-      kCash,
-      kNem,
-      mInv,
-      mCash,
-      monthlyRate,
-    )
+    analyzePersonalGoal(goal)
   );
 
   // Zosť podľa priority
@@ -133,6 +112,11 @@ export function PersonalGoalList({
                     Cieľ: {(goal.targetCents / 100).toFixed(2)} € do {goal.targetYear}
                     {goal.targetMonth && `/${String(goal.targetMonth).padStart(2, "0")}`}
                   </div>
+                  {(goal.currentCapitalCents ?? 0) > 0 && (
+                    <div style={{ fontSize: "13px", color: "#6B7280" }}>
+                      Aktuálne vyčlenené: {((goal.currentCapitalCents ?? 0) / 100).toFixed(2)} € | Zostáva: {((goal.targetCents - (goal.currentCapitalCents ?? 0)) / 100).toFixed(2)} €
+                    </div>
+                  )}
                   {goal.monthlySavingCents && (
                     <div style={{ fontSize: "13px", color: "#059669" }}>
                       +{(goal.monthlySavingCents / 100).toFixed(2)} €/mesiacne

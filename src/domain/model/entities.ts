@@ -210,6 +210,7 @@ export interface PersonalGoal {
   id: string;
   name: string; // max 120 znakov
   targetCents: number; // cieľová suma v centoch, kladná celá
+  currentCapitalCents?: number; // už vyčlenený kapitál na tento cieľ v centoch (K0); bez hodnoty = 0 (spätna kompatibilita)
   category: PersonalGoalCategory;
   priority: number; // poradie (1 = najvyšší), kladné celé číslo
   targetYear: number; // rok dosiahnutia, 4-miestny

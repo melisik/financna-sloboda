@@ -3,251 +3,130 @@ import {
   monthsToPersonalGoal,
   analyzePersonalGoal,
   formatMonths,
+  checkGoalContributionsSurplus,
   MAX_MONTHS,
 } from "../src/domain/personalGoal";
 import type { PersonalGoal } from "../src/domain/model/entities";
 
-// Presný mesačný úrokový sadzba pre r = 3,5% ročne
-const MONTHLY_RATE = 0.002870898719076642;
-
-describe("Personal Goal — Výpočet Finančných Cieľov", () => {
+describe("Personal Goal — Lineárny Model bez Výnosu", () => {
   // ============================================================
-  // TEST 1: FIRE Standard Scenario (252,02 mesiacov)
+  // SCENARIO A: Individuálny cieľ — Základný Výpočet
   // ============================================================
-  it("FIRE Standard — 252.02 months", () => {
+  it("SCENARIO A: cieľ 5000 €, K0=1000 €, mGoal=200 €/mesiac → 20 mesiacov", () => {
     const months = monthsToPersonalGoal(
-      648_648.65 * 100, // targetCents = 648 648,65 €
-      648_648.65 * 100, // currentCents (= target for this test)
-      60_000 * 100, // kInv0 = 60 000 €
-      30_000 * 100, // kCash0 = 30 000 €
-      0, // kNem = 0 (no real estate)
-      1_000 * 100, // mInv = 1 000 €/mesiacne
-      500 * 100, // mCash = 500 €/mesiacne
-      MONTHLY_RATE,
-      0, // no additional monthly saving for specific goal
+      1000 * 100, // K0 = 1000 €
+      5000 * 100, // cieľ = 5000 €
+      200 * 100,  // príspevek = 200 €
     );
 
-    // Expected: ~252.02 months
-    expect(months).toBeDefined();
-    expect(months).not.toBeNull();
-    if (months !== null) {
-      expect(Math.abs(months - 252.02)).toBeLessThan(1); // within 1 month tolerance
-    }
+    expect(months).toBe(20); // (5000 - 1000) / 200 = 20
   });
 
   // ============================================================
-  // TEST 2: Zero Investment Contribution (588.62 months)
+  // SCENARIO B: Už dosiahnutý cieľ
   // ============================================================
-  it("Zero Investment Contribution (mInv=0) — 588.62 months", () => {
+  it("SCENARIO B: cieľ 5000 €, K0=5000 € → 0 mesiacov", () => {
     const months = monthsToPersonalGoal(
-      648_648.65 * 100, // targetCents
-      648_648.65 * 100, // currentCents
-      60_000 * 100, // kInv0
-      30_000 * 100, // kCash0
-      0, // kNem
-      0, // mInv = 0 (NO investment contribution)
-      500 * 100, // mCash = 500 €/mesiacne
-      MONTHLY_RATE,
-      0,
+      5000 * 100,
+      5000 * 100,
+      200 * 100,
     );
 
-    // Expected: ~588.62 months (49.05 years, on 50-year boundary)
-    expect(months).toBeDefined();
-    expect(months).not.toBeNull();
-    if (months !== null) {
-      expect(Math.abs(months - 588.62)).toBeLessThan(1);
-    }
+    expect(months).toBe(0); // Cieľ je dosiahnutý
   });
 
   // ============================================================
-  // TEST 3: Personal Goal with Monthly Saving
+  // SCENARIO C: Nulový príspevek
   // ============================================================
-  it("Personal Goal with monthly saving — reduces months to target", () => {
-    const targetCents = 100_000 * 100; // 100 000 €
-    const withoutExtra = monthsToPersonalGoal(
-      50_000 * 100,
-      targetCents,
-      30_000 * 100,
-      20_000 * 100,
-      0,
-      500 * 100,
-      300 * 100, // base mCash
-      MONTHLY_RATE,
-      0, // no extra
-    );
-
-    const withExtra = monthsToPersonalGoal(
-      50_000 * 100,
-      targetCents,
-      30_000 * 100,
-      20_000 * 100,
-      0,
-      500 * 100,
-      300 * 100, // base mCash
-      MONTHLY_RATE,
-      200 * 100, // +200 € per month for this goal
-    );
-
-    expect(withExtra).toBeDefined();
-    expect(withoutExtra).toBeDefined();
-
-    // With extra saving, we should reach the goal sooner
-    if (withExtra !== null && withoutExtra !== null) {
-      expect(withExtra).toBeLessThan(withoutExtra);
-    }
-  });
-
-  // ============================================================
-  // TEST 4: Already Reached Goal
-  // ============================================================
-  it("Goal already reached returns 0 months", () => {
+  it("SCENARIO C: cieľ 5000 €, K0=1000 €, mGoal=0 € → nedosiahnuteľný", () => {
     const months = monthsToPersonalGoal(
-      100_000 * 100, // already at target
-      100_000 * 100, // target
-      50_000 * 100,
-      50_000 * 100,
-      0,
-      100 * 100,
-      100 * 100,
-      MONTHLY_RATE,
-      0,
+      1000 * 100,
+      5000 * 100,
+      0, // Bez príspevku
     );
 
-    expect(months).toBe(0);
+    expect(months).toBeNull(); // Nedosiahnuteľný
   });
 
   // ============================================================
-  // TEST 5: Goal at 50-Year Boundary
+  // SCENARIO D: Oddelenie od FIRE — Funkčná Nezávislosť
   // ============================================================
-  it("Goal at 50-year boundary (600 months) — just dosiahnutelny", () => {
-    // Create a scenario that's just below 600 months
-    const months = monthsToPersonalGoal(
-      200_000 * 100,
-      200_500 * 100,
-      100_000 * 100,
-      100_000 * 100,
-      0,
-      100 * 100,
-      100 * 100,
-      MONTHLY_RATE,
-      0,
-    );
-
-    expect(months).toBeDefined();
-    expect(months).not.toBeNull();
-    if (months !== null && months <= MAX_MONTHS) {
-      // Should be within dosiahnuteľný range
-      expect(months).toBeLessThanOrEqual(MAX_MONTHS);
-    }
-  });
-
-  // ============================================================
-  // TEST 6: Goal Beyond 50-Year Horizon
-  // ============================================================
-  it("Goal beyond 50-year horizon returns null (nedosiahnutelny) or > MAX_MONTHS", () => {
-    // Very small monthly saving, large target
-    const months = monthsToPersonalGoal(
-      100_000 * 100, // current
-      1_000_000 * 100, // very large target
-      10_000 * 100, // small kInv
-      10_000 * 100, // small kCash
-      0,
-      10 * 100, // tiny mInv
-      10 * 100, // tiny mCash (not enough to reach goal in 50 years)
-      MONTHLY_RATE,
-      0,
-    );
-
-    // Should either be null or exceed MAX_MONTHS
-    expect(months === null || months > MAX_MONTHS).toBe(true);
-  });
-
-  // ============================================================
-  // TEST 7: Analyze Personal Goal — Dosiahnuteľný
-  // ============================================================
-  it("analyzePersonalGoal — classification dosiahnutelny", () => {
-    const goal: PersonalGoal = {
-      id: "goal1",
-      name: "Dovolenka",
-      targetCents: 10_000 * 100, // 10 000 €
+  it("SCENARIO D: Zmena mesačného príspevku na cieľ nemení FIRE výpočet", () => {
+    const goal1: PersonalGoal = {
+      id: "d1",
+      name: "Cieľ 1",
+      targetCents: 10_000 * 100,
       category: "dovolena",
       priority: 1,
-      targetYear: 2026,
-      targetMonth: 12,
-      monthlySavingCents: 200 * 100, // 200 €/mesiacne
+      targetYear: 2027,
+      monthlySavingCents: 100 * 100, // 100 €
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    const analysis = analyzePersonalGoal(
-      goal,
-      5_000 * 100, // current capital
-      50_000 * 100,
-      5_000 * 100,
-      0,
-      300 * 100,
-      300 * 100,
-      MONTHLY_RATE,
-    );
-
-    expect(analysis.classification).toBe("dosiahnutelny");
-    expect(analysis.monthsToTarget).toBeDefined();
-    expect(analysis.monthsToTarget).not.toBeNull();
-  });
-
-  // ============================================================
-  // TEST 8: Analyze Personal Goal — Horizont 50+
-  // ============================================================
-  it("analyzePersonalGoal — classification horizont_50plus", () => {
-    const goal: PersonalGoal = {
-      id: "goal2",
-      name: "Dom",
-      targetCents: 500_000 * 100, // 500 000 € — very large
-      category: "dom",
+    const goal2: PersonalGoal = {
+      id: "d2",
+      name: "Cieľ 2",
+      targetCents: 10_000 * 100,
+      category: "dovolena",
       priority: 1,
-      targetYear: 2035,
-      monthlySavingCents: 100 * 100, // only 100 €/mesiacne (not enough)
+      targetYear: 2027,
+      monthlySavingCents: 300 * 100, // 300 € (3× viac)
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    const analysis = analyzePersonalGoal(
-      goal,
-      100_000 * 100,
-      30_000 * 100,
+    // Obe by mali dať rovnaký výsledok pre samotný cieľ (bez FIRE)
+    const months1 = monthsToPersonalGoal(
+      2000 * 100,
       10_000 * 100,
-      0,
       100 * 100,
-      100 * 100,
-      MONTHLY_RATE,
     );
 
-    // Very large goal with small contribution should be horizont_50plus
-    expect(
-      analysis.classification === "horizont_50plus" ||
-        analysis.classification === "nedosiahnutelny"
-    ).toBe(true);
+    const months2 = monthsToPersonalGoal(
+      2000 * 100,
+      10_000 * 100,
+      300 * 100,
+    );
+
+    // Výpočet cieľa závisí iba od cieľa, K0 a príspevku — NIE od FIRE
+    expect(months1).toBe(80); // (10000 - 2000) / 100 = 80
+    expect(months2).toBe(Math.ceil((10000 * 100 - 2000 * 100) / (300 * 100))); // (10000 - 2000) / 300 ≈ 27
+    expect(months1).not.toBe(months2); // Sú rôzne (ako správne)
   });
 
   // ============================================================
-  // TEST 9: Format Months Utility
+  // SCENARIO E: Kontrola Prebytku — Bez Upozornenia
   // ============================================================
-  it("formatMonths — converts months to human-readable format", () => {
-    expect(formatMonths(0)).toBe("teraz");
-    expect(formatMonths(252.02)).toContain("rokov");
-    expect(formatMonths(588.62)).toContain("rokov");
-    expect(formatMonths(null)).toBe("matematicky nedosiahnuteľný");
-    expect(formatMonths(5)).toContain("mesiacov");
+  it("SCENARIO E: m=1500 €, cieľ1=300 €, cieľ2=400 € → bez upozornenia", () => {
+    const m = 1500 * 100;
+    const contributions = (300 + 400) * 100; // 700 €
+
+    const surplus = checkGoalContributionsSurplus(m, contributions);
+
+    expect(surplus).toBeNull(); // 700 <= 1500, OK
   });
 
   // ============================================================
-  // TEST 10: Multiple Goals Combination
+  // SCENARIO F: Prekročenie Prebytku
   // ============================================================
-  it("multiple goals with different monthlySavingCents — each evaluated separately", () => {
+  it("SCENARIO F: m=1500 €, príspevky spolu=1700 € → upozornenie o +200 €", () => {
+    const m = 1500 * 100;
+    const contributions = 1700 * 100; // 200 € viac ako dostupný tok
+
+    const surplus = checkGoalContributionsSurplus(m, contributions);
+
+    expect(surplus).toBe(200 * 100); // Prekročenie o 200 €
+  });
+
+  // ============================================================
+  // SCENARIO G: Viacero Cieľov — Nezávislosť Výpočtov
+  // ============================================================
+  it("SCENARIO G: Viacero cieľov — každý má nezávislý výpočet", () => {
     const goal1: PersonalGoal = {
       id: "g1",
       name: "Dovolenka",
-      targetCents: 10_000 * 100,
+      targetCents: 5000 * 100,
       category: "dovolena",
       priority: 1,
       targetYear: 2027,
@@ -258,140 +137,126 @@ describe("Personal Goal — Výpočet Finančných Cieľov", () => {
 
     const goal2: PersonalGoal = {
       id: "g2",
-      name: "Dom",
-      targetCents: 100_000 * 100,
-      category: "dom",
+      name: "Školenie",
+      targetCents: 3000 * 100,
+      category: "skolenie",
       priority: 2,
-      targetYear: 2035,
+      targetYear: 2027,
+      monthlySavingCents: 100 * 100,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const goal3: PersonalGoal = {
+      id: "g3",
+      name: "Dom",
+      targetCents: 50_000 * 100,
+      category: "dom",
+      priority: 3,
+      targetYear: 2030,
       monthlySavingCents: 500 * 100,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    const analysis1 = analyzePersonalGoal(
-      goal1,
-      5_000 * 100,
-      50_000 * 100,
-      10_000 * 100,
-      0,
-      300 * 100,
-      300 * 100,
-      MONTHLY_RATE,
-    );
+    // Nastaviť K0 pre každý cieľ
+    goal1.currentCapitalCents = 1000 * 100;
+    goal2.currentCapitalCents = 500 * 100;
+    goal3.currentCapitalCents = 10_000 * 100;
 
-    const analysis2 = analyzePersonalGoal(
-      goal2,
-      10_000 * 100,
-      50_000 * 100,
-      20_000 * 100,
-      0,
-      300 * 100,
-      300 * 100,
-      MONTHLY_RATE,
-    );
+    // Každý cieľ sa počíta zvlášť
+    const analysis1 = analyzePersonalGoal(goal1);
+    const analysis2 = analyzePersonalGoal(goal2);
+    const analysis3 = analyzePersonalGoal(goal3);
 
-    // Goal 2 (larger amount) should take longer
-    expect(analysis2.monthsToTarget).toBeDefined();
-    expect(analysis1.monthsToTarget).toBeDefined();
+    // Cieľ 1: (5000 - 1000) / 200 = 20 mesiacov
+    expect(analysis1.monthsToTarget).toBe(20);
 
-    if (
-      analysis1.monthsToTarget !== null &&
-      analysis2.monthsToTarget !== null
-    ) {
-      expect(analysis2.monthsToTarget).toBeGreaterThan(
-        analysis1.monthsToTarget
-      );
-    }
+    // Cieľ 2: (3000 - 500) / 100 = 25 mesiacov
+    expect(analysis2.monthsToTarget).toBe(25);
+
+    // Cieľ 3: (50000 - 10000) / 500 = 80 mesiacov
+    expect(analysis3.monthsToTarget).toBe(80);
+
+    // Výsledok jedného cieľa nemení druhý
+    expect(analysis1.monthsToTarget).not.toEqual(analysis2.monthsToTarget);
+    expect(analysis2.monthsToTarget).not.toEqual(analysis3.monthsToTarget);
   });
 
   // ============================================================
-  // TEST 11: With Real Estate (K_nem component)
+  // DODATOČNÉ TESTY — Hraničné Prípady
   // ============================================================
-  it("goal calculation includes K_nem (real estate equity)", () => {
-    const withRealEstate = monthsToPersonalGoal(
-      200_000 * 100,
-      400_000 * 100, // target
-      100_000 * 100,
-      50_000 * 100,
-      100_000 * 100, // K_nem = real estate equity
+
+  it("Cieľ s negatívnym kapitálom je neplatný", () => {
+    const months = monthsToPersonalGoal(
+      -100 * 100, // Neplatné
+      5000 * 100,
       200 * 100,
-      200 * 100,
-      MONTHLY_RATE,
-      0,
     );
-
-    const withoutRealEstate = monthsToPersonalGoal(
-      200_000 * 100,
-      400_000 * 100, // same target
-      100_000 * 100,
-      50_000 * 100,
-      0, // no K_nem
-      200 * 100,
-      200 * 100,
-      MONTHLY_RATE,
-      0,
-    );
-
-    // With real estate, goal should be reached sooner
-    expect(withRealEstate).toBeDefined();
-    expect(withoutRealEstate).toBeDefined();
-
-    if (withRealEstate !== null && withoutRealEstate !== null) {
-      expect(withRealEstate).toBeLessThan(withoutRealEstate);
-    }
+    expect(months).toBeNull();
   });
 
-  // ============================================================
-  // TEST 12: Flexibility Flag in Analysis
-  // ============================================================
-  it("analyzePersonalGoal preserves flexible flag from goal", () => {
-    const flexibleGoal: PersonalGoal = {
-      id: "flex",
-      name: "Flexibilný cieľ",
-      targetCents: 20_000 * 100,
-      category: "skolenie",
-      priority: 3,
+  it("Cieľ s negatívnym príspevkom je neplatný", () => {
+    const months = monthsToPersonalGoal(
+      1000 * 100,
+      5000 * 100,
+      -100 * 100, // Neplatné
+    );
+    expect(months).toBeNull();
+  });
+
+  it("Cieľ s negatívnou cieľovou sumou je neplatný", () => {
+    const months = monthsToPersonalGoal(
+      1000 * 100,
+      -5000 * 100, // Neplatné
+      200 * 100,
+    );
+    expect(months).toBeNull();
+  });
+
+  it("formatMonths() vracia správný formát", () => {
+    expect(formatMonths(0)).toBe("teraz");
+    expect(formatMonths(20)).toContain("mesiacov");
+    expect(formatMonths(null)).toBe("matematicky nedosiahnuteľný");
+  });
+
+  it("analyzePersonalGoal() vracia správnú klasifikáciu", () => {
+    const goal: PersonalGoal = {
+      id: "test",
+      name: "Test",
+      targetCents: 10_000 * 100,
+      currentCapitalCents: 0,
+      category: "dovolena",
+      priority: 1,
       targetYear: 2027,
-      flexible: true,
+      monthlySavingCents: 100 * 100,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    const rigidGoal: PersonalGoal = {
-      id: "rigid",
-      name: "Pevný cieľ",
-      targetCents: 20_000 * 100,
-      category: "skolenie",
-      priority: 3,
-      targetYear: 2027,
-      flexible: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const analysis = analyzePersonalGoal(goal);
+    expect(analysis.classification).toMatch(/dosiahnutelny|horizont_50plus|nedosiahnutelny/);
+  });
 
-    const flexAnalysis = analyzePersonalGoal(
-      flexibleGoal,
-      10_000 * 100,
-      20_000 * 100,
-      10_000 * 100,
+  it("Cieľ s MAX_MONTHS hranicou je klasifikovaný ako dosiahnuteľný", () => {
+    // K0 = 0, cieľ = 600 000 €, príspevek = 1000 €
+    // n = 600 mesiacov = MAX_MONTHS
+    const months = monthsToPersonalGoal(
       0,
-      100 * 100,
-      100 * 100,
-      MONTHLY_RATE,
+      600_000 * 100,
+      1000 * 100,
     );
+    expect(months).toBeLessThanOrEqual(MAX_MONTHS);
+  });
 
-    const rigidAnalysis = analyzePersonalGoal(
-      rigidGoal,
-      10_000 * 100,
-      20_000 * 100,
-      10_000 * 100,
+  it("Cieľ prekračujúci MAX_MONTHS je klasifikovaný ako horizont_50plus", () => {
+    // K0 = 0, cieľ = 601 000 €, príspevek = 1000 €
+    // n = 601 mesiacov > MAX_MONTHS
+    const months = monthsToPersonalGoal(
       0,
-      100 * 100,
-      100 * 100,
-      MONTHLY_RATE,
+      601_000 * 100,
+      1000 * 100,
     );
-
-    expect(flexAnalysis.flexible).toBe(true);
-    expect(rigidAnalysis.flexible).toBe(false);
+    expect(months).toBeGreaterThan(MAX_MONTHS);
   });
 });

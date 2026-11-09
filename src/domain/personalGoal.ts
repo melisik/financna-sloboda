@@ -33,82 +33,57 @@ export function monthsToTarget(targetYear: number, targetMonth?: number): number
 }
 
 /**
- * Výpočet mesiacov k dosiahnutiu finančného cieľa.
- * K_total(n) = K_inv(n) + K_cash(n) + K_nem >= targetCents
- * Vracia presný (spojitý) počet mesiacov.
+ * Výpočet mesiacov k dosiahnutiu individuálneho finančného cieľa.
+ * Lineárny model (bez výnosu):
+ * K(n) = K0 + mGoal × n
+ * n = ceil((T − K0) / mGoal)
+ *
+ * @param k0Cents Počiatočný kapitál určený na cieľ (€ v centoch)
+ * @param targetCents Cieľová suma (€ v centoch)
+ * @param monthlyGoalCents Mesačný príspevek na cieľ (€ v centoch)
+ * @returns Počet mesiacov (celočíslo) alebo null ak nedosiahnuteľný
  */
 export function monthsToPersonalGoal(
-  currentCents: number,
+  k0Cents: number,
   targetCents: number,
-  kInv0: number,
-  kCash0: number,
-  kNem: number,
-  mInv: number,
-  mCash: number,
-  monthlyRate: number, // i = (1+r)^(1/12) - 1
-  additionalMCash: number = 0, // mesačný príspevek na cieľ
+  monthlyGoalCents: number,
 ): number | null {
-  // Ak už máme dosť peňazí bez výnosu a sporenia
-  const totalCapital = kInv0 + kCash0 + kNem;
-  if (totalCapital >= targetCents) {
+  // Validácia vstupov
+  if (targetCents < 0 || k0Cents < 0 || monthlyGoalCents < 0) {
+    return null; // Neplatné vstupné hodnoty
+  }
+
+  // Cieľ je už dosiahnutý
+  if (k0Cents >= targetCents) {
     return 0;
   }
 
-  const totalMCash = mCash + additionalMCash;
-  const i = monthlyRate;
-
-  // Ako sa K_inv mení
-  // K_inv(n) = K_inv(0) × (1+i)^n + mInv × ((1+i)^n − 1) / i
-  // K_cash(n) = K_cash(0) + (mCash + additionalMCash) × n
-  // K_total(n) = K_inv(n) + K_cash(n) + K_nem
-
-  // Cieľ: K_inv(n) + K_cash(n) + K_nem = targetCents
-  // K_inv(0) × (1+i)^n + mInv × ((1+i)^n − 1) / i + K_cash(0) + mCash × n + K_nem = targetCents
-
-  // Definuj: T = targetCents - kNem, a = kInv0, b = mInv, c = kCash0, d = mCash
-  // a × (1+i)^n + b × ((1+i)^n − 1) / i + c + d × n = T
-  // (a + b/i) × (1+i)^n - b/i + c + d × n = T
-  // (a + b/i) × (1+i)^n + d × n = T - c + b/i
-
-  // Numerické riešenie: iterácia
-  for (let n = 0; n <= MAX_MONTHS * 10; n += 0.001) {
-    const expFactor = Math.pow(1 + i, n);
-    const kInvN = kInv0 * expFactor + (i > 0 ? mInv * (expFactor - 1) / i : 0);
-    const kCashN = kCash0 + totalMCash * n;
-    const kTotalN = kInvN + kCashN + kNem;
-
-    if (kTotalN >= targetCents) {
-      return n;
-    }
+  // Cieľ je nedosiahnuteľný (bez príspevku, ale nedostatok kapitálu)
+  if (monthlyGoalCents === 0) {
+    return null;
   }
 
-  return null; // matematicky nedosiahnuteľný
+  // Lineárny výpočet: potrebný príspevok
+  const needed = targetCents - k0Cents;
+  const months = Math.ceil(needed / monthlyGoalCents);
+
+  return months;
 }
 
 /**
  * Analýza individuálneho cieľa s klasifikáciou dosiahnuteľnosti.
+ * Lineárny model — cieľ bez výnosu.
+ * K0 (počiatočný kapitál) je z goal.currentCapitalCents, nie z externého parametra.
  */
 export function analyzePersonalGoal(
   goal: PersonalGoal,
-  currentCents: number,
-  kInv0: number,
-  kCash0: number,
-  kNem: number,
-  mInv: number,
-  mCash: number,
-  monthlyRate: number,
 ): PersonalGoalAnalysis {
-  const additionalMCash = goal.monthlySavingCents ?? 0;
+  const k0Cents = goal.currentCapitalCents ?? 0; // K0 z individuálneho cieľa
+  const monthlyGoal = goal.monthlySavingCents ?? 0;
   const months = monthsToPersonalGoal(
-    currentCents,
+    k0Cents,
     goal.targetCents,
-    kInv0,
-    kCash0,
-    kNem,
-    mInv,
-    mCash,
-    monthlyRate,
-    additionalMCash,
+    monthlyGoal,
   );
 
   let classification: 'dosiahnutelny' | 'horizont_50plus' | 'nedosiahnutelny';
@@ -123,13 +98,30 @@ export function analyzePersonalGoal(
   return {
     goal,
     targetCents: goal.targetCents,
-    currentCents,
-    monthlyAdditionCents: additionalMCash,
+    currentCents: k0Cents,
+    monthlyAdditionCents: monthlyGoal,
     monthsToTarget: months,
     classification,
     flexible: goal.flexible ?? false,
     note: goal.note,
   };
+}
+
+/**
+ * Kontrola, či suma príspevkov na individuálne ciele neprekročí voľný peňažný tok.
+ * @param freeCashFlowCents Voľný mesačný peňažný tok (m)
+ * @param personalGoalsCents Príspevky na individuálne ciele
+ * @returns null ak je v poriadku, alebo prekročenie v centoch
+ */
+export function checkGoalContributionsSurplus(
+  freeCashFlowCents: number,
+  personalGoalsCents: number,
+): number | null {
+  const surplus = personalGoalsCents - freeCashFlowCents;
+  if (surplus > 0) {
+    return surplus;
+  }
+  return null;
 }
 
 /** Konverzia mesiacov na roky a zvyšné mesiace. */

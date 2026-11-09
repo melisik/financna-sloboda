@@ -12,6 +12,7 @@ interface PersonalGoalFormProps {
 export function PersonalGoalForm({ goal, onSave, onCancel }: PersonalGoalFormProps) {
   const [name, setName] = useState(goal?.name ?? "");
   const [targetCents, setTargetCents] = useState((goal?.targetCents ?? 0) / 100);
+  const [currentCapital, setCurrentCapital] = useState((goal?.currentCapitalCents ?? 0) / 100);
   const [category, setCategory] = useState<PersonalGoalCategory>(goal?.category ?? "dovolena");
   const [priority, setPriority] = useState(goal?.priority ?? 1);
   const [targetYear, setTargetYear] = useState(goal?.targetYear ?? new Date().getFullYear() + 1);
@@ -42,10 +43,16 @@ export function PersonalGoalForm({ goal, onSave, onCancel }: PersonalGoalFormPro
         return;
       }
 
+      if (currentCapital < 0) {
+        setError("Aktuálne vyčlenený kapitál nesmie byť záporný");
+        return;
+      }
+
       const newGoal: PersonalGoal = {
         id: goal?.id ?? crypto.randomUUID(),
         name: name.trim(),
         targetCents: Math.round(targetCents * 100),
+        currentCapitalCents: currentCapital > 0 ? Math.round(currentCapital * 100) : undefined,
         category,
         priority,
         targetYear,
@@ -152,6 +159,22 @@ export function PersonalGoalForm({ goal, onSave, onCancel }: PersonalGoalFormPro
           />
         </div>
 
+        <div>
+          <label style={labelStyle}>Aktuálne vyčlenený kapitál (€)</label>
+          <input
+            type="number"
+            value={currentCapital}
+            onChange={(e) => setCurrentCapital(Number(e.target.value))}
+            placeholder="0"
+            style={inputStyle}
+            min="0"
+            step="100"
+          />
+          <small style={{ display: "block", marginTop: "4px", color: "#6B7280" }}>Už vyčlenený kapitál na tento cieľ (K0).</small>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
         <div>
           <label style={labelStyle}>Kategória *</label>
           <select value={category} onChange={(e) => setCategory(e.target.value as PersonalGoalCategory)} style={inputStyle}>
