@@ -4,7 +4,7 @@
 - **Repozitár / worktree:** `C:\Users\Firefly G8\compaven-scenario-worktrees\phase3-ux-redesign`
 - **Vetva:** `recovery-test` (HEAD `000f970`)
 - **Režim:** výhradne READ ONLY. Počas auditu sa žiadny súbor v repozitári nezmenil, Git staging je nedotknutý. Spustené boli len nedeštruktívne kontroly: `tsc --noEmit` a `vitest run` (fake-indexeddb v Node, bez prístupu k reálnym dátam v prehliadači). `vite build` (zapisuje do `dist/`) ani Playwright sa nespúšťali.
-- **Umiestnenie:** dokument vznikol mimo repozitára a na pokyn zakladateľa (2026-11-12) bol skopírovaný do `docs/COMPAVEN_2_FINAL_AUDIT_AND_HANDOVER.md`. Zatiaľ nie je commitnutý.
+- **Umiestnenie:** dokument vznikol mimo repozitára a na pokyn zakladateľa (2026-11-12) bol skopírovaný do `docs/COMPAVEN_2_FINAL_AUDIT_AND_HANDOVER.md` a commitnutý na vetvu `recovery-test` (nepushnuté).
 
 ### Legenda stavov
 
@@ -497,8 +497,8 @@ Legenda: **N** = nevyhnutná oprava, **V** = voliteľné vylepšenie.
 
 1. **Pracovný priečinok:** `C:\Users\Firefly G8\compaven-scenario-worktrees\phase3-ux-redesign`, vetva `recovery-test`. Je to git worktree — nerobiť `cd` do hlavného repozitára, nepoužívať holé `git stash`.
 2. **Najprv overiť stav** (nič nemení):
-   - `git status --porcelain=v1 | cut -c1-2 | sort | uniq -c` → očakávané 1 D, 44 M, 204 ?? (203 z auditu + tento dokument; ak sa líši, niekto pracoval medzitým).
-   - `git rev-list --left-right --count HEAD...@{u}` → 18 0.
+   - `git status --porcelain=v1 | cut -c1-2 | sort | uniq -c` → očakávané 1 D, 44 M, 203 ?? (tento dokument je už commitnutý; ak sa líši, niekto pracoval medzitým).
+   - `git rev-list --left-right --count HEAD...@{u}` → 20 0 (18 commitov z auditu + 2 commity s týmto dokumentom; nič nie je pushnuté).
    - `npx tsc -p tsconfig.json --noEmit` → 1 chyba v `tests/phase1b-security.test.ts:115`.
    - `VITE_COMPAVEN_ENV=sandbox npx vitest run` → 55 zlyhaní (52 názov DB, 3 indexedDB).
 3. **Nič nemazať ani necommitovať bez výslovného súhlasu** zakladateľa. Nepracovať v `src/ui/`. Nespúšťať reset DB, `vite build` do `dist/` ani nasadenie bez súhlasu.
