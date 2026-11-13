@@ -47,11 +47,34 @@ export interface Transaction {
   updatedAt: string; // ISO
 }
 
+/** Rozpis nehnuteľnosti v snapshote (D-116, docs/92741). */
+export interface PropertyBreakdownItem {
+  propertyId: string;
+  name?: string;
+  valueCents: number;
+  mortgageBalanceCents: number;
+  netValueCents: number; // valueCents - mortgageBalanceCents
+}
+
+/** Rozpis záväzku v snapshote (D-116, docs/92741). */
+export interface LiabilityBreakdownItem {
+  liabilityId: string;
+  name?: string;
+  balanceCents: number;
+}
+
 export interface Snapshot {
   id: string;
   date: string; // dátum vyhodnotenia (M2: nesmie byť v budúcnosti)
-  investmentsCents: number;
-  cashCents: number; // nasporená suma = kumulatívny stav hotovosti (D-033)
+  investmentsCents: number; // K_inv × 100
+  cashCents: number; // K_cash × 100, nasporená suma = kumulatívny stav hotovosti (D-033)
+  fireCapitalCents?: number; // K_FIRE × 100 = investmentsCents + cashCents (D-116)
+  propertyValuesCents?: number; // suma valueCents všetkých nehnuteľností × 100 (D-116)
+  liabilitiesCents?: number; // suma balanceCents všetkých záväzkov × 100 (D-116)
+  netPropertyValueCents?: number; // K_nem × 100 = propertyValuesCents - liabilitiesCents (D-116)
+  totalNetWorthCents?: number; // K_total × 100 = fireCapitalCents + netPropertyValueCents (D-116)
+  propertyBreakdown?: PropertyBreakdownItem[]; // rozpis nehnuteľností v snapshote (D-116)
+  liabilityBreakdown?: LiabilityBreakdownItem[]; // rozpis záväzkov v snapshote (D-116)
   createdAt: string;
   auto?: boolean; // true = vytvorené automaticky z transakcií (D-116)
 }
@@ -67,6 +90,8 @@ export interface Settings {
   feesRate?: number; // poplatky p. a., napr. 0.005; bez hodnoty = 0 (D-064)
   lastReviewDate?: string; // D_L; appka ho nezapisuje (D_L je z vyhodnotení), ostáva kvôli starším zálohám (D-326)
   checkedAt?: string; // kedy sa nastavenia naposledy uložili (ISO); pripomienka ročnej kontroly (N-13, D-151)
+  propertiesConfirmed?: boolean; // OPRAVA B: Potvrdzuje, že zoznam nehnuteľností je úplný
+  liabilitiesConfirmed?: boolean; // OPRAVA B: Potvrdzuje, že zoznam záväzkov je úplný
 }
 
 /** Režim nehnuteľnosti (FR-20, D-093). „nezadane“ je predvolené a do K sa nepočíta. */
@@ -464,6 +489,9 @@ export interface AppData {
   calendarObligations?: any[];
   persons?: Person[];
   households?: Household[];
+  // OPRAVA B: Potvrdenie úplnosti evidencií (D-116, bez migrácie IndexedDB)
+  propertiesConfirmed?: boolean; // true = explicitne potvrdzená úplnosť evidencie nehnuteľností
+  liabilitiesConfirmed?: boolean; // true = explicitne potvrdzená úplnosť evidencie záväzkov
 }
 
 /** Obal zálohy (05 §4, FR-17). */

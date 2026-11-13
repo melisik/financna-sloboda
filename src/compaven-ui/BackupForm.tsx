@@ -1,7 +1,9 @@
 import { useState, useRef } from "react";
 import type { Repository } from "../storage/repository";
-import type { AppData } from "../storage/types";
+import type { AppData, Attachment } from "../storage/types";
 import { buildBackup, parseBackup } from "../storage/backup";
+import { getEnvironmentConfig } from "../config/environment";
+import { REAL_IMPORT_BLOCKED_MESSAGE } from "../storage/indexeddb";
 
 interface BackupFormProps {
   repo: Repository;
@@ -14,19 +16,23 @@ export function BackupForm({ repo, data, onRestored }: BackupFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isRealEnv = getEnvironmentConfig().isRealEnv;
 
   const handleExport = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const backup = buildBackup(data, new Date().toISOString());
+      const now = new Date();
+      const backup = buildBackup(data, now.toISOString());
       const json = JSON.stringify(backup, null, 2);
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `compaven-backup-${new Date().toISOString().split("T")[0]}.json`;
+      const dateStr = now.toISOString().split("T")[0];
+      const timeStr = `${String(now.getHours()).padStart(2, "0")}-${String(now.getMinutes()).padStart(2, "0")}-${String(now.getSeconds()).padStart(2, "0")}-${String(now.getMilliseconds()).padStart(3, "0")}`;
+      link.download = `compaven-backup-${dateStr}_${timeStr}.json`;
       link.click();
       URL.revokeObjectURL(url);
 
@@ -39,6 +45,11 @@ export function BackupForm({ repo, data, onRestored }: BackupFormProps) {
   };
 
   const handleImportClick = () => {
+    // Ochrana REAL, fáza 1: import je v REAL zablokovaný
+    if (isRealEnv) {
+      setError(REAL_IMPORT_BLOCKED_MESSAGE);
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -47,6 +58,13 @@ export function BackupForm({ repo, data, onRestored }: BackupFormProps) {
       setLoading(true);
       setError(null);
       setImportMessage(null);
+
+      // Ochrana REAL, fáza 1: dvojitá poistka — súborový dialog by nemal byť dostupný v REAL,
+      // ale ak by bol obídený, tu import tiež zastavíme.
+      if (isRealEnv) {
+        setError(REAL_IMPORT_BLOCKED_MESSAGE);
+        return;
+      }
 
       const file = event.target.files?.[0];
       if (!file) return;
@@ -68,12 +86,23 @@ export function BackupForm({ repo, data, onRestored }: BackupFormProps) {
 
 Všetky aktuálne údaje budú nahradené!`;
 
-      if (confirm(message)) {
-        // Obnovenie
-        await repo.replaceAll(result.data!);
-        setImportMessage("✅ Záloha bola úspešne obnovená. Stránka sa bude obnoviť.");
-        setTimeout(() => onRestored(), 1000);
+      if (!confirm(message)) {
+        return; // Zrušenie importu
       }
+
+      // Atomický import dát a príloh (SANDBOX — import v REAL je zablokovaný vyššie)
+      const attachmentsToImport: Attachment[] = result.attachments ?? [];
+      const repoAny = repo as any;
+
+      if (typeof repoAny.replaceAllWithAttachments === "function") {
+        await repoAny.replaceAllWithAttachments(result.data!, attachmentsToImport);
+      } else {
+        // Fallback pre kompatibilitu
+        await repoAny.replaceAll(result.data!);
+      }
+
+      setImportMessage("✅ Záloha bola úspešne obnovená. Stránka sa bude obnoviť.");
+      setTimeout(() => onRestored(), 1000);
     } catch (err) {
       setError(`Chyba pri importe: ${String(err)}`);
     } finally {
@@ -110,15 +139,15 @@ Všetky aktuálne údaje budú nahradené!`;
 
         <button
           onClick={handleImportClick}
-          disabled={loading}
+          disabled={loading || isRealEnv}
           style={{
             padding: "12px 16px",
             background: "#F59E0B",
             color: "white",
             border: "none",
             borderRadius: "4px",
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.6 : 1,
+            cursor: loading || isRealEnv ? "not-allowed" : "pointer",
+            opacity: loading || isRealEnv ? 0.6 : 1,
           }}
         >
           📤 Importovať zálohu
@@ -133,6 +162,11 @@ Všetky aktuálne údaje budú nahradené!`;
         style={{ display: "none" }}
       />
 
+      {isRealEnv && (
+        <div style={{ padding: "12px", background: "#fef3c7", color: "#92400e", borderRadius: "4px", marginBottom: "12px", borderLeft: "4px solid #F59E0B" }}>
+          ⚠️ {REAL_IMPORT_BLOCKED_MESSAGE}
+        </div>
+      )}
       {error && <div style={{ padding: "12px", background: "#fee2e2", color: "#991b1b", borderRadius: "4px", marginBottom: "12px", whiteSpace: "pre-wrap" }}>{error}</div>}
       {importMessage && <div style={{ padding: "12px", background: "#dcfce7", color: "#166534", borderRadius: "4px" }}>{importMessage}</div>}
     </div>

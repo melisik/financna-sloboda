@@ -1,4 +1,4 @@
-import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings, WasteRecord, ShoppingItem, Person, Household } from "./types";
+import type { Asset, AppData, Attachment, Budget, Dog, InvestmentGoal, Liability, Position, Property, Recipe, RecurringExpense, RegularIncome, StockItem, Snapshot, Transaction, Settings, WasteRecord, ShoppingItem, Person, Household, PersonalGoal } from "./types";
 
 /** Rozhranie úložiska (05 §3): aplikácia a doména nevidia, či ide o IndexedDB. */
 export interface Repository {
@@ -12,6 +12,8 @@ export interface Repository {
   saveSettings(s: Settings): Promise<void>;
   saveProperty(p: Property): Promise<void>;
   deleteProperty(id: string): Promise<void>;
+  /** OPRAVA B.5: Atomické mazanie nehnuteľnosti a invalidácia potvrdení v jednej transakcii. */
+  deletePropertyAndInvalidate(id: string): Promise<void>;
   saveAsset(a: Asset): Promise<void>;
   deleteAsset(id: string): Promise<void>;
   savePosition(p: Position): Promise<void>;
@@ -20,6 +22,8 @@ export interface Repository {
   deleteGoal(id: string): Promise<void>;
   saveLiability(l: Liability): Promise<void>;
   deleteLiability(id: string): Promise<void>;
+  /** OPRAVA B.5: Atomické mazanie záväzku a invalidácia potvrdení v jednej transakcii. */
+  deleteLiabilityAndInvalidate(id: string): Promise<void>;
   saveIncome(i: RegularIncome): Promise<void>;
   /** Nahradí všetky príjmy od daného zdroja novými položkami v jednej transakcii (D-112). */
   replaceIncomesFromSource(source: string, items: RegularIncome[]): Promise<void>;
@@ -52,8 +56,18 @@ export interface Repository {
   deletePerson(id: string): Promise<void>;
   saveHousehold(h: Household): Promise<void>;
   deleteHousehold(id: string): Promise<void>;
+  savePersonalGoal(g: PersonalGoal): Promise<void>;
+  deletePersonalGoal(id: string): Promise<void>;
   /** Nahradí všetky dáta v jednej transakcii; pri chybe zostanú pôvodné dáta (FR-18, D-018). */
   replaceAll(data: AppData): Promise<void>;
+  /** PHASE 1B: Atomická operácia — SANDBOX iba; v REAL je blokovaná. */
+  replaceAllWithAttachments(data: AppData, attachments: Attachment[]): Promise<void>;
+  /** PHASE 1B OPRAVA: Kontrolovaná obnova dát a príloh zo zálohy v REAL. Overuje backupId pred importom. */
+  replaceAllWithAttachmentsForRestore(data: AppData, attachments: Attachment[], backupId: string): Promise<void>;
+  /** OPRAVA B.3: Atómická invalidácia potvrdení v jednej readwrite transakcii. */
+  invalidateConfirmations(): Promise<void>;
+  /** OPRAVA B.4: Uloženie nehnuteľnosti a invalidácia oboch potvrdení v jednej transakcii. */
+  savePropertyAndInvalidate(p: Property): Promise<void>;
   getMeta(key: string): Promise<string | null>;
   setMeta(key: string, value: string): Promise<void>;
   close(): void;

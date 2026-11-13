@@ -10,6 +10,8 @@ import { dateSk, todayIso } from "../../ui/kit/format";
 import { btn, btnPrimary, inp } from "../../ui/kit/controls";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
 import { calloutStyle, hintStyle } from "../../ui/kit/controls";
+import { getEnvironmentConfig } from "../../config/environment";
+import { REAL_IMPORT_BLOCKED_MESSAGE } from "../../storage/indexeddb";
 
 /** Záloha a obnova (FR-17, FR-18): export, import s náhľadom, pomocné texty. Feature „zaloha“ (docs/23). */
 /** Stiahne zálohu aktuálnych dát a vráti čas exportu (FR-17). */
@@ -96,6 +98,7 @@ function lastExportText(iso: string, today: string): string {
 }
 
 export function BackupSection({ repo, data, lastExport, onChanged, onExported }: { repo: Repository; data: AppData; lastExport: string | null; onChanged: () => void; onExported: (iso: string) => void }) {
+  const isRealEnv = getEnvironmentConfig().isRealEnv;
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
   const [preview, setPreview] = useState<{ data: AppData; attachments: Attachment[]; counts: { transactions: number; snapshots: number }; exportedAt: string; notes: string[] } | null>(null);
@@ -194,9 +197,13 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
 
   const confirmImport = async () => {
     if (!preview) return;
+    // Ochrana REAL: import zálohy je dočasne nedostupný (rovnaký dôvod ako v BackupForm)
+    if (isRealEnv) {
+      setErrors([REAL_IMPORT_BLOCKED_MESSAGE]);
+      return;
+    }
     try {
-      await repo.replaceAll(preview.data);
-      await repo.replaceAttachments(preview.attachments);
+      await repo.replaceAllWithAttachments(preview.data, preview.attachments);
     } catch {
       setErrors([STORAGE_ERROR]);
       return;
@@ -258,8 +265,11 @@ export function BackupSection({ repo, data, lastExport, onChanged, onExported }:
           <p style={hintStyle}>Teraz v zariadení: {summarizeData(data)}.</p>
           {preview.notes.map((n) => <p key={n} style={{ ...calloutStyle("warn"), fontSize: "var(--font-small)" }}>{n}</p>)}
           <p><strong>Import nahradí všetky aktuálne dáta v tomto zariadení.</strong></p>
-          <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Aktuálne dáta sa nenávratne prepíšu. Ak ich chceš zachovať, najprv ulož zálohu tlačidlom „Uložiť zálohu“ hore.</p>
-          <button onClick={confirmImport} style={btn}>Nahradiť dáta zálohou</button>{" "}
+          <p style={{ color: "var(--danger)", fontSize: "var(--font-small)" }}>Aktuálne dáta sa nenávratne prepíšu. Ak ich chceš zachovať, najprv ulož zálohu tlačidlom „Uložiť zálohu" hore.</p>
+          {isRealEnv && (
+            <p style={{ ...calloutStyle("warn"), fontSize: "var(--font-small)" }}>⚠️ {REAL_IMPORT_BLOCKED_MESSAGE}</p>
+          )}
+          <button onClick={confirmImport} disabled={isRealEnv} style={btn}>Nahradiť dáta zálohou</button>{" "}
           <button onClick={() => setPreview(null)} style={btn}>Zrušiť</button>
         </div>
       )}

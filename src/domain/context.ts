@@ -4,7 +4,7 @@ import { targetAmountCents } from "./goal";
 import { monthlySaving } from "./saving";
 import { LONG_HORIZON_MONTHS, netRealReturn, RETURN_ASSUMPTIONS } from "./assumptions";
 import { goalMonths, rentalsFor, type Rental } from "./rentalGoal";
-import { capitalWithFlags, reserveBalance } from "./ledger";
+import { capitalWithFlagsForToday, reserveBalance } from "./ledger";
 import { netPropertyValueCents } from "./property";
 import { householdMonthBalance } from "./householdBalance";
 import { monthlyCashFlow } from "./monthlyCashFlow";
@@ -40,14 +40,10 @@ export function makeCtx(data: AppData): Ctx {
   const latest = [...data.snapshots].sort((a, b) => a.date.localeCompare(b.date)).at(-1) ?? null;
   const s = data.settings;
   const derived = latest ? monthlySaving(data.transactions, latest.date) : { inv: 0, cash: 0, nem: 0 };
-  const flags = capitalWithFlags(latest, data.transactions);
+  const flags = capitalWithFlagsForToday(latest, data.transactions);
   const target = s ? targetAmountCents(s.expensesCents, s.withdrawalRate) : null;
   const mInv = s?.savingInvCents ?? derived.inv;
-
-  // mCash = derived cash + contributions from personal goals
-  const goalContributionsCash = (data.personalGoals ?? [])
-    .reduce((sum, goal) => sum + (goal.monthlySavingCents ?? 0), 0);
-  const mCash = (s?.savingCashCents ?? derived.cash) + goalContributionsCash;
+  const mCash = s?.savingCashCents ?? derived.cash;
   const m = latest ? monthlyCashFlow(data, latest.date) : 0; // Voľný peňažný tok (príjmy - všetky výdavky)
   const c = s?.savingInvCents ?? 0; // Plánovaný mesačný príspevek do investícií
   const realReturn = netRealReturn(s?.realReturn ?? RETURN_ASSUMPTIONS.realReturn, s?.feesRate ?? 0);

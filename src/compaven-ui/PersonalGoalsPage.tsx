@@ -6,6 +6,7 @@ import { CSSProperties } from "react";
 import { PersonalGoalForm } from "./PersonalGoalForm";
 import { PersonalGoalList } from "./PersonalGoalList";
 import { DeleteGoalDialog } from "./DeleteGoalDialog";
+import { monthsToPersonalGoalWithStatus } from "../domain/personalGoal";
 
 interface PersonalGoalsPageProps {
   data: AppData;
@@ -89,13 +90,26 @@ export function PersonalGoalsPage({
     setError(null);
   };
 
-  // Výpočet prekročenia disponibilného prebytku
+  // Výpočet spoločného rozpočtu: A = mInv + mCash + ΣmGoal, R = m - A (D-031, D-040)
   const totalMonthlyGoal = (data.personalGoals ?? []).reduce(
     (sum, g) => sum + (g.monthlySavingCents ?? 0),
     0
   );
-  const surplus = totalMonthlyGoal - ctx.m;
-  const surplusEur = surplus > 0 ? (surplus / 100).toFixed(2) : null;
+  const A = ctx.mInv + ctx.mCash + totalMonthlyGoal;
+  const R = ctx.m - A;
+  const surplusEur = R > 0 ? (R / 100).toFixed(2) : null;
+  const deficitEur = R < 0 ? (Math.abs(R) / 100).toFixed(2) : null;
+
+  // Počet cieľov podľa stavov
+  const goalStats = (data.personalGoals ?? []).reduce((acc, goal) => {
+    const result = monthsToPersonalGoalWithStatus(
+      goal.targetCents,
+      goal.currentCapitalCents ?? 0,
+      goal.monthlySavingCents ?? 0,
+    );
+    acc[result.status] = (acc[result.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   const pageStyle: CSSProperties = {
     padding: "32px",
@@ -199,12 +213,18 @@ export function PersonalGoalsPage({
         </div>
       )}
 
-      {/* Surplus Warning */}
-      {surplusEur && (
+      {/* Surplus/Deficit Warning */}
+      {deficitEur && (
         <div style={warningBannerStyle}>
           <strong>⚠️ Upozornenie:</strong> Príspevky na individuálne ciele ({(totalMonthlyGoal / 100).toFixed(2)} €)
-          prekročia dostupný mesačný prebytok ({(ctx.m / 100).toFixed(2)} €) o <strong>{surplusEur} €</strong>.
+          prekročia dostupný mesačný prebytok ({(ctx.m / 100).toFixed(2)} €) o <strong>{deficitEur} €</strong>.
           Toto je iba informácia; príspevky môžu byť upravené podľa potreby.
+        </div>
+      )}
+      {surplusEur && !deficitEur && (
+        <div style={{ ...warningBannerStyle, background: "#DBEAFE", borderColor: "#93C5FD", color: "#0C4A6E" }}>
+          <strong>✓ OK:</strong> Príspevky ({(totalMonthlyGoal / 100).toFixed(2)} €) sú v poriadku.
+          Zostáva {surplusEur} € mesačného prebytku.
         </div>
       )}
 
@@ -212,6 +232,46 @@ export function PersonalGoalsPage({
       <div style={infoBoxStyle}>
         💡 Lineárny model: K(n) = K0 + mGoal × n. Individuálne ciele neovplyvňujú mCash, mInv ani FIRE horizont.
       </div>
+
+      {/* Goals Statistics */}
+      {(data.personalGoals ?? []).length > 0 && (
+        <div style={{ ...sectionStyle, display: "grid", gridTemplateColumns: "auto auto auto auto auto auto", gap: "16px", marginBottom: "24px" }}>
+          <div>
+            <div style={{ fontSize: "12px", color: "#6B7280" }}>Celkem Cieľov</div>
+            <div style={{ fontSize: "20px", fontWeight: 700, color: "#111827" }}>{(data.personalGoals ?? []).length}</div>
+          </div>
+          {goalStats.achieved > 0 && (
+            <div>
+              <div style={{ fontSize: "12px", color: "#065F46" }}>✓ Dosiahnuté</div>
+              <div style={{ fontSize: "20px", fontWeight: 700, color: "#059669" }}>{goalStats.achieved}</div>
+            </div>
+          )}
+          {goalStats.feasible > 0 && (
+            <div>
+              <div style={{ fontSize: "12px", color: "#0369A1" }}>📈 Dosiahnuť</div>
+              <div style={{ fontSize: "20px", fontWeight: 700, color: "#0369A1" }}>{goalStats.feasible}</div>
+            </div>
+          )}
+          {goalStats.long_horizon > 0 && (
+            <div>
+              <div style={{ fontSize: "12px", color: "#92400E" }}>⏳ Dlhý horizont</div>
+              <div style={{ fontSize: "20px", fontWeight: 700, color: "#B45309" }}>{goalStats.long_horizon}</div>
+            </div>
+          )}
+          {goalStats.impossible > 0 && (
+            <div>
+              <div style={{ fontSize: "12px", color: "#B91C1C" }}>❌ Nedosiahnuteľné</div>
+              <div style={{ fontSize: "20px", fontWeight: 700, color: "#DC2626" }}>{goalStats.impossible}</div>
+            </div>
+          )}
+          {goalStats.invalid > 0 && (
+            <div>
+              <div style={{ fontSize: "12px", color: "#6B7280" }}>⚠️ Neplatné</div>
+              <div style={{ fontSize: "20px", fontWeight: 700, color: "#6B7280" }}>{goalStats.invalid}</div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Form or List */}
       {showForm ? (

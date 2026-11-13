@@ -8,9 +8,11 @@ export interface PropertySectionProps {
   properties: Property[];
   today: string;
   onSaved: () => void;
+  propertiesConfirmed?: boolean; // OPRAVA B: Potvrdenie úplnosti
+  onConfirmedChange?: (confirmed: boolean) => void; // OPRAVA B: Callback keď sa zmení potvrdenie
 }
 
-export function PropertySection({ repo, properties, today, onSaved }: PropertySectionProps) {
+export function PropertySection({ repo, properties, today, onSaved, propertiesConfirmed, onConfirmedChange }: PropertySectionProps) {
   const [editing, setEditing] = useState<Property | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<Property | null>(null);
@@ -26,7 +28,8 @@ export function PropertySection({ repo, properties, today, onSaved }: PropertySe
   };
 
   const handleSave = async (property: Property) => {
-    await repo.saveProperty(property);
+    // OPRAVA B.5: Atomická operácia — uloženie nehnuteľnosti + invalidácia v jednej transakcii
+    await repo.savePropertyAndInvalidate(property);
     setShowForm(false);
     setEditing(null);
     onSaved();
@@ -38,7 +41,7 @@ export function PropertySection({ repo, properties, today, onSaved }: PropertySe
 
   const handleDeleteConfirm = async () => {
     if (!deleteConfirm) return;
-    await repo.deleteProperty(deleteConfirm.id);
+    await repo.deletePropertyAndInvalidate(deleteConfirm.id);
     setDeleteConfirm(null);
     onSaved();
   };
@@ -56,6 +59,18 @@ export function PropertySection({ repo, properties, today, onSaved }: PropertySe
   return (
     <div style={{ padding: "16px" }}>
       <h2>Majetok & Záväzky</h2>
+
+      {/* OPRAVA B: Checkbox na potvrdenie úplnosti nehnuteľností */}
+      <div style={{ marginBottom: "16px", padding: "12px", background: "#f0f8ff", border: "1px solid #d0e8ff", borderRadius: "4px" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={propertiesConfirmed ?? false}
+            onChange={(e) => onConfirmedChange?.(e.target.checked)}
+          />
+          <span>Potvrdzujem, že zoznam nehnuteľností je úplný</span>
+        </label>
+      </div>
 
       {showForm && (
         <div style={{ marginBottom: "24px" }}>

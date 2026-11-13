@@ -34,6 +34,8 @@ const empty = {
   recipes: [],
   dogs: [],
   goals: [], wasteRecords: [], shoppingItems: [],
+  persons: [],
+  households: [],
 };
 
 describe("ciele investícií (D-105): validácia", () => {

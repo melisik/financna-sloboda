@@ -346,9 +346,9 @@ describe("scenár G: validácia a záloha (schéma v19)", () => {
     expect(mortgagePaymentInMonthCents(open(restored, "2026-11-15"), "2026-11-15")).toBe(20_000);
   });
 
-  it("verzie 17 a 18 sú rezervované a odmietnu sa; novšia ako 19 tiež", () => {
+  it("verzie 17 a 18 sú rezervované a odmietnu sa; novšia ako 20 tiež", () => {
     const json = JSON.parse(JSON.stringify(buildBackup(data([]), "2026-11-15T10:00:00Z")));
     for (const v of [17, 18]) expect(parseBackup({ ...json, schemaVersion: v }, "2026-11-15")).toMatchObject({ ok: false, errors: [`neznáma verzia schémy ${v}`] });
-    expect(parseBackup({ ...json, schemaVersion: 20 }, "2026-11-15")).toMatchObject({ ok: false, errors: ["záloha pochádza z novšej verzie aplikácie"] });
+    expect(parseBackup({ ...json, schemaVersion: 21 }, "2026-11-15")).toMatchObject({ ok: false, errors: ["záloha pochádza z novšej verzie aplikácie"] });
   });
 });

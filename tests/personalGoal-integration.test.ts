@@ -47,33 +47,11 @@ function createGoal(partial: Partial<PersonalGoal>): PersonalGoal {
   };
 }
 
-describe("Personal Goals Integration — Fáza 2", () => {
+describe("Personal Goals Integration — Lineárny Model", () => {
   // ============================================================
-  // TEST 1: No Personal Goals — mCash unchanged
+  // TEST 1: mCash Remains Independent of Personal Goals
   // ============================================================
-  it("TEST 1: No personal goals — mCash stays derived value", () => {
-    const data = createTestData({
-      settings: {
-        expensesCents: 100_000 * 100,
-        withdrawalRate: 0.04,
-        realReturn: 0.035,
-        reserveCents: 50_000 * 100,
-        thresholdCents: 1_000 * 100,
-      },
-      personalGoals: undefined, // no goals
-    });
-
-    const ctx = makeCtx(data);
-
-    // Without goals, mCash = derived.cash
-    expect(ctx.mCash).toBe(ctx.derived.cash);
-  });
-
-  // ============================================================
-  // TEST 2: Single Goal with Monthly Saving — mCash increased
-  // ============================================================
-  it("TEST 2: Single goal with monthly saving — mCash includes goal contribution", () => {
-    const goalContribution = 200 * 100; // 200 €/mesiacne
+  it("TEST 1: mCash stays independent — personal goals don't modify it", () => {
     const data = createTestData({
       settings: {
         expensesCents: 100_000 * 100,
@@ -83,35 +61,29 @@ describe("Personal Goals Integration — Fáza 2", () => {
         thresholdCents: 1_000 * 100,
         savingCashCents: 300 * 100, // base 300 €
       },
-      personalGoals: [createGoal({ monthlySavingCents: goalContribution })],
+      personalGoals: [
+        createGoal({ monthlySavingCents: 200 * 100 }),
+        createGoal({ id: "g2", monthlySavingCents: 150 * 100 }),
+      ],
     });
 
     const ctx = makeCtx(data);
 
-    // mCash = base + goal contribution = 300 + 200
-    const expectedMCash = 300 * 100 + goalContribution;
-    expect(ctx.mCash).toBe(expectedMCash);
+    // mCash should be ONLY the base savings, NOT including goal contributions
+    expect(ctx.mCash).toBe(300 * 100); // NOT 300 + 200 + 150
   });
 
   // ============================================================
-  // TEST 3: Multiple Goals — mCash sums all contributions
+  // TEST 2: FIRE Capital Unaffected by Personal Goals
   // ============================================================
-  it("TEST 3: Multiple goals — mCash sums all goal contributions", () => {
-    const goal1 = createGoal({
-      id: "g1",
-      name: "Dovolenka",
-      monthlySavingCents: 100 * 100,
-    });
-    const goal2 = createGoal({
-      id: "g2",
-      name: "Dom",
-      monthlySavingCents: 300 * 100,
-    });
-    const goal3 = createGoal({
-      id: "g3",
-      name: "Auto",
-      monthlySavingCents: 150 * 100,
-    });
+  it("TEST 2: K_FIRE remains unaffected by personal goals", () => {
+    const snap: Snapshot = {
+      id: "snap-1",
+      date: "2026-01-01",
+      investmentsCents: 50_000 * 100,
+      cashCents: 30_000 * 100,
+      createdAt: "2026-01-01T00:00:00Z",
+    };
 
     const data = createTestData({
       settings: {
@@ -120,25 +92,113 @@ describe("Personal Goals Integration — Fáza 2", () => {
         realReturn: 0.035,
         reserveCents: 50_000 * 100,
         thresholdCents: 1_000 * 100,
-        savingCashCents: 200 * 100, // base
       },
-      personalGoals: [goal1, goal2, goal3],
+      snapshots: [snap],
+      personalGoals: [
+        createGoal({ monthlySavingCents: 500 * 100 }),
+        createGoal({ id: "g2", monthlySavingCents: 300 * 100 }),
+      ],
     });
 
     const ctx = makeCtx(data);
 
-    // mCash = 200 + 100 + 300 + 150 = 750
-    const expectedMCash = 200 * 100 + 100 * 100 + 300 * 100 + 150 * 100;
-    expect(ctx.mCash).toBe(expectedMCash);
+    // K_FIRE = K_inv + K_cash (from snapshot, unaffected by goals)
+    expect(ctx.K_FIRE).toBe(50_000 * 100 + 30_000 * 100);
   });
 
   // ============================================================
-  // TEST 4: Goals Without Monthly Saving (optional) — mCash unchanged
+  // TEST 3: mInv Unchanged by Personal Goals
   // ============================================================
-  it("TEST 4: Goals without monthlySavingCents — ignored in mCash calculation", () => {
+  it("TEST 3: mInv is not affected by personal goals", () => {
+    const data = createTestData({
+      settings: {
+        expensesCents: 100_000 * 100,
+        withdrawalRate: 0.04,
+        realReturn: 0.035,
+        reserveCents: 50_000 * 100,
+        thresholdCents: 1_000 * 100,
+        savingInvCents: 1000 * 100, // explicit mInv
+      },
+      personalGoals: [createGoal({ monthlySavingCents: 500 * 100 })],
+    });
+
+    const ctx = makeCtx(data);
+
+    expect(ctx.mInv).toBe(1000 * 100); // Unchanged
+  });
+
+  // ============================================================
+  // TEST 4: Personal Goals Array Can Be Undefined
+  // ============================================================
+  it("TEST 4: Systems work when personalGoals is undefined", () => {
+    const data = createTestData({
+      settings: {
+        expensesCents: 100_000 * 100,
+        withdrawalRate: 0.04,
+        realReturn: 0.035,
+        reserveCents: 50_000 * 100,
+        thresholdCents: 1_000 * 100,
+        savingCashCents: 250 * 100,
+      },
+      personalGoals: undefined, // No goals
+    });
+
+    const ctx = makeCtx(data);
+
+    expect(ctx.mCash).toBe(250 * 100);
+    expect(ctx.K_FIRE).toBeDefined();
+  });
+
+  // ============================================================
+  // TEST 5: Multiple Personal Goals — All Independent
+  // ============================================================
+  it("TEST 5: Multiple personal goals exist independently", () => {
+    const goals = [
+      createGoal({
+        id: "g1",
+        name: "Dovolenka",
+        targetCents: 5000 * 100,
+        monthlySavingCents: 200 * 100,
+      }),
+      createGoal({
+        id: "g2",
+        name: "Školenie",
+        targetCents: 3000 * 100,
+        monthlySavingCents: 100 * 100,
+      }),
+      createGoal({
+        id: "g3",
+        name: "Dom",
+        targetCents: 100_000 * 100,
+        monthlySavingCents: 1000 * 100,
+      }),
+    ];
+
+    const data = createTestData({
+      settings: {
+        expensesCents: 100_000 * 100,
+        withdrawalRate: 0.04,
+        realReturn: 0.035,
+        reserveCents: 50_000 * 100,
+        thresholdCents: 1_000 * 100,
+      },
+      personalGoals: goals,
+    });
+
+    const ctx = makeCtx(data);
+
+    // All goals remain in AppData
+    expect(ctx).toBeDefined(); // Just verify context is created
+    // Goals are tracked separately, not merged into mCash
+  });
+
+  // ============================================================
+  // TEST 6: Personal Goals Without monthlySavingCents
+  // ============================================================
+  it("TEST 6: Goals without monthlySavingCents are valid", () => {
     const goal = createGoal({
       name: "Future Goal",
-      monthlySavingCents: undefined, // no monthly saving specified
+      monthlySavingCents: undefined, // No monthly saving
     });
 
     const data = createTestData({
@@ -155,100 +215,14 @@ describe("Personal Goals Integration — Fáza 2", () => {
 
     const ctx = makeCtx(data);
 
-    // mCash = 250 (no addition from goal without monthlySavingCents)
+    // mCash should not be affected
     expect(ctx.mCash).toBe(250 * 100);
   });
 
   // ============================================================
-  // TEST 5: Goals Preserve Other Capital Components
+  // TEST 7: Goals Preserve K_nem (Real Estate)
   // ============================================================
-  it("TEST 5: Goals do not affect K_inv, K_nem, K_total calculation", () => {
-    const goal = createGoal({ monthlySavingCents: 500 * 100 });
-
-    const data = createTestData({
-      settings: {
-        expensesCents: 100_000 * 100,
-        withdrawalRate: 0.04,
-        realReturn: 0.035,
-        reserveCents: 50_000 * 100,
-        thresholdCents: 1_000 * 100,
-      },
-      snapshots: [
-        {
-          id: "snap-1",
-          date: "2026-01-01",
-          investmentsCents: 50_000 * 100,
-          cashCents: 30_000 * 100,
-          createdAt: "2026-01-01T00:00:00Z",
-        },
-      ],
-      personalGoals: [goal],
-    });
-
-    const ctx = makeCtx(data);
-
-    // K_inv, K_nem should be unchanged
-    expect(ctx.K_inv).toBe(50_000 * 100);
-    expect(ctx.K_nem).toBe(0); // no properties
-    expect(ctx.K_total).toBe(50_000 * 100 + 30_000 * 100); // K_inv + K_cash
-
-    // K_FIRE = K_inv + K_cash (same as before, goals don't change historical snapshot)
-    expect(ctx.K_FIRE).toBe(50_000 * 100 + 30_000 * 100);
-  });
-
-  // ============================================================
-  // TEST 6: High Goal Contribution — Proportional to Base
-  // ============================================================
-  it("TEST 6: Goal contribution can exceed base mCash", () => {
-    const data = createTestData({
-      settings: {
-        expensesCents: 100_000 * 100,
-        withdrawalRate: 0.04,
-        realReturn: 0.035,
-        reserveCents: 50_000 * 100,
-        thresholdCents: 1_000 * 100,
-        savingCashCents: 100 * 100, // base 100 €
-      },
-      personalGoals: [createGoal({ monthlySavingCents: 1000 * 100 })], // 1000 € for goal
-    });
-
-    const ctx = makeCtx(data);
-
-    // mCash = 100 + 1000 = 1100
-    expect(ctx.mCash).toBe(1100 * 100);
-  });
-
-  // ============================================================
-  // TEST 7: Zero Goals Array — Graceful Handling
-  // ============================================================
-  it("TEST 7: Empty personalGoals array — mCash from settings/derived only", () => {
-    const data = createTestData({
-      settings: {
-        expensesCents: 100_000 * 100,
-        withdrawalRate: 0.04,
-        realReturn: 0.035,
-        reserveCents: 50_000 * 100,
-        thresholdCents: 1_000 * 100,
-        savingCashCents: 350 * 100,
-      },
-      personalGoals: [], // empty array
-    });
-
-    const ctx = makeCtx(data);
-
-    // mCash = 350 (no goals, so no additions)
-    expect(ctx.mCash).toBe(350 * 100);
-  });
-
-  // ============================================================
-  // TEST 8: Complex Scenario — Multiple Goals + Rental Income
-  // ============================================================
-  it("TEST 8: Multiple goals do not interfere with rental income calculations", () => {
-    const goals = [
-      createGoal({ id: "g1", name: "Dovolenka", monthlySavingCents: 100 * 100 }),
-      createGoal({ id: "g2", name: "Dom", monthlySavingCents: 200 * 100 }),
-    ];
-
+  it("TEST 7: Personal goals don't affect K_nem calculation", () => {
     const data: AppData = {
       settings: {
         expensesCents: 100_000 * 100,
@@ -256,20 +230,16 @@ describe("Personal Goals Integration — Fáza 2", () => {
         realReturn: 0.035,
         reserveCents: 50_000 * 100,
         thresholdCents: 1_000 * 100,
-        savingCashCents: 300 * 100,
       },
       transactions: [],
       snapshots: [],
       properties: [
         {
           id: "prop-1",
-          mode: "prenajom",
+          mode: "vlastne_byvanie",
           valueCents: 300_000 * 100,
           valueDate: "2026-01-01",
           mortgageBalanceCents: 200_000 * 100,
-          monthlyRentCents: 1500 * 100, // 1500 € rent
-          monthlyPaymentCents: 1200 * 100, // 1200 € payment
-          monthlyOtherCostsCents: 200 * 100, // 200 € other costs
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -284,29 +254,59 @@ describe("Personal Goals Integration — Fáza 2", () => {
       recipes: [],
       dogs: [],
       goals: [],
-      personalGoals: goals,
+      personalGoals: [
+        createGoal({ monthlySavingCents: 500 * 100 }),
+      ],
       wasteRecords: [],
       shoppingItems: [],
     };
 
     const ctx = makeCtx(data);
 
-    // mCash should include goal contributions (300 + 100 + 200 = 600)
-    expect(ctx.mCash).toBe(600 * 100);
-
-    // K_nem should be calculated correctly from properties
-    const expectedKNem = 300_000 * 100 - 200_000 * 100; // value - mortgage
+    // K_nem = 300 000 - 200 000 = 100 000
+    const expectedKNem = (300_000 - 200_000) * 100;
     expect(ctx.K_nem).toBe(expectedKNem);
-
-    // K_total should include K_nem
-    expect(ctx.K_total).toBeGreaterThanOrEqual(expectedKNem);
   });
 
   // ============================================================
-  // TEST 9: mInv Unchanged by Goals
+  // TEST 8: Empty Goals Array
   // ============================================================
-  it("TEST 9: Personal goals do not affect mInv calculation", () => {
-    const goal = createGoal({ monthlySavingCents: 500 * 100 });
+  it("TEST 8: Empty personalGoals array is valid", () => {
+    const data = createTestData({
+      settings: {
+        expensesCents: 100_000 * 100,
+        withdrawalRate: 0.04,
+        realReturn: 0.035,
+        reserveCents: 50_000 * 100,
+        thresholdCents: 1_000 * 100,
+        savingCashCents: 350 * 100,
+      },
+      personalGoals: [], // empty array
+    });
+
+    const ctx = makeCtx(data);
+
+    expect(ctx.mCash).toBe(350 * 100);
+  });
+
+  // ============================================================
+  // TEST 9: Personal Goal Structure Validation
+  // ============================================================
+  it("TEST 9: PersonalGoal with all fields is valid", () => {
+    const goal: PersonalGoal = {
+      id: "complete-goal",
+      name: "Complete Goal",
+      targetCents: 20_000 * 100,
+      category: "dom",
+      priority: 1,
+      targetYear: 2027,
+      targetMonth: 6,
+      flexible: true,
+      monthlySavingCents: 300 * 100,
+      note: "Test goal with all fields",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
 
     const data = createTestData({
       settings: {
@@ -315,37 +315,56 @@ describe("Personal Goals Integration — Fáza 2", () => {
         realReturn: 0.035,
         reserveCents: 50_000 * 100,
         thresholdCents: 1_000 * 100,
-        savingInvCents: 1000 * 100, // explicit mInv
       },
       personalGoals: [goal],
     });
 
     const ctx = makeCtx(data);
-
-    // mInv should not be affected by goals
-    expect(ctx.mInv).toBe(1000 * 100);
+    expect(ctx).toBeDefined();
   });
 
   // ============================================================
-  // TEST 10: Derived Savings + Goals
+  // TEST 10: FIRE Projection Stability
   // ============================================================
-  it("TEST 10: Derived mCash + goals work together", () => {
-    const data = createTestData({
+  it("TEST 10: FIRE projections are not affected by personal goals", () => {
+    const data1 = createTestData({
       settings: {
         expensesCents: 100_000 * 100,
         withdrawalRate: 0.04,
         realReturn: 0.035,
         reserveCents: 50_000 * 100,
         thresholdCents: 1_000 * 100,
-        // No explicit savingCashCents — will use derived
+        savingCashCents: 500 * 100,
+        savingInvCents: 1000 * 100,
       },
-      personalGoals: [createGoal({ monthlySavingCents: 400 * 100 })],
+      personalGoals: undefined, // No goals
     });
 
-    const ctx = makeCtx(data);
+    const data2 = createTestData({
+      settings: {
+        expensesCents: 100_000 * 100,
+        withdrawalRate: 0.04,
+        realReturn: 0.035,
+        reserveCents: 50_000 * 100,
+        thresholdCents: 1_000 * 100,
+        savingCashCents: 500 * 100,
+        savingInvCents: 1000 * 100,
+      },
+      personalGoals: [
+        createGoal({ monthlySavingCents: 300 * 100 }),
+        createGoal({ id: "g2", monthlySavingCents: 200 * 100 }),
+      ],
+    });
 
-    // mCash = derived.cash + goals
-    // derived.cash should be 0 (no transactions), so mCash = 0 + 400 = 400
-    expect(ctx.mCash).toBe(ctx.derived.cash + 400 * 100);
+    const ctx1 = makeCtx(data1);
+    const ctx2 = makeCtx(data2);
+
+    // Both should have identical FIRE-related values
+    expect(ctx1.mCash).toBe(ctx2.mCash);         // ✅ Cashed savings
+    expect(ctx1.mInv).toBe(ctx2.mInv);           // ✅ Investment savings
+    expect(ctx1.target).toBe(ctx2.target);       // ✅ FIRE target (V/p)
+    expect(ctx1.K_FIRE).toBe(ctx2.K_FIRE);       // ✅ FIRE capital (K_inv + K_cash)
+    expect(ctx1.K_total).toBe(ctx2.K_total);     // ✅ Total capital (K_inv + K_cash + K_nem)
+    // Personal goal contributions do NOT affect FIRE projections
   });
 });

@@ -14,6 +14,7 @@ const recipe: Recipe = { id: "r1", name: "Palacinky", ingredients: [{ stockItemI
 const empty: AppData = {
   settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [],
   recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [], shoppingItems: [],
+  persons: [], households: [],
 };
 
 describe("kedy ponúknuť položku na zoznam", () => {
@@ -67,7 +68,7 @@ describe("úložisko a záloha", () => {
   });
 
   it("uloženie a zmazanie položky zoznamu", async () => {
-    const repo = await openRepository(`shop-${Math.random()}`);
+    const repo = await openRepository(`vitest-shop-${Math.random()}`);
     await repo.saveShoppingItems([shop(), shop({ id: "n2", name: "Chlieb" })]);
     await repo.deleteShoppingItems(["n1"]);
     expect((await repo.getData()).shoppingItems.map((i) => i.name)).toEqual(["Chlieb"]);

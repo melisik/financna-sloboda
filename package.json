@@ -6,8 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
+    "dev:sandbox": "vite --mode sandbox",
+    "build:sandbox": "tsc -p tsconfig.json && vite build --mode sandbox --outDir dist-sandbox --emptyOutDir",
+    "build:real": "tsc -p tsconfig.json && vite build --mode real --outDir dist-real --emptyOutDir",
+    "preview:real": "vite preview --outDir dist-real --host 127.0.0.1 --port 4300 --strictPort",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:security-real": "vitest run --config vitest.config.real.ts tests/phase1b-security.test.ts",
+    "test:security-sandbox": "vitest run tests/phase1b-security.test.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

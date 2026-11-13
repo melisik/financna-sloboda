@@ -29,7 +29,7 @@ export function LiabilitySection({ repo, liabilities, today, onSaved }: { repo: 
 
   const remove = async (id: string) => {
     try {
-      await repo.deleteLiability(id);
+      await repo.deleteLiabilityAndInvalidate(id);
       setConfirmId(null);
       setErr(null);
       onSaved();

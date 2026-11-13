@@ -13,6 +13,7 @@ const waste = (o: Partial<WasteRecord> = {}): WasteRecord => ({ id: "w1", date: 
 const empty: AppData = {
   settings: null, transactions: [], snapshots: [], properties: [], assets: [], investments: [], liabilities: [], incomes: [], budgets: [],
   recurringExpenses: [], stockItems: [], recipes: [], dogs: [], goals: [], wasteRecords: [], shoppingItems: [],
+  persons: [], households: [],
 };
 
 describe("cena a vyhodené", () => {
@@ -57,7 +58,7 @@ describe("úložisko a záloha", () => {
   });
 
   it("vyhodenie zníži množstvo a zapíše záznam naraz", async () => {
-    const repo = await openRepository(`waste-${Math.random()}`);
+    const repo = await openRepository(`vitest-waste-${Math.random()}`);
     await repo.saveStockItem(item({ unitPriceCents: 59 }));
     await repo.discardStock({ ...item({ unitPriceCents: 59 }), quantity: 3 }, waste());
     const all = await repo.getData();

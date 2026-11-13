@@ -1,13 +1,19 @@
 import { useState } from "react";
-import type { Snapshot } from "../storage/types";
+import type { Snapshot, AppData } from "../storage/types";
+import type { Repository } from "../storage/repository";
 import { CSSProperties } from "react";
+import { buildCompleteSnapshot } from "../app/snapshotBuilder";
+import { validateSnapshotPreconditions } from "../app/snapshotValidator";
+import { uid } from "../ui/kit/ids";
 
 interface SnapshotFormProps {
+  repo: Repository | null;
+  data: AppData;
   onSave: (snapshot: Snapshot) => Promise<void>;
   onCancel: () => void;
 }
 
-export function SnapshotForm({ onSave, onCancel }: SnapshotFormProps) {
+export function SnapshotForm({ repo, data, onSave, onCancel }: SnapshotFormProps) {
   const today = new Date().toISOString().split("T")[0];
   const [date, setDate] = useState(today);
   const [investments, setInvestments] = useState(0);
@@ -30,13 +36,46 @@ export function SnapshotForm({ onSave, onCancel }: SnapshotFormProps) {
         return;
       }
 
-      const snapshot: Snapshot = {
-        id: `snapshot-${Date.now()}`,
+      // OPRAVA B.3: Vyžaduj čerstvé dáta z IndexedDB — bez fallback na staré dáta
+      if (!repo) {
+        setError("Úložisko nie je dostupné — snapshot nemôže byť vytvorený");
+        return;
+      }
+
+      let currentData: AppData;
+      try {
+        const freshData = await repo.getData();
+        if (!freshData) {
+          setError("Chyba: Dáta nie sú dostupné z úložiska");
+          return;
+        }
+        currentData = freshData;
+      } catch (err) {
+        setError(`Chyba pri čítaní dát z úložiska: ${String(err)}`);
+        return;
+      }
+
+      // OPRAVA B: Spoločná validácia précondícií nad čerstvými údajmi
+      const validationError = validateSnapshotPreconditions(currentData);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+
+      const snapshot = buildCompleteSnapshot({
+        data: currentData,
         date,
+        isAuto: false,
+        id: `snapshot-${uid()}`,
+        now: new Date().toISOString(),
         investmentsCents: Math.round(investments * 100),
         cashCents: Math.round(cash * 100),
-        createdAt: new Date().toISOString(),
-      };
+      });
+
+      if (!snapshot) {
+        setError("Nepodarilo sa vytvoriť snapshot");
+        return;
+      }
 
       await onSave(snapshot);
     } catch (err) {

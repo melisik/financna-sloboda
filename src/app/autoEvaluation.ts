@@ -1,6 +1,12 @@
 import { monthlyRate } from "../domain/goal";
 import type { Snapshot, Transaction } from "../storage/types";
-import { capitalWithFlags } from "../domain/ledger";
+import { capitalWithFlagsForToday } from "../domain/ledger";
+
+/** Vrátí dzisajší dátum v ISO formáte (YYYY-MM-DD). */
+export function getTodayIso(): string {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+}
 
 /** Posledný deň predchádzajúceho mesiaca k dnešku (YYYY-MM-DD). Napr. 2026-11-02 → 2026-10-31. */
 export function lastCompletedMonthEnd(today: string): string {
@@ -41,7 +47,7 @@ export function autoSnapshot(input: {
 
   // Transakcie až do konca vyhodnocovaného mesiaca; budúce sa nezapočítajú.
   const until = transactions.filter((t) => t.date <= end);
-  const { capital } = capitalWithFlags(latest, until);
+  const { capital } = capitalWithFlagsForToday(latest, until);
   const months = monthsBetween(latest.date, end);
   // Výnos sa počíta len z hodnoty na začiatku obdobia; vklady a výbery v období sa pripočítajú bez výnosu (audit, nález 9).
   const growth = positionsTotalCents === null ? Math.pow(1 + monthlyRate(realReturn), months) : 1;

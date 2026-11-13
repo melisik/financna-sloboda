@@ -1,14 +1,21 @@
 /**
- * Modul FINANČNÉ CIELE: výpočet individuálnych cieľov a ich dosiahnuteľnosti.
- * Vzorce: K_inv(n) = K_inv(0) × (1+i)^n + mInv × ((1+i)^n − 1) / i
- *         K_cash(n) = K_cash(0) + mCash × n
- *         K_total(n) = K_inv(n) + K_cash(n) + K_nem
- * MAX_MONTHS = 600 (50 rokov) pre klasifikáciu dosiahnuteľnosti.
+ * Modul FINANČNÉ CIELE (BLOK 4): výpočet individuálnych cieľov a ich dosiahnuteľnosti.
+ * Lineárny model bez výnosu: n = ceil((T - K0) / mGoal)
+ * Hranica: 1200 mesiacov (100 rokov) pre rozlíšenie medzi "feasible" a "long_horizon"
  */
 
 import { PersonalGoal } from './model/entities';
+import { targetDate } from './goal';
 
-export const MAX_MONTHS = 600;
+export const MAX_MONTHS = 600; // Stare MAX pre compatibility
+export const LONG_HORIZON_MONTHS = 1200; // Nová hranica pre BLOK 4
+
+export interface PersonalGoalResult {
+  status: "achieved" | "feasible" | "long_horizon" | "impossible" | "invalid";
+  months: number | null;
+  targetDate: string | null;
+  reason: string;
+}
 
 export interface PersonalGoalAnalysis {
   goal: PersonalGoal;
@@ -122,6 +129,112 @@ export function checkGoalContributionsSurplus(
     return surplus;
   }
   return null;
+}
+
+/**
+ * Výpočet mesiacov s kompletným statusom a dátumom (BLOK 4).
+ * Vstup: targetCents (T), currentCapitalCents (K0), monthlySavingCents (mGoal)
+ * Vzorec: n = ceil((T - K0) / mGoal)
+ */
+export function monthsToPersonalGoalWithStatus(
+  targetCents: number | undefined,
+  currentCapitalCents: number | undefined,
+  monthlySavingCents: number | undefined,
+): PersonalGoalResult {
+  // Validácia vstupov
+  if (targetCents === undefined || targetCents === null) {
+    return {
+      status: "invalid",
+      months: null,
+      targetDate: null,
+      reason: "Cieľová suma chýba",
+    };
+  }
+
+  if (currentCapitalCents === undefined || currentCapitalCents === null) {
+    return {
+      status: "invalid",
+      months: null,
+      targetDate: null,
+      reason: "Počiatočný kapitál K0 chýba",
+    };
+  }
+
+  // Ak K0 >= T: cieľ je dosiahnutý
+  if (currentCapitalCents >= targetCents) {
+    return {
+      status: "achieved",
+      months: 0,
+      targetDate: new Date().toISOString().split("T")[0],
+      reason: "Cieľ je dosiahnutý",
+    };
+  }
+
+  // Ak K0 < T a mGoal <= 0: nedosiahnuteľný
+  if (!monthlySavingCents || monthlySavingCents <= 0) {
+    return {
+      status: "impossible",
+      months: null,
+      targetDate: null,
+      reason: "Pri aktuálnom mesačnom príspevku nedosiahnuteľný.",
+    };
+  }
+
+  // Výpočet počtu mesiacov
+  const needed = targetCents - currentCapitalCents;
+  const n = Math.ceil(needed / monthlySavingCents);
+
+  // Rozlíšenie podľa hranice 1200 mesiacov
+  let statusKind: "feasible" | "long_horizon";
+  let calculatedDate: string | null = null;
+
+  if (n > LONG_HORIZON_MONTHS) {
+    statusKind = "long_horizon";
+  } else {
+    statusKind = "feasible";
+    // Výpočet dátumu iba pre feasible
+    const today = new Date();
+    const isoToday = today.toISOString().split("T")[0];
+    calculatedDate = targetDate(isoToday, n);
+  }
+
+  return {
+    status: statusKind,
+    months: n,
+    targetDate: calculatedDate,
+    reason:
+      statusKind === "feasible"
+        ? `Cieľ dosiahnuť za ${n} mesiacov`
+        : "Cieľ za viac ako 100 rokov",
+  };
+}
+
+/**
+ * Validácia cieľového roku a mesiaca.
+ */
+export function validatePersonalGoalDate(
+  targetYear: number | undefined,
+  targetMonth: number | undefined,
+): { valid: boolean; reason?: string } {
+  if (targetYear === undefined || targetYear === null) {
+    return { valid: false, reason: "Rok dosiahnutia chýba" };
+  }
+
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1;
+
+  // Validácia: rok v minulosti
+  if (targetYear < currentYear) {
+    return { valid: false, reason: "Rok dosiahnutia je v minulosti" };
+  }
+
+  // Validácia: mesiac v minulosti (ak je rok = aktuálny rok)
+  if (targetYear === currentYear && targetMonth && targetMonth < currentMonth) {
+    return { valid: false, reason: "Mesiac dosiahnutia je v minulosti" };
+  }
+
+  return { valid: true };
 }
 
 /** Konverzia mesiacov na roky a zvyšné mesiace. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capitalWithFlags } from "../src/domain/ledger";
+import { capitalWithFlagsForToday } from "../src/domain/ledger";
 import { payFromCash, payFromInvestments, transferToInvestments } from "../src/domain/capital";
 import type { Snapshot, Transaction } from "../src/storage/types";
 
@@ -24,7 +24,7 @@ const tx = (over: Partial<Transaction> & Pick<Transaction, "id" | "type" | "amou
 describe("výdavky nad kapitál: prečerpanie a zdroj úhrady (D-045, D-059, D-167, GC-15)", () => {
   it("výdavok z investícií nad K_inv: K_inv je 0, K_cash sa nemení, presah je len v prečerpaní", () => {
     // K_inv 100 000 € − výdavok 300 000 € = −200 000 € → K_inv = 0, presah 200 000 € sa nezapočíta do K.
-    const r = capitalWithFlags(snap, [tx({ id: "e1", type: "vydavok", amountCents: eur(300_000), source: "z_investicii" })]);
+    const r = capitalWithFlagsForToday(snap, [tx({ id: "e1", type: "vydavok", amountCents: eur(300_000), source: "z_investicii" })]);
     expect(r.capital).toEqual({ inv: 0, cash: eur(50_000), nem: 0 });
     expect(r.negative).toEqual({ inv: true, cash: false });
     expect(r.shortfall).toEqual({ inv: eur(200_000), cash: 0 });
@@ -32,7 +32,7 @@ describe("výdavky nad kapitál: prečerpanie a zdroj úhrady (D-045, D-059, D-1
 
   it("výdavok z hotovosti nad K_cash: K_cash je 0 a presah sa ukáže ako prečerpanie (D-045, R2)", () => {
     // K_cash 50 000 € − výdavok 60 000 € = −10 000 € → K_cash = 0, presah 10 000 € je len v prečerpaní.
-    const r = capitalWithFlags(snap, [tx({ id: "e2", type: "vydavok", amountCents: eur(60_000), source: "z_hotovosti" })]);
+    const r = capitalWithFlagsForToday(snap, [tx({ id: "e2", type: "vydavok", amountCents: eur(60_000), source: "z_hotovosti" })]);
     expect(r.capital.cash).toBe(0);
     expect(r.negative.cash).toBe(true);
     expect(r.shortfall.cash).toBe(eur(10_000));
@@ -42,9 +42,9 @@ describe("výdavky nad kapitál: prečerpanie a zdroj úhrady (D-045, D-059, D-1
     const sporenie50 = (id: string, createdAt: string) =>
       tx({ id, type: "sporenie", date: "2026-09-01", amountCents: eur(50), createdAt });
     // zabudnutý výdavok zadaný až po vyhodnotení (2026-10-15) ovplyvní K
-    expect(capitalWithFlags(snap, [sporenie50("late", "2026-10-15T09:00:00Z")]).capital.cash).toBe(eur(50_050));
+    expect(capitalWithFlagsForToday(snap, [sporenie50("late", "2026-10-15T09:00:00Z")]).capital.cash).toBe(eur(50_050));
     // rovnaká položka zadaná pred vyhodnotením je už v jeho hodnote
-    expect(capitalWithFlags(snap, [sporenie50("early", "2026-09-15T09:00:00Z")]).capital.cash).toBe(eur(50_000));
+    expect(capitalWithFlagsForToday(snap, [sporenie50("early", "2026-09-15T09:00:00Z")]).capital.cash).toBe(eur(50_000));
   });
 
   // nález T4 (docs/30): zakladateľ zvolil orez K_inv na 0 s upozornením, K_cash sa nemení (D-257, uzavrie Q2 z D-167).

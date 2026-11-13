@@ -5,7 +5,7 @@ import { openRepository } from "../src/storage/indexeddb";
 
 // Migrácia úložiska z verzie 7 na 8: prílohy k výdavkom z prenájmu dostanú index (D-221). Syntetické hodnoty.
 let counter = 0;
-const freshName = () => `attachments-migration-test-${++counter}-${Date.now()}`;
+const freshName = () => `vitest-attachments-migration-test-${++counter}-${Date.now()}`;
 
 describe("migrácia úložiska na verziu 8 (D-221)", () => {
   it("existujúce prílohy zostanú a záznamy prenájmu sa dajú pridať a zmazať", async () => {

@@ -5,6 +5,7 @@ import { checkPin, isValidPin, makePinRecord } from "./pin";
 import { NO_ATTEMPTS, afterFailure, readAttempts, waitSeconds, writeAttempts, type PinAttempts } from "./pinLimit";
 import { Field, btn, inp } from "../../ui/kit/controls";
 import { STORAGE_ERROR } from "../../ui/kit/messages";
+import { getEnvironmentConfig } from "../../config/environment";
 
 /** Zámok a PIN (D-119, D-135): obrazovka odomknutia a zapnutie/vypnutie PIN-u v Nastaveniach. Feature „zamok“ (docs/23). */
 
@@ -63,8 +64,23 @@ export function LockScreen({ repo, onUnlock, onWiped }: { repo: Repository; onUn
   };
   const wipe = async () => {
     try {
-      await repo.replaceAll(EMPTY_DATA);
-      await repo.replaceAttachments([]);
+      // PHASE 1B: Ochrana REAL — reset je zakázaný
+      const envConfig = getEnvironmentConfig();
+      if (envConfig.isRealEnv) {
+        setErr("❌ Reset databázy je v REAL prostredí zakázaný. Údaje sú chránené.");
+        return;
+      }
+
+      // V SANDBOX: Atomická operácia s prílohy
+      const repoAny = repo as any;
+      if (typeof repoAny.replaceAllWithAttachments === "function") {
+        await repoAny.replaceAllWithAttachments(EMPTY_DATA, []);
+      } else {
+        // Fallback pre kompatibilitu
+        await repoAny.replaceAll(EMPTY_DATA);
+        await repoAny.replaceAttachments([]);
+      }
+
       await repo.setMeta("pin", "");
       onWiped();
     } catch {

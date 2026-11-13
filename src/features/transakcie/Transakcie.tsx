@@ -5,7 +5,7 @@ import { matchingRecurring } from "../../domain/recurring";
 import { BUDGET_CATEGORIES, SOURCES } from "../../storage/types";
 import { checkDate } from "../../storage/validate";
 import { expenseTotalsByCategory, filterHistory, totalsByType } from "../../domain/history";
-import { reserveBalance, capitalWithFlags } from "../../domain/ledger";
+import { reserveBalance, capitalWithFlagsForToday } from "../../domain/ledger";
 import type { Ctx } from "../../domain/context";
 import { INVESTMENTS_EXHAUSTED_TEXT, payFromCash, payFromInvestments, transferToInvestments, type Capital } from "../../domain/capital";
 import { impactWithRentals } from "../../domain/rentalGoal";
@@ -24,6 +24,7 @@ import { calloutStyle, hintStyle } from "../../ui/kit/controls";
 /** Transakcie (FR-08 až FR-12, D-120, D-121, D-160, D-286): zápis, história, filter; prílohy a zmazanie v úprave. Feature „transakcie“ (docs/23). */
 
 const TYPE_LABEL: Record<TransactionType, string> = {
+  prijem: "príjem",
   sporenie: "sporenie (do hotovosti)",
   investicia: "investícia",
   vydavok: "výdavok",
@@ -79,7 +80,7 @@ export function TransactionSection({ repo, data, ctx, onChanged, renderAttachmen
   // Pri úprave sa pôvodná transakcia z výpočtu vyradí (R12).
   const base = useMemo(() => {
     const others = data.transactions.filter((t) => t.id !== editingId);
-    const capital = capitalWithFlags(ctx.latest, others).capital;
+    const capital = capitalWithFlagsForToday(ctx.latest, others).capital;
     return { capital, reserve: reserveBalance(others) };
   }, [data.transactions, editingId, ctx.latest]);
 

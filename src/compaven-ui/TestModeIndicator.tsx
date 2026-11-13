@@ -1,8 +1,10 @@
-export function TestModeIndicator() {
-  const dbName = localStorage.getItem("__COMPAVEN_DB_NAME__") || "unknown";
-  const isTestMode = dbName === "compaven-2.0-test";
+import { getEnvironmentConfig } from "../config/environment";
 
-  if (!isTestMode) {
+export function TestModeIndicator() {
+  // PHASE 1A: Používaj centrálnu konfiguráciu (build-time VITE_COMPAVEN_ENV)
+  const envConfig = getEnvironmentConfig();
+
+  if (!envConfig.isSandboxEnv) {
     return null;
   }
 
@@ -22,10 +24,9 @@ export function TestModeIndicator() {
     >
       <span style={{ fontSize: "18px" }}>⚠️</span>
       <div>
-        <strong>TESTOVACIA DATABÁZA (compaven-2.0-test)</strong>
+        <strong>SANDBOX PROSTREDIE ({envConfig.dbName})</strong>
         <div style={{ fontSize: "12px", marginTop: "2px", opacity: 0.8 }}>
-          Toto sú SYNTETICKÉ finančné dáta na testovanie. Produkčná databáza
-          (compaven-2.0) ostáva nedotknutá.
+          Toto je TESTOVACIA INŠTANCIA. Produkčné dáta (REAL) ostávajú nedotknuté.
         </div>
       </div>
     </div>

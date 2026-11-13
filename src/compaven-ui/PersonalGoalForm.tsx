@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { PersonalGoal, PersonalGoalCategory } from "../storage/types";
 import { PERSONAL_GOAL_CATEGORIES } from "../storage/types";
+import { monthsToPersonalGoalWithStatus, validatePersonalGoalDate, type PersonalGoalResult } from "../domain/personalGoal";
 import { CSSProperties } from "react";
 
 interface PersonalGoalFormProps {
@@ -22,6 +23,17 @@ export function PersonalGoalForm({ goal, onSave, onCancel }: PersonalGoalFormPro
   const [note, setNote] = useState(goal?.note ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [goalResult, setGoalResult] = useState<PersonalGoalResult | null>(null);
+
+  // Výpočet odhadu pri zmene príspevku
+  useEffect(() => {
+    const result = monthsToPersonalGoalWithStatus(
+      targetCents > 0 ? Math.round(targetCents * 100) : undefined,
+      currentCapital >= 0 ? Math.round(currentCapital * 100) : undefined,
+      monthlySaving > 0 ? Math.round(monthlySaving * 100) : undefined,
+    );
+    setGoalResult(result);
+  }, [targetCents, currentCapital, monthlySaving]);
 
   const handleSave = async () => {
     try {
@@ -46,6 +58,21 @@ export function PersonalGoalForm({ goal, onSave, onCancel }: PersonalGoalFormPro
       if (currentCapital < 0) {
         setError("Aktuálne vyčlenený kapitál nesmie byť záporný");
         return;
+      }
+
+      // Validácia dátumu
+      const dateValidation = validatePersonalGoalDate(targetYear, targetMonth);
+      if (!dateValidation.valid) {
+        setError(dateValidation.reason || "Chyba v dátume");
+        return;
+      }
+
+      // Varovanie pri nedosiahnuteľnosti (bez blokovania uloženia)
+      if (goalResult && goalResult.status === "impossible") {
+        const confirmed = window.confirm(
+          `${goalResult.reason}\n\nChcete cieľ predsa uložiť?`
+        );
+        if (!confirmed) return;
       }
 
       const newGoal: PersonalGoal = {
@@ -253,6 +280,35 @@ export function PersonalGoalForm({ goal, onSave, onCancel }: PersonalGoalFormPro
           <small style={{ display: "block", color: "#6B7280", marginLeft: "28px" }}>Umožní posunúť termín ak sa nedosiahne</small>
         </div>
       </div>
+
+      {/* Odhad dosiahnutia */}
+      {goalResult && (
+        <div style={{
+          background: goalResult.status === "achieved" ? "#D1FAE5" :
+                     goalResult.status === "feasible" ? "#EBF8FF" :
+                     goalResult.status === "long_horizon" ? "#FED7AA" :
+                     goalResult.status === "impossible" ? "#FEE2E2" : "#F3F4F6",
+          border: "1px solid " + (goalResult.status === "achieved" ? "#A7F3D0" :
+                                  goalResult.status === "feasible" ? "#BAE6FD" :
+                                  goalResult.status === "long_horizon" ? "#FDBA74" :
+                                  goalResult.status === "impossible" ? "#FECACA" : "#D1D5DB"),
+          borderRadius: "8px",
+          padding: "12px",
+          marginBottom: "16px",
+          fontSize: "14px",
+          color: goalResult.status === "achieved" ? "#065F46" :
+                goalResult.status === "feasible" ? "#0369A1" :
+                goalResult.status === "long_horizon" ? "#92400E" :
+                goalResult.status === "impossible" ? "#B91C1C" : "#374151"
+        }}>
+          <strong>📊 Odhad dosiahnutia:</strong> {goalResult.reason}
+          {goalResult.targetDate && (
+            <div style={{ marginTop: "4px" }}>
+              <strong>Dátum:</strong> {goalResult.targetDate}
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ marginBottom: "16px" }}>
         <label style={labelStyle}>Poznámka</label>

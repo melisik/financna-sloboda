@@ -6,7 +6,7 @@ import type { AppData, Transaction } from "../src/storage/types";
 
 const TODAY = "2026-10-14";
 let dbSeq = 0;
-const freshName = () => `test-db-${++dbSeq}-${Math.random().toString(36).slice(2)}`;
+const freshName = () => `vitest-test-db-${++dbSeq}-${Math.random().toString(36).slice(2)}`;
 
 const sample: AppData = {
   settings: {
@@ -135,8 +135,8 @@ describe("záloha: export a import (FR-17, FR-18)", () => {
   });
 
   it("vyššia verzia schémy je odmietnutá", () => {
-    // 17 a 18 sú rezervované a odmietnu sa ako neznáme (D-347); vyššia ako aktuálna 19 je novšia.
-    const parsed = parseBackup({ app: "financna-sloboda", schemaVersion: 20, exportedAt: "x", settings: null, transactions: [], snapshots: [] }, TODAY);
+    // 17 a 18 sú rezervované a odmietnu sa ako neznáme (D-347); vyššia ako aktuálna 20 je novšia.
+    const parsed = parseBackup({ app: "financna-sloboda", schemaVersion: 21, exportedAt: "x", settings: null, transactions: [], snapshots: [] }, TODAY);
     expect(parsed.ok).toBe(false);
     expect(!parsed.ok && parsed.errors.join(" ")).toMatch(/novšej verzie/);
   });

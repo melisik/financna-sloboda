@@ -102,14 +102,16 @@ describe("ETAPA 1: Finančný scenár s nehnuteľnosťami a voľným peňažným
     expect(ctx.K_FIRE).toBe(expectedKfire);
   });
 
-  it("m: voľný peňažný tok = príjmy (5 500 + 900 nájom) - výdavky (2 300) = 4 100", () => {
+  it("m: voľný peňažný tok = 0 EUR (transakcie sú v mesiaci snapshotu, vylúčené)", () => {
     const ctx = makeCtx(baseData);
-    // Príjmy zo sporení: 3000 + 2500 = 5500
-    // Príjmy z nájmu (prenajom): 900 (D-346, monthlyCashFlow počíta nájom ako príjem)
-    // Výdavky: 1500 (potraviny) + 800 (hypotéka) = 2300
-    // m = (5500 + 900) - 2300 = 4100
-    const expectedM = eur(4100);
-    expect(Math.abs(ctx.m - expectedM)).toBeLessThan(eur(10)); // Tolerancia pre zaokrúhľovanie
+    // Snapshot: 31.10.2026
+    // Sledované obdobie: 1.10.2025 až 30.9.2026 (12 mesiacov PRED snapshotu)
+    // Všetky transakcie sú v októbri 2026 (mesiac snapshotu) → MIMO periody
+    // Príjmy: 0 EUR (žiadne type="prijem")
+    // Výdavky: 0 EUR (mimo periody)
+    // m = (0 - 0) / 12 = 0 centov
+    const expectedM = 0;
+    expect(ctx.m).toBe(expectedM);
   });
 
   it("Vlastné bývanie je v K_total ale nie v K_FIRE", () => {

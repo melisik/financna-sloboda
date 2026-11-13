@@ -1,6 +1,6 @@
 import type { PersonalGoal } from "../storage/types";
 import { CSSProperties } from "react";
-import { formatMonths, analyzePersonalGoal, type PersonalGoalAnalysis } from "../domain/personalGoal";
+import { monthsToPersonalGoalWithStatus, type PersonalGoalResult } from "../domain/personalGoal";
 
 interface PersonalGoalListProps {
   goals: PersonalGoal[];
@@ -8,17 +8,27 @@ interface PersonalGoalListProps {
   onDelete?: (goalId: string) => void;
 }
 
+interface GoalWithResult {
+  goal: PersonalGoal;
+  result: PersonalGoalResult;
+}
+
 export function PersonalGoalList({
   goals,
   onEdit,
   onDelete,
 }: PersonalGoalListProps) {
-  const analyses: PersonalGoalAnalysis[] = goals.map((goal) =>
-    analyzePersonalGoal(goal)
-  );
+  const goalsWithResults: GoalWithResult[] = goals.map((goal) => ({
+    goal,
+    result: monthsToPersonalGoalWithStatus(
+      goal.targetCents,
+      goal.currentCapitalCents ?? 0,
+      goal.monthlySavingCents ?? 0,
+    ),
+  }));
 
-  // Zosť podľa priority
-  const sortedAnalyses = [...analyses].sort((a, b) => a.goal.priority - b.goal.priority);
+  // Zoradiť podľa priority
+  const sortedGoals = [...goalsWithResults].sort((a, b) => a.goal.priority - b.goal.priority);
 
   const containerStyle: CSSProperties = {
     background: "#FFFFFF",
@@ -41,7 +51,7 @@ export function PersonalGoalList({
     borderBottom: "none",
   };
 
-  const statusBadgeStyle = (classification: string): CSSProperties => {
+  const statusBadgeStyle = (status: string): CSSProperties => {
     const baseStyle: CSSProperties = {
       display: "inline-block",
       padding: "4px 12px",
@@ -50,12 +60,19 @@ export function PersonalGoalList({
       fontWeight: 600,
     };
 
-    if (classification === "dosiahnutelny") {
-      return { ...baseStyle, background: "#D1FAE5", color: "#065F46" };
-    } else if (classification === "horizont_50plus") {
-      return { ...baseStyle, background: "#FED7AA", color: "#92400E" };
-    } else {
-      return { ...baseStyle, background: "#FEE2E2", color: "#B91C1C" };
+    switch (status) {
+      case "achieved":
+        return { ...baseStyle, background: "#D1FAE5", color: "#065F46" };
+      case "feasible":
+        return { ...baseStyle, background: "#EBF8FF", color: "#0369A1" };
+      case "long_horizon":
+        return { ...baseStyle, background: "#FED7AA", color: "#92400E" };
+      case "impossible":
+        return { ...baseStyle, background: "#FEE2E2", color: "#B91C1C" };
+      case "invalid":
+        return { ...baseStyle, background: "#F3F4F6", color: "#374151" };
+      default:
+        return { ...baseStyle, background: "#F3F4F6", color: "#374151" };
     }
   };
 
@@ -96,15 +113,22 @@ export function PersonalGoalList({
 
   return (
     <div style={containerStyle}>
-      {sortedAnalyses.map((analysis, idx) => {
-        const goal = analysis.goal;
-        const isLast = idx === sortedAnalyses.length - 1;
+      {sortedGoals.map((gwr, idx) => {
+        const goal = gwr.goal;
+        const result = gwr.result;
+        const isLast = idx === sortedGoals.length - 1;
+
+        const statusLabel = result.status === "achieved" ? "✓ Dosiahnutý" :
+                           result.status === "feasible" ? "📈 Dosiahnuť" :
+                           result.status === "long_horizon" ? "⏳ Dlhý horizont" :
+                           result.status === "impossible" ? "❌ Nedosiahnuteľný" :
+                           "⚠️ Neplatný";
 
         return (
           <div key={goal.id} style={isLast ? lastCardStyle : cardStyle}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "8px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <div>
+                <div style={{ flex: 1 }}>
                   <div style={{ fontSize: "16px", fontWeight: 600, color: "#111827" }}>
                     {goal.priority}. {goal.name}
                   </div>
@@ -114,7 +138,7 @@ export function PersonalGoalList({
                   </div>
                   {(goal.currentCapitalCents ?? 0) > 0 && (
                     <div style={{ fontSize: "13px", color: "#6B7280" }}>
-                      Aktuálne vyčlenené: {((goal.currentCapitalCents ?? 0) / 100).toFixed(2)} € | Zostáva: {((goal.targetCents - (goal.currentCapitalCents ?? 0)) / 100).toFixed(2)} €
+                      K0: {((goal.currentCapitalCents ?? 0) / 100).toFixed(2)} € | Zostáva: {((goal.targetCents - (goal.currentCapitalCents ?? 0)) / 100).toFixed(2)} €
                     </div>
                   )}
                   {goal.monthlySavingCents && (
@@ -126,17 +150,19 @@ export function PersonalGoalList({
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-                <span style={statusBadgeStyle(analysis.classification)}>
-                  {analysis.classification === "dosiahnutelny"
-                    ? "Dosiahnuteľný"
-                    : analysis.classification === "horizont_50plus"
-                      ? "Horizont 50+"
-                      : "Nedosiahnuteľný"}
+                <span style={statusBadgeStyle(result.status)}>
+                  {statusLabel}
                 </span>
 
-                {analysis.monthsToTarget !== null && (
+                {result.months !== null && (
                   <span style={{ fontSize: "13px", color: "#6B7280" }}>
-                    {formatMonths(analysis.monthsToTarget)}
+                    {result.months} mesiacov
+                  </span>
+                )}
+
+                {result.targetDate && (
+                  <span style={{ fontSize: "13px", color: "#059669", fontWeight: 500 }}>
+                    📅 {result.targetDate}
                   </span>
                 )}
 

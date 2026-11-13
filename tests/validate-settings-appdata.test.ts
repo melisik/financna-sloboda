@@ -79,6 +79,8 @@ describe("validateAppData: celá záloha (FR-18)", () => {
     recipes: [],
     dogs: [],
     goals: [], wasteRecords: [], shoppingItems: [],
+    persons: [],
+    households: [],
   };
 
   const tx = (id: string, amountCents: number) => ({
